@@ -7,6 +7,7 @@ export interface ChapterOneData {
     countRound:number;rewardReceipts:string[];replayRound:number|null;legacyDemoBadge:boolean;
 }
 export class ChapterOneProgress {
+    onIntent?:(intent:{type:string;index?:number;round?:number;value?:number})=>void;
     data:ChapterOneData={version:2,introSeen:false,greeted:false,accepted:false,planted:[],countRound:0,rewardReceipts:[],replayRound:null,legacyDemoBadge:false};
     get stage():ChapterStage {
         const d=this.data;
@@ -14,18 +15,18 @@ export class ChapterOneProgress {
     }
     get stars():number{return this.data.rewardReceipts.indexOf(FIRST_STAR)>=0?1:0;}
     get chapterTwoUnlocked():boolean{return this.stage==='complete';}
-    enterVillage():boolean{if(this.stage!=='intro')return false;this.data.introSeen=true;return true;}
-    greet():boolean{if(this.stage!=='greet')return false;this.data.greeted=true;return true;}
-    accept():boolean{if(this.stage!=='meet-farmer')return false;this.data.accepted=true;return true;}
+    enterVillage():boolean{if(this.stage!=='intro')return false;this.data.introSeen=true;this.onIntent?.({type:'enter'});return true;}
+    greet():boolean{if(this.stage!=='greet')return false;this.data.greeted=true;this.onIntent?.({type:'greet'});return true;}
+    accept():boolean{if(this.stage!=='meet-farmer')return false;this.data.accepted=true;this.onIntent?.({type:'accept'});return true;}
     plant(index:number):boolean {
         if(this.stage!=='plant'||!Number.isInteger(index)||index<0||index>=plantingPlots.length||this.data.planted.indexOf(index)>=0)return false;
-        this.data.planted.push(index);return true;
+        this.data.planted.push(index);this.onIntent?.({type:'plant',index});return true;
     }
-    finishCountRound():boolean {
+    finishCountRound(value?:number):boolean {
         if(this.data.replayRound!==null){if(this.stage!=='complete'||this.data.replayRound>=3)return false;this.data.replayRound++;return true;}
-        if(this.stage!=='count')return false;this.data.countRound++;return true;
+        if(this.stage!=='count')return false;const round=this.data.countRound;this.data.countRound++;this.onIntent?.({type:'count',round,value});return true;
     }
-    turnIn():boolean{if(this.stage!=='return')return false;this.data.rewardReceipts.push(FIRST_STAR);return true;}
+    turnIn():boolean{if(this.stage!=='return')return false;this.data.rewardReceipts.push(FIRST_STAR);this.onIntent?.({type:'turn-in'});return true;}
     startReplay():boolean{if(this.stage!=='complete')return false;this.data.replayRound=0;return true;}
     endReplay():void{this.data.replayRound=null;}
     restore(raw:string):boolean {

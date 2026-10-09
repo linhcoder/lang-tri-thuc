@@ -2,6 +2,15 @@ export interface Point { x: number; y: number }
 export type Terrain = 'grass' | 'road' | 'rice' | 'pond' | 'courtyard';
 export const SIZE = 40;
 export const elderTile:Readonly<Point>={x:10,y:21};
+export interface NpcSpawn {id:string;name:string;x:number;y:number;chapter:number;color:[number,number,number]}
+export const storyNpcs:NpcSpawn[]=[
+    {id:'ti-na',name:'Tí và Na',x:19,y:24,chapter:1,color:[230,129,80]},
+    {id:'ba-ban-hang',name:'Bà Bán Hàng',x:30,y:23,chapter:2,color:[175,110,178]},
+    {id:'co-giao-lan',name:'Cô Giáo Lan',x:7,y:22,chapter:3,color:[225,131,160]},
+    {id:'nghe-nhan-gom',name:'Nghệ Nhân Gốm',x:5,y:28,chapter:4,color:[173,129,82]},
+    {id:'co-tam',name:'Cô Tấm',x:10,y:8,chapter:5,color:[98,171,132]},
+    {id:'chi-hang-cuoi',name:'Chị Hằng • Chú Cuội',x:33,y:28,chapter:6,color:[141,135,213]},
+];
 export const villageObjects = [
     {id:'dinh',frame:0,x:21,y:17,width:220,height:180,radius:1},
     {id:'house',frame:1,x:30,y:26,width:170,height:160,radius:1},
@@ -26,6 +35,7 @@ export class VillageMap {
         return Number.isInteger(x) && Number.isInteger(y) && x >= 0 && y >= 0 && x < SIZE && y < SIZE
             && terrain(x, y) !== 'pond' && !(x === this.npc.x && y === this.npc.y)
             && !(x===elderTile.x&&y===elderTile.y)
+            && !storyNpcs.some(npc=>npc.x===x&&npc.y===y)
             && !villageObjects.some(object=>Math.abs(x-object.x)<=object.radius&&Math.abs(y-object.y)<=object.radius);
     }
     canStand(p: Point): boolean {

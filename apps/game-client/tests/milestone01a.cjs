@@ -24,6 +24,10 @@ const { LearningProgress,sowSeeds }=load(path.join(scripts,'world/LearningProgre
 const { ChapterOneProgress,plantingPlots,FIRST_STAR }=load(path.join(scripts,'world/ChapterOneProgress.ts'));
 const { RiceCountGame }=load(path.join(scripts,'world/RiceCountGame.ts'));
 const { ChapterOneSave,CHAPTER_SAVE_KEY,LEGACY_SAVE_KEY }=load(path.join(scripts,'world/ChapterOneSave.ts'));
+const { CampaignEngine,DialogueEngine }=load(path.join(scripts,'world/CampaignEngine.ts'));
+const { chapters,miniGameIds,validateContent }=load(path.join(scripts,'world/CampaignContent.ts'));
+const { EducationEngine,lessonQuestions }=load(path.join(scripts,'world/EducationEngine.ts'));
+const { MiniGameRules,puzzleScramble,mazePath }=load(path.join(scripts,'world/MiniGameRules.ts'));
 const map = new m.VillageMap();
 let checks = 0;
 function test(name, fn) { fn(); checks++; console.log('PASS', name); }
@@ -195,5 +199,47 @@ test('chapter restore normalizes invalid dependencies, duplicate receipts and fo
     assert.equal(p.restore(JSON.stringify(raw)),true);assert.equal(p.stage,'plant');assert.equal(p.stars,0);assert.equal(p.data.countRound,0);assert.equal(p.data.replayRound,null);
     raw.planted=[0,1,2,3,4];p.restore(JSON.stringify(raw));assert.equal(p.stars,1);assert.equal(p.data.rewardReceipts.length,1);
     raw.greeted=false;p.restore(JSON.stringify(raw));assert.equal(p.stage,'greet');assert.deepEqual(p.data.planted,[]);assert.equal(p.stars,0);
+});
+test('content graph has eight chapters, twelve registered games and blocks unreviewed shipping packs',()=>{
+    assert.equal(chapters.length,8);assert.equal(miniGameIds.length,12);assert.deepEqual(validateContent(),[]);assert.equal(validateContent(true).length,8);
+    assert.throws(()=>new DialogueEngine([{id:'a',text:'a',next:'b'},{id:'b',text:'b',next:'a'}]));assert.throws(()=>new DialogueEngine([{id:'a',text:'a',next:'missing'}]));
+});
+test('campaign unlocks sequential quests/chapters and gives exactly eight idempotent receipts',()=>{
+    const c=new CampaignEngine();assert.equal(c.complete('q.ch02.learn-rules'),false);const first=new ChapterOneProgress();first.enterVillage();first.greet();first.accept();for(let i=0;i<5;i++)first.plant(i);for(let i=0;i<3;i++)first.finishCountRound();first.turnIn();c.syncChapterOne(first.data);
+    for(let i=1;i<8;i++){assert.equal(c.unlocked(i),true);c.introduce(i);for(const q of chapters[i].quests){assert.equal(c.complete(q.id),true);assert.equal(c.complete(q.id),false);}assert.equal(c.claim(i),true);assert.equal(c.claim(i),false);}
+    assert.equal(c.stars,8);const copy=new CampaignEngine();assert.equal(copy.restore(JSON.stringify(c.data)),true);assert.equal(copy.stars,8);
+    const forged=new CampaignEngine();forged.restore(JSON.stringify({...c.data,completed:[],receipts:c.data.receipts}));assert.equal(forged.stars,0);
+});
+test('lessons validate arithmetic at all three age levels and reject draft publication',()=>{
+    for(const age of ['3-5','6-8','9-11']){const questions=lessonQuestions('math',age),e=new EducationEngine(questions);for(const q of questions){const match=q.prompt.match(/(\d+) ([+×]) (\d+)/),expected=match[2]==='+'?+match[1]+ +match[3]:+match[1]* +match[3];assert.equal(+q.choices[q.answer],expected);assert.equal(e.answer(-1),false);assert.equal(e.answer(q.answer),true);}assert.equal(e.complete,true);}
+    assert.throws(()=>new EducationEngine(lessonQuestions('math','3-5'),0,true));
+});
+function verifyGame(game){const before=JSON.stringify(game.data);assert.equal(game.action('invalid',-99),false);assert.equal(JSON.stringify(game.data),before);const restored=MiniGameRules.restore(game.save());assert.deepEqual(restored.data,game.data);}
+test('twelve distinct minigames complete solo, validate actions and restore deterministic traces',()=>{
+    for(const id of miniGameIds){const g=new MiniGameRules(id);verifyGame(g);
+        if(id==='mg.rice-count'){for(let i=0;i<5;i++)g.action('plant',i);for(let i=0;i<5;i++)g.action('water',i);assert.equal(g.action('answer',4),false);g.action('answer',5);}
+        else if(id==='mg.o-an-quan'){for(let i=0;i<150&&!g.ended;i++){const pit=[0,1,2,3,4].find(p=>g.data.board[p]>0);assert.ok(pit!==undefined);assert.equal(g.action('pit',pit),true);assert.equal(g.data.board.reduce((a,b)=>a+b)+g.data.scores[0]+g.data.scores[1]+g.data.quan.filter(Boolean).length*10,70);}}
+        else if(id==='mg.tug-of-war'||id==='mg.bamboo-dance'){for(let i=0;i<500&&!g.ended;i++){g.advance(.1);if(g.rhythmOpen)g.action('beat',0);}}
+        else if(id==='mg.market'){for(let i=0;i<3;i++)for(let n=0;n<g.data.wants[i];n++)g.action('add',i);assert.equal(g.action('pay',0),false);g.action('pay',2);}
+        else if(id==='mg.star-lantern'){for(let i=0;i<5;i++){g.action('part',i);assert.equal(g.action('place',(i+1)%5),false);g.action('place',i);}}
+        else if(id==='mg.banh-chung'){for(let i=0;i<6;i++)g.action('layer',i);}
+        else if(id==='mg.dong-ho'){for(const index of puzzleScramble(17).reverse){if(g.ended)break;g.action('tile',index);}}
+        else if(id==='mg.fishing'){for(let step=0;step<300&&!g.ended;step++){g.advance(.1);for(let i=0;i<3;i++)if(g.data.caught<0&&!g.data.observed.includes(i)&&Math.abs(g.fishX(i))<70){g.action('fish',i);g.action('color',i);}}}
+        else if(id==='mg.secret-letters'){while(!g.ended)g.action('letter',g.data.grid.indexOf(g.data.word[g.data.step]));}
+        else if(id==='mg.animal-care'){for(const i of [1,0,2])g.action('care',i);}
+        else if(id==='mg.village-maze'){for(const next of mazePath(0)){const offset=next-g.data.cursor;g.action('move',[-5,1,5,-1].indexOf(offset));}}
+        assert.equal(g.ended,true,id);verifyGame(g);assert.equal(g.action('plant',0),false);
+    }
+});
+test('pause freezes time, invalid saved actions cannot forge results, NPC tiles remain reachable',()=>{
+    const g=new MiniGameRules('mg.tug-of-war');g.pause();g.advance(10);assert.equal(g.clock,0);assert.equal(g.action('beat',0),false);g.resume();g.advance(.1);assert.ok(g.clock>0);
+    assert.throws(()=>MiniGameRules.restore({...g.save(),actions:[{type:'beat',index:0,at:-1}]}));
+    for(const npc of m.storyNpcs){assert.equal(map.walkable(npc.x,npc.y),false);assert.ok([[1,0],[-1,0],[0,1],[0,-1]].some(([x,y])=>map.path({x:20,y:20},{x:npc.x+x,y:npc.y+y}).length>0));}
+});
+test('world map pins are unique, walkable and reachable; edited chapter text cannot change IDs',()=>{
+ const {validateZones,portalDestination}=load(path.join(scripts,'world/WorldZones.ts'));assert.equal(validateZones(),true);assert.deepEqual(portalDestination(m.toWorld({x:20,y:22}),'farm'),m.toWorld({x:14,y:11}));assert.equal(portalDestination({x:9999,y:9999},'farm'),null);assert.equal(portalDestination({x:0,y:-640},'unknown'),null);
+ const {applyChapterText}=load(path.join(scripts,'world/ContentPack.ts'));const old=chapters[0].title;
+ assert.equal(applyChapterText({version:1,chapters:[{id:'unknown',title:'x',intro:'x',ending:'x',questTitles:{}}]}),false);
+ assert.equal(chapters[0].title,old);assert.equal(applyChapterText({version:1,chapters:[]}),true);
 });
 console.log(`${checks} test groups passed`);

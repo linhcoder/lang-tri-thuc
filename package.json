@@ -3,7 +3,9 @@
   "private": true,
   "workspaces": [
     "apps/game-client",
-    "apps/game-server"
+    "apps/game-server",
+    "apps/backend",
+    "apps/admin"
   ],
   "scripts": {
     "server": "npm run start --workspace game-server",
@@ -14,7 +16,16 @@
     "test:client": "node apps/game-client/tests/milestone01a.cjs",
     "check:client": "tsc -p apps/game-client/tsconfig.json --skipLibCheck --strict --pretty false",
     "test:web": "node apps/game-client/tests/build-smoke.cjs",
-    "test:m2": "node apps/game-client/tests/chapter-one-web.cjs"
+    "test:m2": "node apps/game-client/tests/chapter-one-web.cjs",
+    "test:campaign": "node apps/game-client/tests/campaign-web.cjs",
+    "api": "npm run start --workspace game-backend",
+    "api:build": "npm run build --workspace game-backend",
+    "test:api": "npm run test --workspace game-backend",
+    "admin": "npm run dev --workspace game-admin",
+    "admin:build": "npm run build --workspace game-admin",
+    "local:stack": "node tools/local-stack.cjs",
+    "test:stack": "node apps/game-client/tests/stack-web.cjs",
+    "backup:local": "node tools/backup-local.cjs"
   },
   "devDependencies": {
     "playwright": "^1.62.1"

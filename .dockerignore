@@ -1,0 +1,15 @@
+.git
+node_modules
+**/node_modules
+**/temp
+**/library
+**/build
+**/dist
+.env*
+**/.env*
+**/.data
+**/private-backups
+artifacts
+**/*.sqlite*
+temp
+*.log

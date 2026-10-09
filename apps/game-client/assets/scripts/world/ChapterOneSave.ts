@@ -6,16 +6,16 @@ export interface StoragePort {getItem(key:string):string|null;setItem(key:string
 export class ChapterOneSave {
     readonly progress=new ChapterOneProgress();
     notice='';sessionOnly=false;private writable=true;
-    constructor(private storage:StoragePort){}
+    constructor(private storage:StoragePort,private key=CHAPTER_SAVE_KEY){}
     load():void {
         let raw:string|null;
-        try{raw=this.storage.getItem(CHAPTER_SAVE_KEY);}catch{this.writable=false;this.sessionOnly=true;this.notice='Không đọc được bộ nhớ. Cháu vẫn chơi được trong phiên này.';return;}
+        try{raw=this.storage.getItem(this.key);}catch{this.writable=false;this.sessionOnly=true;this.notice='Không đọc được bộ nhớ. Cháu vẫn chơi được trong phiên này.';return;}
         if(raw!==null){
             let version:unknown;try{version=JSON.parse(raw)?.version;}catch{}
             if(typeof version==='number'&&version>2){this.writable=false;this.sessionOnly=true;this.notice='Save thuộc phiên bản mới hơn, được giữ nguyên. Phiên này không ghi tiến độ.';return;}
             if(this.progress.restore(raw))return;
             // Preserve the original before replacing corrupt/unsupported data.
-            try{const first=this.storage.getItem(CHAPTER_SAVE_KEY+'.recovery');if(first!==raw)this.storage.setItem(CHAPTER_SAVE_KEY+(first===null?'.recovery':'.recovery.latest'),raw);}
+            try{const first=this.storage.getItem(this.key+'.recovery');if(first!==raw)this.storage.setItem(this.key+(first===null?'.recovery':'.recovery.latest'),raw);}
             catch{this.writable=false;this.sessionOnly=true;}
             this.notice=this.writable?'Save cũ chưa đọc được, đã giữ bản phục hồi. Cháu có thể bắt đầu lại.':'Save cũ được giữ nguyên. Phiên này không ghi tiến độ.';
             return;
@@ -31,7 +31,7 @@ export class ChapterOneSave {
     }
     save():boolean {
         if(!this.writable)return false;
-        try{this.storage.setItem(CHAPTER_SAVE_KEY,JSON.stringify(this.progress.data));this.sessionOnly=false;return true;}
+        try{this.storage.setItem(this.key,JSON.stringify(this.progress.data));this.sessionOnly=false;return true;}
         catch{this.sessionOnly=true;this.notice='Bộ nhớ chưa lưu được. Cháu vẫn chơi được; tiến độ có thể mất khi đóng trang.';return false;}
     }
 }

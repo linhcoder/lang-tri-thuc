@@ -3,7 +3,7 @@ import { schema, t } from '@colyseus/schema';
 import { Point, toWorld, VillageMap } from '../../game-client/assets/scripts/world/VillageModel.js';
 
 export class PlayerState extends schema({x:t.number().default(0),y:t.number().default(-640),direction:t.uint8().default(6),moving:t.boolean().default(false),name:t.string().default('')}) {}
-export class VillageState extends schema({players:t.map(PlayerState)}) {}
+export class VillageState extends schema({players:t.map(PlayerState),gameJson:t.string().default(''),gameQuest:t.string().default('')}) {}
 export interface MovePacket extends Point { direction:number; moving:boolean; seq:number }
 export function validMove(map:VillageMap, from:Point, packet:unknown, budget:number): packet is MovePacket {
     if (!packet || typeof packet !== 'object') return false;
@@ -19,7 +19,7 @@ export class VillageRoom extends Room<{state:VillageState}> {
     private map = new VillageMap();
     private limits = new Map<string,{time:number;budget:number;seq:number}>();
     onCreate():void {
-        this.maxClients=16;this.setState(new VillageState());this.setPatchRate(50);
+        this.maxClients=16;this.maxMessagesPerSecond=32;this.setState(new VillageState());this.setPatchRate(50);
         this.onMessage('move',(client,packet:unknown)=>{
             const player=this.state.players.get(client.sessionId), limit=this.limits.get(client.sessionId);
             if(!player||!limit)return;
@@ -35,4 +35,5 @@ export class VillageRoom extends Room<{state:VillageState}> {
         this.state.players.set(client.sessionId,p);this.limits.set(client.sessionId,{time:performance.now(),budget:30,seq:-1});
     }
     onLeave(client:Client):void {this.state.players.delete(client.sessionId);this.limits.delete(client.sessionId);}
+    protected relocate(client:Client,p:Point):void{const player=this.state.players.get(client.sessionId),limit=this.limits.get(client.sessionId);if(!player||!limit||!this.map.canStand(p))return;player.x=p.x;player.y=p.y;player.moving=false;limit.budget=0;limit.time=performance.now();client.send('correction',p);}
 }

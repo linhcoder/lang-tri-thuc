@@ -7,54 +7,57 @@ Dự án game giáo dục Web Multiplayer 2.5D Isometric dành cho trẻ em Vi�
 - Cocos Creator 3.8.x + TypeScript
 - Colyseus Multiplayer
 - Node.js + Colyseus (server multiplayer)
-- PostgreSQL + Redis (giai đoạn sau)
+- Fastify + PostgreSQL (adapter/staging), SQLite local; Redis khi cần nhiều instance
 
 ## Mục tiêu
 
 Xây dựng thế giới làng quê Việt Nam, nơi trẻ có thể khám phá, tương tác NPC, học tập và tham gia các mini game dân gian cùng bạn bè.
 
-## Trạng thái
+## Trạng thái hiện tại
 
-Prototype có bản đồ 40 × 40, sprite tám hướng, NPC, nhiệm vụ thu hoạch lúa, bài đếm/cộng hạt gạo, bài luyện rải hạt Ô ăn quan và multiplayer tối đa 16 người/phòng.
+Full campaign prototype đã chạy đủ tám chương, 12 mini game, NPC/nhật ký/sao, avatar/nhà/bản đồ/cổng khu, save local, phòng riêng có vé phụ huynh, Fastify API và React admin. Nội dung vẫn draft, art mới còn placeholder; chưa nghiệm thu public beta.
 
-Luồng mặc định hiện là **Chương 1: Ngày Về Làng** — chào Ông Đồ, trồng năm cây, học đếm và nhận sao đầu. Demo thu hoạch/rải hạt cũ được giữ tại `?demo=1`. Xem [M2](docs/MILESTONE_M2.md) để biết save migration và giới hạn kiểm thử.
+**Bàn giao và kết quả kiểm thử:** [prototype tám chương](docs/DELIVERY_FULL_PROTOTYPE.md). **Staging VPS:** [runbook](deploy/README.md). Gate còn lại: chuyên gia/nhóm trẻ có giám sát, Intel HD/UHD/điện thoại thật/soak và VPS/PostgreSQL live.
 
-## Chạy bản web
+## Chạy offline
 
-Yêu cầu Node.js 22+ và Cocos Creator 3.8.8.
-
-```powershell
-npm ci
-npm run web:build
-```
-
-Trong hai terminal riêng:
+Node 24.13+ và Cocos Creator 3.8.8:
 
 ```powershell
-npm run server
+npm.cmd ci
+npm.cmd run web:build
+npm.cmd run web
 ```
+
+Mở `http://127.0.0.1:8080/`. Chương 1 mặc định; Sổ làng mở các chương tiếp sau khi nhận sao. `?demo=1` giữ demo cũ.
+
+## Chạy API, phòng riêng và trang phụ huynh
 
 ```powershell
-npm run web
+npm.cmd run api:build
+npm.cmd run server:build
+npm.cmd run admin:build
+npm.cmd run local:stack
 ```
 
-Mở `http://127.0.0.1:8080/` để chơi offline; thêm `?server=http://127.0.0.1:2567` để vào làng online. Mở hai cửa sổ browser để thấy nhau. Không có tài khoản/chat; tên bạn chơi được tạo tự động. Tiến độ học tập lưu riêng trên máy.
+Mở `http://127.0.0.1:35173/`; game ở `http://127.0.0.1:38080/`. Secret/mật khẩu admin sinh trong `.env.local` bị ignore. Tạo hồ sơ và mở game bằng vé từ trang phụ huynh; game chính không tự vào room development chỉ bằng query `server`.
 
-Nếu Cocos cài ở vị trí khác, đặt `COCOS_CREATOR` hoặc chạy `node tools/build-web.cjs <đường-dẫn-CocosCreator.exe>`.
+Trong Cocos Dashboard, mở project `apps/game-client` bằng **3.8.8**, đợi import, mở `assets/scenes/VillageScene.scene`, Preview Browser. Canvas đã có `VillageBootstrap`; không gắn trùng hoặc dựng prefab/map thủ công. Xem hướng dẫn đầy đủ ở tài liệu bàn giao.
 
 ## Kiểm thử
 
 ```powershell
-npm run check:client
-npm run test:client
-npm run server:build
-npm run test:server
-npm run test:web
-npm run test:m2
+npm.cmd run check:client
+npm.cmd run test:client
+npm.cmd run test:api
+npm.cmd run test:server
+npm.cmd run test:m2
+npm.cmd run test:campaign
+npm.cmd run test:stack
 ```
 
-`test:web` cần bản build và hai server cục bộ đang chạy như trên. Nó tự tìm Chrome/Edge có sẵn; có thể đặt `CHROME_EXECUTABLE` hoặc cài Chromium bằng `npx playwright install chromium`. Kiểm tra kiểu client cần mở project hoặc build một lần để Cocos tạo `temp/declarations`.
+Browser tests cần web build; `test:m2`/`test:campaign` dùng server web cổng 8080 (`npm run web`); `test:stack` dùng `npm run local:stack`. `test:web` hồi quy demo cũ cần web 8080 và server dev 2567 (`npm run server`). Browser được tìm từ Chrome/Edge; có thể đặt `CHROME_EXECUTABLE`. Typecheck client cần mở Editor/build một lần để tạo `temp/declarations`.
 
-Chi tiết: [hướng dẫn prototype](apps/game-client/MILESTONE-01A.md), [luồng học tập và multiplayer](apps/game-client/PLAYABLE-VILLAGE.md), [nguồn art và prompt](apps/game-client/ART.md).
+Nếu Creator cài khác đường dẫn mặc định, đặt `COCOS_CREATOR` hoặc `node tools/build-web.cjs <đường-dẫn-CocosCreator.exe>`.
 
-Thiết kế game và lộ trình theo master prompt: [audit M0/M1](docs/AUDIT_M0.md), [cốt truyện tám chương](docs/STORY_BIBLE.md), [kế hoạch triển khai](docs/IMPLEMENTATION_PLAN.md). Các chương và tính năng đích trong tài liệu chưa đồng nghĩa đã triển khai trong prototype.
+Tài liệu: [Milestone 01A](apps/game-client/MILESTONE-01A.md), [Chương 1](docs/MILESTONE_M2.md), [nguồn art](apps/game-client/ART.md), [cốt truyện](docs/STORY_BIBLE.md), [kế hoạch](docs/IMPLEMENTATION_PLAN.md), [QA](docs/QA_TEST_PLAN.md). Các tài liệu milestone cũ ghi trạng thái tại thời điểm viết; bản bàn giao mới là trạng thái triển khai hiện tại.

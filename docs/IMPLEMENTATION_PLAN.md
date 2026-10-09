@@ -51,3 +51,7 @@ Dependency: M8 nếu beta online; offline beta vẫn cần content/safety/access
 ## Quy trình mỗi milestone
 
 Audit diff → phạm vi nhỏ → code/content → unit/integration → Cocos build → browser/Editor khi làm được → báo cáo files/run/results/limits → chờ xác nhận. Không tự commit/push/merge. Một thay đổi nhỏ đã có test đạt không chạy lặp vô hạn; mở rộng test khi bug hoặc scope mới yêu cầu.
+
+## Bản triển khai sau yêu cầu tiếp tục toàn bộ
+
+Tám chương và backend/admin đã có full prototype chạy được. Xem [bàn giao](DELIVERY_FULL_PROTOTYPE.md) để phân biệt các tính năng đã kiểm thử với gate VPS, thiết bị mục tiêu, content và beta. Yêu cầu mới cho phép commit, không yêu cầu push.

@@ -1,0 +1,26 @@
+export type AgeBand='3-5'|'6-8'|'9-11';
+export type ReviewState='draft'|'reviewed'|'approved';
+export interface QuestDefinition {id:string;title:string;game?:string;lesson?:string;prerequisites:string[]}
+export interface ChapterDefinition {id:string;title:string;npc:string;intro:string;ending:string;quests:QuestDefinition[];review:ReviewState}
+const quest=(id:string,title:string,game?:string,lesson?:string):QuestDefinition=>({id,title,game,lesson,prerequisites:[]});
+export const chapters:ChapterDefinition[]=[
+    {id:'ch01',title:'Ngày Về Làng',npc:'Ông Đồ',intro:'Cháu cùng dân làng học hỏi để thắp sáng cây đa trong câu chuyện nhé!',ending:'Ngôi sao đầu tiên sáng rồi!',review:'draft',quests:[quest('q.ch01.greet','Chào Ông Đồ'),quest('q.ch01.plant','Trồng năm cây lúa'),quest('q.ch01.count','Đếm cây lúa'),quest('q.ch01.return','Về nhận sao')]},
+    {id:'ch02',title:'Sân Đình Rộn Rã',npc:'Tí và Na',intro:'Mình cùng học cách chia lượt và chơi vui với bạn nhé!',ending:'Cảm ơn bạn đã chơi cùng mình. Một ngôi sao nữa đã sáng!',review:'draft',quests:[quest('q.ch02.learn-rules','Học cách chia lượt',undefined,'fair-play'),quest('q.ch02.play-o-an-quan','Chơi Ô ăn quan','mg.o-an-quan'),quest('q.ch02.pull-together','Kéo co cùng NPC','mg.tug-of-war'),quest('q.ch02.share','Cùng chơi nhảy sạp','mg.bamboo-dance')]},
+    {id:'ch03',title:'Phiên Chợ Quê',npc:'Bà Bán Hàng',intro:'Cháu giúp bà xếp giỏ rồi tính xu của trò chơi nhé. Xu này không phải tiền thật.',ending:'Cháu đã chọn đủ đồ và nói lời cảm ơn!',review:'draft',quests:[quest('q.ch03.sort','Phân loại rau củ',undefined,'sorting'),quest('q.ch03.basket','Đi chợ theo danh sách','mg.market'),quest('q.ch03.polite','Chào hỏi và cảm ơn',undefined,'polite')]},
+    {id:'ch04',title:'Trường Học Dưới Tán Đa',npc:'Cô Giáo Lan',intro:'Cháu có thể chọn gợi ý, đọc lại và nghỉ khi muốn. Mình bắt đầu với chữ nhé!',ending:'Cháu đã thử chữ, số và từ mới. Cây sáng hơn rồi!',review:'draft',quests:[quest('q.ch04.letters','Tìm chữ bí mật','mg.secret-letters'),quest('q.ch04.numbers','Bài Toán theo mức học',undefined,'math'),quest('q.ch04.words','Từ tiếng Anh qua hình',undefined,'english'),quest('q.ch04.share','Chia sẻ điều đã học',undefined,'fair-play')]},
+    {id:'ch05',title:'Những Bàn Tay Khéo Léo',npc:'Nghệ Nhân Gốm',intro:'Cháu thử sắp các bước làm đồ gốm và ghép hình minh họa làng nghề trên màn hình nhé.',ending:'Tác phẩm của cháu được trưng bày trong sổ làng!',review:'draft',quests:[quest('q.ch05.clay','Thứ tự tạo hình',undefined,'clay'),quest('q.ch05.picture','Ghép tranh làng nghề','mg.dong-ho'),quest('q.ch05.tools','Quan sát vật dụng',undefined,'shapes'),quest('q.ch05.show','Chọn cách chia sẻ lịch sự',undefined,'polite')]},
+    {id:'ch06',title:'Mùa Vàng Quê Em',npc:'Bác Nông Dân',intro:'Mình cùng chăm cây và quan sát vật nuôi trong bài học mô phỏng. Ngoài đời, cháu cần người lớn giúp nhé.',ending:'Cháu biết quan sát và nhờ người lớn giúp chăm thiên nhiên!',review:'draft',quests:[quest('q.ch06.seedlings','Trồng và đếm lúa','mg.rice-count'),quest('q.ch06.care','Chọn cách chăm cây',undefined,'nature'),quest('q.ch06.harvest','Quan sát cá ở ao','mg.fishing'),quest('q.ch06.animals','Chăm sóc động vật','mg.animal-care')]},
+    {id:'ch07',title:'Hội Trăng Rằm',npc:'Chị Hằng và Chú Cuội',intro:'Trong câu chuyện đêm hội, mình ghép một chiếc đèn trên màn hình. Không dùng lửa hay dụng cụ thật nhé!',ending:'Chiếc đèn của cháu cùng bảy sao dẫn đường về cây đa!',review:'draft',quests:[quest('q.ch07.lantern','Ghép đèn ông sao','mg.star-lantern'),quest('q.ch07.decorate','Chọn hình và màu',undefined,'shapes'),quest('q.ch07.riddle','Câu đố về số',undefined,'math'),quest('q.ch07.parade','Tìm đường rước đèn','mg.village-maze')]},
+    {id:'ch08',title:'Ánh Sáng Cây Đa',npc:'Ông Đồ và dân làng',intro:'Cháu nhớ những việc mình đã làm không? NPC luôn có thể cùng cháu chơi khi không có bạn online.',ending:'Tám ngôi sao sáng rồi! Cháu có thể luyện lại, trang trí nhà và trở lại bất cứ khi nào muốn.',review:'draft',quests:[quest('q.ch08.recall','Nhớ những điều đã học',undefined,'mixed'),quest('q.ch08.cooperate','Cùng NPC sắp hình','mg.banh-chung'),quest('q.ch08.restore','Ghép ánh sáng cuối',undefined,'shapes')]},
+];
+for(const chapter of chapters)chapter.quests.forEach((q,i)=>{q.prerequisites=i?[chapter.quests[i-1].id]:[];});
+export const miniGameIds=['mg.rice-count','mg.o-an-quan','mg.tug-of-war','mg.bamboo-dance','mg.market','mg.star-lantern','mg.banh-chung','mg.dong-ho','mg.fishing','mg.secret-letters','mg.animal-care','mg.village-maze'] as const;
+export type MiniGameId=typeof miniGameIds[number];
+export function validateContent(requireApproved=false):string[]{
+    const errors:string[]=[],ids=new Set<string>();
+    for(const c of chapters){if(ids.has(c.id))errors.push('Duplicate '+c.id);ids.add(c.id);if(requireApproved&&c.review!=='approved')errors.push('Unapproved '+c.id);
+        const seen=new Set<string>();for(const q of c.quests){if(ids.has(q.id))errors.push('Duplicate '+q.id);ids.add(q.id);if(q.game&&!(miniGameIds as readonly string[]).includes(q.game))errors.push('Unknown game '+q.game);for(const p of q.prerequisites)if(!seen.has(p))errors.push('Missing or cyclic prerequisite '+p);seen.add(q.id);}}
+    return errors;
+}
+export { storyNpcs } from './VillageModel';
+export type { NpcSpawn } from './VillageModel';

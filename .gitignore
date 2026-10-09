@@ -1,3 +1,10 @@
 node_modules/
 apps/game-server/dist/
 artifacts/
+apps/backend/.data/
+apps/backend/dist/
+apps/admin/dist/
+.env
+.env.*
+!.env.example
+/temp/

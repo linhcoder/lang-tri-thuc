@@ -1,3 +1,4 @@
+import { chapters } from '../world/CampaignContent';
 import { Color, Graphics, Label, Node, UITransform, Vec3 } from 'cc';
 import { PlayerController } from '../player/PlayerController';
 import { ChapterOneProgress, plantingPlots } from '../world/ChapterOneProgress';
@@ -8,6 +9,8 @@ interface Button {node:Node;width:number;height:number;action:()=>void}
 export class ChapterOneView {
     readonly node:Node;readonly elder:Node;readonly plots:Node[]=[];
     readonly lesson:RiceCountGame;
+    onCampaignRequested?:()=>void;
+    canRead?:()=>boolean;
     private buttons:Button[]=[];private feedback='';private spoken='';
     private speaker:'elder'|'farmer'='elder';
     private pending:{kind:'elder'|'farmer'|'plot';index?:number;goal:Point}|null=null;
@@ -37,6 +40,7 @@ export class ChapterOneView {
         const n=this.make(this.node,id,width,76);n.setPosition(x,y);const g=n.addComponent(Graphics);g.fillColor=new Color(205,229,164);g.roundRect(-width/2,-38,width,76,10);g.fill();
         this.text(n,value,0,0,width-10,76,24);this.buttons.push({node:n,width,height:76,action});
     }
+    refreshContent():void{if(this.node.active)this.render();}
     private changed():void{this.save.save();this.refreshWorld();}
     refreshWorld():void{
         for(let i=0;i<this.plots.length;i++){
@@ -90,6 +94,7 @@ export class ChapterOneView {
     }
     private stopReading():void{if(typeof window!=='undefined'&&'speechSynthesis' in window)window.speechSynthesis.cancel();}
     private read():void {
+        if(this.canRead&&!this.canRead()){this.feedback='Âm thanh đang tắt. Người lớn có thể bật trong góc phụ huynh.';this.render();return;}
         if(typeof window==='undefined'||!('speechSynthesis' in window)){this.feedback='Thiết bị chưa có đọc thoại. Cháu có thể đọc cùng người lớn.';this.render();return;}
         this.stopReading();const voice=window.speechSynthesis.getVoices().find(v=>v.lang.toLowerCase().startsWith('vi'));
         if(!voice){this.feedback='Chưa có giọng tiếng Việt. Lời thoại vẫn hiển thị để đọc cùng nhau.';this.render();return;}
@@ -105,14 +110,14 @@ export class ChapterOneView {
         this.button('Read','Nghe',200,-235,135,()=>this.read());
         this.button('StopRead','Dừng đọc',-200,-235,185,()=>this.stopReading());
         if(stage==='intro'){
-            body='Bé về làng nghỉ hè. Cùng dân làng học hỏi để thắp sáng Cây Đa Tri Thức trong câu chuyện nhé!';
+            body=chapters[0].intro;
             if(this.save.notice)body+='\n'+this.save.notice;
             actionText='Vào làng';action=()=>{this.progress.enterVillage();this.changed();this.close();};
         }else if(this.speaker==='elder'){
             if(stage==='greet'){body='Chào cháu, mừng cháu về làng!\nCháu đến gặp Bác Nông Dân để cùng trồng năm cây lúa và học đếm nhé.';actionText='Cháu chào ông ạ!';action=()=>{this.progress.greet();this.changed();this.close();};}
             else if(stage==='return'){body='Cháu đã trồng năm cây lúa và học đếm. Ngôi sao đầu tiên sẵn sàng sáng rồi!';actionText='Nhận sao đầu tiên';action=()=>{this.progress.turnIn();this.changed();this.render();};}
             else if(stage==='complete'){
-                body='★ Sao Tri Thức: 1\nChương 1 hoàn thành! Cây đã sáng thêm một ngôi sao.\nSân Đình mở trong cốt truyện; nội dung Chương 2 đang được xây dựng.';
+                body='★ Sao Tri Thức: 1\n'+chapters[0].ending+'\nCháu mở Sổ làng để tới Sân Đình và tiếp tục câu chuyện nhé.';
                 if(this.progress.data.legacyDemoBadge)body+='\nHuy hiệu demo cũ của cháu được giữ lại.';
                 actionText='Luyện đếm lần nữa';action=()=>{this.progress.startReplay();this.changed();this.speaker='farmer';this.render();};
             }else body='Bác Nông Dân đang chờ cháu ở ruộng. Chạm bác để nghe hướng dẫn nhé!';
@@ -135,7 +140,8 @@ export class ChapterOneView {
         this.spoken=body+(this.feedback?' '+this.feedback:'');
         const question=this.lesson.question!==null&&this.speaker==='farmer';
         this.text(this.node,body,0,question?140:70,550,question?100:235,question?25:26);
-        if(action)this.button('Continue',actionText,0,-100,380,action);
+        if(action)this.button('Continue',actionText,this.speaker==='elder'&&stage==='complete'&&this.onCampaignRequested?-145:0,-100,this.speaker==='elder'&&stage==='complete'&&this.onCampaignRequested?270:380,action);
+        if(this.speaker==='elder'&&stage==='complete'&&this.onCampaignRequested)this.button('Campaign','Chương tiếp',145,-100,270,()=>{this.close();this.onCampaignRequested?.();});
         this.text(this.node,this.feedback,0,-166,575,52,18);
     }
     dispose():void{this.stopReading();}

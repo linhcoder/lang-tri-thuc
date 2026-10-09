@@ -1,0 +1,51 @@
+services:
+  postgres:
+    image: postgres:17-bookworm
+    environment:
+      POSTGRES_DB: village
+      POSTGRES_USER: village
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set a database password}
+    volumes: ["database:/var/lib/postgresql/data"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U village -d village"]
+      interval: 5s
+      retries: 10
+    restart: unless-stopped
+  api:
+    build: {context: .., dockerfile: deploy/Dockerfile}
+    environment:
+      HOST: 0.0.0.0
+      DATABASE_URL: postgres://village:${POSTGRES_PASSWORD}@postgres:5432/village
+      ROOM_SECRET: ${ROOM_SECRET:?Set room signing secret}
+      ADMIN_BOOTSTRAP_PASSWORD: ${ADMIN_BOOTSTRAP_PASSWORD:?Set admin password}
+      ALLOWED_ORIGINS: https://${DOMAIN}
+    depends_on:
+      postgres: {condition: service_healthy}
+    restart: unless-stopped
+  rooms:
+    build: {context: .., dockerfile: deploy/Dockerfile}
+    command: ["node", "apps/game-server/dist/game-server/src/main.js"]
+    environment:
+      HOST: 0.0.0.0
+      ROOM_SECRET: ${ROOM_SECRET}
+      API_URL: http://api:3000
+    depends_on: [api]
+    restart: unless-stopped
+  caddy:
+    image: caddy:2
+    ports: ["80:80", "443:443"]
+    environment:
+      DOMAIN: ${DOMAIN:?Set staging domain}
+      STAGING_PASSWORD_HASH: ${STAGING_PASSWORD_HASH:?Set Caddy password hash}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - ../apps/game-client/build/web-desktop:/srv/game:ro
+      - ../apps/admin/dist:/srv/admin:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on: [api, rooms]
+    restart: unless-stopped
+volumes:
+  database:
+  caddy_data:
+  caddy_config:

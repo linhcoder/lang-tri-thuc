@@ -1,5 +1,54 @@
 # Art và prompt
 
+## Tóc và scenery — 10/10/2026
+
+Built-in imagegen, nền alpha. Bốn sheet tóc 1774×887, 8 cột × 3 hàng; cắt frame như avatar gốc, không sửa áo/pose. Atlas scenery 4×2: giếng, tre, cầu, trâu / gà, vịt, rau, cổng. Chỉ scenery có flag blocked tham gia collision; cầu chưa đi qua mặt ao. NPC/avatar/tóc tải khi cần; label minh họa mini game được pool.
+
+Đã xem bốn sheet gốc và atlas, kiểm tra frame/alpha và screenshot renderer. Metadata nguồn/license của danh mục admin vẫn cần người biên tập xác minh; không coi art được tạo là đã nghiệm thu văn hóa.
+
+Thư mục ảnh gốc: `C:/Users/Admin/.codex/generated_images/01a1216c-b36b-72c3-9ad8-c40c7ad8904e/`.
+
+### boy-red-hair.png
+
+Đích: `assets/resources/village/boy-red-hair.png`; gốc: `exec-0188f082-ba2f-44a6-b070-e76f6f4aa6a7.png`. Ảnh tham chiếu: `assets/resources/village/child.png`.
+
+```text
+EDIT TARGET: attached game character sheet. Change ONLY hairstyle in all 24 poses to neatly combed side-parted black hair, visibly different from the tousled original. Preserve character identity, gender, face, skin, clothes colors, footwear, scale, exact per-cell placement and every leg/arm pose. EXACTLY 8 equal columns x 3 equal rows, no gaps changed, 24 complete figures. Column directions E,NE,N,NW,W,SW,S,SE; row idle, left walk, right walk unchanged. Preserve completely transparent background. No labels, text, additional characters, shadows, checkerboard or border. Production sprite sheet, cute Vietnamese village game.
+```
+
+### boy-blue-hair.png
+
+Đích: `assets/resources/village/boy-blue-hair.png`; gốc: `exec-fbc3160b-4926-414f-b568-18ee8a4295d1.png`. Ảnh tham chiếu: `assets/resources/village/boy-blue.png`.
+
+```text
+EDIT TARGET: attached game character sheet. Change ONLY hairstyle in all 24 poses to neatly combed side-parted black hair, visibly different from the tousled original. Preserve character identity, gender, face, skin, clothes colors, footwear, scale, exact per-cell placement and every leg/arm pose. EXACTLY 8 equal columns x 3 equal rows, no gaps changed, 24 complete figures. Column directions E,NE,N,NW,W,SW,S,SE; row idle, left walk, right walk unchanged. Preserve completely transparent background. No labels, text, additional characters, shadows, checkerboard or border. Production sprite sheet, cute Vietnamese village game.
+```
+
+### girl-pink-hair.png
+
+Đích: `assets/resources/village/girl-pink-hair.png`; gốc: `exec-03f53c2d-04f4-453e-b407-6d459a54c9be.png`. Ảnh tham chiếu: `assets/resources/village/girl-pink.png`.
+
+```text
+EDIT TARGET: attached game character sheet. Change ONLY hairstyle in all 24 poses to a single long black braid down the back, replacing BOTH pigtails and their bows entirely. Preserve character identity, gender, face, skin, clothes colors, footwear, scale, exact per-cell placement and every leg/arm pose. EXACTLY 8 equal columns x 3 equal rows, no gaps changed, 24 complete figures. Column directions E,NE,N,NW,W,SW,S,SE; row idle, left walk, right walk unchanged. Preserve completely transparent background. No labels, text, additional characters, shadows, checkerboard or border. Production sprite sheet, cute Vietnamese village game.
+```
+
+### girl-yellow-hair.png
+
+Đích: `assets/resources/village/girl-yellow-hair.png`; gốc: `exec-43aaa2a8-9cd6-4c99-b5b0-37a077d1249b.png`. Ảnh tham chiếu: `assets/resources/village/girl-yellow.png`.
+
+```text
+EDIT TARGET: attached game character sheet. Change ONLY hairstyle in all 24 poses to a single long black braid down the back, replacing BOTH pigtails and their bows entirely. Preserve character identity, gender, face, skin, clothes colors, footwear, scale, exact per-cell placement and every leg/arm pose. EXACTLY 8 equal columns x 3 equal rows, no gaps changed, 24 complete figures. Column directions E,NE,N,NW,W,SW,S,SE; row idle, left walk, right walk unchanged. Preserve completely transparent background. No labels, text, additional characters, shadows, checkerboard or border. Production sprite sheet, cute Vietnamese village game.
+```
+
+### village-details.png
+
+Đích: `assets/resources/village/village-details.png`; gốc: `exec-9bbd102c-897c-4244-b6b4-78b5c0afef20.png`.
+
+```text
+Production sprite atlas for a cute Vietnamese village 2.5D isometric educational game. Transparent RGBA background, watercolor painterly warm detailed style, southeast-facing 3/4 isometric view. EXACTLY 4 equal columns by 2 equal rows, each cell has ONE isolated whole object centered with generous transparent padding, never overlaps another cell. Row1 left-to-right: round old village stone well with bucket and tiled canopy; cluster of lush green bamboo with five stems; small low bamboo footbridge crossing imaginary stream with simple handrails (no actual water); friendly calm Vietnamese water buffalo. Row2 left-to-right: brown hen chicken; white domestic duck; small rectangular vegetable garden plot with carrots cabbage eggplants in neat rows; welcoming Vietnamese village entrance arch with terracotta tiled roof (NO letters or signs). No humans, labels, typography, borders, grid lines, backgrounds, ground discs or contact shadows. Full object visible in each cell, same rendering style and clean silhouette.
+```
+
+
 Biểu cảm `hello` dùng bàn tay hình học vẽ bằng Graphics; `happy` dịch chuyển sprite/khăn và đốm sáng trong 1,6 giây. Không thêm atlas cử chỉ; sprite gốc giữ nguyên, biểu cảm chỉ là lớp trình bày tạm thời.
 
 Khăn quàng độc lập dùng Cocos Graphics trong `VillageBootstrap.ts`: ba màu, vòng cổ và đuôi khăn theo hướng/bước đi. Đây là phụ kiện hình học vẽ bằng code, không phải PNG mới. Các sprite avatar bên dưới giữ nguyên.

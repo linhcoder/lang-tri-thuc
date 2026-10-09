@@ -1,14 +1,32 @@
 import { AgeBand } from './CampaignContent';
-export interface Question {id:string;prompt:string;choices:string[];answer:number;hint:string;illustration?:string;review:'draft'|'approved'}
+export interface Question {id:string;prompt:string;choices:string[];answer:number;hint:string;illustration?:string;sources?:string[];review:'draft'|'approved'}
 export const riceQuestions=[{count:3,choices:[3,2,4]},{count:5,choices:[4,3,5]},{count:2,choices:[1,2,3]}];
 const choice=(id:string,prompt:string,answer:string,wrong:string[],hint:string,illustration?:string):Question=>{
     const options=[answer,...wrong],rotate=id.length%3,choices=options.slice(rotate).concat(options.slice(0,rotate));
     return {id,prompt,choices,answer:choices.indexOf(answer),hint,illustration,review:'draft'};
 };
-export function lessonQuestions(skill:string,age:AgeBand):Question[]{
-    if(skill==='math'||skill==='mixed'){
-        const pairs=age==='3-5'?[[2,1],[3,2],[4,1]]:age==='6-8'?[[7,5],[9,6],[8,4]]:[[3,4],[6,3],[4,5]];
-        return pairs.map(([a,b],i)=>{const multiply=age==='9-11',n=multiply?a*b:a+b;return choice(`${skill}.${age}.${i}`,`${a} ${multiply?'×':'+'} ${b} = ?`,String(n),[String(n-1),String(n+1)],multiply?`Có ${a} nhóm, mỗi nhóm ${b}. Đếm các nhóm cùng nhau nhé.`:`Gộp nhóm ${a} và nhóm ${b}, rồi đếm lại nhé.`,age==='3-5'?'●'.repeat(a)+' + '+'●'.repeat(b):undefined);});
+export const lessonSkills=['math','mixed','fair-play','polite','sorting','english','clay','shapes','nature','language'] as const;
+const overrides=new Map<string,Question>();
+export function lessonKey(skill:string,age:AgeBand,round:number):string{return `${age}:${skill}:${round}`;}
+export function lessonQuestions(skill:string,age:AgeBand):Question[]{return baseLessonQuestions(skill,age).map((q,i)=>{const selected=overrides.get(lessonKey(skill,age,i))??q;return {...selected,choices:[...selected.choices],sources:selected.sources?[...selected.sources]:undefined};});}
+export function setLessonOverrides(records:Array<{key:string;question:Question}>):void{overrides.clear();for(const row of records)overrides.set(row.key,{...row.question,choices:[...row.question.choices]});}
+export function baseLessonQuestions(skill:string,age:AgeBand):Question[]{
+    if(skill==='math'){
+        const tasks:Array<[number,string,number,number]>=age==='3-5'?[[2,'+',1,3],[5,'−',1,4],[4,'+',3,7]]:age==='6-8'?[[7,'+',5,12],[9,'−',4,5],[8,'+',4,12]]:[[3,'×',4,12],[18,'÷',3,6],[4,'×',5,20]];
+        return tasks.map(([a,op,b,n],i)=>choice(`${skill}.${age}.${i}`,i===2&&age==='9-11'?`Có ${a} giỏ, mỗi giỏ ${b} quả. Có tất cả bao nhiêu quả? (${a} ${op} ${b})`:`${a} ${op} ${b} = ?`,String(n),[String(n-1),String(n+1)],op==='−'?`Bớt ${b} từ ${a}, rồi đếm phần còn lại.`:op==='÷'?`Chia đều ${a} thành ${b} nhóm.`:op==='×'?`Có ${a} nhóm, mỗi nhóm ${b}.`:`Gộp ${a} và ${b}, rồi đếm lại.`,age==='3-5'?'●'.repeat(a)+(op==='+'?' + ':' bớt ')+'●'.repeat(b):undefined));
+    }
+    if(skill==='mixed'){
+        if(age==='9-11'){
+            const geography=choice('mixed.9-11.1','Thủ đô của Việt Nam là thành phố nào?','Hà Nội',['Huế','Đà Nẵng'],'Hà Nội là thủ đô của Việt Nam.');
+            geography.sources=['https://hanoi.gov.vn/dia-ly-dia-hinh/gioi-thieu-tong-quan-va-khai-quat-ve-dia-li-thanh-pho-ha-noi-4241009114844999.htm'];
+            const history=choice('mixed.9-11.2','Khu trung tâm Hoàng thành Thăng Long ở thành phố nào?','Hà Nội',['Đà Nẵng','Cần Thơ'],'Địa điểm này gắn với lịch sử Thăng Long – Hà Nội.');history.sources=['https://whc.unesco.org/en/list/1328/'];
+            return [baseLessonQuestions('math',age)[0],geography,history];
+        }
+        return [baseLessonQuestions('math',age)[0],baseLessonQuestions('nature',age)[0],baseLessonQuestions('fair-play',age)[0]];
+    }
+    if(skill==='language'){
+        const rows:Array<[string,string,string[],string]>=age==='3-5'?[['Chọn chữ A.','A',['B','C'],'Quan sát nét của chữ A.'],['Chọn chữ B.','B',['A','C'],'Quan sát nét của chữ B.'],['Chọn chữ C.','C',['A','B'],'Chữ C có nét cong.']]:age==='6-8'?[['Ghép l + úa thành tiếng nào?','lúa',['cá','nhà'],'Âm l ghép với vần úa trong tiếng lúa.'],['Ghép c + á thành tiếng nào?','cá',['lúa','nhà'],'Đọc chậm tiếng cá.'],['Chọn câu chào lịch sự.','Cháu chào cô ạ.',['Đi đi!','Đưa đây!'],'Câu chào dùng lời lễ phép.']]:[['Trong câu “Cây lúa xanh”, từ nào chỉ màu?','xanh',['cây','lúa'],'Từ xanh mô tả màu.'],['Chọn câu có dấu hỏi.','Bạn cần giúp không?',['Cảm ơn bạn.','Chào bạn!'],'Dấu ? thường kết thúc câu hỏi.'],['Chọn cách viết lời cảm ơn.','Cảm ơn bạn.',['cảm ơn bạn','Cảm Ơn BẠN'],'Đầu câu viết hoa, cuối câu có dấu câu.']];
+        return rows.map(([p,a,w,h],i)=>choice(`language.${age}.${i}`,p,a,w,h));
     }
     const data:Record<string,Array<[string,string,string[],string,string?]>>={
         'fair-play':[['Đến lượt bạn, mình làm gì?','Chờ bạn',['Giành lượt','Bỏ đồ của bạn'],'Mình cùng chia lượt để ai cũng được chơi.'],['Bạn cần giúp, mình nói gì?','Mình giúp bạn nhé',['Bạn tự làm đi','Mình không chờ'],'Lời mời giúp đỡ làm buổi chơi vui hơn.'],['Kết thúc ván, mình nói gì?','Cảm ơn bạn',['Bạn phải thua','Không được nghỉ'],'Chơi vui không cần ai cũng thắng.']],

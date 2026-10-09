@@ -17,9 +17,9 @@ function puzzleSolution(start){
     async function tap(id,root=false){const p=await page.evaluate(({id,root})=>{const b=village,n=root?b[id]:b.hub.node.getChildByName(id);if(!n)throw Error('Missing button '+id);const world=n.getComponent(cc.UITransform).convertToWorldSpaceAR(new cc.Vec3()),s=b.node.getComponent(cc.Canvas).cameraComponent.worldToScreen(world),canvas=cc.game.canvas,r=canvas.getBoundingClientRect();return {x:r.left+s.x/canvas.width*r.width,y:r.top+(canvas.height-s.y)/canvas.height*r.height};},{id,root});await page.mouse.click(p.x,p.y);await page.waitForTimeout(40);}
     async function action(type,index){await tap('GameAction-'+type+'-'+index);}
     async function game(){return page.evaluate(()=>({id:village.hub.game.id,data:village.hub.game.data,ended:village.hub.game.ended,clock:village.hub.game.clock}));}
-    async function play(){const state=await game(),id=state.id;
+    async function play(){const state=await game(),id=state.id;assert.equal(await page.evaluate(()=>!!village.hub.gameBoard?.node.activeInHierarchy),true);await page.screenshot({path:path.join(output,id.replace('mg.','')+'-board.png')});
         if(id==='mg.o-an-quan'){for(let i=0;i<150;i++){const s=await game();if(s.ended)break;await action('pit',s.data.board.slice(0,5).findIndex(n=>n>0));}}
-        else if(id==='mg.tug-of-war'||id==='mg.bamboo-dance'){for(let i=0;i<6;i++){await page.waitForFunction(()=>{const g=village.hub.game;return g.rhythmOpen&&Math.floor(g.clock/(g.id==='mg.tug-of-war'?1:1.5))!==g.data.lastBeat;},undefined,{timeout:6000});await action('beat',0);}}
+        else if(id==='mg.tug-of-war'||id==='mg.bamboo-dance'){for(let i=0;i<24&&!(await game()).ended;i++){await page.waitForFunction(()=>{const g=village.hub.game;return g.rhythmOpen&&Math.floor(g.clock/(g.id==='mg.tug-of-war'?1:1.5))!==g.data.lastBeat;},undefined,{timeout:6000});await action('beat',0);}}
         else if(id==='mg.market'){for(let i=0;i<3;i++)for(let n=0;n<state.data.wants[i];n++)await action('add',i);await action('pay',2);}
         else if(id==='mg.secret-letters'){for(let i=0;i<state.data.word.length;i++)await action('letter',state.data.grid.indexOf(state.data.word[i]));}
         else if(id==='mg.dong-ho'){for(const n of puzzleSolution(state.data.tiles))await action('tile',n);}
@@ -48,7 +48,11 @@ function puzzleSolution(start){
             await page.reload();await ready();assert.equal(await page.evaluate(()=>village.hub.campaign.stars),chapter+1);
         }
         assert.equal(await page.evaluate(()=>village.hub.campaign.stars),8);await tap('journalButton',true);await page.screenshot({path:path.join(output,'all-chapters.png')});assert.deepEqual(errors,[]);
-        await tap('HubClose');await tap('parentButton',true);await tap('ParentAnswer-1');await tap('Reset');
+        await tap('HubClose');await tap('parentButton',true);await tap('ParentAnswer-1');await tap('Collection');await tap('Activities');await tap('FestivalOnly');await tap('Practice-mg.star-lantern');
+        const storyBefore=await page.evaluate(()=>({completed:[...village.hub.campaign.data.completed],receipts:[...village.hub.campaign.data.receipts]}));
+        await play();assert.deepEqual(await page.evaluate(()=>({completed:village.hub.campaign.data.completed,receipts:village.hub.campaign.data.receipts})),storyBefore);
+        assert.deepEqual(await page.evaluate(()=>village.hub.campaign.data.practice),['mg.star-lantern']);await page.reload();await ready();assert.equal(await page.evaluate(()=>village.hub.campaign.data.practice.includes('mg.star-lantern')),true);
+        await tap('parentButton',true);await tap('ParentAnswer-1');await tap('Reset');
         const beforeReset=await page.evaluate(()=>({data:JSON.stringify(village.hub.campaign.data),raw:localStorage.getItem('lang-tri-thuc.campaign.v1')}));
         await page.evaluate(()=>{
             window.originalStorageSet=Storage.prototype.setItem;
@@ -62,6 +66,6 @@ function puzzleSolution(start){
         }finally{await page.evaluate(()=>{Storage.prototype.setItem=window.originalStorageSet;delete window.originalStorageSet;});}
         await page.reload();await ready();assert.equal(await page.evaluate(()=>village.hub.campaign.stars),8);
         assert.deepEqual(errors,[]);
-        fs.writeFileSync(path.join(output,'report.json'),JSON.stringify({chapters:8,completedGames:results,chapterQuests,failedResetPreservesProgress:true,errors},null,2));console.log(JSON.stringify({chapters:8,completedGames:results,failedResetPreservesProgress:true,errors},null,2));
+        fs.writeFileSync(path.join(output,'report.json'),JSON.stringify({chapters:8,completedGames:results,chapterQuests,failedResetPreservesProgress:true,practiceKeepsStory:true,visualBoards:12,errors},null,2));console.log(JSON.stringify({chapters:8,completedGames:results,failedResetPreservesProgress:true,practiceKeepsStory:true,visualBoards:12,errors},null,2));
     }finally{await browser.close();}
 })().catch(e=>{console.error(e);process.exitCode=1;});

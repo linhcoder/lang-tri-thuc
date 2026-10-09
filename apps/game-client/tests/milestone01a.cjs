@@ -211,7 +211,7 @@ test('campaign unlocks sequential quests/chapters and gives exactly eight idempo
     const forged=new CampaignEngine();forged.restore(JSON.stringify({...c.data,completed:[],receipts:c.data.receipts}));assert.equal(forged.stars,0);
 });
 test('lessons validate arithmetic at all three age levels and reject draft publication',()=>{
-    for(const age of ['3-5','6-8','9-11']){const questions=lessonQuestions('math',age),e=new EducationEngine(questions);for(const q of questions){const match=q.prompt.match(/(\d+) ([+×]) (\d+)/),expected=match[2]==='+'?+match[1]+ +match[3]:+match[1]* +match[3];assert.equal(+q.choices[q.answer],expected);assert.equal(e.answer(-1),false);assert.equal(e.answer(q.answer),true);}assert.equal(e.complete,true);}
+    for(const age of ['3-5','6-8','9-11']){const questions=lessonQuestions('math',age),e=new EducationEngine(questions);for(const q of questions){const match=q.prompt.match(/(\d+) ([+×−÷]) (\d+)/);assert.ok(match);const a=+match[1],b=+match[3],expected=match[2]==='+'?a+b:match[2]==='−'?a-b:match[2]==='÷'?a/b:a*b;assert.equal(+q.choices[q.answer],expected);assert.equal(e.answer(-1),false);assert.equal(e.answer(q.answer),true);}assert.equal(e.complete,true);}
     assert.throws(()=>new EducationEngine(lessonQuestions('math','3-5'),0,true));
 });
 function verifyGame(game){const before=JSON.stringify(game.data);assert.equal(game.action('invalid',-99),false);assert.equal(JSON.stringify(game.data),before);const restored=MiniGameRules.restore(game.save());assert.deepEqual(restored.data,game.data);}
@@ -275,11 +275,11 @@ test('campaign reset keeps current progress when backup or primary storage fails
  for(const failingKey of [CAMPAIGN_KEY+'.parent-backup',CAMPAIGN_KEY,null]){
   const values=new Map();let blocked=null;
   const storage={getItem:key=>values.get(key)??null,setItem:(key,value)=>{if(key===blocked)throw Error('Quota exceeded');values.set(key,value);}};
-  const save=new CampaignSave(storage);save.engine.data.introduced=['ch01'];save.engine.data.age='9-11';save.engine.data.quality='high';save.engine.data.sound=true;save.engine.data.avatar=2;save.engine.data.accessory=3;
+  const save=new CampaignSave(storage);save.engine.data.introduced=['ch01'];save.engine.data.age='9-11';save.engine.data.quality='high';save.engine.data.sound=true;save.engine.data.avatar=2;save.engine.data.accessory=3;save.engine.data.hair=1;
   assert.equal(save.save(),true);const previous=save.engine.data,raw=values.get(CAMPAIGN_KEY);blocked=failingKey;
   const ok=save.resetLaterChapters();assert.equal(ok,failingKey===null);
   if(!ok){assert.equal(save.engine.data,previous);assert.equal(values.get(CAMPAIGN_KEY),raw);assert.ok(save.notice);}
-  else{assert.deepEqual(save.engine.data.introduced,[]);assert.equal(save.engine.data.age,'9-11');assert.equal(save.engine.data.quality,'high');assert.equal(save.engine.data.sound,true);assert.equal(save.engine.data.avatar,2);assert.equal(save.engine.data.accessory,3);assert.equal(values.get(CAMPAIGN_KEY+'.parent-backup'),raw);assert.deepEqual(JSON.parse(values.get(CAMPAIGN_KEY)),save.engine.data);}
+  else{assert.deepEqual(save.engine.data.introduced,[]);assert.equal(save.engine.data.age,'9-11');assert.equal(save.engine.data.quality,'high');assert.equal(save.engine.data.sound,true);assert.equal(save.engine.data.avatar,2);assert.equal(save.engine.data.accessory,3);assert.equal(save.engine.data.hair,1);assert.equal(values.get(CAMPAIGN_KEY+'.parent-backup'),raw);assert.deepEqual(JSON.parse(values.get(CAMPAIGN_KEY)),save.engine.data);}
  }
 });
 test('campaign corrupt saves retain the first recovery and preserve raw data if backup fails',()=>{
@@ -328,5 +328,30 @@ test('speech replacement and cancellation ignore stale callbacks and recover fro
  callbacks[1].done();assert.equal(reader.reading,false);assert.deepEqual(messages,['']);
  reader.read('Third',true,m=>messages.push(m));reader.stop();callbacks[2].error();assert.deepEqual(messages,['']);assert.ok(cancelled>=3);
  fail=true;assert.ok(reader.read('Fourth',true));assert.equal(reader.reading,false);
+});
+test('lesson packs validate atomically, reject draft release and keep original question IDs',()=>{
+ const {lessonCatalog,applyLessonPack,validQuestion}=load(path.join(scripts,'world/LessonCatalog.ts')),rows=lessonCatalog(),row=rows.find(r=>r.skill==='math'&&r.age==='3-5');
+ assert.equal(rows.length,90);assert.ok(rows.every(r=>validQuestion(r.question)));
+ const edited={...row,question:{...row.question,prompt:'Test prompt',choices:['a','b','c'],answer:1}};
+ assert.equal(applyLessonPack({version:1,lessons:[edited]},true),false);
+ assert.equal(applyLessonPack({version:1,lessons:[edited,{...row,question:{...row.question,answer:99}}]}),false);assert.notEqual(lessonQuestions('math','3-5')[0].prompt,'Test prompt');
+ assert.equal(applyLessonPack({version:1,lessons:[edited]}),true);assert.equal(lessonQuestions('math','3-5')[0].prompt,'Test prompt');
+ assert.equal(applyLessonPack({version:1,lessons:[{...edited,reviewRecord:{status:'approved',note:'Fixture approved for validation test'}}]},true),true);
+ assert.equal(applyLessonPack({version:1,lessons:[]}),true);
+});
+test('hair and practice save migration reject forged types while retaining unique game badges',()=>{
+ for(const hair of [undefined,null,-1,2,'1',true]){const e=new CampaignEngine();assert.equal(e.restore(JSON.stringify({...e.data,hair,practice:['fake','mg.market','mg.market']})),true);assert.equal(e.data.hair,0);assert.deepEqual(e.data.practice,['mg.market']);}
+ const e=new CampaignEngine();e.restore(JSON.stringify({...e.data,hair:1}));assert.equal(e.data.hair,1);
+});
+test('NPC packs keep graph IDs, validate reachable spawns and roll back the entire invalid pack',()=>{
+ const {npcCatalog,applyNpcPack}=load(path.join(scripts,'world/NpcCatalog.ts')),before=JSON.stringify(m.storyNpcs),row=npcCatalog().find(n=>n.id==='co-tam');
+ for(const npcs of [[{...row,x:25,y:10}],[{...row,x:20,y:20}],[{...row,x:6,y:23}],[row,row],[{...row,x:1.5}],[{...row,id:'unknown'}]]){assert.equal(applyNpcPack({version:1,npcs}),false);assert.equal(JSON.stringify(m.storyNpcs),before);}
+ const edited={...row,name:'Fixture NPC',x:11,y:8,chapter:99};assert.equal(applyNpcPack({version:1,npcs:[edited]},true),true);assert.equal(JSON.stringify(m.storyNpcs),before);
+ assert.equal(applyNpcPack({version:1,npcs:[edited]}),true);assert.equal(m.storyNpcs.find(n=>n.id===row.id).chapter,5);assert.equal(m.storyNpcs.find(n=>n.id===row.id).name,'Fixture NPC');
+ assert.equal(applyNpcPack({version:1,npcs:[]}),true);assert.equal(JSON.stringify(m.storyNpcs),before);
+});
+test('young-player rhythm windows are wider and old valid action traces remain replayable',()=>{
+ const child=new MiniGameRules('mg.tug-of-war','3-5'),older=new MiniGameRules('mg.tug-of-war','9-11');child.clock=older.clock=.17;assert.equal(child.rhythmOpen,true);assert.equal(older.rhythmOpen,false);
+ for(const age of ['3-5','6-8','9-11']){const game=new MiniGameRules('mg.tug-of-war',age);for(let i=0;i<6;i++){game.clock=i+.1;assert.equal(game.action('beat',0),true);}assert.equal(MiniGameRules.restore(game.save()).ended,true);}
 });
 console.log(`${checks} test groups passed`);

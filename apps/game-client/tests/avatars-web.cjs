@@ -21,10 +21,10 @@ const origin=process.env.GAME_WEB_URL||'http://127.0.0.1:8080';
   if(mobile)await page.touchscreen.tap(point.x,point.y);else await page.mouse.click(point.x,point.y);
  }
  async function avatarMenu(page,mobile=false){await tap(page,'parentButton','root',mobile);await tap(page,'ParentAnswer-1','hub',mobile);await tap(page,'Avatar','hub',mobile);}
- async function matches(page,id){await page.waitForFunction(id=>{const b=village,frames=b.art.avatarVariants[id]??b.art.child;return b.hub.campaign.data.avatar===id&&frames.includes(b.childSprite.spriteFrame);},id);}
+ async function matches(page,id){await page.waitForFunction(id=>{const b=village,frames=b.hub.campaign.data.hair===1?b.art.hairVariants[id]:id===0?b.art.child:b.art.avatarVariants[id];return b.hub.campaign.data.avatar===id&&!!frames&&frames.includes(b.childSprite.spriteFrame);},id);}
  try{
   const page=await boot();await tap(page,'Continue','chapter');
-  assert.deepEqual(await page.evaluate(()=>Object.values(village.art.avatarVariants).map(f=>f.length)),[24,24,24]);
+  assert.equal(await page.evaluate(()=>Object.keys(village.art.avatarVariants).length),0);
   const directions=[['d'],['d','w'],['w'],['w','a'],['a'],['a','s'],['s'],['s','d']];
   for(let id=0;id<4;id++){
    await avatarMenu(page);
@@ -48,27 +48,30 @@ const origin=process.env.GAME_WEB_URL||'http://127.0.0.1:8080';
    await page.locator('#GameCanvas').focus();
    for(let d=0;d<8;d++){
     for(const key of directions[d])await page.keyboard.down(key);
-    await page.waitForFunction(({id,d})=>{const b=village,frames=b.art.avatarVariants[id]??b.art.child,i=frames.indexOf(b.childSprite.spriteFrame);return b.accessoryGraphic.node.name.startsWith(id+':'+d+':')&&b.player.moving&&b.player.direction===d&&i>=8&&i%8===d;},{id,d});
+    await page.waitForFunction(({id,d})=>{const b=village,frames=b.hub.campaign.data.hair===1?b.art.hairVariants[id]:b.art.avatarVariants[id]??b.art.child,i=frames.indexOf(b.childSprite.spriteFrame);return b.accessoryGraphic.node.name.startsWith(id+':'+d+':')&&b.player.moving&&b.player.direction===d&&i>=8&&i%8===d;},{id,d});
     if(d===6)await page.screenshot({path:path.join(output,'walk-'+id+'.png')});
     for(const key of directions[d])await page.keyboard.up(key);
     await page.waitForFunction(()=>!village.player.moving);
    }
+   await avatarMenu(page);await tap(page,'Hair');await tap(page,'Hair-1');await tap(page,'HubClose');await matches(page,id);
+   assert.equal(await page.evaluate(()=>village.hub.campaign.data.hair),1);await page.screenshot({path:path.join(output,'hair-'+id+'.png')});
+   await page.reload();await ready(page);await matches(page,id);assert.equal(await page.evaluate(()=>village.art.hairVariants[village.hub.campaign.data.avatar].length),24);
   }
   const mobile=await boot(true);await tap(mobile,'Continue','chapter',true);await avatarMenu(mobile,true);
   const height=await mobile.evaluate(()=>{const n=village.hub.node.getChildByName('Avatar-3'),c=cc.game.canvas,r=c.getBoundingClientRect();return n.getComponent(cc.UITransform).height*n.worldScale.y*cc.view.getScaleY()*r.height/c.height;});assert.ok(height>=44);
   await tap(mobile,'Avatar-3','hub',true);await matches(mobile,3);await tap(mobile,'Accessories','hub',true);await tap(mobile,'Accessory-2','hub',true);await mobile.screenshot({path:path.join(output,'avatar-mobile.png')});
   await mobile.reload();await ready(mobile);await matches(mobile,3);assert.equal(await mobile.evaluate(()=>village.hub.campaign.data.accessory),2);
-  await avatarMenu(mobile,true);await tap(mobile,'Gesture-hello','hub',true);await mobile.waitForFunction(()=>village.gesture.kind==='hello'&&village.gesture.elapsed>.3);await mobile.screenshot({path:path.join(output,'gesture-mobile.png')});
+  await avatarMenu(mobile,true);await tap(mobile,'Hair','hub',true);await tap(mobile,'Hair-1','hub',true);await matches(mobile,3);await mobile.screenshot({path:path.join(output,'hair-mobile.png')});await tap(mobile,'BackToAvatar','hub',true);await tap(mobile,'Gesture-hello','hub',true);await mobile.waitForFunction(()=>village.gesture.kind==='hello'&&village.gesture.elapsed>.3);await mobile.screenshot({path:path.join(output,'gesture-mobile.png')});
   server=spawn(process.execPath,['dist/game-server/src/main.js'],{cwd:path.resolve(__dirname,'../../game-server'),env:{...process.env,PORT:'26573',HOST:'127.0.0.1',ROOM_SECRET:''},windowsHide:true,stdio:['ignore','pipe','pipe']});
   await new Promise((resolve,reject)=>{const timer=setTimeout(()=>reject(Error('Avatar test server startup timeout')),8000);server.stdout.on('data',data=>{if(String(data).includes(':26573')){clearTimeout(timer);resolve();}});server.once('error',e=>{clearTimeout(timer);reject(e);});server.once('exit',code=>{clearTimeout(timer);reject(Error('Avatar server exited '+code));});});
   const online=await boot(false,'/?demo=1&server=http://127.0.0.1:26573');await online.waitForFunction(()=>!!village.network.room);
   peer=await new Client('http://127.0.0.1:26573').joinOrCreate('village');peer.onMessage('correction',()=>{});
   let seq=0;
   for(let avatar=0;avatar<4;avatar++)for(let direction=0;direction<8;direction++){
-   const moving=direction%2===0;peer.send('move',{x:0,y:-640,direction,moving,avatar,accessory:avatar,seq:seq++});
-   await online.waitForFunction(({id,avatar,direction,moving})=>{const b=village,p=b.network.players.get(id),actor=b.remoteActors.get(id),frames=b.art.avatarVariants[avatar]??b.art.child,i=actor?frames.indexOf(actor.sprite.spriteFrame):-1;return actor?.accessory.node.name.startsWith(avatar+':')&&p?.accessory===avatar&&p?.avatar===avatar&&p.direction===direction&&i>=0&&i%8===direction&&(moving?i>=8:i<8);},{id:peer.sessionId,avatar,direction,moving},{timeout:10000});
+   const moving=direction%2===0;peer.send('move',{x:0,y:-640,direction,moving,avatar,accessory:avatar,hair:1,seq:seq++});
+   await online.waitForFunction(({id,avatar,direction,moving})=>{const b=village,p=b.network.players.get(id),actor=b.remoteActors.get(id),frames=b.art.hairVariants[avatar],i=actor&&frames?frames.indexOf(actor.sprite.spriteFrame):-1;return actor?.accessory.node.name.startsWith(avatar+':')&&p?.accessory===avatar&&p?.hair===1&&p?.avatar===avatar&&p.direction===direction&&i>=0&&i%8===direction&&(moving?i>=8:i<8);},{id:peer.sessionId,avatar,direction,moving},{timeout:10000});
   }
   await online.screenshot({path:path.join(output,'avatar-online.png')});assert.deepEqual(errors,[]);
-  const result={avatars:4,accessories:4,localGestures:true,framesPerAvatar:24,localDirections:true,reload:true,mobileTouch:true,remoteDirections:true,errors};fs.writeFileSync(path.join(output,'report.json'),JSON.stringify(result,null,2));console.log(JSON.stringify(result,null,2));
+  const result={avatars:4,accessories:4,localGestures:true,hairstyles:2,lazyAvatarLoad:true,framesPerAvatar:24,localDirections:true,reload:true,mobileTouch:true,remoteDirections:true,errors};fs.writeFileSync(path.join(output,'report.json'),JSON.stringify(result,null,2));console.log(JSON.stringify(result,null,2));
  }finally{if(peer)await peer.leave();for(const context of contexts)await context.close();await browser.close();server?.kill();}
 })().catch(e=>{console.error(e);process.exitCode=1;});

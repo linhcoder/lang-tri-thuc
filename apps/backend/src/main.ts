@@ -5,8 +5,28 @@ import {pathToFileURL} from 'node:url';
 import {BackendData,ParentRecord,Repository,MySqlRepository} from './Store';
 import {digest,passwordHash,verifyPassword,signTicket} from './Auth';
 import {CampaignEngine} from '../../game-client/assets/scripts/world/CampaignEngine';
+import {contentVersion} from '../../game-client/assets/scripts/world/ContentVersion';
 import {chapters} from '../../game-client/assets/scripts/world/CampaignContent';
 import {ChapterOneProgress} from '../../game-client/assets/scripts/world/ChapterOneProgress';
+import {applyLessonPack,lessonCatalog,shippedLessonCatalog,validQuestion} from '../../game-client/assets/scripts/world/LessonCatalog';
+import type {Question} from '../../game-client/assets/scripts/world/EducationEngine';
+import {applyChapterText} from '../../game-client/assets/scripts/world/ContentPack';
+import chapterPack from '../../game-client/assets/resources/chapter-pack.json';
+import assetManifest from '../../game-client/assets/resources/asset-manifest.json';
+if(!applyChapterText(chapterPack))throw Error('Invalid shipped chapter pack');
+import {miniGameRegistry} from '../../game-client/assets/scripts/world/MiniGameRegistry';
+import {storyNpcs,villageObjects} from '../../game-client/assets/scripts/world/VillageModel';
+import {worldZones} from '../../game-client/assets/scripts/world/WorldZones';
+import {applyNpcPack,npcCatalog,NpcText} from '../../game-client/assets/scripts/world/NpcCatalog';
+import {assetCatalog,AssetMetadata} from '../../game-client/assets/scripts/world/AssetCatalog';
+import npcPack from '../../game-client/assets/resources/npc-pack.json';
+if(!applyNpcPack(npcPack))throw Error('Invalid shipped NPC pack');
+import lessonPack from '../../game-client/assets/resources/lesson-pack.json';
+if(!applyLessonPack(lessonPack))throw Error('Invalid shipped lesson pack');
+// Admin starts from the shipped pack; database drafts override those defaults.
+const shippedLessons=shippedLessonCatalog;
+const shippedNpcs=()=>npcCatalog().map(row=>({...row,...storyNpcs.find(n=>n.id===row.id)}));
+const shippedAssets=()=>assetCatalog().map(row=>{const asset=(assetManifest.assets as Array<AssetMetadata&{id:string}>).find(a=>a.id===row.id);return {...row,...(asset?{title:asset.title,source:asset.source,license:asset.license}:{} )};});
 export interface ApiOptions {store?:Repository;roomSecret?:string;adminPassword?:string;origin?:string[]}
 const object=(properties:Record<string,unknown>,required:string[]=Object.keys(properties))=>({type:'object',additionalProperties:false,properties,required});
 const str={type:'string',minLength:1,maxLength:200},age={type:'string',enum:['3-5','6-8','9-11']};
@@ -24,7 +44,7 @@ export async function createApi(options:ApiOptions={}){
         const token=req.headers.authorization?.replace(/^Bearer /,''),s=token?d.sessions[digest(token)]:null,p=s&&s.expires>Date.now()?d.parents[s.parentId]:null;if(!p||admin&&p.role!=='admin')throw Object.assign(Error('Unauthorized'),{statusCode:401});return p;
     });
     const owned=(d:BackendData,parentId:string,id:string)=>{const p=d.profiles[id];if(!p||p.parentId!==parentId)throw Object.assign(Error('Not found'),{statusCode:404});return p;};
-    app.get('/health',async()=>({ok:true,storage:store.kind??'custom',prototype:true}));
+    app.get('/health',async()=>({ok:true,storage:store.kind??'custom',prototype:true,contentVersion:contentVersion()}));
     app.post<{Body:{alias:string;password:string}}>('/parents',{schema:{body:object({alias:{type:'string',minLength:3,maxLength:40,pattern:'^[a-zA-Z0-9_-]+$'},password:{type:'string',minLength:12,maxLength:128}})}},async(req,reply)=>{
         const parent=await store.transaction(d=>{if(req.body.alias.toLowerCase()==='admin'||Object.values(d.parents).some(p=>p.alias===req.body.alias))throw Object.assign(Error('Alias unavailable'),{statusCode:409});const id=randomUUID(),p={id,alias:req.body.alias,passwordHash:passwordHash(req.body.password),role:'parent' as const};d.parents[id]=p;return {id,alias:p.alias};});return reply.code(201).send(parent);
     });
@@ -51,8 +71,36 @@ export async function createApi(options:ApiOptions={}){
     });});
     app.put<{Params:{code:string};Body:{locked:boolean}}>('/rooms/:code',{schema:{body:object({locked:{type:'boolean'}})}},async req=>{const p=await auth(req);return store.transaction(d=>{const room=d.rooms[req.params.code];if(!room||room.ownerId!==p.id)throw Object.assign(Error('Not found'),{statusCode:404});room.locked=req.body.locked;return {ok:true};});});
     app.get('/admin/content',async req=>{await auth(req,true);return store.transaction(d=>chapters.map(c=>({...c,...d.content[c.id],quests:c.quests.map(q=>({...q,title:d.content[c.id]?.questTitles[q.id]??q.title})),reviewRecord:d.review[c.id]??{status:'draft',reviewer:'',note:''}})));});
+    app.get('/admin/catalog',async req=>{await auth(req,true);return store.transaction(d=>({npcs:shippedNpcs().map(row=>({...row,...d.npcs[row.id],reviewRecord:d.review['npc:'+row.id]??{status:'draft',note:''}})),assets:shippedAssets().map(row=>({...row,...d.assets[row.id],reviewRecord:d.review['asset:'+row.id]??{status:'draft',note:''}})),zones:worldZones,objects:villageObjects,games:miniGameRegistry.map(({create,...definition})=>definition)}));});
+    app.get('/admin/lessons',async req=>{await auth(req,true);return store.transaction(d=>shippedLessons().map(row=>({...row,question:d.lessons[row.key]??row.question,reviewRecord:d.review['lesson:'+row.key]??{status:'draft',reviewer:'',note:''}})));});
+    app.put<{Params:{kind:string;id:string};Body:{value:any;note:string}}>('/admin/catalog/:kind/:id',{schema:{body:object({value:{type:'object'},note:{type:'string',minLength:12,maxLength:500}})}},async req=>{
+        const p=await auth(req,true),{kind,id}=req.params,value=req.body.value;
+        return store.transaction(d=>{
+            if(kind==='npc'){
+                if(!npcCatalog().some(n=>n.id===id))throw Object.assign(Error('Unknown NPC'),{statusCode:404});
+                const npc:NpcText={id,name:value.name,x:value.x,y:value.y},rows=shippedNpcs().map(row=>row.id===id?npc:d.npcs[row.id]??row);
+                if(!applyNpcPack({version:1,npcs:rows},true))throw Object.assign(Error('Invalid or unreachable NPC spawn'),{statusCode:400});d.npcs[id]=npc;
+            }else if(kind==='asset'){
+                if(!assetCatalog().some(a=>a.id===id)||!['title','source','license'].every(key=>typeof value[key]==='string'&&value[key].trim()&&value[key].length<=500))throw Object.assign(Error('Invalid asset metadata'),{statusCode:400});
+                d.assets[id]={title:value.title,source:value.source,license:value.license} as AssetMetadata;
+            }else throw Object.assign(Error('Unknown catalog type'),{statusCode:400});
+            const key=kind+':'+id;d.review[key]={status:'draft',reviewer:p.alias,note:req.body.note,updated:Date.now()};d.audit.push({actor:p.id,action:kind+'.edit',entity:id,created:Date.now()});return {ok:true};
+        });
+    });
+    app.put<{Params:{kind:string;id:string};Body:{status:'draft'|'reviewed'|'approved';note:string}}>('/admin/catalog/:kind/:id/review',{schema:{body:object({status:{type:'string',enum:['draft','reviewed','approved']},note:{type:'string',minLength:12,maxLength:500}})}},async req=>{
+        const p=await auth(req,true),{kind,id}=req.params;if(!(kind==='npc'?npcCatalog():kind==='asset'?assetCatalog():[]).some(row=>row.id===id))throw Object.assign(Error('Unknown catalog record'),{statusCode:404});
+        return store.transaction(d=>{const key=kind+':'+id;if(req.body.status==='approved'&&d.review[key]?.status!=='reviewed')throw Object.assign(Error('Review before approval'),{statusCode:409});d.review[key]={status:req.body.status,reviewer:p.alias,note:req.body.note,updated:Date.now()};d.audit.push({actor:p.id,action:kind+'.'+req.body.status,entity:id,created:Date.now()});return {ok:true};});
+    });
+    app.put<{Params:{id:string};Body:{question:Question;note:string}}>('/admin/lessons/:id',{schema:{body:object({question:{type:'object'},note:{type:'string',minLength:12,maxLength:500}})}},async req=>{
+        const p=await auth(req,true),row=lessonCatalog().find(row=>row.key===req.params.id);if(!row||!validQuestion(req.body.question)||req.body.question.id!==row.question.id)throw Object.assign(Error('Invalid lesson'),{statusCode:400});
+        return store.transaction(d=>{d.lessons[row.key]={...req.body.question,review:'draft'};d.review['lesson:'+row.key]={status:'draft',reviewer:p.alias,note:req.body.note,updated:Date.now()};d.audit.push({actor:p.id,action:'lesson.edit',entity:row.key,created:Date.now()});return {ok:true};});
+    });
+    app.put<{Params:{id:string};Body:{status:'draft'|'reviewed'|'approved';note:string}}>('/admin/lessons/:id/review',{schema:{body:object({status:{type:'string',enum:['draft','reviewed','approved']},note:{type:'string',minLength:12,maxLength:500}})}},async req=>{
+        const p=await auth(req,true);if(!lessonCatalog().some(row=>row.key===req.params.id))throw Object.assign(Error('Unknown lesson'),{statusCode:404});
+        return store.transaction(d=>{const key='lesson:'+req.params.id;if(req.body.status==='approved'&&d.review[key]?.status!=='reviewed')throw Object.assign(Error('Review before approval'),{statusCode:409});d.review[key]={status:req.body.status,reviewer:p.alias,note:req.body.note,updated:Date.now()};d.audit.push({actor:p.id,action:'lesson.'+req.body.status,entity:req.params.id,created:Date.now()});return {ok:true};});
+    });
     app.put<{Params:{id:string};Body:{status:'draft'|'reviewed'|'approved';note:string}}>('/admin/content/:id',{schema:{body:object({status:{type:'string',enum:['draft','reviewed','approved']},note:{type:'string',minLength:12,maxLength:500}})}},async req=>{const p=await auth(req,true);if(!chapters.some(c=>c.id===req.params.id))throw Object.assign(Error('Not found'),{statusCode:404});return store.transaction(d=>{if(req.body.status==='approved'&&d.review[req.params.id]?.status!=='reviewed')throw Object.assign(Error('Review before approval'),{statusCode:409});d.review[req.params.id]={status:req.body.status,reviewer:p.alias,note:req.body.note,updated:Date.now()};d.audit.push({actor:p.id,action:'content.'+req.body.status,entity:req.params.id,created:Date.now()});return d.review[req.params.id];});});
-    app.get('/admin/content-export',async req=>{await auth(req,true);return store.transaction(d=>({version:1,chapters:chapters.map(c=>({...c,...d.content[c.id],quests:c.quests.map(q=>({...q,title:d.content[c.id]?.questTitles[q.id]??q.title})),reviewRecord:d.review[c.id]??{status:'draft',reviewer:'',note:''}}))}));});
+    app.get('/admin/content-export',async req=>{await auth(req,true);return store.transaction(d=>({version:1,npcs:shippedNpcs().map(row=>({...row,...d.npcs[row.id],reviewRecord:d.review['npc:'+row.id]??{status:'draft',note:''}})),assets:shippedAssets().map(row=>({...row,...d.assets[row.id],reviewRecord:d.review['asset:'+row.id]??{status:'draft',note:''}})),lessons:shippedLessons().map(row=>({...row,question:d.lessons[row.key]??row.question,reviewRecord:d.review['lesson:'+row.key]??{status:'draft',reviewer:'',note:''}})),chapters:chapters.map(c=>({...c,...d.content[c.id],quests:c.quests.map(q=>({...q,title:d.content[c.id]?.questTitles[q.id]??q.title})),reviewRecord:d.review[c.id]??{status:'draft',reviewer:'',note:''}}))}));});
     app.put<{Params:{id:string};Body:{title:string;intro:string;ending:string;questTitles:Record<string,string>;note:string}}>('/admin/content/:id/text',{schema:{body:object({title:{type:'string',minLength:1,maxLength:120},intro:{type:'string',minLength:1,maxLength:800},ending:{type:'string',minLength:1,maxLength:800},questTitles:{type:'object',maxProperties:8,additionalProperties:{type:'string',minLength:1,maxLength:120}},note:{type:'string',minLength:12,maxLength:500}})}},async req=>{const p=await auth(req,true),c=chapters.find(c=>c.id===req.params.id);if(!c||Object.keys(req.body.questTitles).some(id=>!c.quests.some(q=>q.id===id)))throw Object.assign(Error('Invalid chapter text'),{statusCode:400});return store.transaction(d=>{const {note,...text}=req.body;d.content[c.id]=text;d.review[c.id]={status:'draft',reviewer:p.alias,note,updated:Date.now()};d.audit.push({actor:p.id,action:'content.edit',entity:c.id,created:Date.now()});return {ok:true};});});
     app.get('/admin/reports',async req=>{await auth(req,true);return store.transaction(d=>d.reports);});
     app.put<{Params:{id:string}}>('/admin/reports/:id/resolve',async req=>{const p=await auth(req,true);return store.transaction(d=>{const r=d.reports.find(r=>r.id===req.params.id);if(!r)throw Object.assign(Error('Not found'),{statusCode:404});r.status='resolved';d.audit.push({actor:p.id,action:'report.resolve',entity:r.id,created:Date.now()});return {ok:true};});});

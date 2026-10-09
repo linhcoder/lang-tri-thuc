@@ -1,5 +1,5 @@
 import { _decorator, Color, Component, director, EventKeyboard, EventTouch, game, Game, Graphics, input, Input, JsonAsset, resources, Label, Layers, Node, Sprite, sys, UITransform, Vec3, view } from 'cc';
-import { cameraOffset, inputAxis, Point, SIZE, terrain, tileAt, toWorld, VillageMap, villageObjects } from '../world/VillageModel';
+import { cameraOffset, inputAxis, Point, SIZE, terrain, tileAt, toWorld, VillageMap, storyNpcs, villageDetails, villageObjects } from '../world/VillageModel';
 import { AvatarGesture, AvatarGestureState, PlayerController, PlayerVisual } from '../player/PlayerController';
 import { FarmerNPC } from '../npc/FarmerNPC';
 import { VillageArt } from '../world/VillageArt';
@@ -9,10 +9,13 @@ import { VillageNetwork } from '../network/VillageNetwork';
 import { ChapterOneSave } from '../world/ChapterOneSave';
 import { ChapterOneView } from '../ui/ChapterOneView';
 import { CampaignSave } from '../world/CampaignSave';
+import {applyNpcPack} from '../world/NpcCatalog';
+import {applyLessonPack} from '../world/LessonCatalog';
 import { applyChapterText } from '../world/ContentPack';
 import { portalDestination } from '../world/WorldZones';
 import { VillageHub } from '../ui/VillageHub';
 const { ccclass, disallowMultiple, requireComponent } = _decorator;
+const npcArt=[['co-tam','co-tam','CoTamSprite'],['co-giao-lan','teacher','TeacherSprite'],['ba-ban-hang','market-lady','MarketLadySprite'],['nghe-nhan-gom','potter','PotterSprite'],['ti-na','ti-na','FriendsSprite'],['chi-hang-cuoi','hang-cuoi','FestivalSprite']] as const;
 function ui(parent: Node, name: string, width = 1, height = 1): Node {
     const n = new Node(name); n.layer = Layers.Enum.UI_2D; parent.addChild(n);
     n.addComponent(UITransform).setContentSize(width, height); return n;
@@ -78,7 +81,7 @@ export class VillageBootstrap extends Component {
     private playerVisual?: PlayerVisual;
     private marker?: Node;
     private markerTime = 0;
-    private touches = new Map<number, { start: Point; dragged: boolean; blocked: boolean }>();
+    private touches = new Map<number, { start: Point; dragged: boolean; blocked: boolean;hubDrag?:boolean }>();
     private art=new VillageArt();
     private childSprite?:Sprite;
     private gesture=new AvatarGestureState();private gestureGraphic?:Graphics;private spriteTime=0;private accessoryGraphic?:Graphics;
@@ -89,7 +92,7 @@ export class VillageBootstrap extends Component {
     private network=new VillageNetwork();
     private remoteActors=new Map<string,{node:Node;sprite:Sprite;accessory:Graphics;gesture:AvatarGestureState;gestureGraphic:Graphics}>();
     private npcHitHeight=85;
-    private assetsReady=false;
+    private assetsReady=false;private sceneryNodes:Node[]=[];private npcDecorated=new Set<string>();private loadingLabel?:Label;private loadingPanel?:Node;
     private networkStarted=false;
     private networkBadge?:Label;
     private demo=false;
@@ -145,11 +148,11 @@ export class VillageBootstrap extends Component {
             label(this.questButton,'Tới mục tiêu',230,55,22);
             this.questButton.active=!this.modalActive;
         }
-        void this.loadArt();
+        this.loadingPanel=ui(this.root,'LoadingVillage');this.loadingPanel.addComponent(Graphics);this.loadingLabel=label(this.loadingPanel,'Đang mở làng…',520,100,26).getComponent(Label)!;this.loadingLabel.color=new Color(255,251,231);this.network.onOffline=()=>this.enableSolo();void this.loadArt();
     }
     private async loadArt():Promise<void>{
         try{
-            await this.art.load();if(!this.isValid)return;const pack=await new Promise<JsonAsset>((resolve,reject)=>resources.load('chapter-pack',JsonAsset,(error,asset)=>error?reject(error):resolve(asset)));if(!applyChapterText(pack.json))console.warn('Invalid chapter text pack: using built-in content');this.chapter?.refreshContent();
+            await this.art.load();if(!this.isValid)return;const pack=await new Promise<JsonAsset>((resolve,reject)=>resources.load('chapter-pack',JsonAsset,(error,asset)=>error?reject(error):resolve(asset)));if(!applyChapterText(pack.json))console.warn('Invalid chapter text pack: using built-in content');const lessons=await new Promise<JsonAsset>((resolve,reject)=>resources.load('lesson-pack',JsonAsset,(error,asset)=>error?reject(error):resolve(asset)));if(!applyLessonPack(lessons.json))console.warn('Invalid lesson pack: using built-in questions');const npcPack=await new Promise<JsonAsset>((resolve,reject)=>resources.load('npc-pack',JsonAsset,(error,asset)=>error?reject(error):resolve(asset)));if(!applyNpcPack(npcPack.json))console.warn('Invalid NPC pack: keeping default spawns');if(this.hub)this.hub.npcNodes.forEach((node,i)=>{const npc=storyNpcs[i],p=toWorld(npc);node.setPosition(p.x,p.y);const text=node.getChildByName('Text')?.getComponent(Label);if(text)text.string=npc.name;});this.chapter?.refreshContent();
             for(let cy=0;cy<SIZE;cy+=8)for(let cx=0;cx<SIZE;cx+=8){const node=this.art.terrainChunk(this.world,cx,cy);if(node){
                 const old=this.terrainChunks.find(chunk=>chunk.node.name===`Terrain-${cx}-${cy}`);if(old){old.node.active=false;old.node.destroy();old.node=node;}
                 node.setSiblingIndex(0);
@@ -157,53 +160,51 @@ export class VillageBootstrap extends Component {
             for(const child of [...this.player.node.children])if(child!==this.arrow)child.destroy();
             this.playerVisual=undefined;this.childSprite=this.art.sprite(this.player.node,'ChildSprite',this.art.child[6],90,110).getComponent(Sprite)!;this.accessoryGraphic=ui(this.player.node,'Scarf').addComponent(Graphics);this.gestureGraphic=ui(this.player.node,'Gesture').addComponent(Graphics);
             this.childSprite.node.setPosition(0,-7);
-            if(this.hub){this.hub.onGesture=id=>{if(this.networkStarted&&this.network.privateMode&&!this.network.offlineMode){this.network.emote(id);}else this.gesture.start(id);};this.network.onEmote=(sessionId,id)=>{if(id!=='hello'&&id!=='happy')return;const state=sessionId===this.network.room?.sessionId?this.gesture:this.remoteActors.get(sessionId)?.gesture;state?.start(id as AvatarGesture);};this.hub.onAvatarPreview=(parent,id)=>{this.art.sprite(parent,'AvatarPreview',this.art.avatarFrame(id,0,6),55,70).setPosition(-100,-35);};this.hub.applyServerProgress();}
+            if(this.hub){this.hub.onGesture=id=>{if(this.networkStarted&&this.network.privateMode&&!this.network.offlineMode){this.network.emote(id);}else this.gesture.start(id);};this.network.onEmote=(sessionId,id)=>{if(id!=='hello'&&id!=='happy')return;const state=sessionId===this.network.room?.sessionId?this.gesture:this.remoteActors.get(sessionId)?.gesture;state?.start(id as AvatarGesture);};this.hub.onAvatarPreview=(parent,id,hair=this.hub?.campaign.data.hair??0)=>{const n=this.art.sprite(parent,'AvatarPreview',this.art.avatarFrame(id,0,6,hair),55,70);n.setPosition(-100,-35);void Promise.all([this.art.ensureAvatar(id),hair===1?this.art.ensureHair(id):Promise.resolve()]).then(()=>{if(n.isValid)n.getComponent(Sprite)!.spriteFrame=this.art.avatarFrame(id,0,6,hair);});};this.hub.applyServerProgress();}
             this.farmer.node.getComponent(Graphics)!.clear();this.art.sprite(this.farmer.node,'FarmerSprite',this.art.environment[6],130,145).setPosition(0,-5);
             this.farmer.node.getChildByName('FarmerName')!.setPosition(0,140);this.npcHitHeight=140;
             const elderFrame=this.art.decorations.elder;
             if(this.chapter&&elderFrame){
                 const elder=this.chapter.elder;this.art.sprite(elder,'ElderSprite',elderFrame,140*elderFrame.rect.width/elderFrame.rect.height,140).setPosition(0,-5);elder.getComponent(Graphics)!.clear();
             }
-            const npcArt=[['co-tam','co-tam','CoTamSprite'],['co-giao-lan','teacher','TeacherSprite'],['ba-ban-hang','market-lady','MarketLadySprite'],['nghe-nhan-gom','potter','PotterSprite'],['ti-na','ti-na','FriendsSprite'],['chi-hang-cuoi','hang-cuoi','FestivalSprite']] as const;
-            for(const [id,asset,name] of npcArt){
-                const node=this.hub?.npcNodes.find(node=>node.name===id),frame=this.art.decorations[asset];
-                if(node&&frame){
-                    const width=125*frame.rect.width/frame.rect.height;
-                    this.art.sprite(node,name,frame,width,125).setPosition(0,-5);node.getComponent(Graphics)!.clear();
-                    node.getComponent(UITransform)!.setContentSize(Math.max(70,width),125);
-                }
-            }
             const lotus=this.art.decorations.lotus;
             if(lotus)for(const [i,tile] of [{x:26,y:10},{x:29,y:12},{x:31,y:9}].entries()){
                 const node=this.art.sprite(this.actors,`PondLotus-${i}`,lotus,100,100),p=toWorld(tile);
                 node.getComponent(UITransform)!.setAnchorPoint(0.5,0.5);node.setPosition(p.x,p.y);
             }
-            for(const object of villageObjects){const node=this.art.sprite(this.actors,object.id,this.art.environment[object.frame],object.width,object.height);const p=toWorld(object);node.setPosition(p.x,p.y);}
+            for(const object of villageDetails){const frame=this.art.details[object.frame];if(!frame)continue;const node=this.art.sprite(this.actors,'Detail-'+object.id,frame,object.width,object.height),p=toWorld(object);node.setPosition(p.x,p.y);this.sceneryNodes.push(node);}
+            for(const object of villageObjects){const node=this.art.sprite(this.actors,object.id,this.art.environment[object.frame],object.width,object.height);const p=toWorld(object);node.setPosition(p.x,p.y);this.sceneryNodes.push(node);}
             for(let i=0;this.demo&&i<riceBundles.length;i++){
                 const p=toWorld(riceBundles[i]),node=ui(this.actors,`RiceBundle-${i}`,75,95);node.setPosition(p.x,p.y);
                 this.art.sprite(node,'Rice',this.art.environment[4],65,75);
                 const ring=ui(node,'HarvestRing').addComponent(Graphics);ring.strokeColor=new Color(255,255,180);ring.lineWidth=3;ring.ellipse(0,2,23,12);ring.stroke();
                 label(node,'Thu hoạch',100,25,16).setPosition(0,80);node.active=this.learning.data.collected.indexOf(i)<0;this.bundleNodes.push(node);
             }
-            this.assetsReady=true;
+            this.assetsReady=true;if(this.loadingPanel)this.loadingPanel.active=false;
             if(sys.isBrowser){const requested=new URLSearchParams(window.location.search).get('server');
                 if(requested){let endpoint:URL;try{endpoint=new URL(requested);}catch{throw new Error('Địa chỉ server không hợp lệ');}
                     if(['http:','https:','ws:','wss:'].indexOf(endpoint.protocol)<0)throw new Error('Giao thức server không hợp lệ');
                     if(this.demo||this.privateJoin){this.networkStarted=true;
                         if(this.privateJoin&&this.hub&&this.chapterSave){const hub=this.hub,first=this.chapterSave;
-                            this.network.onProgress=value=>{const cosmetics={quality:hub.campaign.data.quality,sound:hub.campaign.data.sound,avatar:hub.campaign.data.avatar,accessory:hub.campaign.data.accessory,home:hub.campaign.data.home};if(!value||!first.progress.restore(JSON.stringify(value.first))||!hub.campaign.restore(JSON.stringify(value.campaign)))return;Object.assign(hub.campaign.data,cosmetics);first.save();this.chapter?.refreshWorld();hub.save.save();hub.applyServerProgress();};
+                            this.network.onProgress=value=>{const cosmetics={quality:hub.campaign.data.quality,sound:hub.campaign.data.sound,avatar:hub.campaign.data.avatar,accessory:hub.campaign.data.accessory,hair:hub.campaign.data.hair,practice:hub.campaign.data.practice,home:hub.campaign.data.home};if(!value||!first.progress.restore(JSON.stringify(value.first))||!hub.campaign.restore(JSON.stringify(value.campaign)))return;Object.assign(hub.campaign.data,cosmetics);first.save();this.chapter?.refreshWorld();hub.save.save();hub.applyServerProgress();};
                             this.network.onGame=state=>hub.applyServerGame(state);
                             first.progress.onIntent=v=>this.network.intent('story',v);
                             hub.onChapterIntro=index=>this.network.intent('chapter-intro',{index});hub.onClaim=index=>this.network.intent('claim-star',{index});
                             hub.onLessonAnswer=v=>this.network.intent('lesson-answer',v);hub.onGameStart=questId=>this.network.intent('start-game',{questId});
-                            hub.onPortal=id=>{this.network.intent('portal',{id});};hub.onlinePeers=()=>Array.from(this.network.players.entries()).map(([id,p])=>({id,name:p.name}));hub.onOnline=(action,id)=>{if(action==='emote')this.network.emote(id!);else if(action==='block')this.network.block(id!);else if(action==='report')this.network.report(id!,'uncomfortable');else if(action==='offline'){this.network.offline();hub.onPortal=id=>{const p=portalDestination(this.player.position,id);if(p){this.resetInput();this.player.position=p;}};first.progress.onIntent=undefined;hub.onChapterIntro=undefined;hub.onClaim=undefined;hub.onLessonAnswer=undefined;hub.onGameStart=undefined;hub.onGameAction=undefined;hub.onGamePause=undefined;}};
+                            hub.onPortal=id=>{this.network.intent('portal',{id});};hub.onlinePeers=()=>Array.from(this.network.players.entries()).map(([id,p])=>({id,name:p.name}));hub.onOnline=(action,id)=>{if(action==='emote')this.network.emote(id!);else if(action==='block')this.network.block(id!);else if(action==='report')this.network.report(id!,'uncomfortable');else if(action==='offline')this.network.offline();};
                             hub.onGameAction=(type,index)=>this.network.intent('game-action',{type,index});hub.onGamePause=paused=>this.network.intent('pause-game',{paused});
                         }
                         void this.network.connect(endpoint.href,this.privateJoin);
                     }else this.networkBadge!.string='Mời người lớn mở vé phòng riêng từ trang phụ huynh';
                 }
             }
-        }catch(error){this.status.string='Không tải được hình ảnh. Prototype vẫn chạy; hãy mở lại project.';console.warn('Village art:',error);}
+        }catch(error){if(this.loadingPanel)this.loadingPanel.active=false;this.statusRemaining=10;this.status.string='Không tải được hình ảnh. Prototype vẫn chạy; hãy mở lại project.';console.warn('Village art:',error);}
+    }
+    private enableSolo():void{
+        const hub=this.hub,first=this.chapterSave;if(!hub||!first)return;
+        first.progress.onIntent=undefined;hub.onChapterIntro=undefined;hub.onClaim=undefined;hub.onLessonAnswer=undefined;
+        hub.onGameStart=undefined;hub.onGameAction=undefined;hub.onGamePause=undefined;
+        hub.onPortal=id=>{const p=portalDestination(this.player.position,id);if(p){this.resetInput();this.player.position=p;}};
     }
     private saveLearning():void{
         try{sys.localStorage.setItem('lang-tri-thuc.learning.v1',JSON.stringify(this.learning.data));}catch{}
@@ -287,9 +288,9 @@ export class VillageBootstrap extends Component {
 
         if(this.hub&&this.qualityStyle!==this.hub.campaign.data.quality){this.qualityStyle=this.hub.campaign.data.quality;const pipeline=director.root?.pipeline;if(pipeline)pipeline.shadingScale=this.qualityStyle==='low'?0.75:this.qualityStyle==='medium'?0.9:1;}
         this.playerVisual?.step(dt,this.player.moving,this.player.direction);
-        if(this.childSprite){this.spriteTime+=dt;const row=this.player.moving?1+(Math.floor(this.spriteTime*8)%2):0;this.childSprite.spriteFrame=this.art.avatarFrame(this.hub?.campaign.data.avatar??0,row,this.player.direction);if(this.accessoryGraphic)drawAccessory(this.accessoryGraphic,this.hub?.campaign.data.accessory??0,this.player.direction,row);if(this.accessoryGraphic&&this.gestureGraphic)animateGesture(this.gesture,this.childSprite,this.accessoryGraphic,this.gestureGraphic,dt,this.player.moving);}
+        if(this.hub)void this.art.ensureAvatar(this.hub.campaign.data.avatar);if(this.hub?.campaign.data.hair===1)void this.art.ensureHair(this.hub.campaign.data.avatar);if(this.childSprite){this.spriteTime+=dt;const row=this.player.moving?1+(Math.floor(this.spriteTime*8)%2):0;this.childSprite.spriteFrame=this.art.avatarFrame(this.hub?.campaign.data.avatar??0,row,this.player.direction,this.hub?.campaign.data.hair??0);if(this.accessoryGraphic)drawAccessory(this.accessoryGraphic,this.hub?.campaign.data.accessory??0,this.player.direction,row);if(this.accessoryGraphic&&this.gestureGraphic)animateGesture(this.gesture,this.childSprite,this.accessoryGraphic,this.gestureGraphic,dt,this.player.moving);}
         if(this.networkStarted){
-            this.network.update(dt,{...this.player.position,direction:this.player.direction,moving:this.player.moving,name:'',avatar:this.hub?.campaign.data.avatar??0,accessory:this.hub?.campaign.data.accessory??0});
+            this.network.update(dt,{...this.player.position,direction:this.player.direction,moving:this.player.moving,name:'',avatar:this.hub?.campaign.data.avatar??0,accessory:this.hub?.campaign.data.accessory??0,hair:this.hub?.campaign.data.hair??0});
             if(this.network.correction){this.player.cancel();this.player.position=this.network.correction;this.network.correction=null;this.pendingBundle=null;this.pendingNpc=false;this.chapter?.cancel();}
             this.updateRemoteActors(dt);
             const badge=this.network.visibleMessage||(this.network.room?`Làng online • ${this.network.players.size+1} bạn`:this.network.status);
@@ -300,11 +301,20 @@ export class VillageBootstrap extends Component {
             this.marker.active=this.player.hasPath&&!this.modalActive;
             this.markerTime+=Math.min(dt,0.1);const pulse=1+Math.sin(this.markerTime*5)*0.08;this.marker.setScale(pulse,pulse,1);
         }
+        if(this.loadingPanel?.active){const g=this.loadingPanel.getComponent(Graphics)!;g.clear();g.fillColor=new Color(43,78,50,250);g.rect(-size.width/2,-size.height/2,size.width,size.height);g.fill();}
         const cameraWidth = size.width / this.worldScale, cameraHeight = size.height / this.worldScale;
         // Reserve the top HUD area: put the player below center so nearby NPC heads stay visible.
         const hudScale=sys.isMobile?Math.max(1,1/pixelScale):1;
         const focus={x:this.player.position.x,y:this.player.position.y+160*hudScale/this.worldScale};
         const camera = cameraOffset(focus, cameraWidth, cameraHeight); this.world.setPosition(camera.x * this.worldScale, camera.y * this.worldScale);
+        if(this.assetsReady)for(const [id,asset,name] of npcArt){
+            const node=this.hub?.npcNodes.find(n=>n.name===id);if(!node||this.npcDecorated.has(id)||Math.abs(node.position.x+camera.x)>cameraWidth/2+150||Math.abs(node.position.y+camera.y)>cameraHeight/2+150)continue;
+            this.npcDecorated.add(id);void this.art.ensureDecoration(asset).then(()=>{
+                const frame=this.art.decorations[asset];if(!this.isValid||!node.isValid||!frame)return;
+                const width=125*frame.rect.width/frame.rect.height;this.art.sprite(node,name,frame,width,125).setPosition(0,-5);node.getComponent(Graphics)!.clear();node.getComponent(UITransform)!.setContentSize(Math.max(70,width),125);
+            });
+        }
+        for(const scenery of this.sceneryNodes){const bounds=scenery.getComponent(UITransform)!;scenery.active=Math.abs(scenery.position.x+camera.x)<cameraWidth/2+bounds.width&&Math.abs(scenery.position.y+camera.y)<cameraHeight/2+bounds.height;}
         for (const chunk of this.terrainChunks) {
             chunk.node.active = Math.abs(chunk.center.x + camera.x) < cameraWidth / 2 + 256
                 && Math.abs(chunk.center.y + camera.y) < cameraHeight / 2 + 128;
@@ -328,10 +338,10 @@ export class VillageBootstrap extends Component {
     }
     private updateRemoteActors(dt:number):void{
         this.remoteActors.forEach((actor,id)=>{if(!this.network.players.has(id)){actor.node.destroy();this.remoteActors.delete(id);}});
-        this.network.players.forEach((p,id)=>{let actor=this.remoteActors.get(id);
+        this.network.players.forEach((p,id)=>{void this.art.ensureAvatar(p.avatar??0);if(p.hair===1)void this.art.ensureHair(p.avatar??0);let actor=this.remoteActors.get(id);
             if(!actor){const node=ui(this.actors,`Online-${id}`);node.setPosition(p.x,p.y);const sprite=this.art.sprite(node,'OnlineSprite',this.art.avatarFrame(p.avatar??0,0,6),90,110).getComponent(Sprite)!;const name=label(node,p.name,160,30,18);name.getComponent(Label)!.color=new Color(50,105,160);name.setPosition(0,120);const accessory=ui(node,'Scarf').addComponent(Graphics);const gestureGraphic=ui(node,'Gesture').addComponent(Graphics);actor={node,sprite,accessory,gesture:new AvatarGestureState(),gestureGraphic};this.remoteActors.set(id,actor);}
             const t=Math.min(1,dt*12);actor.node.setPosition(actor.node.position.x+(p.x-actor.node.position.x)*t,actor.node.position.y+(p.y-actor.node.position.y)*t);
-            actor.sprite.spriteFrame=this.art.avatarFrame(p.avatar??0,p.moving?1+(Math.floor(this.spriteTime*8)%2):0,p.direction);drawAccessory(actor.accessory,p.accessory??0,p.direction,p.moving?1+(Math.floor(this.spriteTime*8)%2):0);animateGesture(actor.gesture,actor.sprite,actor.accessory,actor.gestureGraphic,dt,p.moving);
+            actor.sprite.spriteFrame=this.art.avatarFrame(p.avatar??0,p.moving?1+(Math.floor(this.spriteTime*8)%2):0,p.direction,p.hair??0);drawAccessory(actor.accessory,p.accessory??0,p.direction,p.moving?1+(Math.floor(this.spriteTime*8)%2):0);animateGesture(actor.gesture,actor.sprite,actor.accessory,actor.gestureGraphic,dt,p.moving);
         });
     }
     private local(p: Point, node = this.root): Vec3 { return node.getComponent(UITransform)!.convertToNodeSpaceAR(new Vec3(p.x, p.y, 0)); }
@@ -378,18 +388,18 @@ export class VillageBootstrap extends Component {
         return Math.abs(local.x)<=width/2&&Math.abs(local.y)<=48;
     }
     private tapThreshold():number { return 15*view.getDevicePixelRatio()/view.getScaleX(); }
-    private keyDown(e: EventKeyboard): void {
+    private keyDown(e: EventKeyboard): void {if(this.loadingPanel?.active)return;
         if (e.keyCode === 27) { this.hub?.close();this.chapter?.close();this.dialog.active = false; this.resetInput(); return; }
         if (!this.modalActive) this.keys.add(e.keyCode);
     }
     private keyUp(e: EventKeyboard): void { this.keys.delete(e.keyCode); }
     // Cocos 3.8.8 converts left mouse events to touch events. One shared handler avoids double clicks.
-    private touchStart(e: EventTouch): void {
+    private touchStart(e: EventTouch): void {if(this.loadingPanel?.active)return;
         const id=e.getID();if(id===null)return;
         const point=e.getUILocation(), start={x:point.x,y:point.y};
         const stickPoint=this.joystick.active?this.local(point,this.joystick):null;
         const onStick=!!stickPoint&&Math.hypot(stickPoint.x,stickPoint.y)<=75;
-        this.touches.set(id,{start,dragged:false,blocked:!this.modalActive&&(this.isHeader(point)||onStick)});
+        this.touches.set(id,{start,dragged:false,hubDrag:this.hub?.beginDrag?.(point),blocked:!this.modalActive&&(this.isHeader(point)||onStick)});
         if (!this.joystick.active || this.modalActive || this.stickId !== null) return;
         if (onStick) { this.stickId = id; this.pendingNpc = false; this.pendingBundle = null; this.chapter?.cancel();this.hub?.cancel(); this.player?.cancel(); this.updateStick(e); }
     }
@@ -401,16 +411,17 @@ export class VillageBootstrap extends Component {
         const id=e.getID();if(id===null)return;
         const gesture=this.touches.get(id),p=e.getUILocation();
         if(gesture&&Math.hypot(p.x-gesture.start.x,p.y-gesture.start.y)>this.tapThreshold())gesture.dragged=true;
-        if (id === this.stickId) this.updateStick(e);
+        if(gesture?.hubDrag&&gesture.dragged)this.hub?.moveDrag(p);if (id === this.stickId) this.updateStick(e);
     }
-    private touchEnd(e: EventTouch): void {
+    private touchEnd(e: EventTouch): void {if(this.loadingPanel?.active)return;
         const id=e.getID();if(id===null)return;
         const gesture=this.touches.get(id);this.touches.delete(id);
         if (id === this.stickId) { this.releaseStick(); return; }
         const p=e.getUILocation();
+        if(gesture?.hubDrag&&this.hub?.endDrag(p,gesture.dragged))return;
         if(gesture&&!gesture.blocked&&!gesture.dragged&&Math.hypot(p.x-gesture.start.x,p.y-gesture.start.y)<=this.tapThreshold())this.select(p);
     }
-    private touchCancel(e: EventTouch): void { const id=e.getID();if(id===null)return;this.touches.delete(id); if (id === this.stickId) this.releaseStick(); }
+    private touchCancel(e: EventTouch): void { const id=e.getID();if(id===null)return;if(this.touches.get(id)?.hubDrag)this.hub?.cancelDrag();this.touches.delete(id); if (id === this.stickId) this.releaseStick(); }
     private releaseStick(): void { this.stickId = null; this.stick = { x: 0, y: 0 }; this.knob.setPosition(0, 0); }
     private resetInput(): void { this.keys.clear(); this.releaseStick();this.touches.clear();this.player?.cancel();this.pendingNpc=false;this.pendingBundle=null;this.chapter?.cancel();this.hub?.cancel(); }
     private handleBlur = (): void => { this.resetInput(); };

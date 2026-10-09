@@ -1,3 +1,4 @@
+import type {Question} from '../../game-client/assets/scripts/world/EducationEngine';
 import { DatabaseSync } from 'node:sqlite';
 import { createPool, Pool, RowDataPacket } from 'mysql2/promise';
 import { dirname } from 'node:path';
@@ -13,10 +14,12 @@ export interface BackendData {
     reports:Array<{id:string;reporter:string;target:string;reason:string;created:number;status:'open'|'resolved'}>;
     review:Record<string,{status:'draft'|'reviewed'|'approved';reviewer:string;note:string;updated:number}>;
     content:Record<string,{title:string;intro:string;ending:string;questTitles:Record<string,string>}>;
+    npcs:Record<string,{id:string;name:string;x:number;y:number}>;assets:Record<string,{title:string;source:string;license:string}>;
+    lessons:Record<string,Question>;
     audit:Array<{actor:string;action:string;entity:string;created:number}>;
     results:string[];
 }
-const fresh=():BackendData=>({parents:{},profiles:{},sessions:{},progress:{},rooms:{},invitations:{},reports:[],review:{},audit:[],results:[],content:{}});
+const fresh=():BackendData=>({parents:{},profiles:{},sessions:{},progress:{},rooms:{},invitations:{},reports:[],review:{},audit:[],results:[],content:{},lessons:{},npcs:{},assets:{}});
 export interface Repository {readonly kind?:string;transaction<T>(operation:(data:BackendData)=>T|Promise<T>):Promise<T>;close():Promise<void>}
 export class SqliteRepository implements Repository {
     readonly kind='sqlite-local';

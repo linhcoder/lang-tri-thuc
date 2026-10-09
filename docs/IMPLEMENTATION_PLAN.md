@@ -1,4 +1,7 @@
 # Implementation Plan
+## Phạm vi hiện hành — 10/10/2026
+
+Người dùng cho phép thực hiện liên tục toàn bộ phần khả thi local và đã yêu cầu commit/push. Quy trình chờ xác nhận, “không push” ở các đoạn lịch sử bên dưới đã được thay thế. Trạng thái mới nhất: [checklist](COMPLETION_CHECKLIST.md), [QA](../apps/game-client/QA-REPORT.md). Gate chuyên gia, trẻ có giám sát, thiết bị thật và VPS vẫn cần bằng chứng riêng.
 
 ## Đợt hoàn thiện hiện tại — 09/10/2026
 

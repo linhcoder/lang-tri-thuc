@@ -1,4 +1,9 @@
 # Bàn giao prototype tám chương — 09/10/2026
+## Cập nhật hiện hành — 10/10/2026
+
+Đã bổ sung chỉnh tóc độc lập cho bốn avatar, khăn và hai biểu cảm; scenery làng, lazy assets/loading, hình minh họa 12 trò, kéo thả đèn, hoạt động luyện/lễ hội sau tám sao, 90 câu bài học và editor chương/câu hỏi/NPC/asset. Sửa lỗi mất mạng để tiếp tục solo; private room kiểm tra phiên bản nội dung. Người dùng đã cho phép commit **và push**. Những mô tả “chưa có tóc/khăn/gesture”, placeholder, số test cũ và “không push” bên dưới là lịch sử, không phải trạng thái hiện hành.
+
+Đối chiếu toàn bộ yêu cầu: [COMPLETION_CHECKLIST](COMPLETION_CHECKLIST.md). Kết quả kiểm thử mới nằm đầu [QA-REPORT](../apps/game-client/QA-REPORT.md). Chưa nghiệm thu nội dung chuyên gia, thiết bị thật hoặc VPS.
 
 Backend hiện dùng MySQL Laragon local và MySQL 8.4 trong gói Docker. SQLite chỉ giữ cho kiểm thử in-memory và migration/backup dữ liệu cũ. Xem [MySQL localhost](MYSQL_LOCAL.md).
 

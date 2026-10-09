@@ -4,6 +4,7 @@ artifacts/
 apps/backend/.data/
 apps/backend/dist/
 apps/admin/dist/
+apps/admin/temp/
 .env
 .env.*
 !.env.example

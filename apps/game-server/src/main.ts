@@ -1,3 +1,9 @@
+import npcPack from '../../game-client/assets/resources/npc-pack.json';
+import {applyNpcPack} from '../../game-client/assets/scripts/world/NpcCatalog';
+if(!applyNpcPack(npcPack))throw Error('Invalid shipped NPC pack');
+import lessonPack from '../../game-client/assets/resources/lesson-pack.json';
+import {applyLessonPack} from '../../game-client/assets/scripts/world/LessonCatalog';
+if(!applyLessonPack(lessonPack))throw Error('Invalid shipped lesson pack');
 import { Server } from '@colyseus/core';
 import { WebSocketTransport } from '@colyseus/ws-transport';
 import { VillageRoom } from './VillageRoom.js';

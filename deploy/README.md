@@ -1,5 +1,10 @@
 # Staging MySQL / API / Colyseus / Caddy
 
+## Tình trạng kiểm chứng — 10/10/2026
+
+Dockerfile hiện dùng build/runtime riêng, cài dependencies production và chạy với user node. Client/server phải build cùng lesson/NPC pack để dấu phiên bản nội dung khớp. Admin export/import không tự triển khai runtime.
+
+API và phòng riêng đã chạy MySQL local. Máy làm việc không có Docker nên **chưa build hoặc chạy Compose**; chưa có VPS/domain/SSH đích nên chưa deploy, kiểm tra TLS/WebSocket hay phục hồi DB Docker live. Các bước dưới đây là runbook cần thực thi tại staging, không phải bằng chứng deployment đã hoàn tất.
 Gói cấu hình chuẩn bị cho VPS Linux có Docker Compose. **Chưa triển khai live**: workspace có MySQL Laragon đã kiểm thử, nhưng không có Docker và chưa có SSH host/domain. Không chứa credential thật. Game là prototype nội dung draft, staging UI cần mật khẩu.
 
 1. Chạy `npm ci`, `npm run web:build` trên máy có Creator 3.8.8; chuyển source + `apps/game-client/build/web-desktop` sang checkout staging.

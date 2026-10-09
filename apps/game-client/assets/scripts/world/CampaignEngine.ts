@@ -1,8 +1,8 @@
-import { AgeBand, chapters, validateContent } from './CampaignContent';
+import { AgeBand, chapters, miniGameIds, validateContent } from './CampaignContent';
 import { ChapterOneData } from './ChapterOneProgress';
-export interface CampaignData {version:1;completed:string[];introduced:string[];receipts:string[];age:AgeBand;quality:'low'|'medium'|'high';sound:boolean;avatar:number;accessory:number;home:number;onlineAllowed:boolean;resume:Record<string,{kind:string;data:unknown}>}
+export interface CampaignData {version:1;completed:string[];introduced:string[];receipts:string[];age:AgeBand;quality:'low'|'medium'|'high';sound:boolean;avatar:number;accessory:number;hair:number;practice:string[];home:number;onlineAllowed:boolean;resume:Record<string,{kind:string;data:unknown}>}
 export class CampaignEngine {
-    data:CampaignData={version:1,completed:[],introduced:[],receipts:[],age:'3-5',quality:'low',sound:false,avatar:0,accessory:0,home:0,onlineAllowed:false,resume:{}};
+    data:CampaignData={version:1,completed:[],introduced:[],receipts:[],age:'3-5',quality:'low',sound:false,avatar:0,accessory:0,hair:0,practice:[],home:0,onlineAllowed:false,resume:{}};
     constructor(){const errors=validateContent();if(errors.length)throw Error(errors.join(';'));}
     syncChapterOne(d:ChapterOneData):void{
         const flags=[d.greeted,d.planted.length===5,d.countRound===3,d.rewardReceipts.includes('reward.star.ch01')];
@@ -23,7 +23,7 @@ export class CampaignEngine {
     get stars():number{return this.data.receipts.length;}
     restore(raw:string):boolean{
         try{const d=JSON.parse(raw) as CampaignData;if(!d||d.version!==1||!Array.isArray(d.completed)||!Array.isArray(d.receipts)||!Array.isArray(d.introduced))return false;
-            this.data={version:1,completed:[],introduced:[],receipts:[],age:['3-5','6-8','9-11'].includes(d.age)?d.age:'3-5',quality:['low','medium','high'].includes(d.quality)?d.quality:'low',sound:d.sound===true,avatar:Number.isInteger(d.avatar)?Math.max(0,Math.min(3,d.avatar)):0,accessory:Number.isInteger(d.accessory)&&d.accessory>=0&&d.accessory<=3?d.accessory:0,home:Number.isInteger(d.home)?Math.max(0,Math.min(3,d.home)):0,onlineAllowed:false,resume:{}};
+            this.data={version:1,completed:[],introduced:[],receipts:[],age:['3-5','6-8','9-11'].includes(d.age)?d.age:'3-5',quality:['low','medium','high'].includes(d.quality)?d.quality:'low',sound:d.sound===true,avatar:Number.isInteger(d.avatar)?Math.max(0,Math.min(3,d.avatar)):0,accessory:Number.isInteger(d.accessory)&&d.accessory>=0&&d.accessory<=3?d.accessory:0,hair:d.hair===1?1:0,practice:Array.isArray(d.practice)?Array.from(new Set(d.practice.filter(id=>miniGameIds.some(game=>game===id)))):[],home:Number.isInteger(d.home)?Math.max(0,Math.min(3,d.home)):0,onlineAllowed:false,resume:{}};
             for(let i=0;i<8;i++){const c=chapters[i];if(!this.unlocked(i))break;if(d.introduced.includes(c.id))this.introduce(i);for(const q of c.quests)if(d.completed.includes(q.id)&&this.available(q.id))this.complete(q.id);if(d.receipts.includes(`reward.star.${c.id}`))this.claim(i);}
             if(d.resume&&typeof d.resume==='object')for(const q of chapters.flatMap(c=>c.quests)){const r=d.resume[q.id];if(this.available(q.id)&&!this.data.completed.includes(q.id)&&r&&typeof r.kind==='string'&&JSON.stringify(r).length<16000)this.data.resume[q.id]=r;}
             return true;

@@ -36,9 +36,8 @@ const saveKey='lang-tri-thuc.chapter-one.v2',legacyKey='lang-tri-thuc.learning.v
         const {page,context}=await boot();
         assert.deepEqual(await page.evaluate(()=>({
             elder:!!village.chapter.elder.getChildByName('ElderSprite')?.getComponent(ccQA.Sprite)?.spriteFrame,
-            tam:!!village.hub.npcNodes.find(n=>n.name==='co-tam')?.getChildByName('CoTamSprite')?.getComponent(ccQA.Sprite)?.spriteFrame,
             lotus:village.actors.children.filter(n=>n.name.startsWith('PondLotus-')&&n.getComponent(ccQA.Sprite)?.spriteFrame).length,
-        })),{elder:true,tam:true,lotus:3});
+        })),{elder:true,lotus:3});
         await page.screenshot({path:path.join(output,'intro-desktop.png')});
         await tap(page,'button','Read');await tap(page,'button','StopRead');assert.equal(await page.evaluate(()=>village.chapterSave.progress.stage),'intro');
         assert.equal(await page.evaluate(()=>village.chapterSave.progress.stage),'intro');await tap(page,'button','Continue');

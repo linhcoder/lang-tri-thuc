@@ -1,5 +1,10 @@
 # Education Content Plan
 
+## Danh mục triển khai — 10/10/2026
+
+Danh mục gồm 90 câu: ba nhóm tuổi × mười kỹ năng × ba lượt. 9–11 có nhân, chia, toán lời văn; 6–8 có ghép vần; chương 4 dùng lesson language với ID quest cũ. Admin cho sửa prompt, ba lựa chọn, đáp án, hint, nguồn HTTPS; kiểm tra đồng nhất age/skill/ID và chuyển về draft sau mỗi lần sửa.
+
+Câu địa lý tổng hợp 9–11 sử dụng thông tin Hà Nội là thủ đô từ [Cổng thông tin Hà Nội](https://hanoi.gov.vn/dia-ly-dia-hinh/gioi-thieu-tong-quan-va-khai-quat-ve-dia-li-thanh-pho-ha-noi-4241009114844999.htm), và vị trí khu trung tâm Hoàng thành Thăng Long tại Hà Nội từ [UNESCO](https://whc.unesco.org/en/list/1328/). Nguồn được đính kèm câu hỏi; toàn bộ câu vẫn draft, cần người biên tập xác nhận cách diễn đạt phù hợp tuổi.
 Đây là kế hoạch nội dung và tiêu chí biên tập, chưa là chương trình giáo dục được chứng nhận. M0 không thêm câu hỏi văn hóa/lịch sử mới vào runtime.
 
 ## Ma trận nội dung

@@ -13,3 +13,4 @@ artifacts
 **/*.sqlite*
 temp
 *.log
+.cache

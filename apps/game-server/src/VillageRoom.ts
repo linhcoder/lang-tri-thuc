@@ -2,13 +2,14 @@ import { Room, Client } from '@colyseus/core';
 import { schema, t } from '@colyseus/schema';
 import { Point, toWorld, VillageMap } from '../../game-client/assets/scripts/world/VillageModel.js';
 
-export class PlayerState extends schema({x:t.number().default(0),y:t.number().default(-640),direction:t.uint8().default(6),moving:t.boolean().default(false),name:t.string().default(''),avatar:t.uint8().default(0),accessory:t.uint8().default(0)}) {}
+export class PlayerState extends schema({x:t.number().default(0),y:t.number().default(-640),direction:t.uint8().default(6),moving:t.boolean().default(false),name:t.string().default(''),avatar:t.uint8().default(0),accessory:t.uint8().default(0),hair:t.uint8().default(0)}) {}
 export class VillageState extends schema({players:t.map(PlayerState),gameJson:t.string().default(''),gameQuest:t.string().default('')}) {}
-export interface MovePacket extends Point { direction:number; moving:boolean; seq:number; avatar?:number; accessory?:number }
+export interface MovePacket extends Point { direction:number; moving:boolean; seq:number; avatar?:number; accessory?:number; hair?:number }
 export function validMove(map:VillageMap, from:Point, packet:unknown, budget:number): packet is MovePacket {
     if (!packet || typeof packet !== 'object') return false;
     const p = packet as MovePacket;
     if (![p.x,p.y,p.direction,p.seq].every(Number.isFinite) || !Number.isInteger(p.direction) || p.direction<0 || p.direction>7 || !Number.isSafeInteger(p.seq) || p.seq<0 || typeof p.moving!=='boolean') return false;
+    if(p.hair!==undefined&&p.hair!==0&&p.hair!==1)return false;
     if(p.accessory!==undefined&&(!Number.isInteger(p.accessory)||p.accessory<0||p.accessory>3))return false;
     if(p.avatar!==undefined&&(!Number.isInteger(p.avatar)||p.avatar<0||p.avatar>3))return false;
     const distance=Math.hypot(p.x-from.x,p.y-from.y);
@@ -32,6 +33,7 @@ export class VillageRoom extends Room<{state:VillageState}> {
             player.x=p.x;player.y=p.y;player.direction=p.direction;player.moving=p.moving;
             if(p.avatar!==undefined)player.avatar=p.avatar;
             if(p.accessory!==undefined)player.accessory=p.accessory;
+            if(p.hair!==undefined)player.hair=p.hair;
         });
     }
     onJoin(client:Client):void {

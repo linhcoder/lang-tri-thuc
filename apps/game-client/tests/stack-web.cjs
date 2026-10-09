@@ -17,9 +17,9 @@ const output=path.resolve(__dirname,'../temp/stack-qa');fs.mkdirSync(output,{rec
   assert.equal(await game.evaluate(id=>localStorage.getItem('lang-tri-thuc.chapter-one.v2.'+id)!==null,profileId),true);assert.equal(await game.evaluate(()=>localStorage.getItem('lang-tri-thuc.chapter-one.v2')),null);
   async function tapGame(id,root=false){const p=await game.evaluate(({id,root})=>{const n=root?village[id]:village.hub.node.getChildByName(id),world=n.getComponent(cc.UITransform).convertToWorldSpaceAR(new cc.Vec3()),s=village.node.getComponent(cc.Canvas).cameraComponent.worldToScreen(world),c=cc.game.canvas,r=c.getBoundingClientRect();return {x:r.left+s.x/c.width*r.width,y:r.top+(c.height-s.y)/c.height*r.height};},{id,root});await game.mouse.click(p.x,p.y);await game.waitForTimeout(100);}
   async function parent(){await tapGame('parentButton',true);await tapGame('ParentAnswer-1');}
-  await parent();await tapGame('Avatar');await tapGame('Avatar-2');await tapGame('Accessories');await tapGame('Accessory-3');await tapGame('HubClose');
-  await game.waitForFunction(()=>village.network.room.state.players.get(village.network.room.sessionId)?.avatar===2&&village.network.room.state.players.get(village.network.room.sessionId)?.accessory===3);
-  assert.equal(await game.evaluate(()=>village.art.avatarVariants[2].includes(village.childSprite.spriteFrame)),true);
+  await parent();await tapGame('Avatar');await tapGame('Avatar-2');await tapGame('Hair');await tapGame('Hair-1');await tapGame('BackToAvatar');await tapGame('Accessories');await tapGame('Accessory-3');await tapGame('HubClose');
+  await game.waitForFunction(()=>village.network.room.state.players.get(village.network.room.sessionId)?.avatar===2&&village.network.room.state.players.get(village.network.room.sessionId)?.accessory===3&&village.network.room.state.players.get(village.network.room.sessionId)?.hair===1);
+  assert.equal(await game.evaluate(()=>village.art.hairVariants[2]?.includes(village.childSprite.spriteFrame)),true);
   await parent();await tapGame('WorldMap');await tapGame('Zone-courtyard');await game.waitForFunction(()=>!village.player.hasPath);await game.waitForTimeout(250);
   await parent();await tapGame('WorldMap');await tapGame('PortalMode');await tapGame('Zone-farm');await game.waitForFunction(()=>Math.abs(village.player.position.x-96)<.1&&Math.abs(village.player.position.y+400)<.1);
   await parent();await tapGame('Collection');await tapGame('MyHome');await tapGame('Home-0');await game.screenshot({path:path.join(output,'home.png')});await tapGame('HubClose');

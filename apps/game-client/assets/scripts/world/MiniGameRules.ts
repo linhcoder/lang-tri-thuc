@@ -44,7 +44,7 @@ export class MiniGameRules {
     get ended():boolean{return this.status==='ended';}
     resume():void{if(this.status==='paused')this.status='running';}
     advance(dt:number):void{if(this.status==='running'&&Number.isFinite(dt)&&dt>0)this.clock=Math.min(3600,this.clock+Math.min(dt,0.1));}
-    get rhythmOpen():boolean{return this.id==='mg.tug-of-war'?Math.abs(Math.sin(this.clock*Math.PI*2))<0.75:this.clock%1.5<0.9;}
+    get rhythmOpen():boolean{return this.id==='mg.tug-of-war'?Math.abs(Math.sin(this.clock*Math.PI*2))<(this.age==='3-5'?.92:this.age==='6-8'?.85:.75):this.clock%1.5<(this.age==='3-5'?1.1:.9);}
     fishX(index:number):number{return Math.sin(this.clock+index*Math.PI*2/3)*200;}
     private end():void{this.status='ended';this.feedback='Hoàn thành! Cháu có thể nghỉ hoặc luyện lại.';}
     hint():string{
@@ -113,7 +113,7 @@ export class MiniGameRules {
             case 'mg.tug-of-war':return `Chạm Kéo khi vòng sáng mở. Một nhịp một lần; NPC giúp cháu (${d.hits}/6).`;
             case 'mg.bamboo-dance':return `Chạm Bước khi sạp mở. Có thể chờ nhịp tiếp theo (${d.hits}/6).`;
             case 'mg.market':return `Giỏ cần: ${d.wants[0]} cà rốt, ${d.wants[1]} rau cải, ${d.wants[2]} cà tím. Giá xu: ${d.prices.join(', ')}. Giỏ: ${d.cart.join(', ')}. Xu chỉ dùng trong game.`;
-            case 'mg.star-lantern':return `Chọn mảnh, rồi chạm vị trí cùng số để ghép đèn (${d.placed.length}/5). Không dùng lửa thật.`;
+            case 'mg.star-lantern':return `Chạm mảnh/cánh cùng số, hoặc kéo mảnh vào hình đèn (${d.placed.length}/5). Không dùng lửa thật.`;
             case 'mg.banh-chung':return `Sắp lớp theo hình: lá → gạo → đậu → nhân → gạo phủ → gấp lá (${d.step}/6). Đây là mô phỏng, không phải công thức nấu.`;
             case 'mg.dong-ho':return 'Trượt miếng cạnh ô trống để xếp 1–8 đúng thứ tự. Hình minh họa tự vẽ, không phải bản tranh Đông Hồ gốc.';
             case 'mg.fishing':return d.caught<0?`Chạm cá khi vào vùng giữa, quan sát rồi thả (${d.observed.length}/3).`:'Cá vừa quan sát có màu gì?';

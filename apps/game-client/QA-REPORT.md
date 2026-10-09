@@ -1,5 +1,47 @@
 # Kết quả nghiệm thu bản playable
 
+## Đợt hoàn thiện tổng thể — 10/10/2026
+
+Trạng thái hiện hành: [đối chiếu toàn bộ yêu cầu](../../docs/COMPLETION_CHECKLIST.md). Các mục “chưa có tóc/khăn/biểu cảm” và số test phía dưới là lịch sử.
+
+- Tóc riêng cho bốn avatar, lưu/migration và đồng bộ room; lazy avatar/NPC/tóc, loading overlay. Thêm atlas tám loại scenery, chín node; collision/A* dùng model chung.
+- 12 trò có minh họa state bằng Graphics, pool label; cửa sổ nhịp rộng hơn cho trẻ nhỏ. Đèn ông sao có kéo thả và nút thay thế. Luyện/lễ hội sau tám sao không nhận lại sao truyện.
+- 90 câu theo tuổi/kỹ năng; admin form chương/quest title, câu hỏi, sáu NPC, 24 metadata asset; review/audit/export. Import kiểm tra toàn gói, hỗ trợ --check, release từ chối draft. Admin mặc định đọc nội dung từ shipped pack trước draft trong DB.
+- Sửa pending join sau offline/dispose, callback room cũ, sai phiên bản nội dung, thất bại ba lần; callback chuyển solo gỡ hook authoritative để trò local tiếp tục chạy.
+
+### Kiểm thử đã chạy
+
+| Nhóm | Kết quả / phạm vi |
+| --- | --- |
+| Strict client, Cocos Web, API, admin build | Đạt; Creator import meta thật; giữ nguyên scene |
+| Client | 42 nhóm engine/save/content/input + 3 test lifecycle network đạt |
+| API | 4 test logic trong suite MySQL đạt; lượt standalone trước khi bổ sung hồi quy shipped-pack có 3 đạt/1 MySQL skip |
+| MySQL riêng | 5 đạt, gồm admin shipped defaults, rollback, concurrent lock, Unicode, reconnect durable |
+| Colyseus | 4 đạt; invalid avatar/hair, packet cũ giữ appearance, handshake và 20 client local |
+| Campaign | Đủ 8 chương, 12 trò minh họa, 8 receipt, luyện, reload, reset thất bại giữ dữ liệu |
+| Avatar | 4×24 frame, tóc, khăn, gesture, reload, touch mobile, remote appearance; không lỗi JS |
+| Assets | Lazy NPC theo vùng, click 7 điểm NPC, 3 sen, 9 node/8 frame scenery; không lỗi JS |
+| Drag | Desktop/mobile touch, thả sai, cancel/blur, click thay thế, không tăng sao truyện; không lỗi JS |
+| Speech | Đủ 8 chương, câu/lựa chọn, hint, mute, stop/blur, callback lỗi, thiếu giọng rồi thử lại; API giọng mock |
+| Admin browser | Form chapter/quest/lesson/NPC/asset, review và full export; API fixture riêng |
+| Chương 1 browser | Desktop/mobile đầy đủ, partial reload/replay, save legacy/future/corrupt, touch ≥44 CSS px, landscape; không lỗi JS |
+| Stack browser | MySQL/phụ huynh, vé riêng, save scoped, avatar 2/tóc 1/khăn 3, portal/nhà/emote và offline gỡ hook server; không lỗi JS |
+
+Mẫu chương 1 bản cuối trên AMD Radeon: 60,14 FPS, p95 16,9 ms, 68 draw calls, JS heap 62,65 MB. Đây là mẫu ngắn trên một GPU; không suy ra kết quả Intel/điện thoại thật hoặc RAM toàn tiến trình.
+
+Stack Low/Medium/High đo p95 16,9/16,9/17 ms, shading scale 0,75/0,9/1, JS heap khoảng 43,5–46,9 MiB. Session có tổng resource transfer khoảng 35,53 MiB sau mở avatar/tóc; không phải dung lượng tải ban đầu.
+
+### Sửa lỗi trong quá trình QA
+
+Đã sửa label form để tên truy cập không thay đổi theo nội dung textarea, tăng cửa sổ nhịp cho trẻ nhỏ và rút hướng dẫn Ô ăn quan về hai dòng để hết clipping. Drag test chờ trạng thái input/ghost và UI thật thay vì giả định frame đã xử lý sự kiện. Một lượt chương 1 nhầm cổng mặc định 8080 đã dừng, chạy lại đúng GAME_WEB_URL=38080 đạt. API test trong sandbox gặp uv_os_get_passwd; chạy lại ngoài sandbox đạt. Không tính các lượt lỗi này là pass.
+
+Hồi quy shipped-pack phát hiện admin đọc lại câu mặc định khi runtime được import qua module khác trong tsx. Đã gom getter câu hiện hành vào LessonCatalog, kiểm tra GET và export cùng đọc prompt đã import; suite MySQL cuối đạt cả năm test.
+
+Gói fixture import --draft --check đạt 8/90/6/24; --check release từ chối draft trước ghi. Không import fixture vào resource thật. Screenshot/report trong temp của từng suite và apps/admin/temp đã xem mẫu avatar/mobile, NPC/ao/scenery, Ô ăn quan/mê cung và form admin. Dữ liệu fixture không được duyệt để phát hành.
+
+Còn gate người biên tập, nguồn/license art, thử trẻ có giám sát, Intel/mobile thật, soak mạng, Docker/VPS. Máy hiện tại không có Docker; chưa deploy. Nội dung vẫn draft; giọng mock không chứng minh âm thanh thực nghe được.
+
+
 ## Đọc thoại và bài học đủ tám chương — 10/10/2026
 
 Chương 2–8 có nút Nghe/Dừng đọc ở hội thoại, câu hỏi bài học và luật/gợi ý mini game. Bài học đọc cả các lựa chọn theo thứ tự, không tiết lộ đáp án đúng. Dùng chung `SpeechReader` với chương 1: chỉ đọc khi bật âm thanh, chọn giọng tiếng Việt (ưu tiên giọng local), tốc độ 0,85; thiếu API/giọng hoặc lỗi engine có thông báo. Có thể bấm lại khi danh sách giọng tải xong.

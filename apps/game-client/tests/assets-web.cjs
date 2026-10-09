@@ -14,7 +14,7 @@ const output=path.resolve(__dirname,'../temp/assets-qa');fs.mkdirSync(output,{re
   // Camera positions are set for visual inspection; clicks still use browser input.
   async function inspect(name,tile){
    await page.evaluate(({x,y})=>{const b=village;b.chapter.close();b.hub.node.active=false;b.resetInput();b.player.position={x:(x-y)*32,y:-(x+y)*16};},tile);
-   await page.waitForTimeout(350);await page.screenshot({path:path.join(output,name+'.png')});
+   await page.waitForTimeout(350);const ids={"co-tam":'co-tam',teacher:'co-giao-lan',potter:'nghe-nhan-gom',friends:'ti-na',market:'ba-ban-hang',festival:'chi-hang-cuoi'};if(ids[name])await page.waitForFunction(id=>village.hub.npcNodes.find(n=>n.name===id)?.children.some(c=>c.getComponent(cc.Sprite)?.spriteFrame),ids[name]);await page.screenshot({path:path.join(output,name+'.png')});
   }
   async function clickNpc(name,offsetX=0){
    const point=await page.evaluate(({name,offsetX})=>{const b=village,n=name==='elder'?b.chapter.elder:b.hub.npcNodes.find(n=>n.name===(name==='tam'?'co-tam':name));const p=n.getComponent(cc.UITransform).convertToWorldSpaceAR(new cc.Vec3(offsetX,60,0)),s=b.node.getComponent(cc.Canvas).cameraComponent.worldToScreen(p),c=cc.game.canvas,r=c.getBoundingClientRect();return {x:r.left+s.x/c.width*r.width,y:r.top+(c.height-s.y)/c.height*r.height};},{name,offsetX});
@@ -22,8 +22,8 @@ const output=path.resolve(__dirname,'../temp/assets-qa');fs.mkdirSync(output,{re
    await page.waitForFunction(name=>name==='elder'?village.chapter.node.active:village.hub.node.active,name,{timeout:10000});
   }
   const sprites=await page.evaluate(()=>({elder:!!village.chapter.elder.getChildByName('ElderSprite')?.getComponent(cc.Sprite)?.spriteFrame,tam:!!village.hub.npcNodes.find(n=>n.name==='co-tam')?.getChildByName('CoTamSprite')?.getComponent(cc.Sprite)?.spriteFrame,lotus:village.actors.children.filter(n=>n.name.startsWith('PondLotus-')&&n.getComponent(cc.Sprite)?.spriteFrame).length}));
-  assert.deepEqual(sprites,{elder:true,tam:true,lotus:3});
-  assert.equal(await page.evaluate(()=>village.hub.npcNodes.filter(n=>n.children.some(c=>c.getComponent(cc.Sprite)?.spriteFrame)).length),6);
+  assert.equal(sprites.elder,true);assert.equal(sprites.lotus,3);
+
   await inspect('elder',{x:11,y:21});await clickNpc('elder');
   await inspect('co-tam',{x:11,y:8});await clickNpc('tam');
   await inspect('pond',{x:24,y:12});
@@ -32,6 +32,7 @@ const output=path.resolve(__dirname,'../temp/assets-qa');fs.mkdirSync(output,{re
   await inspect('friends',{x:20,y:24});await clickNpc('ti-na',-45);
   await inspect('market',{x:29,y:23});await clickNpc('ba-ban-hang');
   await inspect('festival',{x:32,y:28});await clickNpc('chi-hang-cuoi',45);
+  assert.equal(await page.evaluate(()=>village.hub.npcNodes.filter(n=>n.children.some(c=>c.getComponent(cc.Sprite)?.spriteFrame)).length),6);assert.equal(await page.evaluate(()=>village.art.details.length),8);assert.equal(await page.evaluate(()=>village.actors.children.filter(n=>n.name.startsWith('Detail-')).length),9);
   assert.deepEqual(errors,[]);fs.writeFileSync(path.join(output,'report.json'),JSON.stringify({sprites,npcClicks:true,errors},null,2));console.log(JSON.stringify({sprites,npcClicks:true,errors},null,2));
  }finally{await context.close();await browser.close();}
 })().catch(e=>{console.error(e);process.exitCode=1;});

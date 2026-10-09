@@ -1,4 +1,11 @@
 # Làng Tri Thức
+## Hoàn thiện ngày 10/10/2026
+
+Danh sách đối chiếu yêu cầu và giới hạn thực tế: [COMPLETION_CHECKLIST](docs/COMPLETION_CHECKLIST.md). Chọn nhân vật → **Kiểu tóc** có hai lựa chọn riêng cho mỗi avatar, lưu và đồng bộ online. Túi sao → **Luyện / lễ hội** mở sau tám sao; luyện không cấp lại sao truyện. Làng có thêm giếng, lũy tre, cầu tre, trâu, gà, vịt, vườn rau và cổng.
+
+Admin có form sửa chương/quest title, câu hỏi theo tuổi/kỹ năng, tên/vị trí sáu NPC truyện và metadata 24 asset; sửa đưa về draft, review/audit và xuất gói JSON. Hướng dẫn kiểm tra/import và build đồng bộ nằm trong checklist. Nội dung chưa được người biên tập phê duyệt cho phát hành.
+
+QA bổ sung: `npm.cmd run test:drag`, `npm.cmd run test:admin`, `npm.cmd run test:avatars`, `npm.cmd run test:assets`, `npm.cmd run test:campaign`, `npm.cmd run test:speech`. Browser test cần bản build và stack local tại game 38080/admin 35173/API 33000; admin QA chạy API fixture riêng, không sửa nội dung thật.
 
 Dự án game giáo dục Web Multiplayer 2.5D Isometric dành cho trẻ em Việt Nam từ mầm non đến tiểu học.
 

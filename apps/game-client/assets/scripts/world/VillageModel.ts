@@ -19,6 +19,17 @@ export const villageObjects = [
     {id:'tree-east',frame:2,x:34,y:19,width:150,height:175,radius:0},
     {id:'house-west',frame:1,x:5,y:30,width:160,height:150,radius:1},
 ];
+export const villageDetails=[
+    {id:'well',frame:0,x:18,y:27,width:110,height:110,blocked:true},
+    {id:'bamboo',frame:1,x:3,y:18,width:145,height:170,blocked:true},
+    {id:'bamboo-east',frame:1,x:35,y:24,width:130,height:150,blocked:true},
+    {id:'bridge',frame:2,x:29,y:7,width:135,height:85,blocked:true},
+    {id:'buffalo',frame:3,x:12,y:17,width:110,height:95,blocked:true},
+    {id:'hen',frame:4,x:13,y:18,width:48,height:55,blocked:true},
+    {id:'duck',frame:5,x:30,y:14,width:50,height:48,blocked:false},
+    {id:'garden',frame:6,x:27,y:27,width:150,height:95,blocked:true},
+    {id:'gate-arch',frame:7,x:20,y:26,width:180,height:145,blocked:false},
+];
 export function toWorld(p: Point): Point { return { x: (p.x - p.y) * 32, y: -(p.x + p.y) * 16 }; }
 export function toGrid(p: Point): Point { return { x: p.x / 64 - p.y / 32, y: -p.x / 64 - p.y / 32 }; }
 export function tileAt(p: Point): Point { const g = toGrid(p); return { x: Math.round(g.x), y: Math.round(g.y) }; }
@@ -36,6 +47,7 @@ export class VillageMap {
             && terrain(x, y) !== 'pond' && !(x === this.npc.x && y === this.npc.y)
             && !(x===elderTile.x&&y===elderTile.y)
             && !storyNpcs.some(npc=>npc.x===x&&npc.y===y)
+            && !villageDetails.some(object=>object.blocked&&object.x===x&&object.y===y)
             && !villageObjects.some(object=>Math.abs(x-object.x)<=object.radius&&Math.abs(y-object.y)<=object.radius);
     }
     canStand(p: Point): boolean {

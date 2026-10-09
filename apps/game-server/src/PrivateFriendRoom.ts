@@ -9,6 +9,7 @@ import {chapters,AgeBand,miniGameIds} from '../../game-client/assets/scripts/wor
 import {MiniGameRules} from '../../game-client/assets/scripts/world/MiniGameRules';
 import {elderTile,toWorld} from '../../game-client/assets/scripts/world/VillageModel';
 import {portalDestination} from '../../game-client/assets/scripts/world/WorldZones';
+import {contentVersion} from '../../game-client/assets/scripts/world/ContentVersion';
 interface Member {profileId:string;parentId:string;age:AgeBand;blocked:string[];first:ChapterOneProgress;campaign:CampaignEngine;lastEmote:number;saveQueue:Promise<unknown>}
 export const approvedEmotes=['hello','happy','thanks','your-turn','need-help','bye'] as const;
 export class PrivateFriendRoom extends VillageRoom {
@@ -17,7 +18,7 @@ export class PrivateFriendRoom extends VillageRoom {
     onCreate(options:any={}):void{
         super.onCreate();this.maxClients=20;this.secret=options.secret;this.api=options.apiUrl;this.code=options.roomCode;
         if(typeof this.secret!=='string'||this.secret.length<32||!/^[A-Z0-9]{8}$/.test(this.code))throw Error('Private room configuration invalid');
-        this.onMessage('ready',client=>this.sendProgress(client));
+        this.onMessage('ready',client=>{client.send('content-version',contentVersion());this.sendProgress(client);});
         this.onMessage('portal',(client,value:unknown)=>{const p=this.state.players.get(client.sessionId),id=(value as any)?.id;if(!p||typeof id!=='string')return;const target=portalDestination(p,id);if(target)this.relocate(client,target);});
         this.onMessage('probe',(client,value:unknown)=>{if(typeof value==='number'&&Number.isFinite(value))client.send('probe',value);});
         this.onMessage('emote',(client,value:unknown)=>{

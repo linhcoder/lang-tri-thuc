@@ -1,11 +1,12 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {createApi} from '../src/main';
-import {SqliteRepository} from '../src/Store';
+import {SqliteRepository,MySqlRepository} from '../src/Store';
 import {verifyTicket} from '../src/Auth';
 const secret='test-only-room-secret-at-least-32-characters';
 test('parent API protects ownership, sessions, invitations, revisions and admin review',async()=>{
-    const app=await createApi({store:new SqliteRepository(),roomSecret:secret,adminPassword:'TestAdminPassword123!'});
+    const store=process.env.MYSQL_TEST_URL?new MySqlRepository(process.env.MYSQL_TEST_URL):new SqliteRepository();if(process.env.MYSQL_TEST_URL){if(!new URL(process.env.MYSQL_TEST_URL).pathname.endsWith('_test'))throw Error('Isolated test database required');await store.transaction(d=>{for(const key of Object.keys(d) as Array<keyof typeof d>)(d as any)[key]=Array.isArray(d[key])?[]:{};});}
+    const app=await createApi({store,roomSecret:secret,adminPassword:'TestAdminPassword123!'});
     const request=async(method:any,url:string,body?:any,token?:string)=>app.inject({method,url,payload:body,headers:token?{authorization:'Bearer '+token}:{}});
     try{
         assert.equal((await request('GET','/profiles')).statusCode,401);

@@ -3,6 +3,7 @@ const root=path.resolve(__dirname,'..'),file=path.join(root,'.env.local');
 if(!fs.existsSync(path.join(root,'apps/game-client/build/web-desktop/index.html')))throw Error('Missing Cocos web build. Run npm run web:build first.');
 if(!fs.existsSync(file))fs.writeFileSync(file,JSON.stringify({ROOM_SECRET:crypto.randomBytes(48).toString('base64url'),ADMIN_BOOTSTRAP_PASSWORD:crypto.randomBytes(24).toString('base64url')},null,2),{mode:0o600});
 const privateEnv=JSON.parse(fs.readFileSync(file,'utf8'));
+if(!privateEnv.DATABASE_URL&&!process.env.DATABASE_URL)throw Error('MySQL is not configured. Run npm run db:setup first.');
 if(process.argv.includes('--credentials')){console.log('Admin credentials are stored in .env.local. Open this local file; do not share or commit it.');process.exit(0);}
 const env={...process.env,...privateEnv,HOST:'127.0.0.1',API_PORT:'33000',PORT:'32567',WEB_PORT:'38080',API_URL:'http://127.0.0.1:33000',VITE_API_URL:'http://127.0.0.1:33000',VITE_SERVER_URL:'http://127.0.0.1:32567',VITE_GAME_URL:'http://127.0.0.1:38080/',ALLOWED_ORIGINS:'http://127.0.0.1:35173'};
 const children=[];let stopping=false;

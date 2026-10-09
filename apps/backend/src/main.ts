@@ -1,8 +1,8 @@
 import Fastify,{FastifyRequest} from 'fastify';
 import cors from '@fastify/cors';
 import {randomBytes,randomUUID,createHmac,timingSafeEqual} from 'node:crypto';
-import {pathToFileURL,fileURLToPath} from 'node:url';
-import {BackendData,ParentRecord,Repository,SqliteRepository,PostgresRepository} from './Store';
+import {pathToFileURL} from 'node:url';
+import {BackendData,ParentRecord,Repository,MySqlRepository} from './Store';
 import {digest,passwordHash,verifyPassword,signTicket} from './Auth';
 import {CampaignEngine} from '../../game-client/assets/scripts/world/CampaignEngine';
 import {chapters} from '../../game-client/assets/scripts/world/CampaignContent';
@@ -11,8 +11,10 @@ export interface ApiOptions {store?:Repository;roomSecret?:string;adminPassword?
 const object=(properties:Record<string,unknown>,required:string[]=Object.keys(properties))=>({type:'object',additionalProperties:false,properties,required});
 const str={type:'string',minLength:1,maxLength:200},age={type:'string',enum:['3-5','6-8','9-11']};
 export async function createApi(options:ApiOptions={}){
-    const store=options.store??(process.env.DATABASE_URL?new PostgresRepository(process.env.DATABASE_URL):new SqliteRepository(process.env.SQLITE_PATH||fileURLToPath(new URL('../.data/game.sqlite',import.meta.url))));
+    if(!options.store&&!process.env.DATABASE_URL)throw Error('DATABASE_URL required. Run npm run db:setup for Laragon.');
+    const store=options.store??new MySqlRepository(process.env.DATABASE_URL!);
     const roomSecret=options.roomSecret||process.env.ROOM_SECRET;if(!roomSecret||roomSecret.length<32)throw Error('ROOM_SECRET must have at least 32 characters');
+    try{await store.transaction(()=>{});}catch(error){await store.close();throw error;}
     const app=Fastify({bodyLimit:65536,logger:false});await app.register(cors,{origin:options.origin||(process.env.ALLOWED_ORIGINS?.split(',')??['http://127.0.0.1:5173','http://localhost:5173','http://127.0.0.1:8080']),methods:['GET','POST','PUT','DELETE'],allowedHeaders:['Content-Type','Authorization']});
     const rates=new Map<string,{count:number;time:number}>();
     app.addHook('preHandler',async(req,reply)=>{const signature=req.headers['x-service-signature'];if(req.url.startsWith('/internal/')&&typeof signature==='string'){const expected=createHmac('sha256',roomSecret).update(JSON.stringify(req.body)).digest('hex'),a=Buffer.from(signature),b=Buffer.from(expected);if(a.length===b.length&&timingSafeEqual(a,b))return;}const now=Date.now(),key=req.ip,r=rates.get(key);if(!r||now-r.time>60000)rates.set(key,{count:1,time:now});else if(++r.count>120){reply.code(429);throw Error('Too many requests');}if(rates.size>2000)for(const [id,r] of rates)if(now-r.time>60000)rates.delete(id);});
@@ -22,7 +24,7 @@ export async function createApi(options:ApiOptions={}){
         const token=req.headers.authorization?.replace(/^Bearer /,''),s=token?d.sessions[digest(token)]:null,p=s&&s.expires>Date.now()?d.parents[s.parentId]:null;if(!p||admin&&p.role!=='admin')throw Object.assign(Error('Unauthorized'),{statusCode:401});return p;
     });
     const owned=(d:BackendData,parentId:string,id:string)=>{const p=d.profiles[id];if(!p||p.parentId!==parentId)throw Object.assign(Error('Not found'),{statusCode:404});return p;};
-    app.get('/health',async()=>({ok:true,storage:process.env.DATABASE_URL?'postgresql':'sqlite-local',prototype:true}));
+    app.get('/health',async()=>({ok:true,storage:store.kind??'custom',prototype:true}));
     app.post<{Body:{alias:string;password:string}}>('/parents',{schema:{body:object({alias:{type:'string',minLength:3,maxLength:40,pattern:'^[a-zA-Z0-9_-]+$'},password:{type:'string',minLength:12,maxLength:128}})}},async(req,reply)=>{
         const parent=await store.transaction(d=>{if(req.body.alias.toLowerCase()==='admin'||Object.values(d.parents).some(p=>p.alias===req.body.alias))throw Object.assign(Error('Alias unavailable'),{statusCode:409});const id=randomUUID(),p={id,alias:req.body.alias,passwordHash:passwordHash(req.body.password),role:'parent' as const};d.parents[id]=p;return {id,alias:p.alias};});return reply.code(201).send(parent);
     });

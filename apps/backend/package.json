@@ -1,6 +1,23 @@
 {
-  "name":"game-backend","private":true,"type":"module","version":"0.1.0",
-  "scripts":{"start":"tsx src/main.ts","build":"tsc --noEmit && node tools/build.cjs","start:prod":"node dist/main.js","test":"tsx --test tests/*.test.ts"},
-  "dependencies":{"fastify":"5.12.5","@fastify/cors":"11.3.1","pg":"8.23.1"},
-  "devDependencies":{"@types/pg":"^8.15.6","@types/node":"^24.0.0","typescript":"^5.9.0","tsx":"^4.20.0","esbuild":"^0.25.0"}
+  "name": "game-backend",
+  "private": true,
+  "type": "module",
+  "version": "0.1.0",
+  "scripts": {
+    "start": "tsx src/main.ts",
+    "build": "tsc --noEmit && node tools/build.cjs",
+    "start:prod": "node dist/main.js",
+    "test": "tsx --test tests/*.test.ts"
+  },
+  "dependencies": {
+    "@fastify/cors": "11.3.1",
+    "fastify": "5.12.5",
+    "mysql2": "^3.24.5"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "esbuild": "^0.25.0",
+    "tsx": "^4.20.0",
+    "typescript": "^5.9.0"
+  }
 }

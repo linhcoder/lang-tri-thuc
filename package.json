@@ -25,7 +25,10 @@
     "admin:build": "npm run build --workspace game-admin",
     "local:stack": "node tools/local-stack.cjs",
     "test:stack": "node apps/game-client/tests/stack-web.cjs",
-    "backup:local": "node tools/backup-local.cjs"
+    "backup:local": "node tools/backup-mysql.cjs",
+    "db:setup": "npm run api:build && node tools/setup-mysql.cjs",
+    "test:mysql": "npm run api:build && node tools/test-mysql.cjs",
+    "backup:sqlite": "node tools/backup-local.cjs"
   },
   "devDependencies": {
     "playwright": "^1.62.1"

@@ -1,5 +1,7 @@
 # Bàn giao prototype tám chương — 09/10/2026
 
+**Cập nhật storage:** backend đã chuyển sang MySQL Laragon theo yêu cầu mới; dữ liệu SQLite đã migration và kiểm thử trực tiếp. Xem [MySQL localhost](MYSQL_LOCAL.md). Các đoạn SQLite/PostgreSQL dưới đây ghi baseline trước chuyển, không phải cấu hình runtime hiện tại.
+
 Yêu cầu mới nhất cho phép tiếp tục toàn bộ phần còn lại và commit. Các câu “chờ xác nhận từng milestone / không commit” trong master prompt và tài liệu kế hoạch cũ là quy trình lịch sử, đã được yêu cầu mới thay thế. Đợt này không push.
 
 ## Đã triển khai và chạy được

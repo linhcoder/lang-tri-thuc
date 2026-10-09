@@ -7,7 +7,7 @@ Dự án game giáo dục Web Multiplayer 2.5D Isometric dành cho trẻ em Vi�
 - Cocos Creator 3.8.x + TypeScript
 - Colyseus Multiplayer
 - Node.js + Colyseus (server multiplayer)
-- Fastify + PostgreSQL (adapter/staging), SQLite local; Redis khi cần nhiều instance
+- Fastify + MySQL (Laragon local/staging); Redis khi cần nhiều instance
 
 ## Mục tiêu
 
@@ -17,7 +17,7 @@ Xây dựng thế giới làng quê Việt Nam, nơi trẻ có thể khám phá,
 
 Full campaign prototype đã chạy đủ tám chương, 12 mini game, NPC/nhật ký/sao, avatar/nhà/bản đồ/cổng khu, save local, phòng riêng có vé phụ huynh, Fastify API và React admin. Nội dung vẫn draft, art mới còn placeholder; chưa nghiệm thu public beta.
 
-**Bàn giao và kết quả kiểm thử:** [prototype tám chương](docs/DELIVERY_FULL_PROTOTYPE.md). **Staging VPS:** [runbook](deploy/README.md). Gate còn lại: chuyên gia/nhóm trẻ có giám sát, Intel HD/UHD/điện thoại thật/soak và VPS/PostgreSQL live.
+**Bàn giao và kết quả kiểm thử:** [prototype tám chương](docs/DELIVERY_FULL_PROTOTYPE.md). **Staging VPS:** [runbook](deploy/README.md). Gate còn lại: chuyên gia/nhóm trẻ có giám sát, Intel HD/UHD/điện thoại thật/soak và VPS/MySQL Docker live.
 
 ## Chạy offline
 
@@ -34,7 +34,7 @@ Mở `http://127.0.0.1:8080/`. Chương 1 mặc định; Sổ làng mở các ch
 ## Chạy API, phòng riêng và trang phụ huynh
 
 ```powershell
-npm.cmd run api:build
+npm.cmd run db:setup
 npm.cmd run server:build
 npm.cmd run admin:build
 npm.cmd run local:stack
@@ -61,3 +61,5 @@ Browser tests cần web build; `test:m2`/`test:campaign` dùng server web cổng
 Nếu Creator cài khác đường dẫn mặc định, đặt `COCOS_CREATOR` hoặc `node tools/build-web.cjs <đường-dẫn-CocosCreator.exe>`.
 
 Tài liệu: [Milestone 01A](apps/game-client/MILESTONE-01A.md), [Chương 1](docs/MILESTONE_M2.md), [nguồn art](apps/game-client/ART.md), [cốt truyện](docs/STORY_BIBLE.md), [kế hoạch](docs/IMPLEMENTATION_PLAN.md), [QA](docs/QA_TEST_PLAN.md). Các tài liệu milestone cũ ghi trạng thái tại thời điểm viết; bản bàn giao mới là trạng thái triển khai hiện tại.
+
+MySQL localhost đã chuyển dữ liệu và kiểm thử trực tiếp; xem [cấu hình Laragon / migration / backup](docs/MYSQL_LOCAL.md). `npm run test:mysql` chạy database test riêng.

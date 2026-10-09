@@ -309,4 +309,24 @@ test('avatar gestures expire, cancel on movement and never advance on invalid ti
  g.start('hello');g.step(.1,true);assert.equal(g.kind,null);
  g.start('happy');assert.equal(g.elapsed,0);
 });
+test('speech reading respects mute, unavailable engines and asynchronously loaded Vietnamese voices',()=>{
+ const {SpeechReader}=load(path.join(scripts,'ui/SpeechReader.ts'));let calls=0,voices=[],spoken=[];
+ const port={voices:()=>voices,cancel:()=>{},speak:(text,voice)=>spoken.push({text,voice})};
+ const reader=new SpeechReader(()=>{calls++;return port;});
+ assert.ok(reader.read('Test',false));assert.equal(calls,0);assert.equal(reader.read(' ',true).length>0,true);
+ assert.ok(new SpeechReader(()=>null).read('Test',true));
+ assert.ok(reader.read('Test',true));assert.equal(spoken.length,0);
+ voices=[{lang:'en-US'},{lang:'vi-VN',localService:false},{lang:'vi_VN',localService:true}];
+ assert.equal(reader.read('Question only',true),'');assert.equal(spoken[0].text,'Question only');assert.equal(spoken[0].voice,voices[2]);assert.equal(reader.reading,true);
+ reader.stop();assert.equal(reader.reading,false);
+});
+test('speech replacement and cancellation ignore stale callbacks and recover from engine errors',()=>{
+ const {SpeechReader}=load(path.join(scripts,'ui/SpeechReader.ts'));const callbacks=[],messages=[];let fail=false,cancelled=0;
+ const reader=new SpeechReader(()=>({voices:()=>[{lang:'vi-VN'}],cancel:()=>{cancelled++;},speak:(text,voice,done,error)=>{if(fail)throw Error('Unavailable');callbacks.push({done,error});}}));
+ reader.read('First',true,m=>messages.push(m));reader.read('Second',true,m=>messages.push(m));
+ callbacks[0].error();assert.equal(reader.reading,true);assert.deepEqual(messages,[]);
+ callbacks[1].done();assert.equal(reader.reading,false);assert.deepEqual(messages,['']);
+ reader.read('Third',true,m=>messages.push(m));reader.stop();callbacks[2].error();assert.deepEqual(messages,['']);assert.ok(cancelled>=3);
+ fail=true;assert.ok(reader.read('Fourth',true));assert.equal(reader.reading,false);
+});
 console.log(`${checks} test groups passed`);

@@ -1,4 +1,5 @@
 import { chapters } from '../world/CampaignContent';
+import { SpeechReader } from './SpeechReader';
 import { Color, Graphics, Label, Node, UITransform, Vec3 } from 'cc';
 import { PlayerController } from '../player/PlayerController';
 import { ChapterOneProgress, plantingPlots } from '../world/ChapterOneProgress';
@@ -12,6 +13,7 @@ export class ChapterOneView {
     onCampaignRequested?:()=>void;
     canRead?:()=>boolean;
     private buttons:Button[]=[];private feedback='';private spoken='';
+    private reader=new SpeechReader();
     private speaker:'elder'|'farmer'='elder';
     private pending:{kind:'elder'|'farmer'|'plot';index?:number;goal:Point}|null=null;
     private star:Graphics;
@@ -92,13 +94,10 @@ export class ChapterOneView {
         const p=this.node.getComponent(UITransform)!.convertToNodeSpaceAR(new Vec3(point.x,point.y,0));
         const hit=this.buttons.find(b=>Math.abs(p.x-b.node.position.x)<=b.width/2&&Math.abs(p.y-b.node.position.y)<=b.height/2);hit?.action();
     }
-    private stopReading():void{if(typeof window!=='undefined'&&'speechSynthesis' in window)window.speechSynthesis.cancel();}
+    private stopReading():void{this.reader.stop();}
     private read():void {
-        if(this.canRead&&!this.canRead()){this.feedback='Âm thanh đang tắt. Người lớn có thể bật trong góc phụ huynh.';this.render();return;}
-        if(typeof window==='undefined'||!('speechSynthesis' in window)){this.feedback='Thiết bị chưa có đọc thoại. Cháu có thể đọc cùng người lớn.';this.render();return;}
-        this.stopReading();const voice=window.speechSynthesis.getVoices().find(v=>v.lang.toLowerCase().startsWith('vi'));
-        if(!voice){this.feedback='Chưa có giọng tiếng Việt. Lời thoại vẫn hiển thị để đọc cùng nhau.';this.render();return;}
-        const utterance=new SpeechSynthesisUtterance(this.spoken);utterance.lang='vi-VN';utterance.voice=voice;utterance.rate=0.85;window.speechSynthesis.speak(utterance);
+        const message=this.reader.read(this.spoken,this.canRead?.()??true,value=>{if(value&&this.node.active){this.feedback=value;this.render();}});
+        if(message){this.feedback=message;this.render();}
     }
     private render():void{
         this.stopReading();for(const child of [...this.node.children]){child.active=false;child.destroy();}this.buttons=[];
@@ -137,8 +136,8 @@ export class ChapterOneView {
             }else{body='Cháu đã luyện đếm xong. Sao và tiến độ Chương 1 vẫn được giữ nguyên!';actionText='Xong';action=()=>{this.progress.endReplay();this.changed();this.close();};}
         }else if(stage==='return')body='Cháu đã làm xong bài học. Hãy về Ông Đồ bên cây đa để nhận sao nhé!';
         else body='Cháu đã hoàn thành Chương 1! Có thể về Ông Đồ để luyện đếm lần nữa.';
-        this.spoken=body+(this.feedback?' '+this.feedback:'');
         const question=this.lesson.question!==null&&this.speaker==='farmer';
+        this.spoken=body+(question?' Các lựa chọn: '+this.lesson.question!.choices.join(', '):'')+(this.feedback?' '+this.feedback:'');
         this.text(this.node,body,0,question?140:70,550,question?100:235,question?25:26);
         if(action)this.button('Continue',actionText,this.speaker==='elder'&&stage==='complete'&&this.onCampaignRequested?-145:0,-100,this.speaker==='elder'&&stage==='complete'&&this.onCampaignRequested?270:380,action);
         if(this.speaker==='elder'&&stage==='complete'&&this.onCampaignRequested)this.button('Campaign','Chương tiếp',145,-100,270,()=>{this.close();this.onCampaignRequested?.();});

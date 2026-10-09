@@ -19,6 +19,7 @@
     "test:m2": "node apps/game-client/tests/chapter-one-web.cjs",
     "test:assets": "node apps/game-client/tests/assets-web.cjs",
     "test:avatars": "node apps/game-client/tests/avatars-web.cjs",
+    "test:speech": "node apps/game-client/tests/speech-web.cjs",
     "test:campaign": "node apps/game-client/tests/campaign-web.cjs",
     "api": "npm run start --workspace game-backend",
     "api:build": "npm run build --workspace game-backend",

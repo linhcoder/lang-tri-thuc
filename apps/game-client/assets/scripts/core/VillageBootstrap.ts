@@ -428,5 +428,5 @@ export class VillageBootstrap extends Component {
         game.off(Game.EVENT_HIDE, this.resetInput, this);
         if (sys.isBrowser){window.removeEventListener('blur', this.handleBlur);window.removeEventListener('resize',this.handleResize);}
     }
-    onDestroy(): void {this.chapter?.dispose();this.network.dispose();this.art.dispose(); if (this.root) this.root.destroy();}
+    onDestroy(): void {this.hub?.dispose();this.chapter?.dispose();this.network.dispose();this.art.dispose(); if (this.root) this.root.destroy();}
 }

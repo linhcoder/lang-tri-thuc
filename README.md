@@ -35,6 +35,8 @@ Mở `http://127.0.0.1:8080/`. Chương 1 mặc định; Sổ làng mở các ch
 
 Trong màn chọn nhân vật, **Vẫy chào / Vui mừng** chạy biểu cảm ngắn rồi tự kết thúc; di chuyển sẽ dừng biểu cảm. Dùng được offline; phòng riêng đồng bộ qua emote được server chấp nhận, giới hạn một lần mỗi 2 giây.
 
+Đọc thoại: bật **Âm thanh** trong góc Người lớn, rồi bấm **Nghe** ở hội thoại, bài học hoặc luật/gợi ý trò chơi. Bấm **Dừng đọc** để dừng. Máy cần có giọng tiếng Việt của trình duyệt/hệ điều hành; khi thiếu giọng, game vẫn hiển thị chữ và cho thử lại. Bài học đọc cả câu hỏi và các lựa chọn.
+
 ## Chạy API, phòng riêng và trang phụ huynh
 
 ```powershell

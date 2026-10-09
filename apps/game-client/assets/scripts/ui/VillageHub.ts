@@ -8,6 +8,7 @@ import { CampaignEngine } from '../world/CampaignEngine';
 import { worldZones } from '../world/WorldZones';
 import { Point, toWorld } from '../world/VillageModel';
 import { PlayerController } from '../player/PlayerController';
+import { SpeechReader } from './SpeechReader';
 interface Button {node:Node;width:number;action:()=>void}
 type Mode='journal'|'chapter'|'lesson'|'game'|'gate'|'parent'|'age'|'quality'|'avatar'|'accessory'|'inventory'|'map'|'reset'|'help'|'online'|'home';
 export class VillageHub {
@@ -18,6 +19,7 @@ export class VillageHub {
     onGameStart?:(questId:string)=>void;onGameAction?:(type:string,index:number)=>void;onGamePause?:(paused:boolean)=>void;
     onPortal?:(id:string)=>void;private usePortal=false;onOnline?:(action:string,id?:string)=>void;onlinePeers?:()=>Array<{id:string;name:string}>;private mapPage=0;private peerIndex=0;readonly node:Node;readonly npcNodes:Node[]=[];
     readonly campaign:CampaignEngine;
+    private reader=new SpeechReader();private spokenParts:string[]=[];private readingButton?:Label;private readingNotice?:Label;
     private mode:Mode='journal';private chapterIndex=1;private questId='';private buttons:Button[]=[];private message='';
     private lesson?:EducationEngine;private game?:MiniGameRules;private indicator?:Graphics;
     private serverGameSignature='';private gateAnswer=0;private pendingNpc:number|null=null;private syncSignature='';private lastRhythm:boolean|null=null;
@@ -27,7 +29,7 @@ export class VillageHub {
         this.syncFirst();
     }
     private make(parent:Node,name:string,width:number,height:number):Node{const n=new Node(name);n.layer=parent.layer;parent.addChild(n);n.addComponent(UITransform).setContentSize(width,height);return n;}
-    private text(parent:Node,value:string,x:number,y:number,width=560,height=75,size=24):Node{const n=this.make(parent,'Text',width,height);n.setPosition(x,y);const l=n.addComponent(Label);l.string=value;l.fontSize=size;l.lineHeight=size+8;l.enableWrapText=true;l.overflow=Label.Overflow.CLAMP;l.color=new Color(45,68,43);return n;}
+    private text(parent:Node,value:string,x:number,y:number,width=560,height=75,size=24):Node{if(parent===this.node)this.spokenParts.push(value);const n=this.make(parent,'Text',width,height);n.setPosition(x,y);const l=n.addComponent(Label);l.string=value;l.fontSize=size;l.lineHeight=size+8;l.enableWrapText=true;l.overflow=Label.Overflow.CLAMP;l.color=new Color(45,68,43);return n;}
     private button(id:string,label:string,x:number,y:number,width:number,action:()=>void):Node{const n=this.make(this.node,id,width,76);n.setPosition(x,y);const g=n.addComponent(Graphics);g.fillColor=new Color(205,229,164);g.roundRect(-width/2,-38,width,76,10);g.fill();this.text(n,label,0,0,width-12,76,21);this.buttons.push({node:n,width,action});return n;}
     private grid(items:Array<{id:string;label:string;action:()=>void}>,columns=2):void{const width=columns===1?560:columns===2?280:165;items.forEach((b,i)=>this.button(b.id,b.label,(i%columns-(columns-1)/2)*(width+12),120-Math.floor(i/columns)*92,width,b.action));}
     private persist():void{this.save.save();}
@@ -36,8 +38,8 @@ export class VillageHub {
     applyServerProgress():void{if(this.node.active&&this.mode!=='game'&&this.mode!=='lesson')this.render();}
     applyServerGame(game:MiniGameRules):void{const q=chapters[this.chapterIndex].quests.find(q=>q.id===this.questId);if(q?.game!==game.id)return;const signature=game.save().actions.length+':'+game.status;this.game=game;if(this.node.active&&this.mode==='game'&&signature!==this.serverGameSignature)this.render();this.serverGameSignature=signature;}
     open(mode:Mode='journal',chapter?:number):void{this.reset();this.game?.pause();if(chapter!==undefined)this.chapterIndex=chapter;this.mode=mode;this.message='';this.node.active=true;if(mode==='gate')this.gateAnswer=12+Math.floor(Math.random()*9);this.render();}
-    close():void{this.game?.pause();this.onGamePause?.(true);if(this.game&&this.questId)this.campaign.data.resume[this.questId]={kind:'game',data:this.game.save()};this.persist();this.node.active=false;}
-    cancel():void{this.pendingNpc=null;}
+    close():void{this.stopReading();this.game?.pause();this.onGamePause?.(true);if(this.game&&this.questId)this.campaign.data.resume[this.questId]={kind:'game',data:this.game.save()};this.persist();this.node.active=false;}
+    cancel():void{this.pendingNpc=null;this.stopReading();}
     select(world:Point):'accepted'|'blocked'|null{
         const index=this.npcNodes.findIndex(n=>{const size=n.getComponent(UITransform)!;return Math.abs(world.x-n.position.x)<=size.width/2&&world.y>=n.position.y-12&&world.y<=n.position.y+size.height;});if(index<0)return null;
         const npc=storyNpcs[index],candidates=[{x:npc.x+1,y:npc.y},{x:npc.x-1,y:npc.y},{x:npc.x,y:npc.y+1},{x:npc.x,y:npc.y-1}];
@@ -59,10 +61,23 @@ export class VillageHub {
         if(q.game)this.onGameStart?.(q.id);this.render();
     }
     private exportSave():void{if(typeof document==='undefined')return;const raw=JSON.stringify({version:1,chapterOne:this.first.progress.data,campaign:this.campaign.data},null,2),url=URL.createObjectURL(new Blob([raw],{type:'application/json'})),a=document.createElement('a');a.href=url;a.download='lang-tri-thuc-progress.json';a.click();URL.revokeObjectURL(url);this.message='Đã tạo bản sao tiến độ, không có tên thật hay tài khoản.';this.render();}
+    stopReading():void{this.reader.stop();if(this.readingButton)this.readingButton.string='Nghe';}
+    dispose():void{this.stopReading();}
+    private readingMessage(value:string):void{if(this.readingNotice){this.readingNotice.string=value;this.readingNotice.fontSize=18;this.readingNotice.lineHeight=26;}}
+    private read():void{
+        if(this.reader.reading){this.stopReading();return;}
+        const message=this.reader.read(this.spokenParts.join('\n'),this.campaign.data.sound,value=>{
+            if(this.readingButton)this.readingButton.string='Nghe';
+            if(value)this.readingMessage(value);
+        });
+        if(message)this.readingMessage(message);
+        if(this.readingButton)this.readingButton.string=this.reader.reading?'D\u1eebng \u0111\u1ecdc':'Nghe';
+    }
     private render():void{
+        this.stopReading();this.spokenParts=[];this.readingButton=undefined;this.readingNotice=undefined;
         for(const n of [...this.node.children]){n.active=false;n.destroy();}this.buttons=[];this.indicator=undefined;this.lastRhythm=null;
         const titles:Record<Mode,string>={accessory:'KHĂN QUÀNG CỦA BÉ',home:'NHÀ CỦA BÉ',online:'BẠN BÈ • PHÒNG RIÊNG',journal:'SỔ LÀNG • TÁM CHƯƠNG',chapter:chapters[this.chapterIndex].title.toUpperCase(),lesson:'BÀI HỌC',game:this.game?gameNames[this.game.id]:'TRÒ CHƠI',gate:'GÓC PHỤ HUYNH',parent:'PHỤ HUYNH • BẢN THỬ',age:'MỨC HỌC',quality:'HÌNH ẢNH',avatar:'CHỌN NHÂN VẬT',inventory:'SAO VÀ BỘ SƯU TẬP',map:'BẢN ĐỒ LÀNG',reset:'XÁC NHẬN XÓA SỔ',help:'HƯỚNG DẪN TRÒ CHƠI'};
-        this.text(this.node,this.message||titles[this.mode],0,225,590,65,this.message?20:26);this.button('HubClose','Đóng',0,-235,155,()=>this.close());
+        this.readingNotice=this.text(this.node,this.message||titles[this.mode],0,225,590,65,this.message?20:26).getComponent(Label)!;this.button('HubClose','Đóng',0,-235,155,()=>this.close());
         if(this.mode==='journal'){
             this.grid(chapters.map((c,i)=>({id:'Chapter-'+i,label:`${i+1}. ${c.title}${this.campaign.data.receipts.includes('reward.star.'+c.id)?' ★':this.campaign.unlocked(i)?'':' 🔒'}`,action:()=>{if(i===0){this.message='Chương 1 chơi cùng Ông Đồ và bác trong làng.';this.render();}else{this.chapterIndex=i;this.mode='chapter';this.render();}}})));
         }else if(this.mode==='chapter'){
@@ -74,6 +89,7 @@ export class VillageHub {
         }else if(this.mode==='lesson'&&this.lesson){
             const q=this.lesson.question;if(!q){this.finishQuest();return;}
             this.text(this.node,q.prompt+(q.illustration?'\n'+q.illustration:''),0,145,550,105,24);
+            this.spokenParts.push(...q.choices.map((choice,i)=>`Lựa chọn ${i+1}: ${choice}`));
             q.choices.forEach((s,i)=>this.button('LessonAnswer-'+i,s,0,40-i*92,550,()=>{const round=this.lesson!.round;if(this.lesson!.answer(i)){this.onLessonAnswer?.({questId:this.questId,round,index:i});this.campaign.data.resume[this.questId]={kind:'lesson',data:this.lesson!.round};this.persist();if(this.lesson!.complete){this.finishQuest();return;}this.message='Đúng rồi!';}else this.message=q.hint;this.render();}));
             this.button('LessonHint','Gợi ý',215,-235,140,()=>{this.message=q.hint;this.render();});
         }else if(this.mode==='game'&&this.game){
@@ -129,5 +145,6 @@ export class VillageHub {
         else if(this.mode==='inventory'){this.button('MyHome','Nhà của bé',-215,-235,180,()=>{this.mode='home';this.render();});this.text(this.node,`★ Sao Tri Thức: ${this.campaign.stars}/8\n${chapters.filter(c=>this.campaign.data.receipts.includes('reward.star.'+c.id)).map(c=>'✓ '+c.title).join('\n')}`,0,30,550,330,22);}
         else if(this.mode==='map'){this.button('PortalMode',this.usePortal?'Cổng khu: bật':'Cổng khu: tắt',215,-235,180,()=>{this.usePortal=!this.usePortal;this.message='Cổng chuyển khu hoạt động khi đứng gần một mốc khu trên bản đồ.';this.render();});this.grid(worldZones.slice(this.mapPage*6,this.mapPage*6+6).map(zone=>({id:'Zone-'+zone.id,label:zone.name,action:()=>{this.close();if(this.usePortal){this.onPortal?.(zone.id);return;}if(this.player.goTo(zone.spawn))this.destination(zone.spawn);}})),2);this.button('MapPage','Trang tiếp',-215,-235,170,()=>{this.mapPage=1-this.mapPage;this.render();});}
         else if(this.mode==='reset'){this.text(this.node,'Xóa sổ chương 2–8? Bản sao trước xóa được giữ trong bộ nhớ. Chương 1 và demo cũ giữ nguyên.',0,90,550,200);this.button('ConfirmReset','Xóa sổ mới',0,-110,340,()=>{const ok=this.save.resetLaterChapters();this.syncSignature='';this.syncFirst();this.message=ok?'Đã xóa sổ chương 2–8, giữ bản sao.':'Chưa xóa được; dữ liệu được giữ lại.';this.mode='parent';this.render();});}
+        if(['chapter','lesson','help'].includes(this.mode))this.readingButton=this.button('HubRead','Nghe',-215,-235,180,()=>this.read()).children[0].getComponent(Label)!;
     }
 }

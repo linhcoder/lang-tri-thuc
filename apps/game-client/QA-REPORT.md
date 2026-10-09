@@ -1,5 +1,18 @@
 # Kết quả nghiệm thu bản playable
 
+## Đọc thoại và bài học đủ tám chương — 10/10/2026
+
+Chương 2–8 có nút Nghe/Dừng đọc ở hội thoại, câu hỏi bài học và luật/gợi ý mini game. Bài học đọc cả các lựa chọn theo thứ tự, không tiết lộ đáp án đúng. Dùng chung `SpeechReader` với chương 1: chỉ đọc khi bật âm thanh, chọn giọng tiếng Việt (ưu tiên giọng local), tốc độ 0,85; thiếu API/giọng hoặc lỗi engine có thông báo. Có thể bấm lại khi danh sách giọng tải xong.
+
+Đóng/đổi bảng, gợi ý, chuyển câu, blur/hide và dispose dừng đọc; callback cũ sau khi hủy không ghi lên bảng mới. Việc nghe không đổi tiến độ hoặc nhận thưởng. Không thêm file âm thanh hay dịch vụ đọc thoại ngoài.
+
+- Strict TypeScript, 38 nhóm test client và Cocos build đạt; `.meta` của module mới do Creator import.
+- `test:speech` đạt: click đọc hội thoại cả tám chương, bài học/lựa chọn, luật trò chơi; mute, thiếu giọng rồi thử lại, lỗi callback, dừng/blur và touch Android giả lập. Không có lỗi JavaScript. Fixture hoàn thành chương 1 và completion qua engine dùng để mở các bảng, không thay thế nghiệm thu gameplay tám chương.
+- Speech API trong test được giả lập: đã xác nhận nội dung gửi, lang/rate và lifecycle; chưa xác nhận âm thanh nghe được hoặc chất lượng giọng tiếng Việt trên máy/điện thoại thật. Ảnh desktop/mobile và report ở `temp/speech-qa` đã xem trực tiếp.
+- `test:m2` trên stack cổng 38080 đạt: toàn luồng chương 1 desktop/mobile, lưu và reload giữa bài, replay, sao duy nhất, giữ save legacy/future và phục hồi save lỗi. Không có lỗi JavaScript; mẫu AMD p95 17 ms. Lượt đầu ở server cũ cổng 8080 lỗi HTTP; chạy lại trên stack đang dùng đã đạt.
+
+Còn thiếu chỉnh tóc riêng và nghiệm thu thiết bị thật. Các mục dưới ghi kết quả các đợt trước.
+
 ## Biểu cảm avatar — 10/10/2026
 
 Người lớn → Chọn nhân vật có nút Vẫy chào/Vui mừng. Bàn tay vẫy dùng Graphics; vui mừng nhún sprite và khăn, thêm đốm sáng. Đây là animation bằng code trên sprite idle hiện tại, chưa phải bộ sprite cử chỉ vẽ riêng. Chạy 1,6 giây, dừng khi di chuyển, không đổi tọa độ/collision/save/tiến độ.

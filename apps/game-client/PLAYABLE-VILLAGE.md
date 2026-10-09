@@ -8,7 +8,7 @@ Luồng mặc định từ M2 là [Chương 1 — Ngày Về Làng](../../docs/M
 2. Chạm ba bó lúa có vòng sáng trong ruộng. Mỗi bó chỉ tính một lần, được thu hoạch khi nhân vật tới nơi.
 3. Quay về gặp bác. Làm ba câu đếm hạt gạo; có thể đổi sang cộng hai nhóm hạt trong phạm vi 1–10. Trả lời sai được hướng dẫn đếm lại, không mất điểm.
 4. Làm ba câu **Ô ăn quan • luyện rải hạt**: mỗi ô nhận một hạt theo vòng được chỉ định, chọn ô nhận hạt cuối cùng. Bài tập này dạy thao tác rải hạt; không mô phỏng luật bắt quân/đối kháng của một trận đầy đủ.
-5. Nhận huy hiệu **Người bạn của làng**. Có thể chơi lại bài học; tiến độ tự lưu bằng localStorage, khôi phục khi reload. Xóa dữ liệu site sẽ xóa tiến độ.
+5. Xem kết quả rải hạt từng câu, kể cả câu cuối; chọn **Nhận huy hiệu** để xem huy hiệu **Người bạn của làng**. Có thể chơi lại bài học; tiến độ tự lưu bằng localStorage, khôi phục khi reload. Xóa dữ liệu site sẽ xóa tiến độ.
 
 Nhân vật/NPC/công trình/tile đã dùng PNG có alpha. Nhân vật có 24 frame: tám hướng × đứng/yêu cầu hai bước chân. Các PNG mới có `.meta` do Cocos tạo. Không cần gắn thêm component vào scene; `VillageBootstrap` đã có trên Canvas.
 

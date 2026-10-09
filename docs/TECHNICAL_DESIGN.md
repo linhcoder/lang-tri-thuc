@@ -2,7 +2,11 @@
 
 09/10/2026. Phần “hiện tại” là snapshot audit M0 trước M2; phần “đích” là proposal. Thay đổi Chương 1/save/input/resize mới nằm ở [MILESTONE_M2.md](MILESTONE_M2.md). Không tạo thêm service ở M0/M1/M2.
 
-## Hiện tại
+## Kiến trúc hiện tại sau prototype tám chương
+
+Client gồm ChapterOneProgress/Save, CampaignEngine/Save, EducationEngine, MiniGameRules/Registry, WorldZones và VillageHub. Server có VillageRoom development, PrivateFriendRoom và MiniGameRoom; online xác nhận action và reward phía server. Fastify API và React admin/phụ huynh đã triển khai. Runtime dùng MySQL Laragon hoặc MySQL 8.4 Docker với snapshot JSON single-row, transaction/row lock; SQLite chỉ phục vụ test và migration legacy. Redis chưa cần cho một instance. Xem [bàn giao](DELIVERY_FULL_PROTOTYPE.md) và [MySQL](MYSQL_LOCAL.md) để chạy bản hiện tại.
+
+## Snapshot audit M0 — lịch sử
 
 - Cocos Creator 3.8.8, TypeScript, scene `assets/scenes/VillageScene.scene`, Canvas 1280 × 720. Bootstrap đã gắn, tạo world/HUD/NPC runtime.
 - `VillageModel`: map cố định 40 × 40, diamond 64 × 32, 5 terrain, objects có footprint; A* bốn láng giềng, cost bằng nhau; `canStand` bốn mẫu quanh chân.

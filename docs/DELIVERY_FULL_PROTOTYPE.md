@@ -1,6 +1,8 @@
 # Bàn giao prototype tám chương — 09/10/2026
 
-**Cập nhật storage:** backend đã chuyển sang MySQL Laragon theo yêu cầu mới; dữ liệu SQLite đã migration và kiểm thử trực tiếp. Xem [MySQL localhost](MYSQL_LOCAL.md). Các đoạn SQLite/PostgreSQL dưới đây ghi baseline trước chuyển, không phải cấu hình runtime hiện tại.
+Backend hiện dùng MySQL Laragon local và MySQL 8.4 trong gói Docker. SQLite chỉ giữ cho kiểm thử in-memory và migration/backup dữ liệu cũ. Xem [MySQL localhost](MYSQL_LOCAL.md).
+
+Đợt sửa lỗi và kiểm thử lại mới nhất: [QA-REPORT.md](../apps/game-client/QA-REPORT.md), gồm 31 nhóm test client, API/server/MySQL và browser demo/Chương 1/campaign/phụ huynh. Màn kết quả rải hạt cuối trong demo đã được sửa. Bảng kiểm thử bên dưới giữ số liệu bàn giao ban đầu.
 
 Yêu cầu mới nhất cho phép tiếp tục toàn bộ phần còn lại và commit. Các câu “chờ xác nhận từng milestone / không commit” trong master prompt và tài liệu kế hoạch cũ là quy trình lịch sử, đã được yêu cầu mới thay thế. Đợt này không push.
 
@@ -14,9 +16,9 @@ Yêu cầu mới nhất cho phép tiếp tục toàn bộ phần còn lại và 
 - Low/Medium/High điều chỉnh `pipeline.shadingScale` thành 0,75/0,9/1; culling terrain theo camera. Tiles/nhân vật/vật thể dùng atlas chung tải một lần; chưa có nhiều scene lớn hoặc tải atlas độc lập cho từng vùng.
 - Save chapter/campaign có version, giữ save cũ/future/corrupt, export và bản sao trước reset. Online dùng key riêng theo UUID hồ sơ; backup local không tự cấp kết quả online.
 - PrivateFriendRoom tối đa 20, MiniGameRoom tối đa 4; vé HMAC do tài khoản phụ huynh cấp, lời mời bạn riêng với vé của trẻ, khóa phòng, revoke hồ sơ, approved emote, chặn và báo cáo. Có reconnect/solo fallback, không chat tự do/voice chat. Server kiểm tra di chuyển, bài học, nhiệm vụ, mini game và cấp kết quả idempotent.
-- Fastify API: scrypt password, token phiên có hạn, ownership/admin role, profile không tên thật/ngày sinh, revision conflict, xuất/xóa dữ liệu và báo cáo. Local chạy SQLite bền vững; adapter PostgreSQL có transaction/row lock.
+- Fastify API: scrypt password, token phiên có hạn, ownership/admin role, profile không tên thật/ngày sinh, revision conflict, xuất/xóa dữ liệu và báo cáo. Runtime dùng MySQL, pool và transaction với row lock; dữ liệu prototype là snapshot JSON single-row.
 - React admin/phụ huynh: tạo hồ sơ, cấp/mời/khóa phòng, mở game, xem tiến độ, xuất/xóa dữ liệu, sửa hội thoại, review nội dung, audit và xử lý report. Sửa hội thoại tự trở về draft. ID/đáp án/luật thưởng không sửa từ trang này.
-- Gói Docker Compose PostgreSQL/API/Colyseus/Caddy và runbook staging; backup SQLite đã tạo và kiểm tra integrity.
+- Gói Docker Compose MySQL/API/Colyseus/Caddy và runbook staging. Backup MySQL xuất snapshot JSON kèm SHA-256; backup SQLite legacy được giữ riêng.
 
 ## Mở chính xác trong Editor
 
@@ -31,12 +33,12 @@ Thao tác Editor bắt buộc chỉ là mở project, đợi import và Preview.
 
 ## Chạy toàn bộ hệ thống local
 
-Node **24.13+** để dùng `node:sqlite`; npm và Creator 3.8.8. Trong PowerShell, dùng `npm.cmd` nếu execution policy chặn `npm.ps1`.
+Node **24.13+** là phiên bản khuyến nghị của dự án; npm, MySQL đang chạy và Creator 3.8.8. SQLite chỉ dùng cho test/migration legacy. Trong PowerShell, dùng `npm.cmd` nếu execution policy chặn `npm.ps1`.
 
 ```powershell
 npm.cmd ci
 npm.cmd run web:build
-npm.cmd run api:build
+npm.cmd run db:setup
 npm.cmd run server:build
 npm.cmd run admin:build
 npm.cmd run local:stack
@@ -49,7 +51,7 @@ npm.cmd run local:stack
 - Tạo hồ sơ → cho phép vào phòng riêng → mở làng. Chủ phòng chia sẻ **mã mời bạn** cho phụ huynh khác; người nhận điền mã mời rồi cấp vé cho hồ sơ của mình. Không chia sẻ vé hồ sơ trẻ.
 - Mỗi vé có hạn 15 phút, phòng có hạn 24 giờ. Đóng/khóa phòng ngăn người mới; xóa tài khoản/hồ sơ thu hồi quyền khi server kiểm tra lại (tối đa khoảng 30 giây).
 - Trong game: Người lớn → trả lời cổng tránh chạm nhầm → Bạn bè để emote/chọn bạn/chặn/báo cáo hoặc chơi một mình. Cổng số học local không phải cơ chế xác thực API.
-- Ctrl+C dừng các helper; không có Windows service/autostart. File SQLite: `apps/backend/.data/game.sqlite`.
+- Ctrl+C dừng các helper; không có Windows service/autostart. Database MySQL mặc định: `lang_tri_thuc`; cấu hình nằm trong `.env.local`. File `apps/backend/.data/game.sqlite` chỉ là dữ liệu legacy nếu còn giữ.
 
 `npm run web` vẫn phục vụ cổng 8080. Kết nối room development công khai chỉ dành cho `?demo=1&server=http://127.0.0.1:2567` và server bind loopback; game chính yêu cầu vé phụ huynh.
 
@@ -65,7 +67,7 @@ npm.cmd run backup:local
 
 Bỏ `--draft` sẽ từ chối chương chưa approved. Việc import văn bản **không** chứng nhận đáp án, độ tuổi, luật Ô ăn quan hoặc mô tả văn hóa đã được chuyên gia kiểm. Các lesson/rule trong source vẫn có review gate và phải được duyệt trước beta.
 
-Backup local dùng SQLite `VACUUM INTO`, đọc lại integrity và JSON, lưu trong `artifacts/backups` bị ignore. Phục hồi: dừng local stack, giữ nguyên DB hiện tại và các file WAL/SHM để rollback, chọn một **bản backup đã kiểm chứng** làm `SQLITE_PATH` mới rồi khởi động helper. Không copy đè DB đang mở. Backup chứa credential hash và tiến độ, phải giữ riêng; sau yêu cầu xóa dữ liệu phải quản lý cả các bản backup.
+`backup:local` đọc snapshot MySQL nhất quán, xuất JSON kèm SHA-256 và kiểm chứng đọc lại trong `artifacts/backups` bị ignore. Phục hồi vào database riêng còn trống, xác minh dữ liệu trước khi đổi `DATABASE_URL`; xem [quy trình MySQL](MYSQL_LOCAL.md). `backup:sqlite` chỉ dành cho dữ liệu legacy. Backup chứa credential hash và tiến độ, phải giữ riêng; sau yêu cầu xóa dữ liệu phải quản lý cả các bản backup.
 
 ## Kết quả kiểm thử
 
@@ -87,7 +89,7 @@ Backup local dùng SQLite `VACUUM INTO`, đọc lại integrity và JSON, lưu t
 
 ## Gate chưa thể nghiệm thu trong workspace
 
-1. **VPS/Docker/PostgreSQL live/TLS**: chưa có host/domain SSH được cung cấp và máy này không có Docker/PostgreSQL. Gói đã chuẩn bị, chưa chạy triển khai thật hoặc xác nhận backup/restore PostgreSQL. Xem `deploy/README.md`.
+1. **VPS/Docker/MySQL staging/TLS**: chưa chạy triển khai VPS thật hoặc xác nhận backup/restore trên môi trường Docker staging. Kiểm thử MySQL Laragon trước đó không thay thế nghiệm thu staging. Xem `deploy/README.md`.
 2. **Intel HD/UHD, điện thoại thật/Safari và soak 30 phút**: máy hiện tại là AMD; mobile đã test bằng Chromium emulation. Cần chạy trên thiết bị mục tiêu, đo cả nhiệt, RAM, băng thông và FPS dài.
 3. **Review giáo dục/văn hóa/art/audio và trẻ có giám sát**: chưa có chuyên gia/nhóm thử/consent. Nội dung, Ô ăn quan theo biến thể cố định và tranh làng nghề tự vẽ phải được kiểm. Không mô tả tranh placeholder là bản Đông Hồ xác thực. TTS tùy voice Việt của thiết bị; chưa có bộ audio thu âm/licensing.
 4. **Vận hành beta**: owner xử lý report, chính sách retention/backup, quy trình hỗ trợ và kiểm tra pháp lý cần người chịu trách nhiệm. Không mở public beta tự động. Caddy gate bảo vệ UI staging; API vẫn áp dụng bearer auth/rate limit riêng và socket yêu cầu signed ticket.

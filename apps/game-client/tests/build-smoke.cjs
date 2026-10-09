@@ -52,7 +52,12 @@ const untilOptions={timeout:20000};
         for(let i=0;i<3;i++){
             const answer=[4,0,3][i];await tap(page,'dialog',{x:cells[answer][0],y:cells[answer][1]});
             assert.equal(await page.evaluate(()=>village.learning.data.sowWins),i+1);
-            if(i<2)await tap(page,'dialog',{x:0,y:-185});
+            assert.ok(await page.evaluate(()=>village.panel.sowResult));
+            if(i===2){
+                assert.ok(await page.evaluate(()=>village.dialog.children.some(n=>n.getComponent(ccQA.Label)?.string==='Nhận huy hiệu')));
+                await page.screenshot({path:path.join(output,'sowing-final-result.png')});
+            }
+            await tap(page,'dialog',{x:0,y:-185});
         }
         assert.equal(await page.evaluate(()=>village.learning.data.stage),'complete');await page.screenshot({path:path.join(output,'reward.png')});
         await page.reload();await page.waitForFunction(()=>!!window.System);await page.evaluate(async()=>{window.ccQA=await System.import('cc');});

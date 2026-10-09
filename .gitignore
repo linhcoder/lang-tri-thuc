@@ -8,3 +8,8 @@ apps/admin/dist/
 .env.*
 !.env.example
 /temp/
+.cache/
+apps/game-client/build/
+apps/game-client/temp/
+apps/game-client/library/
+apps/game-client/local/

@@ -31,7 +31,7 @@ export class LearningPanel {
     private render():void{
         for(const child of [...this.node.children]){child.active=false;child.destroy();}this.buttons=[];
         const d=this.progress.data;
-        this.text(d.stage==='count'?'ĐẾM HẠT GẠO':d.stage==='sow'?'Ô ĂN QUAN • LUYỆN RẢI HẠT':d.stage==='complete'?'NGƯỜI BẠN CỦA LÀNG':'BÁC NÔNG DÂN',0,225,580,70,28);
+        this.text(d.stage==='count'?'ĐẾM HẠT GẠO':d.stage==='sow'||this.sowResult?'Ô ĂN QUAN • LUYỆN RẢI HẠT':d.stage==='complete'?'NGƯỜI BẠN CỦA LÀNG':'BÁC NÔNG DÂN',0,225,580,70,28);
         this.button('Đóng',0,-230,160,()=>this.close(),54);
         if(d.stage==='welcome'){
             this.text('Chào cháu! Cháu giúp bác thu hoạch 3 bó lúa vàng trong ruộng nhé.\nSau đó, mình cùng đếm hạt gạo và học cách rải hạt Ô ăn quan!',0,65,550,210,28);
@@ -40,7 +40,7 @@ export class LearningPanel {
             this.text(`Cháu đã thu hoạch ${d.collected.length}/3 bó lúa.\nChạm những bó lúa có vòng sáng trong ruộng. Mang đủ ba bó về, bác sẽ mở bài học cho cháu.`,0,55,550,240,28);
             this.button('Tiếp tục khám phá',0,-120,360,()=>this.close());
         }else if(d.stage==='count')this.countLesson();
-        else if(d.stage==='sow')this.sowLesson();
+        else if(d.stage==='sow'||this.sowResult)this.sowLesson();
         else {
             this.text('★ ★ ★\nGiỏi lắm! Cháu đã thu hoạch lúa, đếm hạt gạo và biết rải hạt từng ô.\nCháu nhận huy hiệu “Người bạn của làng”.',0,50,550,280,28);
             this.button('Chơi bài học lần nữa',0,-130,360,()=>{this.progress.data.countWins=0;this.progress.data.sowWins=0;this.progress.data.stage='count';this.feedback='';this.changed();this.render();});
@@ -60,8 +60,8 @@ export class LearningPanel {
         this.button(this.addition?'Đổi sang đếm 1–5':'Đổi sang cộng 1–10',0,-195,340,()=>{this.addition=!this.addition;this.feedback='';this.render();},40);
     }
     private sowLesson():void{
-        const round=this.progress.data.sowWins,start=[1,4,10][round],count=[3,4,5][round],direction=([1,-1,1] as const)[round];
         const result=this.sowResult;
+        const round=this.progress.data.sowWins-(result?1:0),start=[1,4,10][round],count=[3,4,5][round],direction=([1,-1,1] as const)[round];
         this.text(result?'Mỗi ô nhận một hạt. Cháu thấy hạt cuối ở đâu?':`Từ ô ${start+1}, rải ${count} hạt theo vòng ${direction===1?'1 → 2 → …':'12 → 11 → …'}.\nChạm ô nhận hạt cuối cùng. (${round+1}/3)`,0,140,570,100,24);
         const centers=[[-180,-25],[-90,-25],[0,-25],[90,-25],[180,-25],[245,25],[180,75],[90,75],[0,75],[-90,75],[-180,75],[-245,25]];
         for(let i=0;i<12;i++){
@@ -74,6 +74,6 @@ export class LearningPanel {
             if(seeds)this.text('●'.repeat(seeds),x,y-33,80,24,14);
         }
         this.text(this.feedback||'Đây là bài luyện rải hạt, chưa phải trận Ô ăn quan đầy đủ.',0,-120,570,85,22);
-        if(result)this.button('Bài tiếp theo',0,-185,250,()=>{this.sowResult=null;this.feedback='';this.render();},48);
+        if(result)this.button(this.progress.data.stage==='complete'?'Nhận huy hiệu':'Bài tiếp theo',0,-185,250,()=>{this.sowResult=null;this.feedback='';this.render();},48);
     }
 }

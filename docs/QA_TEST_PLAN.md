@@ -1,6 +1,6 @@
 # QA Test Plan
 
-Các kết quả chạy của đợt hiện tại ở [AUDIT_M0.md](AUDIT_M0.md). Checklist bên dưới là kế hoạch, không phải lời khẳng định đã pass toàn bộ.
+Kết quả kiểm tra mới nhất ở [QA-REPORT.md](../apps/game-client/QA-REPORT.md); [AUDIT_M0.md](AUDIT_M0.md) ghi baseline lịch sử. Checklist bên dưới là kế hoạch, không phải lời khẳng định đã pass toàn bộ.
 
 Chương 1 mới có checklist/save migration ở [MILESTONE_M2.md](MILESTONE_M2.md); chạy `npm run test:m2` trên web server để kiểm trồng năm cây, học đếm và sao duy nhất. `test:web` tiếp tục nghiệm thu demo cũ bằng `?demo=1` cùng multiplayer.
 

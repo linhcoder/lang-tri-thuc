@@ -1,5 +1,13 @@
 # Implementation Plan
 
+## Đợt hoàn thiện hiện tại — 09/10/2026
+
+Phạm vi người dùng xác nhận: sửa lỗi bản hiện tại, cập nhật tài liệu theo MySQL và kiểm thử lại offline/online. Sửa demo rải hạt để giữ kết quả cả câu cuối trước màn huy hiệu; bổ sung test hồi quy. Cập nhật tài liệu kiến trúc/an toàn/bàn giao và bỏ qua thư mục sinh tự động. Không commit/push trong đợt này. Những mô tả chỉ đạo và mốc M0–M9 bên dưới là lịch sử/lộ trình, không thay thế phạm vi đợt hiện tại.
+
+Acceptance: client strict/test, build Cocos/API/admin, integration API/server/MySQL và browser demo/Chương 1/campaign/phụ huynh đạt. Các gate thiết bị thật, chuyên gia nội dung và VPS vẫn chưa được nghiệm thu.
+
+## Lộ trình và chỉ đạo lịch sử
+
 Chỉ đạo mới của người dùng sau M2: tiếp tục các phần còn lại và commit để lưu thay đổi, không cần dừng xác nhận giữa milestone. Quy tắc chờ xác nhận/không commit bên dưới là kế hoạch lịch sử, được chỉ đạo này thay thế. Vẫn không tự push, không khẳng định nghiệm thu thiết bị/nội dung hoặc VPS khi chưa có bằng chứng.
 
 09/10/2026. Baseline `cf910ac`. M0/M1 đợt này không commit/push. Mỗi milestone kết thúc bằng báo cáo, build/test cụ thể và chờ người dùng xác nhận trước milestone tiếp theo.

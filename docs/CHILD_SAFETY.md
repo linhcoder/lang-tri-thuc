@@ -1,10 +1,10 @@
 # Child Safety — yêu cầu thiết kế và gate phát hành
 
-Đây là thiết kế an toàn sản phẩm, không phải tư vấn pháp lý hoặc chứng nhận tuân thủ. Không có account/parent auth/moderation vận hành trong prototype hiện tại. Chưa mở public beta online cho trẻ trước khi các gate bên dưới được nghiệm thu.
+Đây là thiết kế an toàn sản phẩm, không phải tư vấn pháp lý hoặc chứng nhận tuân thủ. Prototype đã có account phụ huynh, authentication/authorization, phòng riêng, block/report và giao diện admin xử lý báo cáo. Chưa có quy trình moderation vận hành được nghiệm thu; chưa mở public beta online cho trẻ trước khi các gate bên dưới được nghiệm thu.
 
 ## Hiện trạng và khoảng trống
 
-Không chat text/voice, không microphone, không tên thật; tên remote được server sinh. Offline mặc định, local learning progress, server bind localhost. Tuy vậy `?server=` có thể nối endpoint và room dev không yêu cầu quyền phụ huynh; thiếu phòng riêng, block/report và moderation. Những điều này phải được xử lý ở M4/M8, không gắn nhãn “multiplayer an toàn hoàn chỉnh” chỉ vì không có chat.
+Không chat text/voice, không microphone, không tên thật; tên remote được server sinh. Game chính mặc định offline; online cần vé phụ huynh được server kiểm tra. PrivateFriendRoom/MiniGameRoom có lời mời hết hạn, block/report, approved emote và kiểm tra lại quyền hồ sơ. Demo `?demo=1&server=...` giữ room development; server chỉ đăng ký room này trên loopback hoặc khi bật `ALLOW_DEV_ROOMS=1`. Không bật cờ đó trên môi trường cho trẻ. Cần nghiệm thu vận hành báo cáo, retention, nội dung và thiết bị trước khi gọi multiplayer an toàn hoàn chỉnh.
 
 ## Policy giao tiếp và phòng
 

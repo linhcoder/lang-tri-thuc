@@ -242,4 +242,19 @@ test('world map pins are unique, walkable and reachable; edited chapter text can
  assert.equal(applyChapterText({version:1,chapters:[{id:'unknown',title:'x',intro:'x',ending:'x',questTitles:{}}]}),false);
  assert.equal(chapters[0].title,old);assert.equal(applyChapterText({version:1,chapters:[]}),true);
 });
+test('demo sowing preserves each result and shows the final result before the badge',()=>{
+ const {LearningPanel}=load(path.join(scripts,'ui/LearningPanel.ts'));
+ const progress=new LearningProgress();progress.accept();for(let i=0;i<3;i++)progress.collect(i);for(let i=0;i<3;i++)progress.answerCount(3,3);
+ const panel=Object.create(LearningPanel.prototype);panel.progress=progress;panel.node={children:[]};panel.changed=()=>{};panel.feedback='';panel.sowResult=null;
+ let labels=[],buttons=[];panel.text=value=>labels.push(value);panel.button=(value,x,y,width,action)=>buttons.push({value,action});
+ const render=()=>{labels=[];buttons=[];panel.render();};
+ for(const [round,answer] of [[0,'5'],[1,'1'],[2,'4']]){
+  render();buttons.find(b=>b.value===answer).action();render();
+  assert.equal(progress.data.sowWins,round+1);assert.ok(panel.sowResult);
+  assert.ok(labels.includes('Ô ĂN QUAN • LUYỆN RẢI HẠT'));
+  buttons.find(b=>b.value==='2').action();assert.equal(progress.data.sowWins,round+1);
+  buttons.find(b=>b.value===(round===2?'Nhận huy hiệu':'Bài tiếp theo')).action();render();assert.equal(panel.sowResult,null);
+ }
+ assert.ok(labels.includes('NGƯỜI BẠN CỦA LÀNG'));assert.equal(progress.data.stage,'complete');
+});
 console.log(`${checks} test groups passed`);

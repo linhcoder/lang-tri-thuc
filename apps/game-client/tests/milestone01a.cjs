@@ -275,11 +275,11 @@ test('campaign reset keeps current progress when backup or primary storage fails
  for(const failingKey of [CAMPAIGN_KEY+'.parent-backup',CAMPAIGN_KEY,null]){
   const values=new Map();let blocked=null;
   const storage={getItem:key=>values.get(key)??null,setItem:(key,value)=>{if(key===blocked)throw Error('Quota exceeded');values.set(key,value);}};
-  const save=new CampaignSave(storage);save.engine.data.introduced=['ch01'];save.engine.data.age='9-11';save.engine.data.quality='high';save.engine.data.sound=true;save.engine.data.avatar=2;
+  const save=new CampaignSave(storage);save.engine.data.introduced=['ch01'];save.engine.data.age='9-11';save.engine.data.quality='high';save.engine.data.sound=true;save.engine.data.avatar=2;save.engine.data.accessory=3;
   assert.equal(save.save(),true);const previous=save.engine.data,raw=values.get(CAMPAIGN_KEY);blocked=failingKey;
   const ok=save.resetLaterChapters();assert.equal(ok,failingKey===null);
   if(!ok){assert.equal(save.engine.data,previous);assert.equal(values.get(CAMPAIGN_KEY),raw);assert.ok(save.notice);}
-  else{assert.deepEqual(save.engine.data.introduced,[]);assert.equal(save.engine.data.age,'9-11');assert.equal(save.engine.data.quality,'high');assert.equal(save.engine.data.sound,true);assert.equal(save.engine.data.avatar,2);assert.equal(values.get(CAMPAIGN_KEY+'.parent-backup'),raw);assert.deepEqual(JSON.parse(values.get(CAMPAIGN_KEY)),save.engine.data);}
+  else{assert.deepEqual(save.engine.data.introduced,[]);assert.equal(save.engine.data.age,'9-11');assert.equal(save.engine.data.quality,'high');assert.equal(save.engine.data.sound,true);assert.equal(save.engine.data.avatar,2);assert.equal(save.engine.data.accessory,3);assert.equal(values.get(CAMPAIGN_KEY+'.parent-backup'),raw);assert.deepEqual(JSON.parse(values.get(CAMPAIGN_KEY)),save.engine.data);}
  }
 });
 test('campaign corrupt saves retain the first recovery and preserve raw data if backup fails',()=>{
@@ -291,5 +291,13 @@ test('campaign corrupt saves retain the first recovery and preserve raw data if 
  assert.equal(values.get(CAMPAIGN_KEY+'.recovery'),'first-broken');assert.equal(values.get(CAMPAIGN_KEY+'.recovery.latest'),'second-broken');
  values.set(CAMPAIGN_KEY,'third-broken');fail=true;const save=new CampaignSave(storage);
  assert.equal(save.save(),false);assert.equal(save.resetLaterChapters(),false);assert.equal(values.get(CAMPAIGN_KEY),'third-broken');assert.equal(values.get(CAMPAIGN_KEY+'.recovery'),'first-broken');
+});
+
+
+test('legacy campaign and invalid accessories normalize without losing progress',()=>{
+const {CampaignSave}=load(path.join(scripts,'world/CampaignSave.ts'));
+const accessorySave=new CampaignSave({getItem:()=>null,setItem:()=>{}});
+for(const value of [undefined,null,-1,4,1.5,'2']){const raw={...accessorySave.engine.data,accessory:value};assert.equal(accessorySave.engine.restore(JSON.stringify(raw)),true);assert.equal(accessorySave.engine.data.accessory,0);}
+for(const accessory of [0,1,2,3]){assert.equal(accessorySave.engine.restore(JSON.stringify({...accessorySave.engine.data,accessory})),true);assert.equal(accessorySave.engine.data.accessory,accessory);}
 });
 console.log(`${checks} test groups passed`);

@@ -18,8 +18,8 @@ export class CampaignSave {
         try{
             const previous=this.engine.data;
             this.storage.setItem(this.key+'.parent-backup',JSON.stringify(previous));
-            const {age,quality,sound,avatar}=previous,next=new CampaignEngine().data;
-            Object.assign(next,{age,quality,sound,avatar});
+            const {age,quality,sound,avatar,accessory}=previous,next=new CampaignEngine().data;
+            Object.assign(next,{age,quality,sound,avatar,accessory});
             // Publish the reset only after durable storage accepts it.
             this.storage.setItem(this.key,JSON.stringify(next));
             this.engine.data=next;this.notice='';return true;

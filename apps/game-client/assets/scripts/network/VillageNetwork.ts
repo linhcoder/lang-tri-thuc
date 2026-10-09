@@ -2,7 +2,7 @@ import type { Client, Room } from '@colyseus/sdk';
 import { resources, TextAsset } from 'cc';
 import { Point } from '../world/VillageModel';
 import { MiniGameRules } from '../world/MiniGameRules';
-export interface NetworkPlayer extends Point {direction:number;moving:boolean;name:string;avatar?:number}
+export interface NetworkPlayer extends Point {direction:number;moving:boolean;name:string;avatar?:number;accessory?:number}
 export class VillageNetwork {
     room:Room<any>|null=null;status='Chơi một mình';players=new Map<string,NetworkPlayer>();
     private disposed=false;private elapsed=0;private seq=0;private retry=0;private endpoint='';private paused=false;
@@ -23,7 +23,7 @@ export class VillageNetwork {
             const room=await new sdk.Client(endpoint).joinOrCreate(this.joinOptions?(this.joinOptions.miniGame?'mini-game':'private-friend'):'village',this.joinOptions??{});
             if(this.disposed){await room.leave();return;}this.room=room;this.paused=false;this.retry=0;this.status='Đã vào làng online';
             const snapshot=()=>{
-                this.players.clear();room.state.players?.forEach((p:NetworkPlayer,id:string)=>{if(id!==room.sessionId&&!this.blocked.has(id))this.players.set(id,{x:p.x,y:p.y,direction:p.direction,moving:p.moving,name:p.name,avatar:p.avatar??0});});
+                this.players.clear();room.state.players?.forEach((p:NetworkPlayer,id:string)=>{if(id!==room.sessionId&&!this.blocked.has(id))this.players.set(id,{x:p.x,y:p.y,direction:p.direction,moving:p.moving,name:p.name,avatar:p.avatar??0,accessory:p.accessory??0});});
                 if(this.privateMode&&room.state.gameJson&&this.gameSnapshot!==room.state.gameJson){this.gameSnapshot=room.state.gameJson;try{const raw=JSON.parse(this.gameSnapshot),game=MiniGameRules.restore(raw);if(raw.paused)game.pause();this.onGame?.(game);}catch{this.status='Chưa đọc được trạng thái trò chơi online';}}
             };
             room.onStateChange(snapshot);snapshot();
@@ -50,7 +50,7 @@ export class VillageNetwork {
         if(this.disposed)return;this.messageTime=Math.max(0,this.messageTime-dt);
         if(!this.room){if(this.retry>0){this.retry-=dt;if(this.retry<=0)void this.connect(this.endpoint);}return;}
         if(this.paused)return;
-        this.elapsed+=dt;if(this.elapsed>=0.05||this.pending.length){this.elapsed=0;try{this.room.send('move',{x:p.x,y:p.y,direction:p.direction,moving:p.moving,avatar:p.avatar??0,seq:this.seq++});for(const event of this.pending.splice(0))this.room.send(event.type,event.data);}catch{this.paused=true;this.status='Kết nối đang gián đoạn';}}
+        this.elapsed+=dt;if(this.elapsed>=0.05||this.pending.length){this.elapsed=0;try{this.room.send('move',{x:p.x,y:p.y,direction:p.direction,moving:p.moving,avatar:p.avatar??0,accessory:p.accessory??0,seq:this.seq++});for(const event of this.pending.splice(0))this.room.send(event.type,event.data);}catch{this.paused=true;this.status='Kết nối đang gián đoạn';}}
     }
     intent(type:string,data:unknown):boolean{if(!this.privateMode||!this.canSend||this.pending.length>=8)return false;this.pending.push({type,data});return true;}
     emote(id:string):void{this.intent('emote',{id});}

@@ -1,5 +1,7 @@
 # Art và prompt
 
+Khăn quàng độc lập dùng Cocos Graphics trong `VillageBootstrap.ts`: ba màu, vòng cổ và đuôi khăn theo hướng/bước đi. Đây là phụ kiện hình học vẽ bằng code, không phải PNG mới. Các sprite avatar bên dưới giữ nguyên.
+
 Bộ ảnh được tạo bằng skill imagegen và công cụ built-in `image_gen`; không dùng CLI/API fallback. Các ảnh chọn cuối đã được lưu trong `assets/resources/village/`, đi cùng `.meta` do Cocos import. Hai atlas môi trường thử nghiệm đã được thay bằng sprite riêng để tránh cắt nhầm hình.
 
 | File | Nội dung |

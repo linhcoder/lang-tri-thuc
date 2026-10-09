@@ -23,6 +23,17 @@ function label(parent: Node, text: string, width: number, height: number, size =
     l.color = new Color(48, 48, 35); return n;
 }
 function circle(g: Graphics, x: number, y: number, radius: number, color: Color): void { g.fillColor = color; g.circle(x, y, radius); g.fill(); }
+// Code-native scarf attached to the neck in every direction.
+function drawAccessory(g:Graphics,id:number,direction:number,row:number):void {
+    const signature=id+':'+direction+':'+row;
+    if(g.node.name===signature)return;
+    g.node.name=signature;g.clear();if(id===0)return;
+    const colors=[new Color(0,0,0),new Color(207,57,56),new Color(40,125,195),new Color(234,179,44)];
+    g.fillColor=colors[id]??colors[1];const y=43+(row===2?1:0);
+    g.ellipse(0,y,12,4);g.fill();
+    const side=[1,1,1,-1,-1,-1,1,1][direction]??1;
+    g.moveTo(side*5,y);g.lineTo(side*13,y-16);g.lineTo(side*4,y-13);g.close();g.fill();
+}
 @ccclass('VillageBootstrap')
 @disallowMultiple
 @requireComponent(UITransform)
@@ -57,13 +68,13 @@ export class VillageBootstrap extends Component {
     private touches = new Map<number, { start: Point; dragged: boolean; blocked: boolean }>();
     private art=new VillageArt();
     private childSprite?:Sprite;
-    private spriteTime=0;
+    private spriteTime=0;private accessoryGraphic?:Graphics;
     private learning=new LearningProgress();
     private panel?:LearningPanel;
     private bundleNodes:Node[]=[];
     private pendingBundle:number|null=null;
     private network=new VillageNetwork();
-    private remoteActors=new Map<string,{node:Node;sprite:Sprite}>();
+    private remoteActors=new Map<string,{node:Node;sprite:Sprite;accessory:Graphics}>();
     private npcHitHeight=85;
     private assetsReady=false;
     private networkStarted=false;
@@ -131,7 +142,7 @@ export class VillageBootstrap extends Component {
                 node.setSiblingIndex(0);
             }}
             for(const child of [...this.player.node.children])if(child!==this.arrow)child.destroy();
-            this.playerVisual=undefined;this.childSprite=this.art.sprite(this.player.node,'ChildSprite',this.art.child[6],90,110).getComponent(Sprite)!;
+            this.playerVisual=undefined;this.childSprite=this.art.sprite(this.player.node,'ChildSprite',this.art.child[6],90,110).getComponent(Sprite)!;this.accessoryGraphic=ui(this.player.node,'Scarf').addComponent(Graphics);
             this.childSprite.node.setPosition(0,-7);
             if(this.hub){this.hub.onAvatarPreview=(parent,id)=>{this.art.sprite(parent,'AvatarPreview',this.art.avatarFrame(id,0,6),55,70).setPosition(-100,-35);};this.hub.applyServerProgress();}
             this.farmer.node.getComponent(Graphics)!.clear();this.art.sprite(this.farmer.node,'FarmerSprite',this.art.environment[6],130,145).setPosition(0,-5);
@@ -167,7 +178,7 @@ export class VillageBootstrap extends Component {
                     if(['http:','https:','ws:','wss:'].indexOf(endpoint.protocol)<0)throw new Error('Giao thức server không hợp lệ');
                     if(this.demo||this.privateJoin){this.networkStarted=true;
                         if(this.privateJoin&&this.hub&&this.chapterSave){const hub=this.hub,first=this.chapterSave;
-                            this.network.onProgress=value=>{const cosmetics={quality:hub.campaign.data.quality,sound:hub.campaign.data.sound,avatar:hub.campaign.data.avatar,home:hub.campaign.data.home};if(!value||!first.progress.restore(JSON.stringify(value.first))||!hub.campaign.restore(JSON.stringify(value.campaign)))return;Object.assign(hub.campaign.data,cosmetics);first.save();this.chapter?.refreshWorld();hub.save.save();hub.applyServerProgress();};
+                            this.network.onProgress=value=>{const cosmetics={quality:hub.campaign.data.quality,sound:hub.campaign.data.sound,avatar:hub.campaign.data.avatar,accessory:hub.campaign.data.accessory,home:hub.campaign.data.home};if(!value||!first.progress.restore(JSON.stringify(value.first))||!hub.campaign.restore(JSON.stringify(value.campaign)))return;Object.assign(hub.campaign.data,cosmetics);first.save();this.chapter?.refreshWorld();hub.save.save();hub.applyServerProgress();};
                             this.network.onGame=state=>hub.applyServerGame(state);
                             first.progress.onIntent=v=>this.network.intent('story',v);
                             hub.onChapterIntro=index=>this.network.intent('chapter-intro',{index});hub.onClaim=index=>this.network.intent('claim-star',{index});
@@ -263,9 +274,9 @@ export class VillageBootstrap extends Component {
 
         if(this.hub&&this.qualityStyle!==this.hub.campaign.data.quality){this.qualityStyle=this.hub.campaign.data.quality;const pipeline=director.root?.pipeline;if(pipeline)pipeline.shadingScale=this.qualityStyle==='low'?0.75:this.qualityStyle==='medium'?0.9:1;}
         this.playerVisual?.step(dt,this.player.moving,this.player.direction);
-        if(this.childSprite){this.spriteTime+=dt;const row=this.player.moving?1+(Math.floor(this.spriteTime*8)%2):0;this.childSprite.spriteFrame=this.art.avatarFrame(this.hub?.campaign.data.avatar??0,row,this.player.direction);}
+        if(this.childSprite){this.spriteTime+=dt;const row=this.player.moving?1+(Math.floor(this.spriteTime*8)%2):0;this.childSprite.spriteFrame=this.art.avatarFrame(this.hub?.campaign.data.avatar??0,row,this.player.direction);if(this.accessoryGraphic)drawAccessory(this.accessoryGraphic,this.hub?.campaign.data.accessory??0,this.player.direction,row);}
         if(this.networkStarted){
-            this.network.update(dt,{...this.player.position,direction:this.player.direction,moving:this.player.moving,name:'',avatar:this.hub?.campaign.data.avatar??0});
+            this.network.update(dt,{...this.player.position,direction:this.player.direction,moving:this.player.moving,name:'',avatar:this.hub?.campaign.data.avatar??0,accessory:this.hub?.campaign.data.accessory??0});
             if(this.network.correction){this.player.cancel();this.player.position=this.network.correction;this.network.correction=null;this.pendingBundle=null;this.pendingNpc=false;this.chapter?.cancel();}
             this.updateRemoteActors(dt);
             const badge=this.network.visibleMessage||(this.network.room?`Làng online • ${this.network.players.size+1} bạn`:this.network.status);
@@ -305,9 +316,9 @@ export class VillageBootstrap extends Component {
     private updateRemoteActors(dt:number):void{
         this.remoteActors.forEach((actor,id)=>{if(!this.network.players.has(id)){actor.node.destroy();this.remoteActors.delete(id);}});
         this.network.players.forEach((p,id)=>{let actor=this.remoteActors.get(id);
-            if(!actor){const node=ui(this.actors,`Online-${id}`);node.setPosition(p.x,p.y);const sprite=this.art.sprite(node,'OnlineSprite',this.art.avatarFrame(p.avatar??0,0,6),90,110).getComponent(Sprite)!;const name=label(node,p.name,160,30,18);name.getComponent(Label)!.color=new Color(50,105,160);name.setPosition(0,120);actor={node,sprite};this.remoteActors.set(id,actor);}
+            if(!actor){const node=ui(this.actors,`Online-${id}`);node.setPosition(p.x,p.y);const sprite=this.art.sprite(node,'OnlineSprite',this.art.avatarFrame(p.avatar??0,0,6),90,110).getComponent(Sprite)!;const name=label(node,p.name,160,30,18);name.getComponent(Label)!.color=new Color(50,105,160);name.setPosition(0,120);const accessory=ui(node,'Scarf').addComponent(Graphics);actor={node,sprite,accessory};this.remoteActors.set(id,actor);}
             const t=Math.min(1,dt*12);actor.node.setPosition(actor.node.position.x+(p.x-actor.node.position.x)*t,actor.node.position.y+(p.y-actor.node.position.y)*t);
-            actor.sprite.spriteFrame=this.art.avatarFrame(p.avatar??0,p.moving?1+(Math.floor(this.spriteTime*8)%2):0,p.direction);
+            actor.sprite.spriteFrame=this.art.avatarFrame(p.avatar??0,p.moving?1+(Math.floor(this.spriteTime*8)%2):0,p.direction);drawAccessory(actor.accessory,p.accessory??0,p.direction,p.moving?1+(Math.floor(this.spriteTime*8)%2):0);
         });
     }
     private local(p: Point, node = this.root): Vec3 { return node.getComponent(UITransform)!.convertToNodeSpaceAR(new Vec3(p.x, p.y, 0)); }

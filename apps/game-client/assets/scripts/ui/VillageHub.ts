@@ -9,7 +9,7 @@ import { worldZones } from '../world/WorldZones';
 import { Point, toWorld } from '../world/VillageModel';
 import { PlayerController } from '../player/PlayerController';
 interface Button {node:Node;width:number;action:()=>void}
-type Mode='journal'|'chapter'|'lesson'|'game'|'gate'|'parent'|'age'|'quality'|'avatar'|'inventory'|'map'|'reset'|'help'|'online'|'home';
+type Mode='journal'|'chapter'|'lesson'|'game'|'gate'|'parent'|'age'|'quality'|'avatar'|'accessory'|'inventory'|'map'|'reset'|'help'|'online'|'home';
 export class VillageHub {
     onAvatarPreview?:(parent:Node,id:number)=>void;
     onChapterIntro?:(index:number)=>void;onClaim?:(index:number)=>void;
@@ -60,7 +60,7 @@ export class VillageHub {
     private exportSave():void{if(typeof document==='undefined')return;const raw=JSON.stringify({version:1,chapterOne:this.first.progress.data,campaign:this.campaign.data},null,2),url=URL.createObjectURL(new Blob([raw],{type:'application/json'})),a=document.createElement('a');a.href=url;a.download='lang-tri-thuc-progress.json';a.click();URL.revokeObjectURL(url);this.message='Đã tạo bản sao tiến độ, không có tên thật hay tài khoản.';this.render();}
     private render():void{
         for(const n of [...this.node.children]){n.active=false;n.destroy();}this.buttons=[];this.indicator=undefined;this.lastRhythm=null;
-        const titles:Record<Mode,string>={home:'NHÀ CỦA BÉ',online:'BẠN BÈ • PHÒNG RIÊNG',journal:'SỔ LÀNG • TÁM CHƯƠNG',chapter:chapters[this.chapterIndex].title.toUpperCase(),lesson:'BÀI HỌC',game:this.game?gameNames[this.game.id]:'TRÒ CHƠI',gate:'GÓC PHỤ HUYNH',parent:'PHỤ HUYNH • BẢN THỬ',age:'MỨC HỌC',quality:'HÌNH ẢNH',avatar:'CHỌN NHÂN VẬT',inventory:'SAO VÀ BỘ SƯU TẬP',map:'BẢN ĐỒ LÀNG',reset:'XÁC NHẬN XÓA SỔ',help:'HƯỚNG DẪN TRÒ CHƠI'};
+        const titles:Record<Mode,string>={accessory:'KHĂN QUÀNG CỦA BÉ',home:'NHÀ CỦA BÉ',online:'BẠN BÈ • PHÒNG RIÊNG',journal:'SỔ LÀNG • TÁM CHƯƠNG',chapter:chapters[this.chapterIndex].title.toUpperCase(),lesson:'BÀI HỌC',game:this.game?gameNames[this.game.id]:'TRÒ CHƠI',gate:'GÓC PHỤ HUYNH',parent:'PHỤ HUYNH • BẢN THỬ',age:'MỨC HỌC',quality:'HÌNH ẢNH',avatar:'CHỌN NHÂN VẬT',inventory:'SAO VÀ BỘ SƯU TẬP',map:'BẢN ĐỒ LÀNG',reset:'XÁC NHẬN XÓA SỔ',help:'HƯỚNG DẪN TRÒ CHƠI'};
         this.text(this.node,this.message||titles[this.mode],0,225,590,65,this.message?20:26);this.button('HubClose','Đóng',0,-235,155,()=>this.close());
         if(this.mode==='journal'){
             this.grid(chapters.map((c,i)=>({id:'Chapter-'+i,label:`${i+1}. ${c.title}${this.campaign.data.receipts.includes('reward.star.'+c.id)?' ★':this.campaign.unlocked(i)?'':' 🔒'}`,action:()=>{if(i===0){this.message='Chương 1 chơi cùng Ông Đồ và bác trong làng.';this.render();}else{this.chapterIndex=i;this.mode='chapter';this.render();}}})));
@@ -115,7 +115,12 @@ export class VillageHub {
                 const n=this.button('Avatar-'+i,'',(i%2-.5)*292,120-Math.floor(i/2)*92,280,()=>{this.campaign.data.avatar=i;this.persist();this.message='Đã chọn '+value.toLowerCase()+'.';this.render();});
                 this.text(n,value+(selected?' ✓':''),30,0,200,76,21);this.onAvatarPreview?.(n,i);
             });
-            this.text(this.node,'Chọn bạn nhỏ cháu muốn đóng vai. Có thể đổi lại bất cứ lúc nào.',0,-95,540,95,23);
+            this.button('Accessories','Chọn khăn quàng',0,-95,400,()=>{this.mode='accessory';this.render();});
+        }
+        else if(this.mode==='accessory'){
+            this.grid(['Không dùng khăn','Khăn đỏ','Khăn xanh','Khăn vàng'].map((value,i)=>({id:'Accessory-'+i,label:value+(this.campaign.data.accessory===i?' ✓':''),action:()=>{this.campaign.data.accessory=i;this.persist();this.message='Đã chọn '+value.toLowerCase()+'.';this.render();}})));
+            this.text(this.node,'Khăn được giữ khi đổi nhân vật và hiển thị với bạn cùng phòng.',0,-75,540,95,22);
+            this.button('BackToAvatar','Chọn nhân vật',0,-165,350,()=>{this.mode='avatar';this.render();});
         }
         else if(this.mode==='home'){this.grid(['Nhà mái ngói','Nhà xanh • 2 sao','Nhà tím • 4 sao','Nhà vàng • 8 sao'].map((label,i)=>({id:'Home-'+i,label,action:()=>{if(this.campaign.stars>=[0,2,4,8][i]){this.campaign.data.home=i;this.persist();this.message='Đã trang trí ngôi nhà.';}else this.message='Màu này mở khi có thêm sao.';this.render();}})));}
         else if(this.mode==='inventory'){this.button('MyHome','Nhà của bé',-215,-235,180,()=>{this.mode='home';this.render();});this.text(this.node,`★ Sao Tri Thức: ${this.campaign.stars}/8\n${chapters.filter(c=>this.campaign.data.receipts.includes('reward.star.'+c.id)).map(c=>'✓ '+c.title).join('\n')}`,0,30,550,330,22);}

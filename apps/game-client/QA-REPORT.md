@@ -1,5 +1,17 @@
 # Kết quả nghiệm thu bản playable
 
+## Khăn quàng độc lập — 10/10/2026
+
+Người lớn → Chọn nhân vật → Chọn khăn quàng: không dùng khăn, đỏ, xanh hoặc vàng. Khăn vẽ bằng Cocos Graphics, gắn ở cổ theo tám hướng và nhịp bước; dùng được với cả bốn avatar. Save cũ thiếu phụ kiện mặc định không khăn; mã không hợp lệ về 0. Xóa sổ chương 2–8 giữ lựa chọn. Tiến độ từ server không ghi đè phụ kiện local.
+
+- Strict TypeScript và 35 nhóm test client đạt, gồm migration/normalization và reset khi storage lỗi.
+- Bốn test server đạt; kiểm mã phụ kiện không hợp lệ, đồng bộ giữa hai client và packet cũ giữ lựa chọn.
+- Cocos build và `test:avatars` đạt: click bốn lựa chọn, reload, tám hướng di chuyển, chọn khăn bằng touch trên mobile Android giả lập, nhận phụ kiện remote qua production Colyseus. Không có lỗi JavaScript. Ảnh và JSON tại `temp/avatars-qa`.
+
+- `test:stack` chạy lại trên MySQL local đạt: UI hồ sơ chọn avatar 2/khăn 3, state phòng riêng nhận đúng cả hai; portal, nhà, emote, tiến độ server và offline fallback đạt. Không có lỗi JavaScript; mẫu AMD Low/Medium/High p95 ≤17 ms.
+
+Chưa có chỉnh tóc riêng hoặc animation vẫy tay/vui mừng; mobile hiện kiểm bằng giả lập.
+
 ## Avatar bé trai/bé gái — 10/10/2026
 
 Bổ sung `boy-blue.png`, `girl-pink.png`, `girl-yellow.png` (mỗi sheet 8 hướng × idle/hai bước chân), giữ sheet bé trai áo đỏ gốc. Menu Người lớn → Chọn nhân vật có bốn preview và dấu chọn. Không nhuộm màu da hoặc thêm nơ Graphics lên boy. Avatar IDs 0–3 và save version giữ nguyên; lựa chọn lưu theo campaign/profile. Nhân vật remote dùng cùng sheet/avatar ID; tên màu xanh giúp nhận ra bạn online.

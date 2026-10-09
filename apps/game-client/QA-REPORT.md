@@ -16,6 +16,8 @@ Demo đo khoảng 60,04 FPS, p95 17 ms, 48 draw calls. Chương 1 khoảng 60,26
 
 Dependency được cài lại từ lockfile. Cấu hình local sinh trong `.env.local` bị ignore; không ghi credential vào báo cáo/Git. Test MySQL chỉ reset database `_test`; không migration hoặc reset dữ liệu legacy trong đợt này.
 
+Đợt tiếp theo: validator chapter pack từ chối phần tử null/primitive, questTitles dạng array, văn bản trống và title vượt giới hạn API; kiểm tra toàn gói trước khi thay nội dung. Client strict và 32 nhóm test đạt, bao gồm kiểm tra dữ liệu lỗi không gây exception hoặc cập nhật dở dang.
+
 ## Kết quả baseline playable — lịch sử
 
 Ngày kiểm tra: 09/10/2026. Cocos Creator 3.8.8, Node.js 24, Chrome headless/WebGL D3D11 trên AMD Radeon tích hợp.

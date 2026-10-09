@@ -257,4 +257,17 @@ test('demo sowing preserves each result and shows the final result before the ba
  }
  assert.ok(labels.includes('NGƯỜI BẠN CỦA LÀNG'));assert.equal(progress.data.stage,'complete');
 });
+test('malformed chapter packs are rejected without throwing or partially changing content',()=>{
+ const {applyChapterText}=load(path.join(scripts,'world/ContentPack.ts'));
+ const before=JSON.stringify(chapters),c=chapters[0];
+ const valid={id:c.id,title:'Tên thử',intro:'Mở đầu thử',ending:'Kết thúc thử',questTitles:{}};
+ for(const value of [null,{}, {version:1,chapters:[null]}, {version:1,chapters:[7]}, {version:1,chapters:[[]]},
+  {version:1,chapters:[{...valid,title:' '.repeat(3)}]}, {version:1,chapters:[{...valid,title:'x'.repeat(121)}]},
+  {version:1,chapters:[{...valid,questTitles:[]}]}, {version:1,chapters:[{...valid,questTitles:{[c.quests[0].id]:' '}}]},
+  {version:1,chapters:[valid,null]}, {version:1,chapters:[valid,valid]}]){
+  assert.equal(applyChapterText(value),false);assert.equal(JSON.stringify(chapters),before);
+ }
+ assert.equal(applyChapterText({version:1,chapters:[valid]}),true);assert.equal(c.title,valid.title);
+ const originals=JSON.parse(before);chapters.forEach((chapter,i)=>Object.assign(chapter,originals[i]));
+});
 console.log(`${checks} test groups passed`);

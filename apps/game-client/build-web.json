@@ -1,0 +1,13 @@
+{
+  "name": "lang-tri-thuc",
+  "platform": "web-desktop",
+  "buildPath": "project://build",
+  "outputName": "web-desktop",
+  "debug": false,
+  "sourceMaps": false,
+  "includedModules": ["2d", "base", "graphics", "ui", "gfx-webgl", "gfx-webgl2", "profiler", "custom-pipeline", "custom-pipeline-builtin-scripts"],
+  "mainBundleCompressionType": "merge_dep",
+  "startScene": "c1ee127e-883a-4ebc-8fac-969a61c11dd8",
+  "scenes": [{"url":"db://assets/scenes/VillageScene.scene","uuid":"c1ee127e-883a-4ebc-8fac-969a61c11dd8"}],
+  "packages": {"web-desktop":{"resolution":{"designWidth":1280,"designHeight":720},"polyfills":{"asyncFunctions":true}}}
+}

@@ -1,0 +1,5 @@
+﻿{
+  "compilerOptions": { "target": "ES2022", "module": "ES2022", "moduleResolution": "bundler", "strict": true, "esModuleInterop": true, "skipLibCheck": true, "useDefineForClassFields": false, "rootDir": "..", "outDir": "dist" },
+  "include": ["src/**/*.ts", "../game-client/assets/scripts/world/VillageModel.ts"]
+}
+

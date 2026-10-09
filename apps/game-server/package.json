@@ -1,0 +1,18 @@
+{
+  "name": "game-server",
+  "private": true,
+  "type": "module",
+  "version": "0.1.0",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "start": "tsx src/main.ts",
+    "start:prod": "node dist/game-server/src/main.js",
+    "test": "npm run build && tsx --test tests/*.test.ts"
+  },
+  "dependencies": {
+    "@colyseus/core": "0.18.9",
+    "@colyseus/schema": "5.0.36",
+    "@colyseus/ws-transport": "0.18.4"
+  },
+  "devDependencies": { "@types/node": "^24.0.0", "tsx": "^4.20.0", "typescript": "^5.9.0", "@colyseus/sdk": "0.18.5" }
+}

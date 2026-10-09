@@ -1,6 +1,14 @@
 export interface Point { x: number; y: number }
 export type Terrain = 'grass' | 'road' | 'rice' | 'pond' | 'courtyard';
 export const SIZE = 40;
+export const villageObjects = [
+    {id:'dinh',frame:0,x:21,y:17,width:220,height:180,radius:1},
+    {id:'house',frame:1,x:30,y:26,width:170,height:160,radius:1},
+    {id:'banyan',frame:2,x:8,y:23,width:170,height:190,radius:0},
+    {id:'banana',frame:3,x:14,y:6,width:110,height:145,radius:0},
+    {id:'tree-east',frame:2,x:34,y:19,width:150,height:175,radius:0},
+    {id:'house-west',frame:1,x:5,y:30,width:160,height:150,radius:1},
+];
 export function toWorld(p: Point): Point { return { x: (p.x - p.y) * 32, y: -(p.x + p.y) * 16 }; }
 export function toGrid(p: Point): Point { return { x: p.x / 64 - p.y / 32, y: -p.x / 64 - p.y / 32 }; }
 export function tileAt(p: Point): Point { const g = toGrid(p); return { x: Math.round(g.x), y: Math.round(g.y) }; }
@@ -15,7 +23,8 @@ export class VillageMap {
     readonly npc: Point = { x: 14, y: 10 };
     walkable(x: number, y: number): boolean {
         return Number.isInteger(x) && Number.isInteger(y) && x >= 0 && y >= 0 && x < SIZE && y < SIZE
-            && terrain(x, y) !== 'pond' && !(x === this.npc.x && y === this.npc.y);
+            && terrain(x, y) !== 'pond' && !(x === this.npc.x && y === this.npc.y)
+            && !villageObjects.some(object=>Math.abs(x-object.x)<=object.radius&&Math.abs(y-object.y)<=object.radius);
     }
     canStand(p: Point): boolean {
         // Four samples provide a small physical footprint, rather than a point collider.

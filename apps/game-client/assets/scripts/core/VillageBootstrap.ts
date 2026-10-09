@@ -1,7 +1,11 @@
-import { _decorator, Color, Component, EventKeyboard, EventTouch, game, Game, Graphics, input, Input, Label, Layers, Node, sys, UITransform, Vec3, view } from 'cc';
-import { cameraOffset, inputAxis, Point, SIZE, terrain, tileAt, toWorld, VillageMap } from '../world/VillageModel';
+import { _decorator, Color, Component, EventKeyboard, EventTouch, game, Game, Graphics, input, Input, Label, Layers, Node, Sprite, sys, UITransform, Vec3, view } from 'cc';
+import { cameraOffset, inputAxis, Point, SIZE, terrain, tileAt, toWorld, VillageMap, villageObjects } from '../world/VillageModel';
 import { PlayerController, PlayerVisual } from '../player/PlayerController';
 import { FarmerNPC } from '../npc/FarmerNPC';
+import { VillageArt } from '../world/VillageArt';
+import { LearningProgress, riceBundles } from '../world/LearningProgress';
+import { LearningPanel } from '../ui/LearningPanel';
+import { VillageNetwork } from '../network/VillageNetwork';
 const { ccclass, disallowMultiple, requireComponent } = _decorator;
 function ui(parent: Node, name: string, width = 1, height = 1): Node {
     const n = new Node(name); n.layer = Layers.Enum.UI_2D; parent.addChild(n);
@@ -45,7 +49,21 @@ export class VillageBootstrap extends Component {
     private marker?: Node;
     private markerTime = 0;
     private touches = new Map<number, { start: Point; dragged: boolean; blocked: boolean }>();
+    private art=new VillageArt();
+    private childSprite?:Sprite;
+    private spriteTime=0;
+    private learning=new LearningProgress();
+    private panel?:LearningPanel;
+    private bundleNodes:Node[]=[];
+    private pendingBundle:number|null=null;
+    private network=new VillageNetwork();
+    private remoteActors=new Map<string,{node:Node;sprite:Sprite}>();
+    private npcHitHeight=85;
+    private assetsReady=false;
+    private networkStarted=false;
+    private networkBadge?:Label;
     onLoad(): void {
+        try{this.learning.restore(sys.localStorage.getItem('lang-tri-thuc.learning.v1'));}catch{}
         this.root = ui(this.node, 'Milestone01A');
         this.backdrop = ui(this.root, 'VillageBackground').addComponent(Graphics);
         this.world = ui(this.root, 'VillageWorld');
@@ -59,22 +77,53 @@ export class VillageBootstrap extends Component {
         this.arrow = ui(pn, 'Facing'); this.arrow.addComponent(Graphics);
         const fn = this.character('Bác Nông Dân', new Color(80, 135, 190), true), fp = toWorld(this.map.npc);
         fn.setPosition(fp.x, fp.y); this.farmer = fn.addComponent(FarmerNPC);
-        label(fn, 'Bác Nông Dân', 180, 32, 18).setPosition(0, 74);
+        const farmerName=label(fn, 'Bác Nông Dân', 180, 32, 18);farmerName.name='FarmerName';farmerName.setPosition(0, 74);
         this.header = ui(this.root, 'Header'); this.header.addComponent(Graphics);
         const hint = label(this.header, 'LÀNG TRI THỨC\nWASD / mũi tên / chạm để đi • Chạm bác nông dân để trò chuyện', 800, 90, 20);
         hint.name = 'Instructions';
         hint.getComponent(Label)!.color = new Color(255, 251, 231);
+        this.networkBadge=label(this.root,'Chơi offline • tiến độ lưu trên máy',500,45,16).getComponent(Label)!;
         this.status = label(this.root, '', 500, 42, 20).getComponent(Label)!;
+        this.status.string=this.learning.description;
         this.joystick = ui(this.root, 'Joystick', 140, 140);
         const jg = this.joystick.addComponent(Graphics); circle(jg, 0, 0, 65, new Color(255, 255, 255, 100));
         this.knob = ui(this.joystick, 'Knob'); circle(this.knob.addComponent(Graphics), 0, 0, 25, new Color(70, 100, 80, 170));
         this.joystick.active = sys.isMobile;
-        this.dialog = ui(this.root, 'Dialogue', 620, 340);
-        const dg = this.dialog.addComponent(Graphics); dg.fillColor = new Color(255, 246, 211); dg.roundRect(-310, -170, 620, 340, 16); dg.fill();
-        label(this.dialog, 'Bác Nông Dân', 560, 42, 28).setPosition(0, 125);
-        label(this.dialog, this.farmer.dialogue, 580, 200, sys.isMobile ? 28 : 24).setPosition(0, -15);
-        label(this.dialog, sys.isMobile ? '[ Đóng ] • chạm hộp thoại' : '[ Đóng ] • chạm hộp thoại hoặc nhấn Esc', 570, 38, 22).setPosition(0, -135);
-        this.dialog.active = false;
+        this.panel=new LearningPanel(this.root,this.learning,()=>this.saveLearning());this.dialog=this.panel.node;
+        void this.loadArt();
+    }
+    private async loadArt():Promise<void>{
+        try{
+            await this.art.load();if(!this.isValid)return;
+            for(let cy=0;cy<SIZE;cy+=8)for(let cx=0;cx<SIZE;cx+=8){const node=this.art.terrainChunk(this.world,cx,cy);if(node){
+                const old=this.terrainChunks.find(chunk=>chunk.node.name===`Terrain-${cx}-${cy}`);if(old){old.node.active=false;old.node.destroy();old.node=node;}
+                node.setSiblingIndex(0);
+            }}
+            for(const child of [...this.player.node.children])if(child!==this.arrow)child.destroy();
+            this.playerVisual=undefined;this.childSprite=this.art.sprite(this.player.node,'ChildSprite',this.art.child[6],90,110).getComponent(Sprite)!;
+            this.childSprite.node.setPosition(0,-7);
+            this.farmer.node.getComponent(Graphics)!.clear();this.art.sprite(this.farmer.node,'FarmerSprite',this.art.environment[6],130,145).setPosition(0,-5);
+            this.farmer.node.getChildByName('FarmerName')!.setPosition(0,140);this.npcHitHeight=140;
+            for(const object of villageObjects){const node=this.art.sprite(this.actors,object.id,this.art.environment[object.frame],object.width,object.height);const p=toWorld(object);node.setPosition(p.x,p.y);}
+            for(let i=0;i<riceBundles.length;i++){
+                const p=toWorld(riceBundles[i]),node=ui(this.actors,`RiceBundle-${i}`,75,95);node.setPosition(p.x,p.y);
+                this.art.sprite(node,'Rice',this.art.environment[4],65,75);
+                const ring=ui(node,'HarvestRing').addComponent(Graphics);ring.strokeColor=new Color(255,255,180);ring.lineWidth=3;ring.ellipse(0,2,23,12);ring.stroke();
+                label(node,'Thu hoạch',100,25,16).setPosition(0,80);node.active=this.learning.data.collected.indexOf(i)<0;this.bundleNodes.push(node);
+            }
+            this.assetsReady=true;
+            if(sys.isBrowser){const requested=new URLSearchParams(window.location.search).get('server');
+                if(requested){let endpoint:URL;try{endpoint=new URL(requested);}catch{throw new Error('Địa chỉ server không hợp lệ');}
+                    if(['http:','https:','ws:','wss:'].indexOf(endpoint.protocol)<0)throw new Error('Giao thức server không hợp lệ');
+                    this.networkStarted=true;void this.network.connect(endpoint.href);
+                }
+            }
+        }catch(error){this.status.string='Không tải được hình ảnh. Prototype vẫn chạy; hãy mở lại project.';console.warn('Village art:',error);}
+    }
+    private saveLearning():void{
+        try{sys.localStorage.setItem('lang-tri-thuc.learning.v1',JSON.stringify(this.learning.data));}catch{}
+        if(this.status)this.status.string=this.learning.description;
+        for(let i=0;i<this.bundleNodes.length;i++)this.bundleNodes[i].active=this.learning.data.collected.indexOf(i)<0;
     }
     onEnable(): void {
         input.on(Input.EventType.KEY_DOWN, this.keyDown, this); input.on(Input.EventType.KEY_UP, this.keyUp, this);
@@ -128,31 +177,45 @@ export class VillageBootstrap extends Component {
             const width = Math.min(840, size.width / uiScale - 24), hint = this.header.getChildByName('Instructions')!;
             hint.getComponent(UITransform)!.setContentSize(width - 20, 90);
             this.header.setScale(uiScale, uiScale, 1); this.header.setPosition(0, size.height / 2 - 60 * uiScale);
+            if(this.networkBadge){this.networkBadge.node.setScale(uiScale,uiScale,1);this.networkBadge.node.setPosition(sys.isMobile?size.width/2-(110+10)*uiScale:0,-size.height/2+125*uiScale);this.networkBadge.node.getComponent(UITransform)!.setContentSize(sys.isMobile?220:500,55);}
             const hg = this.header.getComponent(Graphics)!; hg.clear(); hg.fillColor = new Color(43, 78, 50, 235);
             hg.roundRect(-width / 2, -48, width, 96, 12); hg.fill();
-            this.status.node.setScale(uiScale, uiScale, 1); this.status.node.setPosition(0, -size.height / 2 + 35 * uiScale);
-            this.status.node.getComponent(UITransform)!.setContentSize(Math.min(500, size.width / uiScale - 20), 60);
+            const statusWidth=Math.min(500,size.width/uiScale-(sys.isMobile?175:20));
+            this.status.node.setScale(uiScale, uiScale, 1); this.status.node.setPosition(sys.isMobile?size.width/2-(statusWidth/2+10)*uiScale:0, -size.height / 2 + 40 * uiScale);
+            this.status.fontSize=sys.isMobile?16:20;this.status.lineHeight=sys.isMobile?24:28;
+            this.status.node.getComponent(UITransform)!.setContentSize(statusWidth, 80);
             this.joystick.setScale(uiScale, uiScale, 1); this.joystick.setPosition(-size.width / 2 + 95 * uiScale, -size.height / 2 + 95 * uiScale);
-            const scale = Math.min(uiScale, (size.width - 24 * uiScale) / 620); this.dialog.setScale(scale, scale, 1);
+            const scale = Math.min(uiScale, (size.width - 24 * uiScale) / 620,(size.height-24*uiScale)/560); this.dialog.setScale(scale, scale, 1);
         }
         const keyboard = inputAxis(this.keys);
         this.player.axis = this.dialog.active ? { x: 0, y: 0 } : Math.hypot(this.stick.x, this.stick.y) > 0.05 ? this.stick : keyboard;
-        if (Math.hypot(this.player.axis.x, this.player.axis.y) > 0.05) this.pendingNpc = false;
+        if (Math.hypot(this.player.axis.x, this.player.axis.y) > 0.05) {this.pendingNpc = false;this.pendingBundle=null;}
         this.player.step(dt);
         this.playerVisual?.step(dt,this.player.moving,this.player.direction);
+        if(this.childSprite){this.spriteTime+=dt;const row=this.player.moving?1+(Math.floor(this.spriteTime*8)%2):0;this.childSprite.spriteFrame=this.art.child[row*8+this.player.direction];}
+        if(this.networkStarted){
+            this.network.update(dt,{...this.player.position,direction:this.player.direction,moving:this.player.moving,name:''});
+            if(this.network.correction){this.player.cancel();this.player.position=this.network.correction;this.network.correction=null;this.pendingBundle=null;this.pendingNpc=false;}
+            this.updateRemoteActors(dt);
+            const badge=this.network.room?`Làng online • ${this.network.players.size+1} bạn`:this.network.status;
+            if(this.networkBadge&&this.networkBadge.string!==badge)this.networkBadge.string=badge;
+        }
         if(this.marker){
             this.marker.active=this.player.hasPath&&!this.dialog.active;
             this.markerTime+=Math.min(dt,0.1);const pulse=1+Math.sin(this.markerTime*5)*0.08;this.marker.setScale(pulse,pulse,1);
         }
         const cameraWidth = size.width / this.worldScale, cameraHeight = size.height / this.worldScale;
-        const camera = cameraOffset(this.player.position, cameraWidth, cameraHeight); this.world.setPosition(camera.x * this.worldScale, camera.y * this.worldScale);
+        // Reserve the top HUD area: put the player below center so nearby NPC heads stay visible.
+        const hudScale=sys.isMobile?Math.max(1,1/pixelScale):1;
+        const focus={x:this.player.position.x,y:this.player.position.y+160*hudScale/this.worldScale};
+        const camera = cameraOffset(focus, cameraWidth, cameraHeight); this.world.setPosition(camera.x * this.worldScale, camera.y * this.worldScale);
         for (const chunk of this.terrainChunks) {
             chunk.node.active = Math.abs(chunk.center.x + camera.x) < cameraWidth / 2 + 256
                 && Math.abs(chunk.center.y + camera.y) < cameraHeight / 2 + 128;
         }
-        if (this.statusRemaining > 0) { this.statusRemaining -= dt; if (this.statusRemaining <= 0) this.status.string = ''; }
-        const front = this.player.position.y < this.farmer.node.position.y;
-        this.player.node.setSiblingIndex(front ? 1 : 0);
+        if (this.statusRemaining > 0) { this.statusRemaining -= dt; if (this.statusRemaining <= 0) this.status.string = this.learning.description; }
+        const sorted=[...this.actors.children].sort((a,b)=>b.position.y-a.position.y);
+        for(let i=0;i<sorted.length;i++)if(sorted[i].getSiblingIndex()!==i)sorted[i].setSiblingIndex(i);
         if (this.lastDirection !== this.player.direction) {
             this.lastDirection = this.player.direction; const angle = this.lastDirection * Math.PI / 4, g = this.arrow.getComponent(Graphics)!;
             g.clear(); g.fillColor = new Color(255, 255, 245); const x = Math.cos(angle), y = Math.sin(angle);
@@ -161,33 +224,47 @@ export class VillageBootstrap extends Component {
         if (this.pendingNpc) {
             const p = this.farmer.node.position;
             if (!this.player.hasPath && Math.hypot(p.x - this.player.position.x, p.y - this.player.position.y) < 55) {
-                this.pendingNpc = false; this.player.cancel(); this.resetInput(); this.dialog.active = true; this.farmer.interact();
+                this.pendingNpc = false; this.player.cancel(); this.resetInput(); if(this.panel)this.panel.open();else this.dialog.active = true; this.farmer.interact();
             }
         }
+        if(this.pendingBundle!==null&&!this.player.hasPath){const p=toWorld(riceBundles[this.pendingBundle]);if(Math.hypot(p.x-this.player.position.x,p.y-this.player.position.y)<8){this.learning.collect(this.pendingBundle);this.pendingBundle=null;this.saveLearning();}}
+    }
+    private updateRemoteActors(dt:number):void{
+        this.remoteActors.forEach((actor,id)=>{if(!this.network.players.has(id)){actor.node.destroy();this.remoteActors.delete(id);}});
+        this.network.players.forEach((p,id)=>{let actor=this.remoteActors.get(id);
+            if(!actor){const node=ui(this.actors,`Online-${id}`);node.setPosition(p.x,p.y);const sprite=this.art.sprite(node,'OnlineSprite',this.art.child[6],90,110).getComponent(Sprite)!;sprite.color=new Color(180,215,255);label(node,p.name,160,30,18).setPosition(0,120);actor={node,sprite};this.remoteActors.set(id,actor);}
+            const t=Math.min(1,dt*12);actor.node.setPosition(actor.node.position.x+(p.x-actor.node.position.x)*t,actor.node.position.y+(p.y-actor.node.position.y)*t);
+            actor.sprite.spriteFrame=this.art.child[(p.moving?1+(Math.floor(this.spriteTime*8)%2):0)*8+p.direction];
+        });
     }
     private local(p: Point, node = this.root): Vec3 { return node.getComponent(UITransform)!.convertToNodeSpaceAR(new Vec3(p.x, p.y, 0)); }
     private select(p: Point): void {
         if (this.dialog.active) {
+            if(this.panel){this.panel.handle(p);return;}
             const d = this.local(p, this.dialog); if (Math.abs(d.x) <= 310 && Math.abs(d.y) <= 170) this.dialog.active = false;
             return;
         }
         if(this.isHeader(p))return;
         const world = this.local(p, this.world), npc = this.farmer.node.position;
-        if (Math.abs(world.x - npc.x) <= 30 && world.y >= npc.y - 12 && world.y <= npc.y + 85) {
+        if (Math.abs(world.x - npc.x) <= 40 && world.y >= npc.y - 12 && world.y <= npc.y + this.npcHitHeight) {
             const n=this.map.npc;
             const candidates = [{ x:n.x+1,y:n.y },{x:n.x-1,y:n.y},{x:n.x,y:n.y-1},{x:n.x,y:n.y+1}];
             const distance=(goal:Point)=>{const p=toWorld(goal);return Math.hypot(p.x-this.player.position.x,p.y-this.player.position.y);};
             candidates.sort((a,b)=>distance(a)-distance(b));
             for (const goal of candidates) if (this.player.goTo(goal)) { this.pendingNpc = true; this.showDestination(goal); break; }
         } else {
+            const bundle=this.bundleNodes.findIndex(node=>node.active&&Math.abs(world.x-node.position.x)<35&&world.y>=node.position.y-12&&world.y<=node.position.y+95);
+            if(bundle>=0&&this.learning.data.stage==='collect'){
+                if(this.player.goTo(riceBundles[bundle])){this.pendingBundle=bundle;this.pendingNpc=false;this.showDestination(riceBundles[bundle]);}return;
+            }
             const goal=tileAt(world);
-            if(this.player.goTo(goal)){this.pendingNpc=false;this.showDestination(goal);}
+            if(this.player.goTo(goal)){this.pendingNpc=false;this.pendingBundle=null;this.showDestination(goal);}
             else {this.status.string = 'Chỗ này chưa đi tới được. Chọn ô đất khác nhé!'; this.statusRemaining = 2.5;}
         }
     }
     private showDestination(goal: Point): void {
         if(this.marker){const p=toWorld(goal);this.marker.setPosition(p.x,p.y);this.marker.active=true;this.markerTime=0;}
-        if(this.status)this.status.string='';this.statusRemaining=0;
+        if(this.status)this.status.string=this.learning.description;this.statusRemaining=0;
     }
     private isHeader(p:Point):boolean {
         if(!this.header)return false;
@@ -229,7 +306,7 @@ export class VillageBootstrap extends Component {
     }
     private touchCancel(e: EventTouch): void { const id=e.getID();if(id===null)return;this.touches.delete(id); if (id === this.stickId) this.releaseStick(); }
     private releaseStick(): void { this.stickId = null; this.stick = { x: 0, y: 0 }; this.knob.setPosition(0, 0); }
-    private resetInput(): void { this.keys.clear(); this.releaseStick();this.touches.clear();this.player?.cancel();this.pendingNpc=false; }
+    private resetInput(): void { this.keys.clear(); this.releaseStick();this.touches.clear();this.player?.cancel();this.pendingNpc=false;this.pendingBundle=null; }
     private handleBlur = (): void => { this.resetInput(); };
     onDisable(): void {
         if (this.player) { this.player.cancel(); this.pendingNpc = false; this.resetInput(); }
@@ -239,5 +316,5 @@ export class VillageBootstrap extends Component {
         game.off(Game.EVENT_HIDE, this.resetInput, this);
         if (sys.isBrowser) window.removeEventListener('blur', this.handleBlur);
     }
-    onDestroy(): void { if (this.root) this.root.destroy(); }
+    onDestroy(): void {this.network.dispose();this.art.dispose(); if (this.root) this.root.destroy();}
 }

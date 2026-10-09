@@ -1,6 +1,7 @@
 {
   "name": "game-client",
   "uuid": "98c08b61-b405-4326-b31c-bc5d5109464f",
+  "dependencies": { "@colyseus/sdk": "0.18.5" },
   "creator": {
     "version": "3.8.8"
   }

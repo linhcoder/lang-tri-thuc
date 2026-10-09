@@ -1,0 +1,21 @@
+{
+  "name": "lang-tri-thuc",
+  "private": true,
+  "workspaces": [
+    "apps/game-client",
+    "apps/game-server"
+  ],
+  "scripts": {
+    "server": "npm run start --workspace game-server",
+    "server:build": "npm run build --workspace game-server",
+    "test:server": "npm run test --workspace game-server",
+    "web": "node tools/serve-web.cjs",
+    "web:build": "node tools/build-web.cjs",
+    "test:client": "node apps/game-client/tests/milestone01a.cjs",
+    "check:client": "tsc -p apps/game-client/tsconfig.json --skipLibCheck --strict --pretty false",
+    "test:web": "node apps/game-client/tests/build-smoke.cjs"
+  },
+  "devDependencies": {
+    "playwright": "^1.62.1"
+  }
+}

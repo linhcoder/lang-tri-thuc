@@ -1,5 +1,7 @@
 # Milestone 01A — Isometric Village Prototype
 
+> Bản hiện tại đã mở rộng thành làng có nhiệm vụ, bài học, art và multiplayer. Hướng dẫn chạy và kiểm thử mới nhất ở [PLAYABLE-VILLAGE.md](PLAYABLE-VILLAGE.md) và README root. Các mô tả placeholder bên dưới ghi lại nền tảng Milestone 01A; khi PNG tải thành công, prototype dùng sprite thật thay thế.
+
 ## Mở và chạy bằng Cocos Creator 3.8.8
 
 1. Trong Cocos Dashboard, chọn **Add / Import Project**, trỏ đến thư mục `apps/game-client` của workspace này. Chọn engine **3.8.8**, mở project hiện có.
@@ -53,13 +55,15 @@ TypeScript strict với `skipLibCheck` đạt. Không dùng tùy chọn đó th�
 
 Editor đang mở giữ một số cache import cũ. Smoke test đọc scene trên đĩa, deserialize bằng Cocos, đồng thời transpile các script hiện tại sang SystemJS và giữ class ID bằng cơ chế RF của Cocos, thay response script cache chỉ trong phiên kiểm thử. Engine, asset và input vẫn là thật; bài test không xác minh thao tác reload/import trong giao diện Editor. Mở lại project theo bước 2 trước khi Preview.
 
-Browser QA dùng Playwright và Chrome đã cài, không thêm dependency vào game:
+Browser QA hiện dùng Playwright trong dev dependency của workspace, chạy bản web build thật:
 
 ```powershell
-node apps/game-client/tests/browser-smoke.cjs C:/Users/truon/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright C:/Users/truon/.cache/puppeteer/chrome/win64-149.0.7827.22/chrome-win64/chrome.exe http://localhost:7456 C:/ProgramData/cocos/editors/Creator/3.8.8/resources/app.asar.unpacked/node_modules/typescript/lib/typescript.js
+npm run web:build
+# Chạy npm run web và npm run server trong hai terminal riêng, rồi:
+npm run test:web
 ```
 
-Đường dẫn module/browser và cổng preview cần thay nếu chạy trên máy khác. Kết quả và ảnh nằm trong `temp/milestone01a-qa/` (được Git ignore). Chrome dùng SwiftShader; mobile là mô phỏng Android/touch. Chưa đo FPS trên Intel HD/UHD hay kiểm tra điện thoại thật, multi-touch thật và giao diện import của Editor; vẫn cần checklist nghiệm thu thủ công phía trên.
+Kết quả của bộ kiểm thử mới nằm trong `temp/release-qa/` (Git ignore); báo cáo ghi renderer thực và số đo. Thư mục `temp/milestone01a-qa/` chứa ảnh/báo cáo cũ bằng SwiftShader. Mobile là mô phỏng Android/touch. Chưa đo FPS trên Intel HD/UHD hay kiểm tra điện thoại thật và giao diện import của Editor; vẫn cần checklist nghiệm thu thủ công phía trên.
 
 ## Hiệu năng
 

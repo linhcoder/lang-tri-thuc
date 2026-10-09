@@ -13,13 +13,14 @@ function load(file) {
     file = path.resolve(file); if (cache.has(file)) return cache.get(file).exports;
     const module = { exports: {} }; cache.set(file, module);
     const output = ts.transpileModule(fs.readFileSync(file, 'utf8'), { compilerOptions: { target: ts.ScriptTarget.ES2020, module: ts.ModuleKind.CommonJS, experimentalDecorators: true } }).outputText;
-    vm.runInThisContext(`(function(require,module,exports){${output}\n})`, { filename: file })(name => name === 'cc' ? cc : load(path.resolve(path.dirname(file), name + '.ts')), module, module.exports);
+    vm.runInThisContext(`(function(require,module,exports){${output}\n})`, { filename: file })(name => name === 'cc' ? cc : !name.startsWith('.') ? require(name) : load(path.resolve(path.dirname(file), name + '.ts')), module, module.exports);
     return module.exports;
 }
 const scripts = path.resolve(__dirname, '../assets/scripts');
 const m = load(path.join(scripts, 'world/VillageModel.ts'));
 const { PlayerController } = load(path.join(scripts, 'player/PlayerController.ts'));
 const { VillageBootstrap } = load(path.join(scripts, 'core/VillageBootstrap.ts'));
+const { LearningProgress,sowSeeds }=load(path.join(scripts,'world/LearningProgress.ts'));
 const map = new m.VillageMap();
 let checks = 0;
 function test(name, fn) { fn(); checks++; console.log('PASS', name); }
@@ -86,7 +87,7 @@ test('NPC click approaches adjacent tile, opens dialogue only nearby, closes wit
     const b=new VillageBootstrap(), p=player({x:20,y:20}); let interactions=0;
     b.player=p; p.node.setSiblingIndex=()=>{};
     b.farmer={node:{position:m.toWorld(map.npc)},interact:()=>interactions++};
-    b.world={setPosition(){}}; b.node={getComponent:()=>({width:1280,height:720})};
+    b.world={setPosition(){}};b.actors={children:[]}; b.node={getComponent:()=>({width:1280,height:720})};
     b.viewWidth=1280; b.viewHeight=720; b.lastDirection=p.direction;
     b.dialog={active:false}; b.knob={setPosition(){}}; b.local=point=>point;
     const npc=b.farmer.node.position;
@@ -132,5 +133,17 @@ test('saved scene has valid references, imported bootstrap and existing Canvas/c
     const canvas=components.find(c=>c.__type__==='cc.Canvas');assert.equal(scene[canvas._cameraComponent.__id__].__type__,'cc.Camera');
     function references(value){if(!value||typeof value!=='object')return; if('__id__' in value)assert.ok(Number.isInteger(value.__id__)&&value.__id__>=0&&value.__id__<scene.length);for(const child of Object.values(value))references(child);}
     references(scene);
+});
+test('quest advances only after valid harvest and three correct answers per lesson',()=>{
+    const p=new LearningProgress();assert.equal(p.collect(0),false);p.accept();assert.equal(p.collect(0),true);assert.equal(p.collect(0),false);
+    p.collect(1);p.collect(2);assert.equal(p.data.stage,'count');assert.equal(p.answerCount(2,3),false);
+    for(const n of [3,5,4])assert.equal(p.answerCount(n,n),true);assert.equal(p.data.stage,'sow');
+    for(const [start,count,dir] of [[1,3,1],[4,4,-1],[10,5,1]]){const r=sowSeeds(start,count,dir);assert.equal(r.cells.reduce((a,b)=>a+b),count);assert.equal(p.answerSow(r.last,r.last),true);}
+    assert.equal(p.data.stage,'complete');const restore=new LearningProgress();restore.restore(JSON.stringify(p.data));assert.deepEqual(restore.data,p.data);
+});
+test('corrupt saves cannot unlock rewards or prevent play; sowing wraps both directions',()=>{
+    const p=new LearningProgress();p.restore('{');assert.equal(p.data.stage,'welcome');p.restore(JSON.stringify({version:1,stage:'complete',collected:[-1,0,0,99],countWins:0,sowWins:0}));assert.equal(p.data.stage,'collect');assert.deepEqual(p.data.collected,[0]);
+    assert.equal(sowSeeds(11,2,1).last,1);assert.equal(sowSeeds(0,2,-1).last,10);assert.throws(()=>sowSeeds(20,3,1));
+    p.restore(JSON.stringify({version:1,stage:'complete',collected:[0],countWins:3,sowWins:3}));assert.equal(p.data.stage,'collect');assert.equal(p.data.countWins,0);assert.equal(p.data.sowWins,0);
 });
 console.log(`${checks} test groups passed`);

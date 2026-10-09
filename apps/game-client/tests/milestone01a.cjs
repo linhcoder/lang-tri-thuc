@@ -21,6 +21,9 @@ const m = load(path.join(scripts, 'world/VillageModel.ts'));
 const { PlayerController } = load(path.join(scripts, 'player/PlayerController.ts'));
 const { VillageBootstrap } = load(path.join(scripts, 'core/VillageBootstrap.ts'));
 const { LearningProgress,sowSeeds }=load(path.join(scripts,'world/LearningProgress.ts'));
+const { ChapterOneProgress,plantingPlots,FIRST_STAR }=load(path.join(scripts,'world/ChapterOneProgress.ts'));
+const { RiceCountGame }=load(path.join(scripts,'world/RiceCountGame.ts'));
+const { ChapterOneSave,CHAPTER_SAVE_KEY,LEGACY_SAVE_KEY }=load(path.join(scripts,'world/ChapterOneSave.ts'));
 const map = new m.VillageMap();
 let checks = 0;
 function test(name, fn) { fn(); checks++; console.log('PASS', name); }
@@ -89,7 +92,7 @@ test('NPC click approaches adjacent tile, opens dialogue only nearby, closes wit
     b.farmer={node:{position:m.toWorld(map.npc)},interact:()=>interactions++};
     b.world={setPosition(){}};b.actors={children:[]}; b.node={getComponent:()=>({width:1280,height:720})};
     b.viewWidth=1280; b.viewHeight=720; b.lastDirection=p.direction;
-    b.dialog={active:false}; b.knob={setPosition(){}}; b.local=point=>point;
+    b.dialog={active:false}; b.knob={setPosition(){}}; b.local=point=>point;b.status={string:''};
     const npc=b.farmer.node.position;
     b.select({x:npc.x,y:npc.y+50}); assert.equal(b.pendingNpc,true);
     b.update(0); assert.equal(b.dialog.active,false);
@@ -122,6 +125,20 @@ test('invalid destination preserves the active NPC request and route',()=>{
     const route=JSON.stringify(b.player.route);b.select(m.toWorld({x:27,y:10}));
     assert.equal(b.pendingNpc,true);assert.equal(JSON.stringify(b.player.route),route);assert.ok(b.status.string.length>0);
 });
+test('accepted NPC interaction replaces pending harvest; rejected NPC route preserves it',()=>{
+    const b=new VillageBootstrap();b.player=player({x:20,y:20});b.dialog={active:false};b.local=p=>p;
+    b.farmer={node:{position:m.toWorld(map.npc)}};b.pendingBundle=1;
+    b.player.goTo=()=>false;b.select({...b.farmer.node.position,y:b.farmer.node.position.y+50});
+    assert.equal(b.pendingBundle,1);assert.equal(b.pendingNpc,false);
+    b.player.goTo=()=>true;b.select({...b.farmer.node.position,y:b.farmer.node.position.y+50});
+    assert.equal(b.pendingBundle,null);assert.equal(b.pendingNpc,true);
+});
+test('joystick takeover cancels pending harvest as well as path and NPC intent',()=>{
+    const b=new VillageBootstrap();b.player=player({x:20,y:20});b.player.goTo({x:30,y:20});
+    b.pendingBundle=2;b.pendingNpc=true;b.joystick={active:true};b.knob={setPosition(){}};b.dialog={active:false};b.local=p=>p;
+    b.touchStart({getID:()=>1,getUILocation:()=>({x:0,y:0})});
+    assert.equal(b.pendingBundle,null);assert.equal(b.pendingNpc,false);assert.equal(b.player.hasPath,false);
+});
 test('saved scene has valid references, imported bootstrap and existing Canvas/camera',()=>{
     const scene=JSON.parse(fs.readFileSync(path.resolve(__dirname,'../assets/scenes/VillageScene.scene'),'utf8'));
     const meta=JSON.parse(fs.readFileSync(path.join(scripts,'core/VillageBootstrap.ts.meta'),'utf8'));
@@ -145,5 +162,38 @@ test('corrupt saves cannot unlock rewards or prevent play; sowing wraps both dir
     const p=new LearningProgress();p.restore('{');assert.equal(p.data.stage,'welcome');p.restore(JSON.stringify({version:1,stage:'complete',collected:[-1,0,0,99],countWins:0,sowWins:0}));assert.equal(p.data.stage,'collect');assert.deepEqual(p.data.collected,[0]);
     assert.equal(sowSeeds(11,2,1).last,1);assert.equal(sowSeeds(0,2,-1).last,10);assert.throws(()=>sowSeeds(20,3,1));
     p.restore(JSON.stringify({version:1,stage:'complete',collected:[0],countWins:3,sowWins:3}));assert.equal(p.data.stage,'collect');assert.equal(p.data.countWins,0);assert.equal(p.data.sowWins,0);
+});
+test('chapter one requires greeting, five unique reachable plots, counting and elder turn-in',()=>{
+    const p=new ChapterOneProgress(),game=new RiceCountGame(p);assert.equal(p.plant(0),false);assert.equal(game.answer(3),false);assert.equal(p.turnIn(),false);
+    p.enterVillage();p.greet();p.accept();
+    for(let i=0;i<5;i++){assert.equal(map.canStand(m.toWorld(plantingPlots[i])),true);assert.equal(m.terrain(plantingPlots[i].x,plantingPlots[i].y),'rice');assert.equal(p.plant(i),true);assert.equal(p.plant(i),false);const q=new ChapterOneProgress();assert.equal(q.restore(JSON.stringify(p.data)),true);assert.deepEqual(q.data,p.data);}
+    assert.equal(p.stage,'count');assert.equal(p.plant(0),false);assert.equal(game.answer(99),false);
+    for(const n of [3,5,2]){assert.equal(game.answer(n),true);const q=new ChapterOneProgress();q.restore(JSON.stringify(p.data));assert.deepEqual(q.data,p.data);}
+    assert.equal(p.stage,'return');assert.equal(p.stars,0);assert.equal(p.turnIn(),true);assert.equal(p.turnIn(),false);assert.equal(p.chapterTwoUnlocked,true);assert.deepEqual(p.data.rewardReceipts,[FIRST_STAR]);
+});
+test('chapter replay survives reload without removing completion or duplicating star',()=>{
+    const p=new ChapterOneProgress();p.enterVillage();p.greet();p.accept();for(let i=0;i<5;i++)p.plant(i);
+    const game=new RiceCountGame(p);for(const n of [3,5,2])game.answer(n);p.turnIn();p.startReplay();game.answer(3);
+    const restore=new ChapterOneProgress();restore.restore(JSON.stringify(p.data));assert.equal(restore.data.replayRound,1);
+    const replay=new RiceCountGame(restore);assert.equal(replay.answer(5),true);assert.equal(replay.answer(2),true);assert.equal(replay.answer(2),false);restore.endReplay();assert.equal(restore.stage,'complete');assert.equal(restore.stars,1);assert.equal(restore.turnIn(),false);
+});
+function memoryStorage(values={}){return {values:{...values},getItem(key){return this.values[key]??null;},setItem(key,value){this.values[key]=value;}};}
+test('legacy migration retains the original and demo badge without granting planted crops or chapter star',()=>{
+    const raw=JSON.stringify({version:1,stage:'complete',collected:[0,1,2],countWins:3,sowWins:3}),storage=memoryStorage({[LEGACY_SAVE_KEY]:raw}),save=new ChapterOneSave(storage);save.load();
+    assert.equal(save.progress.data.legacyDemoBadge,true);assert.equal(save.progress.stage,'intro');assert.equal(save.progress.stars,0);assert.deepEqual(save.progress.data.planted,[]);save.progress.enterVillage();assert.equal(save.save(),true);assert.equal(storage.getItem(LEGACY_SAVE_KEY),raw);
+    const reload=new ChapterOneSave(storage);reload.load();assert.equal(reload.progress.stage,'greet');assert.equal(reload.progress.data.legacyDemoBadge,true);
+});
+test('corrupt and future saves are preserved; unavailable storage remains playable',()=>{
+    const storage=memoryStorage({[CHAPTER_SAVE_KEY]:'{broken'}),save=new ChapterOneSave(storage);save.load();assert.equal(storage.getItem(CHAPTER_SAVE_KEY+'.recovery'),'{broken');save.progress.enterVillage();assert.equal(save.save(),true);
+    const future='{"version":3,"valuable":"keep"}',nextStorage=memoryStorage({[CHAPTER_SAVE_KEY]:future}),next=new ChapterOneSave(nextStorage);next.load();next.progress.enterVillage();assert.equal(next.save(),false);assert.equal(nextStorage.getItem(CHAPTER_SAVE_KEY),future);
+    const blocked=new ChapterOneSave({getItem(){throw Error('blocked');},setItem(){throw Error('blocked');}});blocked.load();assert.equal(blocked.progress.enterVillage(),true);assert.equal(blocked.save(),false);assert.equal(blocked.sessionOnly,true);
+    const full=new ChapterOneSave({getItem(){return null;},setItem(){throw Error('full');}});full.load();assert.equal(full.save(),false);assert.ok(full.notice.length>0);
+});
+test('chapter restore normalizes invalid dependencies, duplicate receipts and forged partial completion',()=>{
+    const p=new ChapterOneProgress();assert.equal(p.restore('null'),false);assert.equal(p.restore('{'),false);
+    const raw={version:2,introSeen:true,greeted:true,accepted:true,planted:[0,0,99,-1],countRound:3,rewardReceipts:[FIRST_STAR,FIRST_STAR],replayRound:1,legacyDemoBadge:false};
+    assert.equal(p.restore(JSON.stringify(raw)),true);assert.equal(p.stage,'plant');assert.equal(p.stars,0);assert.equal(p.data.countRound,0);assert.equal(p.data.replayRound,null);
+    raw.planted=[0,1,2,3,4];p.restore(JSON.stringify(raw));assert.equal(p.stars,1);assert.equal(p.data.rewardReceipts.length,1);
+    raw.greeted=false;p.restore(JSON.stringify(raw));assert.equal(p.stage,'greet');assert.deepEqual(p.data.planted,[]);assert.equal(p.stars,0);
 });
 console.log(`${checks} test groups passed`);

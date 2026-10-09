@@ -1,5 +1,7 @@
 # Làng Tri Thức — bản làng có thể chơi
 
+Luồng mặc định từ M2 là [Chương 1 — Ngày Về Làng](../../docs/MILESTONE_M2.md): Ông Đồ, trồng năm cây, học đếm và sao đầu. Luồng thu hoạch/rải hạt dưới đây vẫn được giữ để thử bằng `?demo=1`; save demo không bị ghi đè khi chơi Chương 1.
+
 ## Luồng chơi
 
 1. Chạm/click Bác Nông Dân, nhân vật tự đi tới ô tiếp cận; chọn **Cháu sẵn sàng!**.

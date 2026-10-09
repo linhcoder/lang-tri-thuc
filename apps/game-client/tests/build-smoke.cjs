@@ -12,7 +12,7 @@ const untilOptions={timeout:20000};
         const context=await browser.newContext(mobile?{viewport:{width:390,height:844},isMobile:true,hasTouch:true,userAgent:'Mozilla/5.0 (Linux; Android 13) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Mobile Safari/537.36'}:{viewport:{width:1280,height:720}});
         const page=await context.newPage();page.on('pageerror',e=>{errors.push(String(e));console.error('PAGE ERROR',String(e));});page.on('console',m=>{if(m.type()==='error'){errors.push(m.text());console.error('CONSOLE ERROR',m.text());}else if(m.type()==='warning')console.log('BROWSER WARNING',m.text());});
         if(online)page.on('websocket',socket=>console.log('WEBSOCKET',socket.url()));
-        await page.goto(origin+(online?'/?server=http://127.0.0.1:2567':'/'));
+        await page.goto(origin+(online?'/?demo=1&server=http://127.0.0.1:2567':'/?demo=1'));
         await page.waitForFunction(()=>!!window.System,undefined,{timeout:90000});
         await page.evaluate(async()=>{window.ccQA=await System.import('cc');});
         await page.waitForFunction(()=>{const n=ccQA.director.getScene()?.getChildByName('Canvas');return !!n?.getComponent('VillageBootstrap')?.assetsReady;},undefined,{timeout:90000});

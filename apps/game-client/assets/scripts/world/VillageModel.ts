@@ -1,6 +1,7 @@
 export interface Point { x: number; y: number }
 export type Terrain = 'grass' | 'road' | 'rice' | 'pond' | 'courtyard';
 export const SIZE = 40;
+export const elderTile:Readonly<Point>={x:10,y:21};
 export const villageObjects = [
     {id:'dinh',frame:0,x:21,y:17,width:220,height:180,radius:1},
     {id:'house',frame:1,x:30,y:26,width:170,height:160,radius:1},
@@ -24,6 +25,7 @@ export class VillageMap {
     walkable(x: number, y: number): boolean {
         return Number.isInteger(x) && Number.isInteger(y) && x >= 0 && y >= 0 && x < SIZE && y < SIZE
             && terrain(x, y) !== 'pond' && !(x === this.npc.x && y === this.npc.y)
+            && !(x===elderTile.x&&y===elderTile.y)
             && !villageObjects.some(object=>Math.abs(x-object.x)<=object.radius&&Math.abs(y-object.y)<=object.radius);
     }
     canStand(p: Point): boolean {

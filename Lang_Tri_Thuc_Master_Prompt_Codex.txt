@@ -1,0 +1,107 @@
+MASTER PROMPT – LÀNG TRI THỨC
+Full Game Development | Cocos Creator 3.8.8 | Web Multiplayer 2.5D Isometric
+
+VAI TRÒ
+Bạn là nhóm chuyên gia gồm Lead Game Designer, Narrative Designer văn hóa Việt Nam, Educational Designer, Cocos Creator 3.8.8/TypeScript Engineer, Multiplayer Engineer, UI/UX Designer, QA và Performance Engineer.
+
+BỐI CẢNH DỰ ÁN
+Repository: linhcoder/lang-tri-thuc
+Cocos project: apps/game-client
+Scene: assets/scenes/VillageScene.scene
+Game hiện có bản đồ isometric, nhân vật, NPC Bác Nông Dân, ruộng lúa, sân đình, cây đa, đường làng và nhiệm vụ thử nghiệm. Kiểm tra code thực tế trước khi kết luận tính năng đã hoàn chỉnh.
+Đối tượng: trẻ 3–11 tuổi. Ưu tiên Web PC cấu hình yếu, GPU tích hợp, hỗ trợ mobile web.
+
+MỤC TIÊU
+Phát triển một game phiêu lưu giáo dục có cốt truyện, bản đồ làng quê Việt Nam, nhiệm vụ, mini game, tương tác NPC và multiplayer an toàn cho trẻ. Hình ảnh 2.5D isometric dễ thương, tươi sáng. Hoạt động single-player ngay cả khi không có người online.
+
+NGUYÊN TẮC BẮT BUỘC
+1. Không tạo lại project Cocos; không phá scene/prefab/.meta hiện có.
+2. Không sửa ồ ạt; chia milestone nhỏ, chạy thử được, báo cáo và chờ xác nhận trước milestone tiếp theo.
+3. Không tự commit/push/merge nếu chưa được yêu cầu.
+4. Kiểm tra repository, version, assets và code trước khi lập kế hoạch.
+5. Nếu không thể chỉnh sửa scene an toàn, tạo script/component và hướng dẫn gắn trong Cocos Editor; không tạo scene giả.
+6. Không tuyên bố đã chạy game/test nếu chưa chạy thật. Ghi rõ các giới hạn môi trường.
+7. Nội dung văn hóa, lịch sử, tiếng Việt và bài học phải được biên tập/kiểm chứng; không bịa thông tin như sự thật.
+8. Trẻ nhỏ: không chat tự do/voice chat với người lạ; phụ huynh quản lý; tối thiểu hóa dữ liệu cá nhân.
+
+CỐT TRUYỆN: BÍ MẬT CÂY ĐA TRI THỨC
+Một cây đa cổ thụ lưu giữ ký ức về trò chơi dân gian, nghề truyền thống và tri thức của làng. Những ngôi sao tri thức dần mất ánh sáng khi các câu chuyện và tập tục bị lãng quên. Người chơi là một bạn nhỏ về làng nghỉ hè, được Ông Đồ hướng dẫn giúp dân làng, học hỏi và thu thập sao để khôi phục cây đa. Không có phản diện đáng sợ, chiến đấu hay bạo lực. Chủ đề: tò mò, hợp tác, lễ phép, bảo vệ thiên nhiên, yêu quê hương.
+
+8 CHƯƠNG CHÍNH
+1. Ngày Về Làng: gặp Ông Đồ, bác nông dân; học di chuyển, trồng 5 cây lúa, đếm 1–5; nhận sao đầu tiên.
+2. Sân Đình Rộn Rã: ô ăn quan, kéo co, nhảy sạp, luật chơi dân gian.
+3. Phiên Chợ Quê: phân loại rau củ, cộng trừ, đếm tiền, giao tiếp lịch sự.
+4. Trường Học Dưới Tán Đa: chữ cái, ghép vần, Toán, từ vựng Anh.
+5. Những Bàn Tay Khéo Léo: làm gốm, tô tranh Đông Hồ, ghép hình nghề truyền thống.
+6. Mùa Vàng Quê Em: gieo mạ, tưới, chăm lúa, thu hoạch, thiên nhiên.
+7. Hội Trăng Rằm: làm đèn ông sao, trang trí, giải đố, rước đèn.
+8. Ánh Sáng Cây Đa: thử thách tổng hợp, hợp tác với NPC hoặc bạn bè, khôi phục cây đa; mở hoạt động theo mùa.
+Mỗi chương có intro, điều kiện mở, quest, NPC, hội thoại, mini game, mục tiêu giáo dục, phần thưởng, kết thúc và tiến độ lưu được.
+
+BẢN ĐỒ
+Các khu: Cổng Làng, Sân Đình, Trường Học, Nông Trại, Chợ Quê, Làng Nghề, Ao Làng, Nhà Của Bé, Cây Đa Tri Thức, Khu Lễ Hội.
+Bối cảnh Việt Nam: mái ngói, cây đa, giếng nước, ao sen, lũy tre, ruộng lúa, cầu tre, trâu, gà, vịt, vườn rau.
+Map data-driven, collision grid, A*, click-to-move, WASD/mũi tên, joystick, camera follow/bounds, y-sorting, trigger zones, portal, spawn NPC/player, tải asset theo khu vực. Không giả định mọi vật thể đều tương tác được.
+
+NHÂN VẬT/NPC
+Avatar bé trai/bé gái, kiểu tóc/trang phục/phụ kiện, animation idle/walk 8 hướng, vẫy tay, vui mừng.
+NPC: Ông Đồ (cốt truyện), Bác Nông Dân (nông nghiệp), Cô Giáo Lan (học tập), Cô Tấm (kỹ năng sống), Chú Cuội và Chị Hằng (Trung Thu), Bà Bán Hàng (chợ), Nghệ Nhân Gốm, bạn Tí và bạn Na.
+NPC data-driven: id, tên, avatar, spawn, tương tác, dialogue tree, quest, lịch xuất hiện tùy chọn. Hội thoại tiếng Việt ngắn, dễ hiểu, có đọc thoại cho trẻ chưa biết đọc. NPC thông minh/AI chỉ triển khai sau khi có kiểm duyệt an toàn.
+
+GIÁO DỤC
+3–5: màu, hình, đếm 1–10, động vật, chữ cái, âm thanh, kéo thả.
+6–8: ghép vần, cộng trừ, từ vựng Anh, logic, kỹ năng sống, văn hóa.
+9–11: nhân chia, toán có lời văn, logic, khoa học, lịch sử/địa lý phù hợp tuổi.
+EducationEngine cấu hình câu hỏi/đáp án/độ khó, theo dõi tiến bộ, gợi ý không trừng phạt, tránh gây áp lực, nội dung được biên tập.
+
+12 MINI GAME DỰ KIẾN
+Trồng Lúa – Học Đếm; Ô Ăn Quan; Kéo Co; Nhảy Sạp; Đi Chợ Quê; Làm Đèn Trung Thu; Gói Bánh Chưng; Ghép Tranh Đông Hồ; Câu Cá Ao Làng; Tìm Chữ Bí Mật; Chăm Sóc Động Vật; Mê Cung Đường Làng.
+MiniGame framework: id, độ tuổi, chủ đề, mode, min/max players, start/pause/resume/end, game state, kết quả, phần thưởng, độ khó, assets, kiểm thử. Mỗi mini game phải có single-player. Làm lần lượt, không tạo 12 trò nửa vời.
+
+QUEST/REWARDS
+Main/Side/Seasonal/Cooperative Quest, trạng thái, điều kiện mở, progress, reward, lưu tiến độ. Sao Tri Thức, huy hiệu, trang phục, đồ trang trí, bộ sưu tập văn hóa. Không loot box, pay-to-win, cá cược hay quảng cáo hành vi hướng tới trẻ em.
+
+MULTIPLAYER
+Colyseus + WebSocket; VillageRoom, MiniGameRoom, PrivateFriendRoom. Mục tiêu ban đầu 10–20 người/phòng (phải benchmark). Server authoritative cho di chuyển, va chạm, thưởng và kết quả; interpolation, reconnect, validation, rate limiting, chống gian lận cơ bản. Chỉ giao tiếp bằng emoji/câu có sẵn được duyệt; tên hiển thị không phải tên thật; phòng riêng do phụ huynh kiểm soát; chặn/báo cáo; tránh ghép nhóm thiếu an toàn.
+
+BACKEND/ADMIN
+Node.js + Fastify; PostgreSQL cho tài khoản phụ huynh, hồ sơ trẻ, tiến độ, nội dung, phần thưởng; Redis cho presence/cache/room coordination khi cần. React + TypeScript admin quản lý chapter, quest, NPC, hội thoại, câu hỏi, mini game, asset manifest, báo cáo. Không triển khai database/admin trước khi prototype gameplay ổn định.
+
+UI/UX
+Loading, chọn avatar, HUD làng, hội thoại, nhật ký nhiệm vụ, túi đồ, bản đồ, mini game, thành tích, nhà bé, cài đặt, giao diện phụ huynh. Màu sắc tươi sáng, chữ dễ đọc, nút lớn, thao tác chạm thuận tiện, responsive landscape, hỗ trợ âm thanh và tắt âm.
+
+HIỆU NĂNG
+Sprite atlas, batching, pooling, giới hạn hiệu ứng, culling, tải theo khu, nén asset phù hợp, giảm độ phân giải khi cần, 30 FPS mục tiêu trên máy GPU tích hợp. Có chế độ Low/Medium/High. Đo FPS, draw calls, bộ nhớ, thời gian tải và băng thông; không hứa mức FPS khi chưa benchmark.
+
+TÀI LIỆU PHẢI TẠO
+- docs/GAME_DESIGN_DOCUMENT.md
+- docs/STORY_BIBLE.md
+- docs/TECHNICAL_DESIGN.md
+- docs/EDUCATION_CONTENT_PLAN.md
+- docs/IMPLEMENTATION_PLAN.md
+- docs/ASSET_STYLE_GUIDE.md
+- docs/QA_TEST_PLAN.md
+- docs/CHILD_SAFETY.md
+
+LỘ TRÌNH TRIỂN KHAI
+M0: Audit code hiện tại, ghi nhận tính năng và lỗi, lập tài liệu và kế hoạch.
+M1: Chuẩn hóa world/controls/camera/collision/NPC, playable scene ổn định.
+M2: Chương 1 hoàn chỉnh + mini game Trồng Lúa – Học Đếm + lưu tiến độ local.
+M3: Quest/dialogue/reward/education engine data-driven + UX phụ huynh cơ bản.
+M4: Multiplayer VillageRoom, đồng bộ và kiểm thử hai trình duyệt, an toàn trẻ em.
+M5: Sân Đình và mini game Ô Ăn Quan + Kéo Co.
+M6: Chợ Quê và Trường Học, bài học theo tuổi.
+M7: Làng Nghề, Mùa Gặt, Trung Thu, chương cuối.
+M8: Backend lưu tiến độ, tài khoản phụ huynh, admin, bảo mật, triển khai VPS.
+M9: QA, kiểm thử trẻ em có giám sát, tối ưu máy yếu, phát hành beta.
+
+YÊU CẦU THỰC THI NGAY
+1. Đọc repository hiện tại, liệt kê cấu trúc, script, scene, asset và các chức năng thật sự chạy được.
+2. Tạo bộ tài liệu thiết kế nói trên, đặc biệt STORY_BIBLE với 8 chương, quest IDs, NPC dialogue mẫu và kết nối gameplay.
+3. Đưa ra milestone nhỏ với acceptance criteria rõ ràng, dependency, rủi ro và bước test trong Cocos Editor.
+4. Sau khi hoàn thành M0, chỉ triển khai M1 nếu có thể làm an toàn và phạm vi rõ ràng; không nhảy ngay sang toàn bộ 8 chương.
+5. Mỗi lần kết thúc: báo cáo file thay đổi, cách chạy, test đã chạy/chưa chạy, lỗi tồn đọng, đề xuất milestone kế tiếp.
+6. Không tự commit/push; chờ tôi kiểm tra và yêu cầu.
+
+TIÊU CHÍ THÀNH CÔNG CUỐI CÙNG
+Game Web 2.5D dễ thương, khám phá làng quê Việt Nam, cốt truyện xuyên suốt 8 chương, mini game có giá trị học tập, chơi một mình hoặc multiplayer an toàn, nội dung có thể mở rộng, chạy được trên máy cấu hình thấp sau khi tối ưu và kiểm thử thực tế.

@@ -37,7 +37,7 @@ export class VillageHub {
     close():void{this.game?.pause();this.onGamePause?.(true);if(this.game&&this.questId)this.campaign.data.resume[this.questId]={kind:'game',data:this.game.save()};this.persist();this.node.active=false;}
     cancel():void{this.pendingNpc=null;}
     select(world:Point):'accepted'|'blocked'|null{
-        const index=this.npcNodes.findIndex(n=>Math.abs(world.x-n.position.x)<=35&&world.y>=n.position.y-12&&world.y<=n.position.y+110);if(index<0)return null;
+        const index=this.npcNodes.findIndex(n=>{const size=n.getComponent(UITransform)!;return Math.abs(world.x-n.position.x)<=size.width/2&&world.y>=n.position.y-12&&world.y<=n.position.y+size.height;});if(index<0)return null;
         const npc=storyNpcs[index],candidates=[{x:npc.x+1,y:npc.y},{x:npc.x-1,y:npc.y},{x:npc.x,y:npc.y+1},{x:npc.x,y:npc.y-1}];
         for(const goal of candidates)if(this.player.goTo(goal)){this.pendingNpc=index;this.destination(goal);return 'accepted';}return 'blocked';
     }

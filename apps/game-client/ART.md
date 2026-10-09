@@ -12,6 +12,46 @@ Bộ ảnh được tạo bằng skill imagegen và công cụ built-in `image_g
 | `banana.png` | Cây chuối |
 | `farmer.png` | Bác Nông Dân |
 | `rice.png` | Bó lúa thu hoạch |
+| `elder.png` | Ông Đồ áo dài xanh, khăn đóng và sách; thay Graphics trong Chương 1 |
+| `co-tam.png` | Cô Tấm áo xanh, váy nâu, giỏ rau; thay Graphics ở nông trại |
+| `lotus.png` | Cụm lá/hoa sen, đặt trên mặt ao hiện có ở ba vị trí |
+
+## Bổ sung ngày 10/10/2026
+
+Dùng built-in `image_gen`, nền alpha; không dùng CLI/API fallback. Ảnh được copy vào `assets/resources/village/`; `.meta` mới do Creator import. Đây là minh họa nhân vật hư cấu/phong cách trò chơi, chưa là tài liệu xác thực trang phục lịch sử. Cô Giáo Lan và Nghệ Nhân Gốm được dịch sang ô đất gần đó để không bị cây đa/mái nhà che; điểm trường học theo vị trí mới. Collision dùng chung model client/server. Vùng chạm NPC ở Sổ làng theo kích thước sprite, gồm hai cặp nhân vật rộng hơn. Hoa sen là trang trí, không tạo hành động thu hoạch hoặc đổi collision ao. NPC dùng sprite idle tĩnh; chưa có walk/gesture animation riêng.
+
+Các sprite bổ sung: `teacher.png` (Cô Giáo Lan), `market-lady.png` (Bà Bán Hàng), `potter.png` (Nghệ Nhân Gốm), `ti-na.png` (hai bạn cùng một sprite), `hang-cuoi.png` (Chị Hằng và Chú Cuội cùng một sprite). Hai cặp nhân vật giữ một điểm tương tác như model cũ.
+
+Prompt set NPC bổ sung, một lần gọi cho mỗi ảnh:
+
+Ảnh Nghệ Nhân Gốm được chỉnh lại với prompt: Edit target image into ONE standalone game NPC sprite. Remove the woman on the left entirely. Keep ONLY the male pottery artisan on the right, wearing cream shirt and ochre apron, holding the bowl. Preserve his face, clothing, bowl, style and full visible body. Recenter this one male artisan in the square canvas at the original height, feet at same baseline. No other people, no woman, no additional objects, no background, no glow or shadow. Genuine alpha zero transparent background.
+
+teacher: Standalone square transparent PNG sprite for Vietnamese children's isometric village game. Polished hand-painted warm storybook art, cute round expressive heads, softly shaded clean edges, matching friendly farmer and green-clad Co Tam sprites. Elevated orthographic view, front three-quarter, full bodies centered, feet at 93% canvas height, generous transparent padding. No scenery, no text, no labels, no watermark, no halo or glow, only clean silhouettes with genuine transparent alpha. One friendly Vietnamese young adult female teacher Cô Giáo Lan, black hair to shoulders, modest rose pink áo dài over cream trousers, flat sandals, holding a closed book, kind encouraging smile.
+
+market-lady: Standalone square transparent PNG sprite for Vietnamese children's isometric village game. Polished hand-painted warm storybook art, cute round expressive heads, softly shaded clean edges, matching friendly farmer and green-clad Co Tam sprites. Elevated orthographic view, front three-quarter, full bodies centered, feet at 93% canvas height, generous transparent padding. No scenery, no text, no labels, no watermark, no halo or glow, only clean silhouettes with genuine transparent alpha. One warm friendly older Vietnamese market seller Bà Bán Hàng, salt-and-pepper hair in a bun, simple purple blouse, dark brown loose trousers, sandals, holding a small woven basket with carrots and leafy greens, round face and warm smile.
+
+potter: Standalone square transparent PNG sprite for Vietnamese children's isometric village game. Polished hand-painted warm storybook art, cute round expressive heads, softly shaded clean edges, matching friendly farmer and green-clad Co Tam sprites. Elevated orthographic view, front three-quarter, full bodies centered, feet at 93% canvas height, generous transparent padding. No scenery, no text, no labels, no watermark, no halo or glow, only clean silhouettes with genuine transparent alpha. One friendly middle-aged Vietnamese male pottery artisan Nghệ Nhân Gốm, short black hair, small moustache, simple cream shirt and ochre apron over brown trousers, sandals, holding one small finished terracotta bowl, no tools, cheerful calm face.
+
+ti-na: Standalone square transparent PNG sprite for Vietnamese children's isometric village game. Polished hand-painted warm storybook art, cute round expressive heads, softly shaded clean edges, matching friendly farmer and green-clad Co Tam sprites. Elevated orthographic view, front three-quarter, full bodies centered, feet at 93% canvas height, generous transparent padding. No scenery, no text, no labels, no watermark, no halo or glow, only clean silhouettes with genuine transparent alpha. Exactly two young Vietnamese children friends Tí and Na standing side by side with separate readable silhouettes, entire full bodies visible. Boy with short black hair, orange shirt and dark blue shorts, girl with black pigtails, yellow blouse and blue skirt, simple sandals. Both smiling, friendly waving hands. No other characters.
+
+hang-cuoi: Standalone square transparent PNG sprite for Vietnamese children's isometric village game. Polished hand-painted warm storybook art, cute round expressive heads, softly shaded clean edges, matching friendly farmer and green-clad Co Tam sprites. Elevated orthographic view, front three-quarter, full bodies centered, feet at 93% canvas height, generous transparent padding. No scenery, no text, no labels, no watermark, no halo or glow, only clean silhouettes with genuine transparent alpha. Exactly two friendly Vietnamese folk-tale festival characters Chị Hằng and Chú Cuội standing side by side with separate readable silhouettes. Young woman with long black hair, modest flowing pale lavender áo dài and cream trousers, holding a small unlit decorative star lantern; young man short black hair under simple dark head scarf, teal rural shirt, brown loose trousers and sandals, cheerful grin. Cute child-friendly human characters, no wings, no glowing aura, no flame. Full bodies visible.
+
+
+Prompt Ông Đồ:
+
+Create a standalone transparent PNG game sprite for Làng Tri Thức Vietnamese children's isometric village. One friendly elderly Vietnamese scholar Ông Đồ, full body centered, warm smile, white eyebrows and small white beard, indigo traditional áo dài tunic, dark khăn đóng headwear, loose ivory trousers and brown sandals, holding a small closed plain book. Cute rounded proportions and expressive large head, polished hand painted storybook art with soft warm shading and clean edges, matching a friendly blue-shirt farmer sprite. Slight elevated orthographic 2:1 game camera, facing front slightly three-quarter. Entire figure fully visible, feet baseline at 93% canvas height, generous transparent padding, no scenery, no text, no lettering, no watermark. Real alpha transparency. Save usable project asset.
+
+Prompt chỉnh alpha Ông Đồ:
+
+Edit this game character sprite. Preserve the complete elderly scholar exactly: face, clothes, book, pose, scale, full body and sandals. Remove ALL background, ALL colored halo and ALL glow outside the character silhouette. Background must be completely alpha zero, with only clean antialiased edges around the isolated character, no shadow, no haze. Keep original composition and dimensions; no text.
+
+Prompt Cô Tấm:
+
+Standalone square transparent PNG game sprite for Vietnamese children's village, one character Cô Tấm. Kind young adult Vietnamese woman, black hair tied neatly in a low bun, gentle smiling face, simple traditional modest pale green áo tứ thân outer garment with cream inner shirt, brown flowing skirt and simple sandals, carrying a small woven basket of green vegetables. Friendly oversized head and cute readable full body proportions. Polished hand-painted children's storybook art, soft warm shading, clean readable edges, vivid natural palette; slightly elevated orthographic isometric 2:1 camera, facing front three-quarter. Entire figure visible, centered, feet at 93% canvas height, at least 10% transparent padding all sides. No scenery, no other characters, no text or lettering, no logo, no watermark. Genuine alpha transparent background.
+
+Prompt sen ao làng:
+
+Standalone transparent PNG game environment sprite: a small cluster of three broad green lotus leaves floating with one open pink lotus blossom and one pink bud, to place ON TOP of existing blue water tiles in a Vietnamese children's village game. Orthographic isometric 2:1 elevated view, broad horizontal composition, soft clean hand-painted storybook style, sunny gentle colors and clean readable silhouettes matching warm rural village sprite art. Only the lotus cluster, with a few delicate short pale-blue water ripple arcs directly under the leaves. No pond basin, no full water surface, no land, no shore, no trees, no houses, no rocks, no people, no text, no watermark. Centered in square canvas with generous 15% padding. Genuine alpha transparency around and between the leaves.
 
 ## Prompt sprite nhân vật
 

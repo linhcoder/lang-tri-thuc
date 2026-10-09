@@ -1,0 +1,134 @@
+{
+  "ver": "1.0.27",
+  "importer": "image",
+  "imported": true,
+  "uuid": "00d0cb7f-0aa4-4344-99ff-00eabb9df114",
+  "files": [
+    ".json",
+    ".png"
+  ],
+  "subMetas": {
+    "6c48a": {
+      "importer": "texture",
+      "uuid": "00d0cb7f-0aa4-4344-99ff-00eabb9df114@6c48a",
+      "displayName": "market-lady",
+      "id": "6c48a",
+      "name": "texture",
+      "userData": {
+        "wrapModeS": "clamp-to-edge",
+        "wrapModeT": "clamp-to-edge",
+        "imageUuidOrDatabaseUri": "00d0cb7f-0aa4-4344-99ff-00eabb9df114",
+        "isUuid": true,
+        "visible": false,
+        "minfilter": "linear",
+        "magfilter": "linear",
+        "mipfilter": "none",
+        "anisotropy": 0
+      },
+      "ver": "1.0.22",
+      "imported": true,
+      "files": [
+        ".json"
+      ],
+      "subMetas": {}
+    },
+    "f9941": {
+      "importer": "sprite-frame",
+      "uuid": "00d0cb7f-0aa4-4344-99ff-00eabb9df114@f9941",
+      "displayName": "market-lady",
+      "id": "f9941",
+      "name": "spriteFrame",
+      "userData": {
+        "trimThreshold": 1,
+        "rotated": false,
+        "offsetX": 2.5,
+        "offsetY": -0.5,
+        "trimX": 41,
+        "trimY": 17,
+        "width": 1177,
+        "height": 1221,
+        "rawWidth": 1254,
+        "rawHeight": 1254,
+        "borderTop": 0,
+        "borderBottom": 0,
+        "borderLeft": 0,
+        "borderRight": 0,
+        "packable": true,
+        "pixelsToUnit": 100,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "meshType": 0,
+        "vertices": {
+          "rawPosition": [
+            -588.5,
+            -610.5,
+            0,
+            588.5,
+            -610.5,
+            0,
+            -588.5,
+            610.5,
+            0,
+            588.5,
+            610.5,
+            0
+          ],
+          "indexes": [
+            0,
+            1,
+            2,
+            2,
+            1,
+            3
+          ],
+          "uv": [
+            41,
+            1237,
+            1218,
+            1237,
+            41,
+            16,
+            1218,
+            16
+          ],
+          "nuv": [
+            0.03269537480063796,
+            0.012759170653907496,
+            0.9712918660287081,
+            0.012759170653907496,
+            0.03269537480063796,
+            0.9864433811802232,
+            0.9712918660287081,
+            0.9864433811802232
+          ],
+          "minPos": [
+            -588.5,
+            -610.5,
+            0
+          ],
+          "maxPos": [
+            588.5,
+            610.5,
+            0
+          ]
+        },
+        "isUuid": true,
+        "imageUuidOrDatabaseUri": "00d0cb7f-0aa4-4344-99ff-00eabb9df114@6c48a",
+        "atlasUuid": "",
+        "trimType": "auto"
+      },
+      "ver": "1.0.12",
+      "imported": true,
+      "files": [
+        ".json"
+      ],
+      "subMetas": {}
+    }
+  },
+  "userData": {
+    "type": "sprite-frame",
+    "fixAlphaTransparencyArtifacts": false,
+    "hasAlpha": true,
+    "redirect": "00d0cb7f-0aa4-4344-99ff-00eabb9df114@6c48a"
+  }
+}

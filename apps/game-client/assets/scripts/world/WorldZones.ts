@@ -3,7 +3,7 @@ export interface WorldZone {id:string;name:string;spawn:Point;chapter:number|nul
 export const worldZones:WorldZone[]=[
     {id:'gate',name:'Cổng làng',spawn:{x:20,y:25},chapter:null},
     {id:'courtyard',name:'Sân đình',spawn:{x:20,y:22},chapter:1},
-    {id:'school',name:'Trường học',spawn:{x:7,y:21},chapter:3},
+    {id:'school',name:'Trường học',spawn:{x:6,y:23},chapter:3},
     {id:'farm',name:'Nông trại',spawn:{x:14,y:11},chapter:5},
     {id:'market',name:'Chợ quê',spawn:{x:29,y:23},chapter:2},
     {id:'craft',name:'Làng nghề',spawn:{x:6,y:28},chapter:4},

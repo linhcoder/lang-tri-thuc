@@ -2,6 +2,8 @@
 
 Backend hiện dùng MySQL Laragon local và MySQL 8.4 trong gói Docker. SQLite chỉ giữ cho kiểm thử in-memory và migration/backup dữ liệu cũ. Xem [MySQL localhost](MYSQL_LOCAL.md).
 
+Ngày 10/10/2026 bổ sung tám PNG nền alpha: Ông Đồ, Cô Tấm, Cô Giáo Lan, Bà Bán Hàng, Nghệ Nhân Gốm, Tí–Na, Hằng–Cuội và sen ao làng. NPC trong làng đã dùng sprite idle thay Graphics; chưa có animation riêng. Cô Giáo Lan/Nghệ Nhân Gốm được dịch để tránh cây/mái nhà che hình. Xem [art/prompt](../apps/game-client/ART.md) và [QA](../apps/game-client/QA-REPORT.md); các mô tả placeholder trong bản bàn giao gốc bên dưới là lịch sử.
+
 Đợt sửa lỗi và kiểm thử lại mới nhất: [QA-REPORT.md](../apps/game-client/QA-REPORT.md), gồm 31 nhóm test client, API/server/MySQL và browser demo/Chương 1/campaign/phụ huynh. Màn kết quả rải hạt cuối trong demo đã được sửa. Bảng kiểm thử bên dưới giữ số liệu bàn giao ban đầu.
 
 Yêu cầu mới nhất cho phép tiếp tục toàn bộ phần còn lại và commit. Các câu “chờ xác nhận từng milestone / không commit” trong master prompt và tài liệu kế hoạch cũ là quy trình lịch sử, đã được yêu cầu mới thay thế. Đợt này không push.

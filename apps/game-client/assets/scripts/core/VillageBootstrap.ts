@@ -135,6 +135,24 @@ export class VillageBootstrap extends Component {
             this.childSprite.node.setPosition(0,-7);
             this.farmer.node.getComponent(Graphics)!.clear();this.art.sprite(this.farmer.node,'FarmerSprite',this.art.environment[6],130,145).setPosition(0,-5);
             this.farmer.node.getChildByName('FarmerName')!.setPosition(0,140);this.npcHitHeight=140;
+            const elderFrame=this.art.decorations.elder;
+            if(this.chapter&&elderFrame){
+                const elder=this.chapter.elder;this.art.sprite(elder,'ElderSprite',elderFrame,140*elderFrame.rect.width/elderFrame.rect.height,140).setPosition(0,-5);elder.getComponent(Graphics)!.clear();
+            }
+            const npcArt=[['co-tam','co-tam','CoTamSprite'],['co-giao-lan','teacher','TeacherSprite'],['ba-ban-hang','market-lady','MarketLadySprite'],['nghe-nhan-gom','potter','PotterSprite'],['ti-na','ti-na','FriendsSprite'],['chi-hang-cuoi','hang-cuoi','FestivalSprite']] as const;
+            for(const [id,asset,name] of npcArt){
+                const node=this.hub?.npcNodes.find(node=>node.name===id),frame=this.art.decorations[asset];
+                if(node&&frame){
+                    const width=125*frame.rect.width/frame.rect.height;
+                    this.art.sprite(node,name,frame,width,125).setPosition(0,-5);node.getComponent(Graphics)!.clear();
+                    node.getComponent(UITransform)!.setContentSize(Math.max(70,width),125);
+                }
+            }
+            const lotus=this.art.decorations.lotus;
+            if(lotus)for(const [i,tile] of [{x:26,y:10},{x:29,y:12},{x:31,y:9}].entries()){
+                const node=this.art.sprite(this.actors,`PondLotus-${i}`,lotus,100,100),p=toWorld(tile);
+                node.getComponent(UITransform)!.setAnchorPoint(0.5,0.5);node.setPosition(p.x,p.y);
+            }
             for(const object of villageObjects){const node=this.art.sprite(this.actors,object.id,this.art.environment[object.frame],object.width,object.height);const p=toWorld(object);node.setPosition(p.x,p.y);}
             for(let i=0;this.demo&&i<riceBundles.length;i++){
                 const p=toWorld(riceBundles[i]),node=ui(this.actors,`RiceBundle-${i}`,75,95);node.setPosition(p.x,p.y);

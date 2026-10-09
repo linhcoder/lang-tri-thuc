@@ -1,5 +1,14 @@
 # Kết quả nghiệm thu bản playable
 
+## Asset NPC và ao sen — 10/10/2026
+
+Tám PNG alpha được tạo bằng built-in imagegen và lưu trong `assets/resources/village`: `elder`, `co-tam`, `teacher`, `market-lady`, `potter`, `ti-na`, `hang-cuoi`, `lotus`. Creator import `.meta` thật. Sprite thay Graphics cho Ông Đồ và sáu điểm NPC trong Sổ làng; ba cụm sen trang trí mặt ao. Hai cặp nhân vật có vùng chạm rộng theo sprite. Cô Giáo Lan/Nghệ Nhân Gốm dịch sang ô đất gần đó để tránh cây/mái nhà che hình; điểm trường học và model collision client/server đồng bộ.
+
+- `check:client`, 34 nhóm test client, build Cocos và 4 test server: đạt.
+- `test:assets`: xác nhận SpriteFrame thật cho mọi NPC và ba cụm sen; click cả bảy điểm NPC mở hội thoại, gồm click lệch tâm ±45 px ở hai cặp nhân vật. Không có lỗi JavaScript. Ảnh từng khu và report ở `temp/assets-qa`; đã xem trực tiếp ảnh trong renderer để kiểm tra nền alpha, tỉ lệ và tình trạng che khuất.
+- `test:m2` trên bản cuối: đạt toàn luồng desktop/mobile giả lập, lưu/reload/replay, sao duy nhất và recovery save. Mẫu AMD Radeon: 60,11 FPS, p95 17 ms, 65 draw calls, JS heap 83,02 MB. Asset mới làm tăng dung lượng/chi phí bộ nhớ; mẫu ngắn này chưa xác nhận điện thoại thật hoặc Intel HD/UHD.
+- Các sprite NPC mới là idle tĩnh; chưa có animation walk/gesture riêng. Cụm sen không tạo tương tác hoặc đổi collision ao. Prompt và nguồn tạo ảnh ở [ART.md](ART.md).
+
 ## Giữ tiến độ khi bộ nhớ lỗi — 10/10/2026
 
 `CampaignSave.resetLaterChapters` chỉ thay tiến độ trong phiên sau khi ghi thành công cả bản sao trước xóa và save mới. Nếu một bước ghi thất bại, giữ nguyên tiến độ trong phiên và save đang dùng. Khôi phục save lỗi giữ bản `.recovery` đầu tiên; dữ liệu lỗi mới nằm trong `.recovery.latest`. Nếu không ghi được bản phục hồi, phiên không ghi đè raw save.

@@ -6,8 +6,8 @@ export interface NpcSpawn {id:string;name:string;x:number;y:number;chapter:numbe
 export const storyNpcs:NpcSpawn[]=[
     {id:'ti-na',name:'Tí và Na',x:19,y:24,chapter:1,color:[230,129,80]},
     {id:'ba-ban-hang',name:'Bà Bán Hàng',x:30,y:23,chapter:2,color:[175,110,178]},
-    {id:'co-giao-lan',name:'Cô Giáo Lan',x:7,y:22,chapter:3,color:[225,131,160]},
-    {id:'nghe-nhan-gom',name:'Nghệ Nhân Gốm',x:5,y:28,chapter:4,color:[173,129,82]},
+    {id:'co-giao-lan',name:'Cô Giáo Lan',x:5,y:23,chapter:3,color:[225,131,160]},
+    {id:'nghe-nhan-gom',name:'Nghệ Nhân Gốm',x:7,y:28,chapter:4,color:[173,129,82]},
     {id:'co-tam',name:'Cô Tấm',x:10,y:8,chapter:5,color:[98,171,132]},
     {id:'chi-hang-cuoi',name:'Chị Hằng • Chú Cuội',x:33,y:28,chapter:6,color:[141,135,213]},
 ];

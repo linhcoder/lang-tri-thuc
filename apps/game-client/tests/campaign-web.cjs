@@ -48,6 +48,20 @@ function puzzleSolution(start){
             await page.reload();await ready();assert.equal(await page.evaluate(()=>village.hub.campaign.stars),chapter+1);
         }
         assert.equal(await page.evaluate(()=>village.hub.campaign.stars),8);await tap('journalButton',true);await page.screenshot({path:path.join(output,'all-chapters.png')});assert.deepEqual(errors,[]);
-        fs.writeFileSync(path.join(output,'report.json'),JSON.stringify({chapters:8,completedGames:results,chapterQuests,errors},null,2));console.log(JSON.stringify({chapters:8,completedGames:results,errors},null,2));
+        await tap('HubClose');await tap('parentButton',true);await tap('ParentAnswer-1');await tap('Reset');
+        const beforeReset=await page.evaluate(()=>({data:JSON.stringify(village.hub.campaign.data),raw:localStorage.getItem('lang-tri-thuc.campaign.v1')}));
+        await page.evaluate(()=>{
+            window.originalStorageSet=Storage.prototype.setItem;
+            Storage.prototype.setItem=function(key,value){if(key==='lang-tri-thuc.campaign.v1')throw new DOMException('Test storage quota','QuotaExceededError');return window.originalStorageSet.call(this,key,value);};
+        });
+        try{
+            await tap('ConfirmReset');
+            assert.equal(await page.evaluate(()=>village.hub.message),'Chưa xóa được; dữ liệu được giữ lại.');
+            assert.equal(await page.evaluate(()=>JSON.stringify(village.hub.campaign.data)),beforeReset.data);
+            assert.equal(await page.evaluate(()=>localStorage.getItem('lang-tri-thuc.campaign.v1')),beforeReset.raw);
+        }finally{await page.evaluate(()=>{Storage.prototype.setItem=window.originalStorageSet;delete window.originalStorageSet;});}
+        await page.reload();await ready();assert.equal(await page.evaluate(()=>village.hub.campaign.stars),8);
+        assert.deepEqual(errors,[]);
+        fs.writeFileSync(path.join(output,'report.json'),JSON.stringify({chapters:8,completedGames:results,chapterQuests,failedResetPreservesProgress:true,errors},null,2));console.log(JSON.stringify({chapters:8,completedGames:results,failedResetPreservesProgress:true,errors},null,2));
     }finally{await browser.close();}
 })().catch(e=>{console.error(e);process.exitCode=1;});

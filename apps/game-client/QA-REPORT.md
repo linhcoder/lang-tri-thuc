@@ -1,5 +1,13 @@
 # Kết quả nghiệm thu bản playable
 
+## Giữ tiến độ khi bộ nhớ lỗi — 10/10/2026
+
+`CampaignSave.resetLaterChapters` chỉ thay tiến độ trong phiên sau khi ghi thành công cả bản sao trước xóa và save mới. Nếu một bước ghi thất bại, giữ nguyên tiến độ trong phiên và save đang dùng. Khôi phục save lỗi giữ bản `.recovery` đầu tiên; dữ liệu lỗi mới nằm trong `.recovery.latest`. Nếu không ghi được bản phục hồi, phiên không ghi đè raw save.
+
+Client strict và 34 nhóm kiểm thử đạt; build Cocos đạt. Các test mới kiểm tra lỗi ghi backup, lỗi ghi save chính, reset thành công giữ setting và bảo toàn bản phục hồi đầu tiên.
+
+`test:campaign` chạy trên Cocos build thật: hoàn thành 12 mini game và đủ 8 sao; giả lập `QuotaExceededError` khi ghi save chính trong thao tác xóa từ giao diện phụ huynh, kiểm tra tiến độ trong phiên và localStorage giữ nguyên, reload vẫn đủ 8 sao. Kết quả `failedResetPreservesProgress: true`, không có lỗi JavaScript; report ở `temp/campaign-qa/report.json`. Lỗi bộ nhớ được giả lập, không phải đo ổ đĩa đầy trên thiết bị thật.
+
 ## Kiểm tra lại bản tám chương — 09/10/2026
 
 Môi trường: Node.js 22.14.0, Cocos Creator 3.8.8, Chrome headless/WebGL D3D11 trên AMD Radeon. Phiên bản Node khuyến nghị trong README vẫn là 24.13+.

@@ -270,4 +270,26 @@ test('malformed chapter packs are rejected without throwing or partially changin
  assert.equal(applyChapterText({version:1,chapters:[valid]}),true);assert.equal(c.title,valid.title);
  const originals=JSON.parse(before);chapters.forEach((chapter,i)=>Object.assign(chapter,originals[i]));
 });
+test('campaign reset keeps current progress when backup or primary storage fails',()=>{
+ const {CampaignSave,CAMPAIGN_KEY}=load(path.join(scripts,'world/CampaignSave.ts'));
+ for(const failingKey of [CAMPAIGN_KEY+'.parent-backup',CAMPAIGN_KEY,null]){
+  const values=new Map();let blocked=null;
+  const storage={getItem:key=>values.get(key)??null,setItem:(key,value)=>{if(key===blocked)throw Error('Quota exceeded');values.set(key,value);}};
+  const save=new CampaignSave(storage);save.engine.data.introduced=['ch01'];save.engine.data.age='9-11';save.engine.data.quality='high';save.engine.data.sound=true;save.engine.data.avatar=2;
+  assert.equal(save.save(),true);const previous=save.engine.data,raw=values.get(CAMPAIGN_KEY);blocked=failingKey;
+  const ok=save.resetLaterChapters();assert.equal(ok,failingKey===null);
+  if(!ok){assert.equal(save.engine.data,previous);assert.equal(values.get(CAMPAIGN_KEY),raw);assert.ok(save.notice);}
+  else{assert.deepEqual(save.engine.data.introduced,[]);assert.equal(save.engine.data.age,'9-11');assert.equal(save.engine.data.quality,'high');assert.equal(save.engine.data.sound,true);assert.equal(save.engine.data.avatar,2);assert.equal(values.get(CAMPAIGN_KEY+'.parent-backup'),raw);assert.deepEqual(JSON.parse(values.get(CAMPAIGN_KEY)),save.engine.data);}
+ }
+});
+test('campaign corrupt saves retain the first recovery and preserve raw data if backup fails',()=>{
+ const {CampaignSave,CAMPAIGN_KEY}=load(path.join(scripts,'world/CampaignSave.ts'));
+ const values=new Map([[CAMPAIGN_KEY,'first-broken']]);let fail=false;
+ const storage={getItem:key=>values.get(key)??null,setItem:(key,value)=>{if(fail)throw Error('Quota exceeded');values.set(key,value);}};
+ new CampaignSave(storage);assert.equal(values.get(CAMPAIGN_KEY+'.recovery'),'first-broken');
+ values.set(CAMPAIGN_KEY,'second-broken');new CampaignSave(storage);
+ assert.equal(values.get(CAMPAIGN_KEY+'.recovery'),'first-broken');assert.equal(values.get(CAMPAIGN_KEY+'.recovery.latest'),'second-broken');
+ values.set(CAMPAIGN_KEY,'third-broken');fail=true;const save=new CampaignSave(storage);
+ assert.equal(save.save(),false);assert.equal(save.resetLaterChapters(),false);assert.equal(values.get(CAMPAIGN_KEY),'third-broken');assert.equal(values.get(CAMPAIGN_KEY+'.recovery'),'first-broken');
+});
 console.log(`${checks} test groups passed`);

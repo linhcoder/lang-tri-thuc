@@ -35,9 +35,10 @@ test('private rooms enforce invitations, authoritative results, emotes and 10/16
   a.send('game-action',{type:'forged-win',index:0});await wait(100);assert.equal((await store.transaction(d=>d.progress[profile.id].receipts.length)),0);
   for(let turn=0;turn<130;turn++){const g=MiniGameRules.restore(JSON.parse(a.state.gameJson));if(g.ended)break;(turn%2?a:b).send('game-action',{type:'pit',index:g.data.board.slice(0,5).findIndex((n:number)=>n>0)});await wait(100);}
   await until(()=>MiniGameRules.restore(JSON.parse(a.state.gameJson)).ended);await wait(250);assert.equal(await store.transaction(d=>d.progress[profile.id].receipts.length),1);assert.equal(await store.transaction(d=>d.progress[other.id].receipts.length),1);
-  a.send('emote',{id:'free-text'});a.send('emote',{id:'hello'});await until(()=>emotes===1);a.send('emote',{id:'hello'});await wait(100);assert.equal(emotes,1);
+  a.send('emote',{id:'free-text'});a.send('emote',{id:'hello'});await until(()=>emotes===1);a.send('emote',{id:'happy'});await wait(100);assert.equal(emotes,1);
   a.send('report',{sessionId:b.sessionId,reason:'uncomfortable'});await wait(150);assert.equal((await store.transaction(d=>d.reports.length)),1);
-  a.send('block',{sessionId:b.sessionId});await wait(100);await wait(2100);a.send('emote',{id:'hello'});await wait(100);assert.equal(emotes,1);
+  await wait(2100);a.send('emote',{id:'happy'});await until(()=>emotes===2);
+  a.send('block',{sessionId:b.sessionId});await wait(100);await wait(2100);a.send('emote',{id:'happy'});await wait(100);assert.equal(emotes,2);
   for(const r of rooms)await r.leave();rooms=[];
   // Independent authenticated profiles: no bypass or forged client progress.
   for(const count of [10,16,20]){

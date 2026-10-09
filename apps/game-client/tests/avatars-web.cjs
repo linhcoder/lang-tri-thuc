@@ -32,6 +32,17 @@ const origin=process.env.GAME_WEB_URL||'http://127.0.0.1:8080';
    if(id===2)await page.screenshot({path:path.join(output,'avatar-menu.png')});
    await tap(page,'Avatar-'+id);await matches(page,id);await tap(page,'Accessories');await tap(page,'Accessory-'+id);await tap(page,'HubClose');
    await page.screenshot({path:path.join(output,'avatar-'+id+'.png')});
+   const beforeGesture=await page.evaluate(()=>({...village.player.position}));
+   for(const kind of ['hello','happy']){
+    await avatarMenu(page);await tap(page,'Gesture-'+kind);
+    await page.waitForFunction(kind=>village.gesture.kind===kind&&village.gesture.elapsed>.3,kind);
+    if(kind==='happy')await page.waitForFunction(()=>village.childSprite.node.position.y>-5);
+    assert.deepEqual(await page.evaluate(()=>({...village.player.position})),beforeGesture);
+    if(id===2)await page.screenshot({path:path.join(output,'gesture-'+kind+'.png')});
+    await page.waitForFunction(()=>village.gesture.kind===null);
+    assert.equal(await page.evaluate(()=>village.childSprite.node.position.y),-7);
+   }
+
    await page.reload();await ready(page);await matches(page,id);assert.equal(await page.evaluate(()=>village.hub.campaign.data.accessory),id);
    assert.deepEqual(await page.evaluate(()=>{const c=village.childSprite.color;return [c.r,c.g,c.b];}),[255,255,255]);
    await page.locator('#GameCanvas').focus();
@@ -47,6 +58,7 @@ const origin=process.env.GAME_WEB_URL||'http://127.0.0.1:8080';
   const height=await mobile.evaluate(()=>{const n=village.hub.node.getChildByName('Avatar-3'),c=cc.game.canvas,r=c.getBoundingClientRect();return n.getComponent(cc.UITransform).height*n.worldScale.y*cc.view.getScaleY()*r.height/c.height;});assert.ok(height>=44);
   await tap(mobile,'Avatar-3','hub',true);await matches(mobile,3);await tap(mobile,'Accessories','hub',true);await tap(mobile,'Accessory-2','hub',true);await mobile.screenshot({path:path.join(output,'avatar-mobile.png')});
   await mobile.reload();await ready(mobile);await matches(mobile,3);assert.equal(await mobile.evaluate(()=>village.hub.campaign.data.accessory),2);
+  await avatarMenu(mobile,true);await tap(mobile,'Gesture-hello','hub',true);await mobile.waitForFunction(()=>village.gesture.kind==='hello'&&village.gesture.elapsed>.3);await mobile.screenshot({path:path.join(output,'gesture-mobile.png')});
   server=spawn(process.execPath,['dist/game-server/src/main.js'],{cwd:path.resolve(__dirname,'../../game-server'),env:{...process.env,PORT:'26573',HOST:'127.0.0.1',ROOM_SECRET:''},windowsHide:true,stdio:['ignore','pipe','pipe']});
   await new Promise((resolve,reject)=>{const timer=setTimeout(()=>reject(Error('Avatar test server startup timeout')),8000);server.stdout.on('data',data=>{if(String(data).includes(':26573')){clearTimeout(timer);resolve();}});server.once('error',e=>{clearTimeout(timer);reject(e);});server.once('exit',code=>{clearTimeout(timer);reject(Error('Avatar server exited '+code));});});
   const online=await boot(false,'/?demo=1&server=http://127.0.0.1:26573');await online.waitForFunction(()=>!!village.network.room);
@@ -57,6 +69,6 @@ const origin=process.env.GAME_WEB_URL||'http://127.0.0.1:8080';
    await online.waitForFunction(({id,avatar,direction,moving})=>{const b=village,p=b.network.players.get(id),actor=b.remoteActors.get(id),frames=b.art.avatarVariants[avatar]??b.art.child,i=actor?frames.indexOf(actor.sprite.spriteFrame):-1;return actor?.accessory.node.name.startsWith(avatar+':')&&p?.accessory===avatar&&p?.avatar===avatar&&p.direction===direction&&i>=0&&i%8===direction&&(moving?i>=8:i<8);},{id:peer.sessionId,avatar,direction,moving},{timeout:10000});
   }
   await online.screenshot({path:path.join(output,'avatar-online.png')});assert.deepEqual(errors,[]);
-  const result={avatars:4,accessories:4,framesPerAvatar:24,localDirections:true,reload:true,mobileTouch:true,remoteDirections:true,errors};fs.writeFileSync(path.join(output,'report.json'),JSON.stringify(result,null,2));console.log(JSON.stringify(result,null,2));
+  const result={avatars:4,accessories:4,localGestures:true,framesPerAvatar:24,localDirections:true,reload:true,mobileTouch:true,remoteDirections:true,errors};fs.writeFileSync(path.join(output,'report.json'),JSON.stringify(result,null,2));console.log(JSON.stringify(result,null,2));
  }finally{if(peer)await peer.leave();for(const context of contexts)await context.close();await browser.close();server?.kill();}
 })().catch(e=>{console.error(e);process.exitCode=1;});

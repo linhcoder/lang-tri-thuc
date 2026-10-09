@@ -1,6 +1,6 @@
 import { _decorator, Color, Component, director, EventKeyboard, EventTouch, game, Game, Graphics, input, Input, JsonAsset, resources, Label, Layers, Node, Sprite, sys, UITransform, Vec3, view } from 'cc';
 import { cameraOffset, inputAxis, Point, SIZE, terrain, tileAt, toWorld, VillageMap, villageObjects } from '../world/VillageModel';
-import { PlayerController, PlayerVisual } from '../player/PlayerController';
+import { AvatarGesture, AvatarGestureState, PlayerController, PlayerVisual } from '../player/PlayerController';
 import { FarmerNPC } from '../npc/FarmerNPC';
 import { VillageArt } from '../world/VillageArt';
 import { LearningProgress, riceBundles } from '../world/LearningProgress';
@@ -33,6 +33,19 @@ function drawAccessory(g:Graphics,id:number,direction:number,row:number):void {
     g.ellipse(0,y,12,4);g.fill();
     const side=[1,1,1,-1,-1,-1,1,1][direction]??1;
     g.moveTo(side*5,y);g.lineTo(side*13,y-16);g.lineTo(side*4,y-13);g.close();g.fill();
+}
+function animateGesture(state:AvatarGestureState,sprite:Sprite,scarf:Graphics,g:Graphics,dt:number,moving:boolean):void {
+    state.step(dt,moving);const jump=state.jump;
+    sprite.node.setPosition(0,-7+jump);scarf.node.setPosition(0,jump);g.clear();
+    if(state.kind==='hello'){
+        const x=32+Math.sin(state.elapsed*18)*5,y=68+Math.cos(state.elapsed*18)*3;
+        g.fillColor=new Color(250,207,163);g.roundRect(x-6,y-7,12,14,4);g.fill();
+        for(let i=0;i<4;i++){g.roundRect(x-6+i*3,y+3,2.5,9,1);g.fill();}
+        g.roundRect(x-10,y-3,5,3,1);g.fill();
+    }else if(state.kind==='happy'){
+        g.fillColor=new Color(255,210,65);
+        for(const x of [-32,32]){g.circle(x,92+jump,3+Math.sin(state.elapsed*12));g.fill();}
+    }
 }
 @ccclass('VillageBootstrap')
 @disallowMultiple
@@ -68,13 +81,13 @@ export class VillageBootstrap extends Component {
     private touches = new Map<number, { start: Point; dragged: boolean; blocked: boolean }>();
     private art=new VillageArt();
     private childSprite?:Sprite;
-    private spriteTime=0;private accessoryGraphic?:Graphics;
+    private gesture=new AvatarGestureState();private gestureGraphic?:Graphics;private spriteTime=0;private accessoryGraphic?:Graphics;
     private learning=new LearningProgress();
     private panel?:LearningPanel;
     private bundleNodes:Node[]=[];
     private pendingBundle:number|null=null;
     private network=new VillageNetwork();
-    private remoteActors=new Map<string,{node:Node;sprite:Sprite;accessory:Graphics}>();
+    private remoteActors=new Map<string,{node:Node;sprite:Sprite;accessory:Graphics;gesture:AvatarGestureState;gestureGraphic:Graphics}>();
     private npcHitHeight=85;
     private assetsReady=false;
     private networkStarted=false;
@@ -142,9 +155,9 @@ export class VillageBootstrap extends Component {
                 node.setSiblingIndex(0);
             }}
             for(const child of [...this.player.node.children])if(child!==this.arrow)child.destroy();
-            this.playerVisual=undefined;this.childSprite=this.art.sprite(this.player.node,'ChildSprite',this.art.child[6],90,110).getComponent(Sprite)!;this.accessoryGraphic=ui(this.player.node,'Scarf').addComponent(Graphics);
+            this.playerVisual=undefined;this.childSprite=this.art.sprite(this.player.node,'ChildSprite',this.art.child[6],90,110).getComponent(Sprite)!;this.accessoryGraphic=ui(this.player.node,'Scarf').addComponent(Graphics);this.gestureGraphic=ui(this.player.node,'Gesture').addComponent(Graphics);
             this.childSprite.node.setPosition(0,-7);
-            if(this.hub){this.hub.onAvatarPreview=(parent,id)=>{this.art.sprite(parent,'AvatarPreview',this.art.avatarFrame(id,0,6),55,70).setPosition(-100,-35);};this.hub.applyServerProgress();}
+            if(this.hub){this.hub.onGesture=id=>{if(this.networkStarted&&this.network.privateMode&&!this.network.offlineMode){this.network.emote(id);}else this.gesture.start(id);};this.network.onEmote=(sessionId,id)=>{if(id!=='hello'&&id!=='happy')return;const state=sessionId===this.network.room?.sessionId?this.gesture:this.remoteActors.get(sessionId)?.gesture;state?.start(id as AvatarGesture);};this.hub.onAvatarPreview=(parent,id)=>{this.art.sprite(parent,'AvatarPreview',this.art.avatarFrame(id,0,6),55,70).setPosition(-100,-35);};this.hub.applyServerProgress();}
             this.farmer.node.getComponent(Graphics)!.clear();this.art.sprite(this.farmer.node,'FarmerSprite',this.art.environment[6],130,145).setPosition(0,-5);
             this.farmer.node.getChildByName('FarmerName')!.setPosition(0,140);this.npcHitHeight=140;
             const elderFrame=this.art.decorations.elder;
@@ -274,7 +287,7 @@ export class VillageBootstrap extends Component {
 
         if(this.hub&&this.qualityStyle!==this.hub.campaign.data.quality){this.qualityStyle=this.hub.campaign.data.quality;const pipeline=director.root?.pipeline;if(pipeline)pipeline.shadingScale=this.qualityStyle==='low'?0.75:this.qualityStyle==='medium'?0.9:1;}
         this.playerVisual?.step(dt,this.player.moving,this.player.direction);
-        if(this.childSprite){this.spriteTime+=dt;const row=this.player.moving?1+(Math.floor(this.spriteTime*8)%2):0;this.childSprite.spriteFrame=this.art.avatarFrame(this.hub?.campaign.data.avatar??0,row,this.player.direction);if(this.accessoryGraphic)drawAccessory(this.accessoryGraphic,this.hub?.campaign.data.accessory??0,this.player.direction,row);}
+        if(this.childSprite){this.spriteTime+=dt;const row=this.player.moving?1+(Math.floor(this.spriteTime*8)%2):0;this.childSprite.spriteFrame=this.art.avatarFrame(this.hub?.campaign.data.avatar??0,row,this.player.direction);if(this.accessoryGraphic)drawAccessory(this.accessoryGraphic,this.hub?.campaign.data.accessory??0,this.player.direction,row);if(this.accessoryGraphic&&this.gestureGraphic)animateGesture(this.gesture,this.childSprite,this.accessoryGraphic,this.gestureGraphic,dt,this.player.moving);}
         if(this.networkStarted){
             this.network.update(dt,{...this.player.position,direction:this.player.direction,moving:this.player.moving,name:'',avatar:this.hub?.campaign.data.avatar??0,accessory:this.hub?.campaign.data.accessory??0});
             if(this.network.correction){this.player.cancel();this.player.position=this.network.correction;this.network.correction=null;this.pendingBundle=null;this.pendingNpc=false;this.chapter?.cancel();}
@@ -316,9 +329,9 @@ export class VillageBootstrap extends Component {
     private updateRemoteActors(dt:number):void{
         this.remoteActors.forEach((actor,id)=>{if(!this.network.players.has(id)){actor.node.destroy();this.remoteActors.delete(id);}});
         this.network.players.forEach((p,id)=>{let actor=this.remoteActors.get(id);
-            if(!actor){const node=ui(this.actors,`Online-${id}`);node.setPosition(p.x,p.y);const sprite=this.art.sprite(node,'OnlineSprite',this.art.avatarFrame(p.avatar??0,0,6),90,110).getComponent(Sprite)!;const name=label(node,p.name,160,30,18);name.getComponent(Label)!.color=new Color(50,105,160);name.setPosition(0,120);const accessory=ui(node,'Scarf').addComponent(Graphics);actor={node,sprite,accessory};this.remoteActors.set(id,actor);}
+            if(!actor){const node=ui(this.actors,`Online-${id}`);node.setPosition(p.x,p.y);const sprite=this.art.sprite(node,'OnlineSprite',this.art.avatarFrame(p.avatar??0,0,6),90,110).getComponent(Sprite)!;const name=label(node,p.name,160,30,18);name.getComponent(Label)!.color=new Color(50,105,160);name.setPosition(0,120);const accessory=ui(node,'Scarf').addComponent(Graphics);const gestureGraphic=ui(node,'Gesture').addComponent(Graphics);actor={node,sprite,accessory,gesture:new AvatarGestureState(),gestureGraphic};this.remoteActors.set(id,actor);}
             const t=Math.min(1,dt*12);actor.node.setPosition(actor.node.position.x+(p.x-actor.node.position.x)*t,actor.node.position.y+(p.y-actor.node.position.y)*t);
-            actor.sprite.spriteFrame=this.art.avatarFrame(p.avatar??0,p.moving?1+(Math.floor(this.spriteTime*8)%2):0,p.direction);drawAccessory(actor.accessory,p.accessory??0,p.direction,p.moving?1+(Math.floor(this.spriteTime*8)%2):0);
+            actor.sprite.spriteFrame=this.art.avatarFrame(p.avatar??0,p.moving?1+(Math.floor(this.spriteTime*8)%2):0,p.direction);drawAccessory(actor.accessory,p.accessory??0,p.direction,p.moving?1+(Math.floor(this.spriteTime*8)%2):0);animateGesture(actor.gesture,actor.sprite,actor.accessory,actor.gestureGraphic,dt,p.moving);
         });
     }
     private local(p: Point, node = this.root): Vec3 { return node.getComponent(UITransform)!.convertToNodeSpaceAR(new Vec3(p.x, p.y, 0)); }

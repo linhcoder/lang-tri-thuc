@@ -8,10 +8,12 @@ export class VillageNetwork {
     private disposed=false;private elapsed=0;private seq=0;private retry=0;private endpoint='';private paused=false;
     correction:Point|null=null;
     onProgress?:(value:any)=>void;onGame?:(game:MiniGameRules)=>void;
+    onEmote?:(sessionId:string,id:string)=>void;
     private joinOptions?:{roomCode:string;ticket:string;miniGame?:boolean};private pending:Array<{type:string;data:unknown}>=[];
     private blocked=new Set<string>();private wantOnline=true;private failures=0;private gameSnapshot='';
     private messageTime=0;private message='';get lastMessage():string{return this.message;}set lastMessage(value:string){this.message=value;this.messageTime=4;}get visibleMessage():string{return this.messageTime>0?this.lastMessage:'';}
     get privateMode():boolean{return !!this.joinOptions;}
+    get offlineMode():boolean{return !this.wantOnline;}
     get canSend():boolean{return !!this.room&&!this.paused;}
     async connect(endpoint:string,options?:{roomCode:string;ticket:string;miniGame?:boolean}):Promise<void>{
         if(options)this.joinOptions=options;
@@ -30,7 +32,7 @@ export class VillageNetwork {
             room.onMessage('correction',(p:Point)=>{if(Number.isFinite(p.x)&&Number.isFinite(p.y))this.correction=p;});
             if(this.privateMode){
                 room.onMessage('progress-state',v=>this.onProgress?.(v));room.onMessage('storage-warning',v=>{this.lastMessage=String(v).slice(0,150);});
-                room.onMessage('emote',v=>{const labels:Record<string,string>={hello:'Chào bạn!',thanks:'Cảm ơn!', 'your-turn':'Đến lượt bạn!', 'need-help':'Mình cần giúp',bye:'Tạm biệt!'};if(labels[v.id]&&!this.blocked.has(v.sessionId))this.lastMessage=(this.players.get(v.sessionId)?.name??'Bạn')+': '+labels[v.id];});
+                room.onMessage('emote',v=>{const labels:Record<string,string>={happy:'M\u00ecnh vui qu\u00e1!',hello:'Chào bạn!',thanks:'Cảm ơn!', 'your-turn':'Đến lượt bạn!', 'need-help':'Mình cần giúp',bye:'Tạm biệt!'};if(v&&typeof v.sessionId==='string'&&labels[v.id]&&!this.blocked.has(v.sessionId)){this.onEmote?.(v.sessionId,v.id);this.lastMessage=(this.players.get(v.sessionId)?.name??'Bạn')+': '+labels[v.id];}});
                 room.onMessage('blocked',v=>{if(typeof v.sessionId==='string'){this.blocked.add(v.sessionId);this.players.delete(v.sessionId);}});room.onMessage('report-sent',()=>{this.lastMessage='Đã gửi báo cáo tới người lớn phụ trách.';});room.send('ready');
             }
             room.onLeave(()=>{if(this.room===room){this.room=null;this.players.clear();this.status=this.wantOnline?'Mất kết nối • đang thử lại':'Chơi một mình';this.retry=this.wantOnline?3:0;}});
@@ -53,7 +55,7 @@ export class VillageNetwork {
         this.elapsed+=dt;if(this.elapsed>=0.05||this.pending.length){this.elapsed=0;try{this.room.send('move',{x:p.x,y:p.y,direction:p.direction,moving:p.moving,avatar:p.avatar??0,accessory:p.accessory??0,seq:this.seq++});for(const event of this.pending.splice(0))this.room.send(event.type,event.data);}catch{this.paused=true;this.status='Kết nối đang gián đoạn';}}
     }
     intent(type:string,data:unknown):boolean{if(!this.privateMode||!this.canSend||this.pending.length>=8)return false;this.pending.push({type,data});return true;}
-    emote(id:string):void{this.intent('emote',{id});}
+    emote(id:string):boolean{return this.intent('emote',{id});}
     block(sessionId:string):void{this.blocked.add(sessionId);this.players.delete(sessionId);this.intent('block',{sessionId});}
     report(sessionId:string,reason:string):void{this.intent('report',{sessionId,reason});}
     offline():void{this.wantOnline=false;this.retry=0;this.pending=[];void this.room?.leave();this.room=null;this.players.clear();this.status='Chơi một mình';}

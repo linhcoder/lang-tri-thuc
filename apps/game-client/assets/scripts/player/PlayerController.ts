@@ -1,6 +1,19 @@
 import { _decorator, Color, Component, Graphics, Node, UITransform } from 'cc';
 import { direction8, Point, tileAt, toWorld, VillageMap } from '../world/VillageModel';
 const { ccclass } = _decorator;
+export type AvatarGesture='hello'|'happy';
+/** Transient presentation only: never changes position, progress or saved data. */
+export class AvatarGestureState {
+    kind:AvatarGesture|null=null;elapsed=0;
+    start(kind:AvatarGesture):void{this.kind=kind;this.elapsed=0;}
+    step(dt:number,moving:boolean):void{
+        if(!this.kind)return;
+        if(moving){this.kind=null;return;}
+        this.elapsed+=Number.isFinite(dt)?Math.max(0,Math.min(dt,.1)):0;
+        if(this.elapsed>=1.6)this.kind=null;
+    }
+    get jump():number{return this.kind==='happy'?Math.abs(Math.sin(this.elapsed*Math.PI*3))*12:0;}
+}
 /** Direction order: E, NE, N, NW, W, SW, S, SE. Animation adapters can subscribe to state. */
 @ccclass('PlayerController')
 export class PlayerController extends Component {

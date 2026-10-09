@@ -10,7 +10,7 @@ import {MiniGameRules} from '../../game-client/assets/scripts/world/MiniGameRule
 import {elderTile,toWorld} from '../../game-client/assets/scripts/world/VillageModel';
 import {portalDestination} from '../../game-client/assets/scripts/world/WorldZones';
 interface Member {profileId:string;parentId:string;age:AgeBand;blocked:string[];first:ChapterOneProgress;campaign:CampaignEngine;lastEmote:number;saveQueue:Promise<unknown>}
-export const approvedEmotes=['hello','thanks','your-turn','need-help','bye'] as const;
+export const approvedEmotes=['hello','happy','thanks','your-turn','need-help','bye'] as const;
 export class PrivateFriendRoom extends VillageRoom {
     private secret='';private api='';private code='';private members=new Map<string,Member>();
     private participants=new Set<string>();private game?:MiniGameRules;private gameOwner='';private attemptId='';private gameQuest='';

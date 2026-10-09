@@ -33,6 +33,8 @@ Mở `http://127.0.0.1:8080/`. Chương 1 mặc định; Sổ làng mở các ch
 
 Đổi avatar trong game: **Người lớn → trả lời cổng → Chọn nhân vật**. Có bé trai áo đỏ/xanh và bé gái áo hồng/vàng, preview, animation đứng/đi tám hướng, lưu lựa chọn và đồng bộ hình với bạn trong phòng online. Avatar miễn phí, có thể đổi lại. Vào **Chọn khăn quàng** để dùng khăn đỏ/xanh/vàng hoặc bỏ khăn; lựa chọn độc lập với avatar, lưu qua reload và đồng bộ online.
 
+Trong màn chọn nhân vật, **Vẫy chào / Vui mừng** chạy biểu cảm ngắn rồi tự kết thúc; di chuyển sẽ dừng biểu cảm. Dùng được offline; phòng riêng đồng bộ qua emote được server chấp nhận, giới hạn một lần mỗi 2 giây.
+
 ## Chạy API, phòng riêng và trang phụ huynh
 
 ```powershell

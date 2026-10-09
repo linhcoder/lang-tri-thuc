@@ -1,5 +1,15 @@
 # Kết quả nghiệm thu bản playable
 
+## Biểu cảm avatar — 10/10/2026
+
+Người lớn → Chọn nhân vật có nút Vẫy chào/Vui mừng. Bàn tay vẫy dùng Graphics; vui mừng nhún sprite và khăn, thêm đốm sáng. Đây là animation bằng code trên sprite idle hiện tại, chưa phải bộ sprite cử chỉ vẽ riêng. Chạy 1,6 giây, dừng khi di chuyển, không đổi tọa độ/collision/save/tiến độ.
+
+- Strict TypeScript, 36 nhóm test client, build Cocos và 4 test server đạt. Test thời gian hữu hạn, hết hạn, hủy khi di chuyển; server chỉ nhận emote có sẵn, giới hạn 2 giây và tôn trọng chặn bạn.
+- `test:avatars`: cả bốn avatar chạy hai biểu cảm, kết thúc trả sprite/khăn về vị trí gốc, không đổi tọa độ; chọn vẫy chào bằng touch trên Android giả lập. Các kiểm tra phụ kiện, reload, tám hướng và remote avatar vẫn đạt.
+- `test:stack`: UI phát vui mừng sau phản hồi server; SDK peer từ hồ sơ thứ hai gửi hello/happy, browser nhận và chạy animation remote. Sau chọn offline, nút vẫy chào chạy local. Không có lỗi JavaScript. Ảnh ở `temp/avatars-qa/gesture-*.png` và `temp/stack-qa/remote-*.png`.
+
+Còn thiếu chỉnh tóc riêng và nghiệm thu điện thoại thật. Các mục bên dưới ghi kết quả từng đợt trước.
+
 ## Khăn quàng độc lập — 10/10/2026
 
 Người lớn → Chọn nhân vật → Chọn khăn quàng: không dùng khăn, đỏ, xanh hoặc vàng. Khăn vẽ bằng Cocos Graphics, gắn ở cổ theo tám hướng và nhịp bước; dùng được với cả bốn avatar. Save cũ thiếu phụ kiện mặc định không khăn; mã không hợp lệ về 0. Xóa sổ chương 2–8 giữ lựa chọn. Tiến độ từ server không ghi đè phụ kiện local.

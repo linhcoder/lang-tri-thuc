@@ -300,4 +300,13 @@ const accessorySave=new CampaignSave({getItem:()=>null,setItem:()=>{}});
 for(const value of [undefined,null,-1,4,1.5,'2']){const raw={...accessorySave.engine.data,accessory:value};assert.equal(accessorySave.engine.restore(JSON.stringify(raw)),true);assert.equal(accessorySave.engine.data.accessory,0);}
 for(const accessory of [0,1,2,3]){assert.equal(accessorySave.engine.restore(JSON.stringify({...accessorySave.engine.data,accessory})),true);assert.equal(accessorySave.engine.data.accessory,accessory);}
 });
+test('avatar gestures expire, cancel on movement and never advance on invalid time',()=>{
+ const {AvatarGestureState}=load(path.join(scripts,'player/PlayerController.ts')),g=new AvatarGestureState();
+ assert.equal(g.kind,null);g.start('happy');g.step(.1,false);assert.ok(g.jump>0&&g.jump<=12);
+ const elapsed=g.elapsed;g.step(NaN,false);g.step(-1,false);assert.equal(g.elapsed,elapsed);
+ g.step(10,false);assert.equal(g.elapsed,elapsed+.1);
+ for(let i=0;i<20;i++)g.step(.1,false);assert.equal(g.kind,null);assert.equal(g.jump,0);
+ g.start('hello');g.step(.1,true);assert.equal(g.kind,null);
+ g.start('happy');assert.equal(g.elapsed,0);
+});
 console.log(`${checks} test groups passed`);

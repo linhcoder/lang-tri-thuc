@@ -11,6 +11,7 @@ import { PlayerController } from '../player/PlayerController';
 interface Button {node:Node;width:number;action:()=>void}
 type Mode='journal'|'chapter'|'lesson'|'game'|'gate'|'parent'|'age'|'quality'|'avatar'|'accessory'|'inventory'|'map'|'reset'|'help'|'online'|'home';
 export class VillageHub {
+    onGesture?:(id:'hello'|'happy')=>void;
     onAvatarPreview?:(parent:Node,id:number)=>void;
     onChapterIntro?:(index:number)=>void;onClaim?:(index:number)=>void;
     onLessonAnswer?:(data:{questId:string;round:number;index:number})=>void;
@@ -116,6 +117,8 @@ export class VillageHub {
                 this.text(n,value+(selected?' ✓':''),30,0,200,76,21);this.onAvatarPreview?.(n,i);
             });
             this.button('Accessories','Chọn khăn quàng',0,-95,400,()=>{this.mode='accessory';this.render();});
+            this.button('Gesture-hello','Vẫy chào',-146,-165,280,()=>{this.close();this.onGesture?.('hello');});
+            this.button('Gesture-happy','Vui mừng',146,-165,280,()=>{this.close();this.onGesture?.('happy');});
         }
         else if(this.mode==='accessory'){
             this.grid(['Không dùng khăn','Khăn đỏ','Khăn xanh','Khăn vàng'].map((value,i)=>({id:'Accessory-'+i,label:value+(this.campaign.data.accessory===i?' ✓':''),action:()=>{this.campaign.data.accessory=i;this.persist();this.message='Đã chọn '+value.toLowerCase()+'.';this.render();}})));

@@ -31,6 +31,8 @@ npm.cmd run web
 
 Mở `http://127.0.0.1:8080/`. Chương 1 mặc định; Sổ làng mở các chương tiếp sau khi nhận sao. `?demo=1` giữ demo cũ.
 
+Đổi avatar trong game: **Người lớn → trả lời cổng → Chọn nhân vật**. Có bé trai áo đỏ/xanh và bé gái áo hồng/vàng, preview, animation đứng/đi tám hướng, lưu lựa chọn và đồng bộ hình với bạn trong phòng online. Avatar miễn phí, có thể đổi lại.
+
 ## Chạy API, phòng riêng và trang phụ huynh
 
 ```powershell

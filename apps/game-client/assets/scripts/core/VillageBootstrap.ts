@@ -73,7 +73,7 @@ export class VillageBootstrap extends Component {
     private chapter?:ChapterOneView;
     private questButton?:Node;
     private journalButton?:Node;private parentButton?:Node;
-    private privateJoin?:{roomCode:string;ticket:string};private profileScope='';private hub?:VillageHub;private homeStyle=-1;private starCount=-1;private treeLights?:Graphics;private qualityStyle='';private avatarStyle=-1;private accessory?:Graphics;
+    private privateJoin?:{roomCode:string;ticket:string};private profileScope='';private hub?:VillageHub;private homeStyle=-1;private starCount=-1;private treeLights?:Graphics;private qualityStyle='';
     private get modalActive():boolean{return this.dialog.active||!!this.hub?.node.active;}
     private get objective():string{return this.hub?.objective??this.chapterSave?.progress.description??this.learning.description;}
     onLoad(): void {
@@ -133,6 +133,7 @@ export class VillageBootstrap extends Component {
             for(const child of [...this.player.node.children])if(child!==this.arrow)child.destroy();
             this.playerVisual=undefined;this.childSprite=this.art.sprite(this.player.node,'ChildSprite',this.art.child[6],90,110).getComponent(Sprite)!;
             this.childSprite.node.setPosition(0,-7);
+            if(this.hub){this.hub.onAvatarPreview=(parent,id)=>{this.art.sprite(parent,'AvatarPreview',this.art.avatarFrame(id,0,6),55,70).setPosition(-100,-35);};this.hub.applyServerProgress();}
             this.farmer.node.getComponent(Graphics)!.clear();this.art.sprite(this.farmer.node,'FarmerSprite',this.art.environment[6],130,145).setPosition(0,-5);
             this.farmer.node.getChildByName('FarmerName')!.setPosition(0,140);this.npcHitHeight=140;
             const elderFrame=this.art.decorations.elder;
@@ -261,11 +262,10 @@ export class VillageBootstrap extends Component {
             const stars=this.hub.campaign.stars;if(stars!==this.starCount){this.starCount=stars;if(!this.treeLights){const n=ui(this.actors,'BanyanLights'),p=toWorld({x:8,y:23});n.setPosition(p.x,p.y+180);this.treeLights=n.addComponent(Graphics);}const g=this.treeLights;g.clear();for(let i=0;i<8;i++){g.fillColor=i<stars?new Color(255,228,100):new Color(110,135,100);g.circle(Math.cos(i*Math.PI/4)*60,Math.sin(i*Math.PI/4)*35,7);g.fill();}}}
 
         if(this.hub&&this.qualityStyle!==this.hub.campaign.data.quality){this.qualityStyle=this.hub.campaign.data.quality;const pipeline=director.root?.pipeline;if(pipeline)pipeline.shadingScale=this.qualityStyle==='low'?0.75:this.qualityStyle==='medium'?0.9:1;}
-        if(this.hub&&this.childSprite){const style=this.hub.campaign.data.avatar;if(style!==this.avatarStyle){this.avatarStyle=style;this.childSprite.color=[new Color(255,255,255),new Color(165,220,255),new Color(235,170,250),new Color(255,230,120)][style];if(!this.accessory)this.accessory=ui(this.player.node,'HairAccessory').addComponent(Graphics);this.accessory.clear();if(style>=2){this.accessory.fillColor=new Color(244,113,145);this.accessory.moveTo(5,85);this.accessory.lineTo(20,98);this.accessory.lineTo(20,75);this.accessory.close();this.accessory.fill();this.accessory.moveTo(5,85);this.accessory.lineTo(-10,98);this.accessory.lineTo(-10,75);this.accessory.close();this.accessory.fill();}}}
         this.playerVisual?.step(dt,this.player.moving,this.player.direction);
-        if(this.childSprite){this.spriteTime+=dt;const row=this.player.moving?1+(Math.floor(this.spriteTime*8)%2):0;this.childSprite.spriteFrame=this.art.child[row*8+this.player.direction];}
+        if(this.childSprite){this.spriteTime+=dt;const row=this.player.moving?1+(Math.floor(this.spriteTime*8)%2):0;this.childSprite.spriteFrame=this.art.avatarFrame(this.hub?.campaign.data.avatar??0,row,this.player.direction);}
         if(this.networkStarted){
-            this.network.update(dt,{...this.player.position,direction:this.player.direction,moving:this.player.moving,name:''});
+            this.network.update(dt,{...this.player.position,direction:this.player.direction,moving:this.player.moving,name:'',avatar:this.hub?.campaign.data.avatar??0});
             if(this.network.correction){this.player.cancel();this.player.position=this.network.correction;this.network.correction=null;this.pendingBundle=null;this.pendingNpc=false;this.chapter?.cancel();}
             this.updateRemoteActors(dt);
             const badge=this.network.visibleMessage||(this.network.room?`Làng online • ${this.network.players.size+1} bạn`:this.network.status);
@@ -305,9 +305,9 @@ export class VillageBootstrap extends Component {
     private updateRemoteActors(dt:number):void{
         this.remoteActors.forEach((actor,id)=>{if(!this.network.players.has(id)){actor.node.destroy();this.remoteActors.delete(id);}});
         this.network.players.forEach((p,id)=>{let actor=this.remoteActors.get(id);
-            if(!actor){const node=ui(this.actors,`Online-${id}`);node.setPosition(p.x,p.y);const sprite=this.art.sprite(node,'OnlineSprite',this.art.child[6],90,110).getComponent(Sprite)!;sprite.color=new Color(180,215,255);label(node,p.name,160,30,18).setPosition(0,120);actor={node,sprite};this.remoteActors.set(id,actor);}
+            if(!actor){const node=ui(this.actors,`Online-${id}`);node.setPosition(p.x,p.y);const sprite=this.art.sprite(node,'OnlineSprite',this.art.avatarFrame(p.avatar??0,0,6),90,110).getComponent(Sprite)!;const name=label(node,p.name,160,30,18);name.getComponent(Label)!.color=new Color(50,105,160);name.setPosition(0,120);actor={node,sprite};this.remoteActors.set(id,actor);}
             const t=Math.min(1,dt*12);actor.node.setPosition(actor.node.position.x+(p.x-actor.node.position.x)*t,actor.node.position.y+(p.y-actor.node.position.y)*t);
-            actor.sprite.spriteFrame=this.art.child[(p.moving?1+(Math.floor(this.spriteTime*8)%2):0)*8+p.direction];
+            actor.sprite.spriteFrame=this.art.avatarFrame(p.avatar??0,p.moving?1+(Math.floor(this.spriteTime*8)%2):0,p.direction);
         });
     }
     private local(p: Point, node = this.root): Vec3 { return node.getComponent(UITransform)!.convertToNodeSpaceAR(new Vec3(p.x, p.y, 0)); }

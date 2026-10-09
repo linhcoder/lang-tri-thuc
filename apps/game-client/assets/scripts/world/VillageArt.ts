@@ -2,6 +2,7 @@ import { Node, UITransform, Sprite, SpriteFrame, Texture2D, Rect, resources, Ima
 import { terrain,toWorld } from './VillageModel';
 export class VillageArt {
     child:SpriteFrame[]=[];environment:SpriteFrame[]=[];
+    avatarVariants:Partial<Record<number,SpriteFrame[]>>={};
     decorations:Partial<Record<'elder'|'co-tam'|'lotus'|'teacher'|'market-lady'|'potter'|'ti-na'|'hang-cuoi',SpriteFrame>>={};
     private tiles?:Texture2D;
     private generatedTextures:Texture2D[]=[];
@@ -11,6 +12,10 @@ export class VillageArt {
         this.child=this.slice(child,8,3);this.tiles=tiles;
         const frame=(texture:Texture2D)=>this.slice(texture,1,1)[0];
         this.environment=[frame(temple),frame(house),frame(banyan),frame(banana),frame(rice),frame(rice),frame(farmer)];
+        await Promise.all(([['boy-blue',1],['girl-pink',2],['girl-yellow',3]] as const).map(async([name,id])=>{
+            try{this.avatarVariants[id]=this.slice(await load(`village/${name}`),8,3);}
+            catch(error){console.warn(`Avatar ${name} unavailable; using original sprite`,error);}
+        }));
         await Promise.all((['elder','co-tam','lotus','teacher','market-lady','potter','ti-na','hang-cuoi'] as const).map(async name=>{
             try{const texture=await load(`village/${name}`);this.decorations[name]=frame(texture);}
             catch(error){console.warn(`Village decoration ${name} unavailable; keeping fallback`,error);}
@@ -22,6 +27,7 @@ export class VillageArt {
             const frame=new SpriteFrame();frame.texture=texture;frame.rect=new Rect(col*width,row*height,width,height);result.push(frame);
         }return result;
     }
+    avatarFrame(id:number,row:number,direction:number):SpriteFrame{return (this.avatarVariants[id]??this.child)[row*8+direction];}
     sprite(parent:Node,name:string,frame:SpriteFrame,width:number,height:number):Node {
         const node=new Node(name);node.layer=parent.layer;parent.addChild(node);
         const transform=node.addComponent(UITransform);transform.setContentSize(width,height);transform.setAnchorPoint(0.5,0);
@@ -44,5 +50,5 @@ export class VillageArt {
         const frame=new SpriteFrame();frame.texture=texture;this.environment.push(frame);
         const node=this.sprite(parent,`PaintedTerrain-${cx}-${cy}`,frame,514,258);node.getComponent(UITransform)!.setAnchorPoint(0.5,0.5);node.setPosition(center.x,center.y);return node;
     }
-    dispose():void{for(const frame of [...this.child,...this.environment,...Object.values(this.decorations)])frame?.destroy();for(const texture of this.generatedTextures){const image=texture.image;texture.destroy();image?.destroy();}this.child=[];this.environment=[];this.decorations={};this.generatedTextures=[];}
+    dispose():void{for(const frame of [...this.child,...this.environment,...Object.values(this.decorations),...Object.values(this.avatarVariants).flat()])frame?.destroy();for(const texture of this.generatedTextures){const image=texture.image;texture.destroy();image?.destroy();}this.child=[];this.environment=[];this.decorations={};this.avatarVariants={};this.generatedTextures=[];}
 }

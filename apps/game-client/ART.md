@@ -55,6 +55,22 @@ Standalone transparent PNG game environment sprite: a small cluster of three bro
 
 ## Prompt sprite nhân vật
 
+### Avatar bổ sung ngày 10/10/2026
+
+Built-in imagegen chỉnh sprite sheet tham chiếu; giữ `child.png` gốc và UUID. File mới `boy-blue.png`, `girl-pink.png`, `girl-yellow.png`, mỗi sheet 8 cột × 3 hàng: idle và hai bước chân, thứ tự E/NE/N/NW/W/SW/S/SE. Avatar IDs 0–3 giữ nguyên để save cũ không phải đổi version; ID 2/3 nay dùng bé gái thay boy nhuộm màu/nơ Graphics. Trang phục dùng ảnh riêng, không tint da. Bốn lựa chọn miễn phí, có hình xem trước và có thể đổi lại.
+
+Prompt bé gái áo hồng:
+
+Edit this game sprite sheet into a NEW female avatar sprite sheet. The reference is the exact layout guide: preserve EIGHT equal columns and THREE equal rows, 24 cells, same canvas aspect ratio and same consistent foot baseline inside every cell. Replace the boy in EVERY cell with the same friendly Vietnamese girl, black hair in two short pigtails tied with pink ribbons, modest coral pink short-sleeved shirt, dark blue knee-length skirt, brown sandals, cute large head and warm hand-painted storybook style. Columns from left to right: E right-facing, NE back/right, N back-facing, NW back/left, W left-facing, SW front/left, S front-facing, SE front/right. Row 1 idle feet together; row 2 walking left leg forward; row 3 walking right leg forward. Every complete figure must fit completely INSIDE its own equal cell, never crossing a boundary, transparent padding around all figures. Identity/clothes/size identical in all 24 frames. ONLY the female sprite sheet, no boy, no scenery, no text, no labels, no border/grid, no glow. Genuine transparent alpha background throughout.
+
+Prompt bé trai áo xanh:
+
+Edit only the boy's shirt color in this existing sprite sheet: change the coral/red short-sleeved shirt to clear sky blue in ALL 24 cells. Preserve the character identity, face and skin colors, black hair, shorts, sandals, exact poses, exact EIGHT-column THREE-row grid layout, margins, dimensions and transparent background. Do not move, add or remove any frame. Do not recolor skin or background. This is a game animation sprite sheet, not a poster. Genuine alpha transparency, no text, no grid lines, no halo.
+
+Prompt bé gái áo vàng:
+
+Edit ONLY the shirt color in this girl's animation sheet from coral pink to warm sunflower yellow in every one of the 24 cells. Preserve exactly the same girl identity, face, skin colors, black pigtails and ribbons, dark blue skirt, brown sandals, all eight directions and all three idle/walk rows, exact canvas dimensions and cell layout. No new characters or poses, no moving frames, no recoloring skin. Genuine transparent alpha, no text, no background, no grid, no halo.
+
 Use case: stylized-concept. Asset type: production game sprite sheet for a Vietnamese children's isometric village game. Generate a precisely aligned transparent PNG sprite sheet with EIGHT columns and THREE rows (24 equal cells), no margins between cells, preferably 1536x768. Every cell shows the same adorable Vietnamese child, short black hair, coral red shirt, dark shorts, sandals, big friendly head, soft storybook watercolor with clean readable edges, orthographic isometric 2:1 view, fully visible body, same size and feet aligned to same baseline in every cell. Columns, left to right, are E (right), NE (upper right/back), N (back), NW (upper left/back), W (left), SW (lower left/front), S (front), SE (lower right/front). Row 1: idle standing; Row 2: walk left leg forward; Row 3: walk right leg forward. All 24 silhouettes are separate with generous transparent padding inside each cell; no overlapping cells. No scenery, no shadows outside own cell, no words, no labels, no watermark, real alpha transparency. Consistent identity, clothing and scale across the whole sheet. This is a game asset, NOT a presentation of a sprite sheet.
 
 ## Prompt tile

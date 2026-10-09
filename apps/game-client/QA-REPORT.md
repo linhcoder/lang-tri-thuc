@@ -1,5 +1,16 @@
 # Kết quả nghiệm thu bản playable
 
+## Avatar bé trai/bé gái — 10/10/2026
+
+Bổ sung `boy-blue.png`, `girl-pink.png`, `girl-yellow.png` (mỗi sheet 8 hướng × idle/hai bước chân), giữ sheet bé trai áo đỏ gốc. Menu Người lớn → Chọn nhân vật có bốn preview và dấu chọn. Không nhuộm màu da hoặc thêm nơ Graphics lên boy. Avatar IDs 0–3 và save version giữ nguyên; lựa chọn lưu theo campaign/profile. Nhân vật remote dùng cùng sheet/avatar ID; tên màu xanh giúp nhận ra bạn online.
+
+- Client strict, 34 nhóm test client, Cocos build và 4 test server: đạt.
+- Server kiểm avatar là integer 0–3; gói tin cũ thiếu avatar giữ lựa chọn trước đó. Test hai client xác nhận thay avatar 2 → 3 được đồng bộ, mã 99 không làm đổi state.
+- `test:avatars`: UI chọn đủ bốn avatar bằng click; mỗi lựa chọn sống qua reload; input bàn phím kiểm đứng/đi cả tám hướng; mobile Android giả lập chọn bằng touch với nút ≥44 CSS px. Browser khác nhận đúng avatar/hướng/idle hoặc walk qua production server Colyseus riêng. Không có lỗi JavaScript. Ảnh menu/nhân vật/mobile/online và JSON tại `temp/avatars-qa` đã được xem trực tiếp.
+- `test:stack`: phòng riêng có vé phụ huynh chọn bé gái, server state và SpriteFrame cùng avatar 2; các kiểm tra portal/nhà/emote/offline fallback vẫn đạt. Mẫu AMD Radeon Low/Medium/High có p95 17 ms; tổng resource tải cold khoảng 29,27 MB trong session. Đây chưa là nghiệm thu điện thoại thật hoặc Intel HD/UHD.
+
+Đợt này chưa thêm trình chỉnh tóc/phụ kiện độc lập hoặc animation vẫy tay/vui mừng. Bộ mới có idle/walk hai bước như baseline. Prompt dùng built-in imagegen và đường dẫn asset ghi trong [ART.md](ART.md).
+
 ## Asset NPC và ao sen — 10/10/2026
 
 Tám PNG alpha được tạo bằng built-in imagegen và lưu trong `assets/resources/village`: `elder`, `co-tam`, `teacher`, `market-lady`, `potter`, `ti-na`, `hang-cuoi`, `lotus`. Creator import `.meta` thật. Sprite thay Graphics cho Ông Đồ và sáu điểm NPC trong Sổ làng; ba cụm sen trang trí mặt ao. Hai cặp nhân vật có vùng chạm rộng theo sprite. Cô Giáo Lan/Nghệ Nhân Gốm dịch sang ô đất gần đó để tránh cây/mái nhà che hình; điểm trường học và model collision client/server đồng bộ.

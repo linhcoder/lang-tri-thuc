@@ -66,7 +66,7 @@ test('1600 tile round-trips and fractional coordinates', () => {
 });
 test('all terrain categories and blocked pond/NPC/bounds', () => {
     const types = new Set(); for(let y=0;y<40;y++) for(let x=0;x<40;x++) types.add(m.terrain(x,y)); assert.equal(types.size,5);
-    for (const p of [{x:25,y:8},map.npc,{x:-1,y:2},{x:40,y:2}]) assert.equal(map.walkable(p.x,p.y),false);
+    for (const p of [{x:2,y:21},map.npc,{x:-1,y:2},{x:40,y:2}]) assert.equal(map.walkable(p.x,p.y),false);
 });
 function bfs(start,goal) {
     const queue=[{...start,d:0}], seen=new Set([`${start.x},${start.y}`]);
@@ -79,14 +79,14 @@ test('A* shortest paths match independent BFS for 60 routes', () => {
         const route=map.path(start,goal); assert.equal(route.length,bfs(start,goal)); let last=start;
         for(const p of route) { assert.equal(map.walkable(p.x,p.y),true); assert.equal(Math.abs(last.x-p.x)+Math.abs(last.y-p.y),1); last=p; }
     }
-    assert.deepEqual(map.path({x:20,y:20},{x:28,y:11}),[]);
+    assert.deepEqual(map.path({x:20,y:20},{x:2,y:21}),[]);
     const sealed = new m.VillageMap(); sealed.walkable=(x,y)=> (x===0&&y===0)||(x===2&&y===2); assert.deepEqual(sealed.path({x:0,y:0},{x:2,y:2}),[]);
 });
 function player(start) { const p=new PlayerController(); p.map=map; p.node={setPosition(){}}; p.position=m.toWorld(start); return p; }
 test('controller follows route around pond with collision at every step', () => {
-    const p=player({x:24,y:10}); assert.equal(p.goTo({x:33,y:10}),true);
+    const p=player({x:0,y:21}); assert.equal(p.goTo({x:6,y:23}),true);
     for(let i=0;i<3000;i++) { p.step(1/60); assert.ok(map.canStand(p.position)); }
-    assert.deepEqual(m.tileAt(p.position),{x:33,y:10}); assert.equal(p.moving,false);
+    assert.deepEqual(m.tileAt(p.position),{x:6,y:23}); assert.equal(p.moving,false);
 });
 test('manual input cancels route, map edge stops movement, long frames capped', () => {
     const p=player({x:20,y:20}); p.goTo({x:30,y:20}); const start={...p.position}; p.axis={x:-1,y:0}; p.step(3); close(start.x-p.position.x,15); p.axis={x:0,y:0}; const stop={...p.position}; p.step(1); assert.deepEqual(p.position,stop);
@@ -135,7 +135,7 @@ test('NPC click approaches adjacent tile, opens dialogue only nearby, closes wit
     b.select({x:npc.x,y:npc.y+50}); b.keys.add(87); b.update(0); assert.equal(b.pendingNpc,false);
 });
 test('manual movement slides along pond without crossing collision footprint',()=>{
-    const p=player({x:24,y:10}),start={...p.position};p.axis={x:1,y:0};
+    const p=player({x:0,y:21}),start={...p.position};p.axis={x:1,y:0};
     for(let i=0;i<60;i++){p.step(1/60);assert.ok(map.canStand(p.position));}
     assert.ok(p.position.x>start.x+30);assert.ok(p.position.y>start.y+10);
 });
@@ -155,7 +155,7 @@ test('taking joystick ownership cancels autonomous motion immediately',()=>{
 test('invalid destination preserves the active NPC request and route',()=>{
     const b=new VillageBootstrap();b.player=player({x:20,y:20});b.player.goTo({x:15,y:10});b.pendingNpc=true;
     b.dialog={active:false};b.local=p=>p;b.status={string:''};b.farmer={node:{position:m.toWorld(map.npc)}};
-    const route=JSON.stringify(b.player.route);b.select(m.toWorld({x:27,y:10}));
+    const route=JSON.stringify(b.player.route);b.select(m.toWorld({x:2,y:21}));
     assert.equal(b.pendingNpc,true);assert.equal(JSON.stringify(b.player.route),route);assert.ok(b.status.string.length>0);
 });
 test('accepted NPC interaction replaces pending harvest; rejected NPC route preserves it',()=>{
@@ -266,7 +266,7 @@ test('pause freezes time, invalid saved actions cannot forge results, NPC tiles 
     for(const npc of m.storyNpcs){assert.equal(map.walkable(npc.x,npc.y),false);assert.ok([[1,0],[-1,0],[0,1],[0,-1]].some(([x,y])=>map.path({x:20,y:20},{x:npc.x+x,y:npc.y+y}).length>0));}
 });
 test('world map pins are unique, walkable and reachable; edited chapter text cannot change IDs',()=>{
- const {validateZones,portalDestination}=load(path.join(scripts,'world/WorldZones.ts'));assert.equal(validateZones(),true);assert.deepEqual(portalDestination(m.toWorld({x:20,y:22}),'farm'),m.toWorld({x:14,y:11}));assert.equal(portalDestination({x:9999,y:9999},'farm'),null);assert.equal(portalDestination({x:0,y:-640},'unknown'),null);
+ const {validateZones,portalDestination}=load(path.join(scripts,'world/WorldZones.ts'));assert.equal(validateZones(),true);assert.deepEqual(portalDestination(m.toWorld({x:20,y:22}),'farm'),m.toWorld({x:13,y:15}));assert.equal(portalDestination({x:9999,y:9999},'farm'),null);assert.equal(portalDestination({x:0,y:-640},'unknown'),null);
  const {applyChapterText}=load(path.join(scripts,'world/ContentPack.ts'));const old=chapters[0].title;
  assert.equal(applyChapterText({version:1,chapters:[{id:'unknown',title:'x',intro:'x',ending:'x',questTitles:{}}]}),false);
  assert.equal(chapters[0].title,old);assert.equal(applyChapterText({version:1,chapters:[]}),true);
@@ -374,7 +374,7 @@ test('hair and practice save migration reject forged types while retaining uniqu
 });
 test('NPC packs keep graph IDs, validate reachable spawns and roll back the entire invalid pack',()=>{
  const {npcCatalog,applyNpcPack}=load(path.join(scripts,'world/NpcCatalog.ts')),before=JSON.stringify(m.storyNpcs),row=npcCatalog().find(n=>n.id==='co-tam');
- for(const npcs of [[{...row,x:25,y:10}],[{...row,x:20,y:20}],[{...row,x:6,y:23}],[row,row],[{...row,x:1.5}],[{...row,id:'unknown'}]]){assert.equal(applyNpcPack({version:1,npcs}),false);assert.equal(JSON.stringify(m.storyNpcs),before);}
+ for(const npcs of [[{...row,x:2,y:21}],[{...row,x:20,y:20}],[{...row,x:4,y:29}],[row,row],[{...row,x:1.5}],[{...row,id:'unknown'}]]){assert.equal(applyNpcPack({version:1,npcs}),false);assert.equal(JSON.stringify(m.storyNpcs),before);}
  const edited={...row,name:'Fixture NPC',x:11,y:8,chapter:99};assert.equal(applyNpcPack({version:1,npcs:[edited]},true),true);assert.equal(JSON.stringify(m.storyNpcs),before);
  assert.equal(applyNpcPack({version:1,npcs:[edited]}),true);assert.equal(m.storyNpcs.find(n=>n.id===row.id).chapter,5);assert.equal(m.storyNpcs.find(n=>n.id===row.id).name,'Fixture NPC');
  assert.equal(applyNpcPack({version:1,npcs:[]}),true);assert.equal(JSON.stringify(m.storyNpcs),before);
@@ -382,5 +382,21 @@ test('NPC packs keep graph IDs, validate reachable spawns and roll back the enti
 test('young-player rhythm windows are wider and old valid action traces remain replayable',()=>{
  const child=new MiniGameRules('mg.tug-of-war','3-5'),older=new MiniGameRules('mg.tug-of-war','9-11');child.clock=older.clock=.17;assert.equal(child.rhythmOpen,true);assert.equal(older.rhythmOpen,false);
  for(const age of ['3-5','6-8','9-11']){const game=new MiniGameRules('mg.tug-of-war',age);for(let i=0;i<6;i++){game.clock=i+.1;assert.equal(game.action('beat',0),true);}assert.equal(MiniGameRules.restore(game.save()).ended,true);}
+});
+test('new composition has left pond, right rice, solid market and a traversable bridge',()=>{
+ assert.ok(m.toWorld({x:3,y:23}).x<m.toWorld({x:20,y:20}).x);assert.equal(m.terrain(3,23),'pond');
+ assert.ok(m.toWorld({x:29,y:16}).x>m.toWorld({x:20,y:20}).x);assert.equal(m.terrain(29,16),'rice');
+ assert.equal(map.walkable(26,32),false);for(let x=1;x<=5;x++){assert.equal(map.walkable(x,23),true);assert.equal(map.walkable(x,22),false);}
+ const route=map.path({x:0,y:23},{x:6,y:23});assert.equal(route.length,6);assert.ok(route.every(p=>p.y===23));
+ for(const npc of m.storyNpcs)assert.ok([{x:npc.x+1,y:npc.y},{x:npc.x-1,y:npc.y},{x:npc.x,y:npc.y+1},{x:npc.x,y:npc.y-1}].some(p=>map.path({x:20,y:20},p).length>0));
+});
+test('asset registry covers ten groups and every local source exists with usable metadata',()=>{
+ const {visualAssets,assetGroups}=load(path.join(scripts,'world/VisualAssets.ts'));assert.equal(new Set(visualAssets.map(a=>a.id)).size,visualAssets.length);
+ for(const group of assetGroups)assert.ok(visualAssets.some(a=>a.group===group));
+ for(const asset of visualAssets){assert.ok(asset.size.every(n=>n>0));assert.ok(asset.anchor.every(n=>n>=0&&n<=1));assert.ok(asset.source.length>0);if(!asset.path.startsWith('procedural://'))assert.ok(fs.existsSync(path.resolve(__dirname,'..',asset.path)),asset.path);}
+});
+test('compatibility hash follows navigation footprints and ignores cosmetic dimensions',()=>{
+ const {contentVersion}=load(path.join(scripts,'world/ContentVersion.ts')),original=contentVersion(),solid=m.villageSolids[0],radius=solid.radius,width=m.villageObjects[0].width;
+ try{solid.radius=0;assert.notEqual(contentVersion(),original);solid.radius=radius;m.villageObjects[0].width+=10;assert.equal(contentVersion(),original);}finally{solid.radius=radius;m.villageObjects[0].width=width;}
 });
 console.log(`${checks} test groups passed`);

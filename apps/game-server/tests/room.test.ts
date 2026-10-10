@@ -14,7 +14,8 @@ test('production loopback can explicitly disable the development village room',a
 test('movement rejects malformed packets, teleport and paths across pond',()=>{
     assert.equal(validMove(map,spawn,{x:1,y:-640,direction:0,moving:true,seq:1},10),true);
     for(const packet of [null,{...spawn,x:NaN},{...spawn,x:999,direction:0,moving:true,seq:1},{...spawn,direction:99,moving:true,seq:1}])assert.equal(validMove(map,spawn,packet,20),false);
-    assert.equal(validMove(map,toWorld({x:24,y:10}),{...toWorld({x:33,y:10}),direction:0,moving:true,seq:1},500),false);
+    assert.equal(validMove(map,toWorld({x:0,y:24}),{...toWorld({x:6,y:24}),direction:0,moving:true,seq:1},500),false);
+    assert.equal(validMove(map,toWorld({x:0,y:23}),{...toWorld({x:6,y:23}),direction:0,moving:true,seq:1},500),true);
     for(const avatar of [-1,4,1.5,null,'2',NaN])assert.equal(validMove(map,spawn,{...spawn,direction:0,moving:false,seq:1,avatar},20),false);
     for(const hair of [-1,2,1.5,null,'1',true,NaN])assert.equal(validMove(map,spawn,{...spawn,direction:0,moving:false,seq:1,hair},20),false);
     for(const accessory of [-1,4,1.5,null,'2',NaN])assert.equal(validMove(map,spawn,{...spawn,direction:0,moving:false,seq:1,accessory},20),false);

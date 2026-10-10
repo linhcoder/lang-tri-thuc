@@ -1,0 +1,1720 @@
+{
+  "version": 1,
+  "groups": [
+    "Ground",
+    "Paths",
+    "Buildings",
+    "Vegetation",
+    "Water",
+    "Props",
+    "Characters",
+    "Animals",
+    "UI",
+    "Effects"
+  ],
+  "assets": [
+    {
+      "id": "ground.meadow",
+      "name": "Cỏ mảng mềm",
+      "group": "Ground",
+      "path": "assets/scripts/world/GroundPaths.ts",
+      "size": [
+        64,
+        32
+      ],
+      "anchor": [
+        0.5,
+        0.5
+      ],
+      "layer": "Ground",
+      "collision": null,
+      "status": "placeholder",
+      "source": "Project Canvas renderer"
+    },
+    {
+      "id": "paths.dirt",
+      "name": "Đường đất bo mềm",
+      "group": "Paths",
+      "path": "assets/scripts/world/GroundPaths.ts",
+      "size": [
+        64,
+        32
+      ],
+      "anchor": [
+        0.5,
+        0.5
+      ],
+      "layer": "Ground",
+      "collision": null,
+      "status": "placeholder",
+      "source": "Project Canvas renderer"
+    },
+    {
+      "id": "ground.meadow-texture",
+      "name": "Painted meadow",
+      "group": "Ground",
+      "path": "assets/resources/village/ground-v2.png",
+      "size": [
+        276,
+        138
+      ],
+      "anchor": [
+        0.5,
+        0.5
+      ],
+      "layer": "Ground",
+      "collision": null,
+      "status": "placeholder",
+      "source": "OpenAI built-in imagegen, 2026-10-10; generated candidate awaiting artist approval",
+      "pixels": [
+        1254,
+        1254
+      ],
+      "bytes": 3008857
+    },
+    {
+      "id": "ground.legacy",
+      "name": "Rice, courtyard and fallback tiles",
+      "group": "Ground",
+      "path": "assets/resources/village/tiles.png",
+      "size": [
+        64,
+        32
+      ],
+      "anchor": [
+        0.5,
+        0.5
+      ],
+      "layer": "Ground",
+      "collision": null,
+      "status": "placeholder",
+      "source": "Project AI 3×2 atlas; source/prompt in apps/game-client/ART.md; art approval pending",
+      "pixels": [
+        2172,
+        724
+      ],
+      "bytes": 1602561
+    },
+    {
+      "id": "vegetation.rice",
+      "name": "Rice plant",
+      "group": "Vegetation",
+      "path": "assets/resources/village/rice.png",
+      "size": [
+        65,
+        75
+      ],
+      "anchor": [
+        0.5,
+        0
+      ],
+      "layer": "Actors",
+      "collision": null,
+      "status": "placeholder",
+      "source": "Project AI prototype; built-in imagegen prompts/source in apps/game-client/ART.md; art approval pending",
+      "pixels": [
+        1254,
+        1254
+      ],
+      "bytes": 1769629
+    },
+    {
+      "id": "scenery.flowers",
+      "name": "flowers",
+      "group": "Vegetation",
+      "path": "assets/resources/village/scenery-v2.png",
+      "size": [
+        100,
+        100
+      ],
+      "anchor": [
+        0.5,
+        0
+      ],
+      "layer": "Actors",
+      "collision": null,
+      "status": "placeholder",
+      "source": "OpenAI built-in imagegen, 2026-10-10; generated candidate awaiting artist approval",
+      "cell": 0,
+      "pixels": [
+        1774,
+        887
+      ],
+      "bytes": 2397377
+    },
+    {
+      "id": "scenery.shrub",
+      "name": "shrub",
+      "group": "Vegetation",
+      "path": "assets/resources/village/scenery-v2.png",
+      "size": [
+        100,
+        100
+      ],
+      "anchor": [
+        0.5,
+        0
+      ],
+      "layer": "Actors",
+      "collision": null,
+      "status": "placeholder",
+      "source": "OpenAI built-in imagegen, 2026-10-10; generated candidate awaiting artist approval",
+      "cell": 1,
+      "pixels": [
+        1774,
+        887
+      ],
+      "bytes": 2397377
+    },
+    {
+      "id": "scenery.stones",
+      "name": "stones",
+      "group": "Props",
+      "path": "assets/resources/village/scenery-v2.png",
+      "size": [
+        100,
+        100
+      ],
+      "anchor": [
+        0.5,
+        0
+      ],
+      "layer": "Actors",
+      "collision": null,
+      "status": "placeholder",
+      "source": "OpenAI built-in imagegen, 2026-10-10; generated candidate awaiting artist approval",
+      "cell": 2,
+      "pixels": [
+        1774,
+        887
+      ],
+      "bytes": 2397377
+    },
+    {
+      "id": "scenery.market",
+      "name": "market",
+      "group": "Buildings",
+      "path": "assets/resources/village/scenery-v2.png",
+      "size": [
+        250,
+        220
+      ],
+      "anchor": [
+        0.5,
+        0
+      ],
+      "layer": "Actors",
+      "collision": {
+        "radius": 1
+      },
+      "status": "placeholder",
+      "source": "OpenAI built-in imagegen, 2026-10-10; generated candidate awaiting artist approval",
+      "cell": 3,
+      "pixels": [
+        1774,
+        887
+      ],
+      "bytes": 2397377
+    },
+    {
+      "id": "scenery.fence",
+      "name": "fence",
+      "group": "Props",
+      "path": "assets/resources/village/scenery-v2.png",
+      "size": [
+        100,
+        100
+      ],
+      "anchor": [
+        0.5,
+        0
+      ],
+      "layer": "Actors",
+      "collision": {
+        "radius": 0
+      },
+      "status": "placeholder",
+      "source": "OpenAI built-in imagegen, 2026-10-10; generated candidate awaiting artist approval",
+      "cell": 4,
+      "pixels": [
+        1774,
+        887
+      ],
+      "bytes": 2397377
+    },
+    {
+      "id": "scenery.shade-tree",
+      "name": "shade-tree",
+      "group": "Vegetation",
+      "path": "assets/resources/village/scenery-v2.png",
+      "size": [
+        100,
+        100
+      ],
+      "anchor": [
+        0.5,
+        0
+      ],
+      "layer": "Actors",
+      "collision": {
+        "radius": 0
+      },
+      "status": "placeholder",
+      "source": "OpenAI built-in imagegen, 2026-10-10; generated candidate awaiting artist approval",
+      "cell": 5,
+      "pixels": [
+        1774,
+        887
+      ],
+      "bytes": 2397377
+    },
+    {
+      "id": "scenery.grass-tuft",
+      "name": "grass-tuft",
+      "group": "Vegetation",
+      "path": "assets/resources/village/scenery-v2.png",
+      "size": [
+        100,
+        100
+      ],
+      "anchor": [
+        0.5,
+        0
+      ],
+      "layer": "Actors",
+      "collision": null,
+      "status": "placeholder",
+      "source": "OpenAI built-in imagegen, 2026-10-10; generated candidate awaiting artist approval",
+      "cell": 6,
+      "pixels": [
+        1774,
+        887
+      ],
+      "bytes": 2397377
+    },
+    {
+      "id": "scenery.lantern",
+      "name": "lantern",
+      "group": "Props",
+      "path": "assets/resources/village/scenery-v2.png",
+      "size": [
+        100,
+        100
+      ],
+      "anchor": [
+        0.5,
+        0
+      ],
+      "layer": "Actors",
+      "collision": {
+        "radius": 0
+      },
+      "status": "placeholder",
+      "source": "OpenAI built-in imagegen, 2026-10-10; generated candidate awaiting artist approval",
+      "cell": 7,
+      "pixels": [
+        1774,
+        887
+      ],
+      "bytes": 2397377
+    },
+    {
+      "id": "avatar.child",
+      "name": "child",
+      "group": "Characters",
+      "path": "assets/resources/village/child.png",
+      "size": [
+        90,
+        110
+      ],
+      "anchor": [
+        0.5,
+        0
+      ],
+      "layer": "Actors",
+      "collision": null,
+      "status": "placeholder",
+      "source": "Project AI 8×3 sheet; built-in imagegen prompts/source in apps/game-client/ART.md; art approval pending",
+      "pixels": [
+        1774,
+        887
+      ],
+      "bytes": 1359956
+    },
+    {
+      "id": "avatar.boy-blue",
+      "name": "boy-blue",
+      "group": "Characters",
+      "path": "assets/resources/village/boy-blue.png",
+      "size": [
+        90,
+        110
+      ],
+      "anchor": [
+        0.5,
+        0
+      ],
+      "layer": "Actors",
+      "collision": null,
+      "status": "placeholder",
+      "source": "Project AI 8×3 sheet; built-in imagegen prompts/source in apps/game-client/ART.md; art approval pending",
+      "pixels": [
+        1774,
+        887
+      ],
+      "bytes": 1336481
+    },
+    {
+      "id": "avatar.girl-pink",
+      "name": "girl-pink",
+      "group": "Characters",
+      "path": "assets/resources/village/girl-pink.png",
+      "size": [
+        90,
+        110
+      ],
+      "anchor": [
+        0.5,
+        0
+      ],
+      "layer": "Actors",
+      "collision": null,
+      "status": "placeholder",
+      "source": "Project AI 8×3 sheet; built-in imagegen prompts/source in apps/game-client/ART.md; art approval pending",
+      "pixels": [
+        1774,
+        887
+      ],
+      "bytes": 1714803
+    },
+    {
+      "id": "avatar.girl-yellow",
+      "name": "girl-yellow",
+      "group": "Characters",
+      "path": "assets/resources/village/girl-yellow.png",
+      "size": [
+        90,
+        110
+      ],
+      "anchor": [
+        0.5,
+        0
+      ],
+      "layer": "Actors",
+      "collision": null,
+      "status": "placeholder",
+      "source": "Project AI 8×3 sheet; built-in imagegen prompts/source in apps/game-client/ART.md; art approval pending",
+      "pixels": [
+        1774,
+        887
+      ],
+      "bytes": 1639130
+    },
+    {
+      "id": "avatar.boy-red-hair",
+      "name": "boy-red-hair",
+      "group": "Characters",
+      "path": "assets/resources/village/boy-red-hair.png",
+      "size": [
+        90,
+        110
+      ],
+      "anchor": [
+        0.5,
+        0
+      ],
+      "layer": "Actors",
+      "collision": null,
+      "status": "placeholder",
+      "source": "Project AI 8×3 sheet; built-in imagegen prompts/source in apps/game-client/ART.md; art approval pending",
+      "pixels": [
+        1774,
+        887
+      ],
+      "bytes": 1350495
+    },
+    {
+      "id": "avatar.boy-blue-hair",
+      "name": "boy-blue-hair",
+      "group": "Characters",
+      "path": "assets/resources/village/boy-blue-hair.png",
+      "size": [
+        90,
+        110
+      ],
+      "anchor": [
+        0.5,
+        0
+      ],
+      "layer": "Actors",
+      "collision": null,
+      "status": "placeholder",
+      "source": "Project AI 8×3 sheet; built-in imagegen prompts/source in apps/game-client/ART.md; art approval pending",
+      "pixels": [
+        1774,
+        887
+      ],
+      "bytes": 1374237
+    },
+    {
+      "id": "avatar.girl-pink-hair",
+      "name": "girl-pink-hair",
+      "group": "Characters",
+      "path": "assets/resources/village/girl-pink-hair.png",
+      "size": [
+        90,
+        110
+      ],
+      "anchor": [
+        0.5,
+        0
+      ],
+      "layer": "Actors",
+      "collision": null,
+      "status": "placeholder",
+      "source": "Project AI 8×3 sheet; built-in imagegen prompts/source in apps/game-client/ART.md; art approval pending",
+      "pixels": [
+        1774,
+        887
+      ],
+      "bytes": 1645456
+    },
+    {
+      "id": "avatar.girl-yellow-hair",
+      "name": "girl-yellow-hair",
+      "group": "Characters",
+      "path": "assets/resources/village/girl-yellow-hair.png",
+      "size": [
+        90,
+        110
+      ],
+      "anchor": [
+        0.5,
+        0
+      ],
+      "layer": "Actors",
+      "collision": null,
+      "status": "placeholder",
+      "source": "Project AI 8×3 sheet; built-in imagegen prompts/source in apps/game-client/ART.md; art approval pending",
+      "pixels": [
+        1774,
+        887
+      ],
+      "bytes": 1614580
+    },
+    {
+      "id": "character.farmer",
+      "name": "Bác Nông Dân",
+      "group": "Characters",
+      "path": "assets/resources/village/farmer.png",
+      "size": [
+        130,
+        145
+      ],
+      "anchor": [
+        0.5,
+        0
+      ],
+      "layer": "Actors",
+      "collision": {
+        "radius": 0
+      },
+      "status": "placeholder",
+      "source": "Project AI prototype; built-in imagegen prompts/source in apps/game-client/ART.md; art approval pending",
+      "pixels": [
+        1254,
+        1254
+      ],
+      "bytes": 848301
+    },
+    {
+      "id": "character.elder",
+      "name": "Ông Đồ",
+      "group": "Characters",
+      "path": "assets/resources/village/elder.png",
+      "size": [
+        90,
+        140
+      ],
+      "anchor": [
+        0.5,
+        0
+      ],
+      "layer": "Actors",
+      "collision": {
+        "radius": 0
+      },
+      "status": "placeholder",
+      "source": "Project AI sprite; source/prompt in apps/game-client/ART.md; rendered width follows source aspect ratio; art approval pending",
+      "pixels": [
+        1024,
+        1536
+      ],
+      "bytes": 1718699
+    },
+    {
+      "id": "dinh",
+      "name": "dinh",
+      "group": "Buildings",
+      "path": "assets/resources/village/temple.png",
+      "size": [
+        330,
+        270
+      ],
+      "anchor": [
+        0.5,
+        0
+      ],
+      "layer": "Actors",
+      "collision": {
+        "radius": 1
+      },
+      "status": "placeholder",
+      "source": "Project AI prototype; built-in imagegen prompts/source in apps/game-client/ART.md; art approval pending",
+      "pixels": [
+        1254,
+        1254
+      ],
+      "bytes": 1893983
+    },
+    {
+      "id": "house",
+      "name": "house",
+      "group": "Buildings",
+      "path": "assets/resources/village/house.png",
+      "size": [
+        230,
+        210
+      ],
+      "anchor": [
+        0.5,
+        0
+      ],
+      "layer": "Actors",
+      "collision": {
+        "radius": 1
+      },
+      "status": "placeholder",
+      "source": "Project AI prototype; built-in imagegen prompts/source in apps/game-client/ART.md; art approval pending",
+      "pixels": [
+        1254,
+        1254
+      ],
+      "bytes": 1724697
+    },
+    {
+      "id": "banyan",
+      "name": "banyan",
+      "group": "Vegetation",
+      "path": "assets/resources/village/banyan.png",
+      "size": [
+        340,
+        365
+      ],
+      "anchor": [
+        0.5,
+        0
+      ],
+      "layer": "Actors",
+      "collision": {
+        "radius": 1
+      },
+      "status": "placeholder",
+      "source": "Project AI prototype; built-in imagegen prompts/source in apps/game-client/ART.md; art approval pending",
+      "pixels": [
+        1254,
+        1254
+      ],
+      "bytes": 1829950
+    },
+    {
+      "id": "banana",
+      "name": "banana",
+      "group": "Vegetation",
+      "path": "assets/resources/village/banana.png",
+      "size": [
+        110,
+        145
+      ],
+      "anchor": [
+        0.5,
+        0
+      ],
+      "layer": "Actors",
+      "collision": {
+        "radius": 0
+      },
+      "status": "placeholder",
+      "source": "Project AI prototype; built-in imagegen prompts/source in apps/game-client/ART.md; art approval pending",
+      "pixels": [
+        1254,
+        1254
+      ],
+      "bytes": 1374719
+    },
+    {
+      "id": "tree-east",
+      "name": "tree-east",
+      "group": "Vegetation",
+      "path": "assets/resources/village/banyan.png",
+      "size": [
+        150,
+        175
+      ],
+      "anchor": [
+        0.5,
+        0
+      ],
+      "layer": "Actors",
+      "collision": {
+        "radius": 0
+      },
+      "status": "placeholder",
+      "source": "Project AI prototype; built-in imagegen prompts/source in apps/game-client/ART.md; art approval pending",
+      "pixels": [
+        1254,
+        1254
+      ],
+      "bytes": 1829950
+    },
+    {
+      "id": "house-west",
+      "name": "house-west",
+      "group": "Buildings",
+      "path": "assets/resources/village/house.png",
+      "size": [
+        230,
+        210
+      ],
+      "anchor": [
+        0.5,
+        0
+      ],
+      "layer": "Actors",
+      "collision": {
+        "radius": 1
+      },
+      "status": "placeholder",
+      "source": "Project AI prototype; built-in imagegen prompts/source in apps/game-client/ART.md; art approval pending",
+      "pixels": [
+        1254,
+        1254
+      ],
+      "bytes": 1724697
+    },
+    {
+      "id": "well",
+      "name": "well",
+      "group": "Props",
+      "path": "assets/resources/village/village-details.png",
+      "size": [
+        110,
+        110
+      ],
+      "anchor": [
+        0.5,
+        0
+      ],
+      "layer": "Actors",
+      "collision": {
+        "radius": 0
+      },
+      "status": "placeholder",
+      "source": "Project AI atlas; built-in imagegen prompts/source in apps/game-client/ART.md; art approval pending",
+      "cell": 0,
+      "pixels": [
+        1774,
+        887
+      ],
+      "bytes": 1959591
+    },
+    {
+      "id": "bamboo",
+      "name": "bamboo",
+      "group": "Vegetation",
+      "path": "assets/resources/village/village-details.png",
+      "size": [
+        145,
+        170
+      ],
+      "anchor": [
+        0.5,
+        0
+      ],
+      "layer": "Actors",
+      "collision": {
+        "radius": 0
+      },
+      "status": "placeholder",
+      "source": "Project AI atlas; built-in imagegen prompts/source in apps/game-client/ART.md; art approval pending",
+      "cell": 1,
+      "pixels": [
+        1774,
+        887
+      ],
+      "bytes": 1959591
+    },
+    {
+      "id": "bamboo-east",
+      "name": "bamboo-east",
+      "group": "Vegetation",
+      "path": "assets/resources/village/village-details.png",
+      "size": [
+        130,
+        150
+      ],
+      "anchor": [
+        0.5,
+        0
+      ],
+      "layer": "Actors",
+      "collision": {
+        "radius": 0
+      },
+      "status": "placeholder",
+      "source": "Project AI atlas; built-in imagegen prompts/source in apps/game-client/ART.md; art approval pending",
+      "cell": 1,
+      "pixels": [
+        1774,
+        887
+      ],
+      "bytes": 1959591
+    },
+    {
+      "id": "bridge",
+      "name": "bridge",
+      "group": "Props",
+      "path": "assets/resources/village/village-details.png",
+      "size": [
+        220,
+        115
+      ],
+      "anchor": [
+        0.5,
+        0.5
+      ],
+      "layer": "Ground",
+      "collision": null,
+      "status": "placeholder",
+      "source": "Project AI atlas; built-in imagegen prompts/source in apps/game-client/ART.md; art approval pending",
+      "cell": 2,
+      "pixels": [
+        1774,
+        887
+      ],
+      "bytes": 1959591
+    },
+    {
+      "id": "buffalo",
+      "name": "buffalo",
+      "group": "Animals",
+      "path": "assets/resources/village/village-details.png",
+      "size": [
+        110,
+        95
+      ],
+      "anchor": [
+        0.5,
+        0
+      ],
+      "layer": "Actors",
+      "collision": {
+        "radius": 0
+      },
+      "status": "placeholder",
+      "source": "Project AI atlas; built-in imagegen prompts/source in apps/game-client/ART.md; art approval pending",
+      "cell": 3,
+      "pixels": [
+        1774,
+        887
+      ],
+      "bytes": 1959591
+    },
+    {
+      "id": "hen",
+      "name": "hen",
+      "group": "Animals",
+      "path": "assets/resources/village/village-details.png",
+      "size": [
+        48,
+        55
+      ],
+      "anchor": [
+        0.5,
+        0
+      ],
+      "layer": "Actors",
+      "collision": {
+        "radius": 0
+      },
+      "status": "placeholder",
+      "source": "Project AI atlas; built-in imagegen prompts/source in apps/game-client/ART.md; art approval pending",
+      "cell": 4,
+      "pixels": [
+        1774,
+        887
+      ],
+      "bytes": 1959591
+    },
+    {
+      "id": "duck",
+      "name": "duck",
+      "group": "Animals",
+      "path": "assets/resources/village/village-details.png",
+      "size": [
+        50,
+        48
+      ],
+      "anchor": [
+        0.5,
+        0
+      ],
+      "layer": "Actors",
+      "collision": null,
+      "status": "placeholder",
+      "source": "Project AI atlas; built-in imagegen prompts/source in apps/game-client/ART.md; art approval pending",
+      "cell": 5,
+      "pixels": [
+        1774,
+        887
+      ],
+      "bytes": 1959591
+    },
+    {
+      "id": "garden",
+      "name": "garden",
+      "group": "Props",
+      "path": "assets/resources/village/village-details.png",
+      "size": [
+        150,
+        95
+      ],
+      "anchor": [
+        0.5,
+        0
+      ],
+      "layer": "Actors",
+      "collision": {
+        "radius": 0
+      },
+      "status": "placeholder",
+      "source": "Project AI atlas; built-in imagegen prompts/source in apps/game-client/ART.md; art approval pending",
+      "cell": 6,
+      "pixels": [
+        1774,
+        887
+      ],
+      "bytes": 1959591
+    },
+    {
+      "id": "gate-arch",
+      "name": "gate-arch",
+      "group": "Props",
+      "path": "assets/resources/village/village-details.png",
+      "size": [
+        180,
+        145
+      ],
+      "anchor": [
+        0.5,
+        0
+      ],
+      "layer": "Actors",
+      "collision": null,
+      "status": "placeholder",
+      "source": "Project AI atlas; built-in imagegen prompts/source in apps/game-client/ART.md; art approval pending",
+      "cell": 7,
+      "pixels": [
+        1774,
+        887
+      ],
+      "bytes": 1959591
+    },
+    {
+      "id": "character.ti-na",
+      "name": "Tí và Na",
+      "group": "Characters",
+      "path": "assets/resources/village/ti-na.png",
+      "size": [
+        96,
+        110
+      ],
+      "anchor": [
+        0.5,
+        0
+      ],
+      "layer": "Actors",
+      "collision": {
+        "radius": 0
+      },
+      "status": "placeholder",
+      "source": "Project AI prototype; built-in imagegen prompts/source in apps/game-client/ART.md; art approval pending",
+      "pixels": [
+        1254,
+        1254
+      ],
+      "bytes": 1439703
+    },
+    {
+      "id": "character.ba-ban-hang",
+      "name": "Bà Bán Hàng",
+      "group": "Characters",
+      "path": "assets/resources/village/market-lady.png",
+      "size": [
+        96,
+        110
+      ],
+      "anchor": [
+        0.5,
+        0
+      ],
+      "layer": "Actors",
+      "collision": {
+        "radius": 0
+      },
+      "status": "placeholder",
+      "source": "Project AI prototype; built-in imagegen prompts/source in apps/game-client/ART.md; art approval pending",
+      "pixels": [
+        1254,
+        1254
+      ],
+      "bytes": 906284
+    },
+    {
+      "id": "character.co-giao-lan",
+      "name": "Cô Giáo Lan",
+      "group": "Characters",
+      "path": "assets/resources/village/teacher.png",
+      "size": [
+        96,
+        110
+      ],
+      "anchor": [
+        0.5,
+        0
+      ],
+      "layer": "Actors",
+      "collision": {
+        "radius": 0
+      },
+      "status": "placeholder",
+      "source": "Project AI prototype; built-in imagegen prompts/source in apps/game-client/ART.md; art approval pending",
+      "pixels": [
+        1254,
+        1254
+      ],
+      "bytes": 644484
+    },
+    {
+      "id": "character.nghe-nhan-gom",
+      "name": "Nghệ Nhân Gốm",
+      "group": "Characters",
+      "path": "assets/resources/village/potter.png",
+      "size": [
+        96,
+        110
+      ],
+      "anchor": [
+        0.5,
+        0
+      ],
+      "layer": "Actors",
+      "collision": {
+        "radius": 0
+      },
+      "status": "placeholder",
+      "source": "Project AI prototype; built-in imagegen prompts/source in apps/game-client/ART.md; art approval pending",
+      "pixels": [
+        1254,
+        1254
+      ],
+      "bytes": 763125
+    },
+    {
+      "id": "character.co-tam",
+      "name": "Cô Tấm",
+      "group": "Characters",
+      "path": "assets/resources/village/co-tam.png",
+      "size": [
+        96,
+        110
+      ],
+      "anchor": [
+        0.5,
+        0
+      ],
+      "layer": "Actors",
+      "collision": {
+        "radius": 0
+      },
+      "status": "placeholder",
+      "source": "Project AI prototype; built-in imagegen prompts/source in apps/game-client/ART.md; art approval pending",
+      "pixels": [
+        1254,
+        1254
+      ],
+      "bytes": 796411
+    },
+    {
+      "id": "character.chi-hang-cuoi",
+      "name": "Chị Hằng • Chú Cuội",
+      "group": "Characters",
+      "path": "assets/resources/village/hang-cuoi.png",
+      "size": [
+        96,
+        110
+      ],
+      "anchor": [
+        0.5,
+        0
+      ],
+      "layer": "Actors",
+      "collision": {
+        "radius": 0
+      },
+      "status": "placeholder",
+      "source": "Project AI prototype; built-in imagegen prompts/source in apps/game-client/ART.md; art approval pending",
+      "pixels": [
+        1254,
+        1254
+      ],
+      "bytes": 1545856
+    },
+    {
+      "id": "water.lotus",
+      "name": "Sen",
+      "group": "Water",
+      "path": "assets/resources/village/lotus.png",
+      "size": [
+        80,
+        80
+      ],
+      "anchor": [
+        0.5,
+        0.5
+      ],
+      "layer": "Actors",
+      "collision": null,
+      "status": "placeholder",
+      "source": "Project AI prototype; built-in imagegen prompts/source in apps/game-client/ART.md; art approval pending",
+      "pixels": [
+        1254,
+        1254
+      ],
+      "bytes": 914911
+    },
+    {
+      "id": "water.pond",
+      "name": "Ao và bờ nước",
+      "group": "Water",
+      "path": "assets/scripts/world/WaterGround.ts",
+      "size": [
+        384,
+        192
+      ],
+      "anchor": [
+        0.5,
+        0.5
+      ],
+      "layer": "Ground",
+      "collision": {
+        "tiles": [
+          {
+            "x": 1,
+            "y": 20
+          },
+          {
+            "x": 2,
+            "y": 20
+          },
+          {
+            "x": 3,
+            "y": 20
+          },
+          {
+            "x": 4,
+            "y": 20
+          },
+          {
+            "x": 5,
+            "y": 20
+          },
+          {
+            "x": 1,
+            "y": 21
+          },
+          {
+            "x": 2,
+            "y": 21
+          },
+          {
+            "x": 3,
+            "y": 21
+          },
+          {
+            "x": 4,
+            "y": 21
+          },
+          {
+            "x": 5,
+            "y": 21
+          },
+          {
+            "x": 1,
+            "y": 22
+          },
+          {
+            "x": 2,
+            "y": 22
+          },
+          {
+            "x": 3,
+            "y": 22
+          },
+          {
+            "x": 4,
+            "y": 22
+          },
+          {
+            "x": 5,
+            "y": 22
+          },
+          {
+            "x": 1,
+            "y": 24
+          },
+          {
+            "x": 2,
+            "y": 24
+          },
+          {
+            "x": 3,
+            "y": 24
+          },
+          {
+            "x": 4,
+            "y": 24
+          },
+          {
+            "x": 5,
+            "y": 24
+          },
+          {
+            "x": 1,
+            "y": 25
+          },
+          {
+            "x": 2,
+            "y": 25
+          },
+          {
+            "x": 3,
+            "y": 25
+          },
+          {
+            "x": 4,
+            "y": 25
+          },
+          {
+            "x": 5,
+            "y": 25
+          },
+          {
+            "x": 1,
+            "y": 26
+          },
+          {
+            "x": 2,
+            "y": 26
+          },
+          {
+            "x": 3,
+            "y": 26
+          },
+          {
+            "x": 4,
+            "y": 26
+          },
+          {
+            "x": 5,
+            "y": 26
+          }
+        ]
+      },
+      "status": "placeholder",
+      "source": "Project Canvas renderer; blocked water and walkable bridge footprint in VillageModel"
+    },
+    {
+      "id": "ui.village-hud",
+      "name": "Village HUD",
+      "group": "UI",
+      "path": "assets/scripts/ui/VillageHUD.ts",
+      "size": [
+        1280,
+        720
+      ],
+      "anchor": [
+        0.5,
+        0.5
+      ],
+      "layer": "HUD",
+      "collision": null,
+      "status": "placeholder",
+      "source": "Project Graphics + Label"
+    },
+    {
+      "id": "effects.contact-shadow",
+      "name": "Baked contact shadow",
+      "group": "Effects",
+      "path": "assets/resources/village/scenery-v2.png",
+      "size": [
+        100,
+        30
+      ],
+      "anchor": [
+        0.5,
+        0
+      ],
+      "layer": "Ground",
+      "collision": null,
+      "status": "placeholder",
+      "source": "Baked in imagegen sprites",
+      "pixels": [
+        1774,
+        887
+      ],
+      "bytes": 2397377
+    }
+  ],
+  "placements": [
+    {
+      "id": "market",
+      "cell": 3,
+      "x": 26,
+      "y": 32,
+      "width": 250,
+      "height": 220,
+      "essential": true
+    },
+    {
+      "id": "foliage-2-3",
+      "cell": 1,
+      "x": 2,
+      "y": 3,
+      "width": 80,
+      "height": 65,
+      "essential": false
+    },
+    {
+      "id": "foliage-6-3",
+      "cell": 1,
+      "x": 6,
+      "y": 3,
+      "width": 80,
+      "height": 65,
+      "essential": false
+    },
+    {
+      "id": "foliage-10-3",
+      "cell": 2,
+      "x": 10,
+      "y": 3,
+      "width": 65,
+      "height": 50,
+      "essential": false
+    },
+    {
+      "id": "foliage-22-3",
+      "cell": 1,
+      "x": 22,
+      "y": 3,
+      "width": 80,
+      "height": 65,
+      "essential": false
+    },
+    {
+      "id": "foliage-26-3",
+      "cell": 0,
+      "x": 26,
+      "y": 3,
+      "width": 80,
+      "height": 65,
+      "essential": false
+    },
+    {
+      "id": "foliage-30-3",
+      "cell": 0,
+      "x": 30,
+      "y": 3,
+      "width": 80,
+      "height": 65,
+      "essential": false
+    },
+    {
+      "id": "foliage-34-3",
+      "cell": 0,
+      "x": 34,
+      "y": 3,
+      "width": 80,
+      "height": 65,
+      "essential": false
+    },
+    {
+      "id": "foliage-2-7",
+      "cell": 2,
+      "x": 2,
+      "y": 7,
+      "width": 65,
+      "height": 50,
+      "essential": false
+    },
+    {
+      "id": "foliage-22-7",
+      "cell": 2,
+      "x": 22,
+      "y": 7,
+      "width": 65,
+      "height": 50,
+      "essential": false
+    },
+    {
+      "id": "foliage-26-7",
+      "cell": 0,
+      "x": 26,
+      "y": 7,
+      "width": 80,
+      "height": 65,
+      "essential": false
+    },
+    {
+      "id": "foliage-30-7",
+      "cell": 2,
+      "x": 30,
+      "y": 7,
+      "width": 65,
+      "height": 50,
+      "essential": false
+    },
+    {
+      "id": "foliage-34-7",
+      "cell": 0,
+      "x": 34,
+      "y": 7,
+      "width": 80,
+      "height": 65,
+      "essential": false
+    },
+    {
+      "id": "foliage-2-11",
+      "cell": 0,
+      "x": 2,
+      "y": 11,
+      "width": 80,
+      "height": 65,
+      "essential": false
+    },
+    {
+      "id": "foliage-22-11",
+      "cell": 1,
+      "x": 22,
+      "y": 11,
+      "width": 80,
+      "height": 65,
+      "essential": false
+    },
+    {
+      "id": "foliage-26-11",
+      "cell": 1,
+      "x": 26,
+      "y": 11,
+      "width": 80,
+      "height": 65,
+      "essential": false
+    },
+    {
+      "id": "foliage-30-11",
+      "cell": 1,
+      "x": 30,
+      "y": 11,
+      "width": 80,
+      "height": 65,
+      "essential": false
+    },
+    {
+      "id": "foliage-34-11",
+      "cell": 2,
+      "x": 34,
+      "y": 11,
+      "width": 65,
+      "height": 50,
+      "essential": false
+    },
+    {
+      "id": "foliage-2-15",
+      "cell": 2,
+      "x": 2,
+      "y": 15,
+      "width": 65,
+      "height": 50,
+      "essential": false
+    },
+    {
+      "id": "foliage-6-15",
+      "cell": 6,
+      "x": 6,
+      "y": 15,
+      "width": 80,
+      "height": 65,
+      "essential": false
+    },
+    {
+      "id": "foliage-10-15",
+      "cell": 0,
+      "x": 10,
+      "y": 15,
+      "width": 80,
+      "height": 65,
+      "essential": false
+    },
+    {
+      "id": "foliage-10-27",
+      "cell": 0,
+      "x": 10,
+      "y": 27,
+      "width": 80,
+      "height": 65,
+      "essential": false
+    },
+    {
+      "id": "foliage-22-27",
+      "cell": 6,
+      "x": 22,
+      "y": 27,
+      "width": 80,
+      "height": 65,
+      "essential": false
+    },
+    {
+      "id": "foliage-26-27",
+      "cell": 0,
+      "x": 26,
+      "y": 27,
+      "width": 80,
+      "height": 65,
+      "essential": false
+    },
+    {
+      "id": "foliage-2-31",
+      "cell": 0,
+      "x": 2,
+      "y": 31,
+      "width": 80,
+      "height": 65,
+      "essential": false
+    },
+    {
+      "id": "foliage-6-31",
+      "cell": 6,
+      "x": 6,
+      "y": 31,
+      "width": 80,
+      "height": 65,
+      "essential": false
+    },
+    {
+      "id": "foliage-10-31",
+      "cell": 0,
+      "x": 10,
+      "y": 31,
+      "width": 80,
+      "height": 65,
+      "essential": false
+    },
+    {
+      "id": "foliage-22-31",
+      "cell": 2,
+      "x": 22,
+      "y": 31,
+      "width": 65,
+      "height": 50,
+      "essential": false
+    },
+    {
+      "id": "foliage-30-31",
+      "cell": 0,
+      "x": 30,
+      "y": 31,
+      "width": 80,
+      "height": 65,
+      "essential": false
+    },
+    {
+      "id": "foliage-34-31",
+      "cell": 0,
+      "x": 34,
+      "y": 31,
+      "width": 80,
+      "height": 65,
+      "essential": false
+    },
+    {
+      "id": "foliage-6-35",
+      "cell": 6,
+      "x": 6,
+      "y": 35,
+      "width": 80,
+      "height": 65,
+      "essential": false
+    },
+    {
+      "id": "foliage-10-35",
+      "cell": 0,
+      "x": 10,
+      "y": 35,
+      "width": 80,
+      "height": 65,
+      "essential": false
+    },
+    {
+      "id": "foliage-22-35",
+      "cell": 6,
+      "x": 22,
+      "y": 35,
+      "width": 80,
+      "height": 65,
+      "essential": false
+    },
+    {
+      "id": "foliage-30-35",
+      "cell": 2,
+      "x": 30,
+      "y": 35,
+      "width": 65,
+      "height": 50,
+      "essential": false
+    },
+    {
+      "id": "foliage-34-35",
+      "cell": 6,
+      "x": 34,
+      "y": 35,
+      "width": 80,
+      "height": 65,
+      "essential": false
+    },
+    {
+      "x": 8,
+      "y": 24,
+      "id": "flower-border-0",
+      "cell": 0,
+      "width": 80,
+      "height": 65,
+      "essential": true
+    },
+    {
+      "x": 6,
+      "y": 26,
+      "id": "flower-border-1",
+      "cell": 0,
+      "width": 80,
+      "height": 65,
+      "essential": true
+    },
+    {
+      "x": 20,
+      "y": 33,
+      "id": "flower-border-2",
+      "cell": 0,
+      "width": 80,
+      "height": 65,
+      "essential": true
+    },
+    {
+      "x": 24,
+      "y": 21,
+      "id": "flower-border-3",
+      "cell": 0,
+      "width": 80,
+      "height": 65,
+      "essential": true
+    },
+    {
+      "id": "courtyard-lantern-left",
+      "cell": 7,
+      "x": 17,
+      "y": 18,
+      "width": 65,
+      "height": 85,
+      "essential": true
+    },
+    {
+      "id": "courtyard-lantern-right",
+      "cell": 7,
+      "x": 23,
+      "y": 18,
+      "width": 65,
+      "height": 85,
+      "essential": true
+    },
+    {
+      "id": "east-fence",
+      "cell": 4,
+      "x": 34,
+      "y": 21,
+      "width": 120,
+      "height": 65,
+      "essential": true
+    },
+    {
+      "id": "foreground-tree",
+      "cell": 5,
+      "x": 35,
+      "y": 34,
+      "width": 220,
+      "height": 250,
+      "essential": true
+    }
+  ],
+  "solidFootprints": [
+    {
+      "id": "market",
+      "x": 26,
+      "y": 32,
+      "radius": 1
+    },
+    {
+      "id": "courtyard-lantern-left",
+      "x": 17,
+      "y": 18,
+      "radius": 0
+    },
+    {
+      "id": "courtyard-lantern-right",
+      "x": 23,
+      "y": 18,
+      "radius": 0
+    },
+    {
+      "id": "east-fence",
+      "x": 34,
+      "y": 21,
+      "radius": 0
+    },
+    {
+      "id": "foreground-tree",
+      "x": 35,
+      "y": 34,
+      "radius": 0
+    }
+  ],
+  "projection": {
+    "tile": [
+      64,
+      32
+    ],
+    "map": [
+      40,
+      40
+    ]
+  }
+}

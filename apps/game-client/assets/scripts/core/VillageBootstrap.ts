@@ -4,6 +4,7 @@ import { AvatarGesture, AvatarGestureState, PlayerController, PlayerVisual } fro
 import { FarmerNPC } from '../npc/FarmerNPC';
 import {CameraZoom} from '../player/CameraZoom';
 import { VillageArt } from '../world/VillageArt';
+import {sceneryPlacements} from '../world/VisualAssets';
 import { LearningProgress, riceBundles } from '../world/LearningProgress';
 import { LearningPanel } from '../ui/LearningPanel';
 import { VillageNetwork } from '../network/VillageNetwork';
@@ -16,6 +17,9 @@ import {applyLessonPack} from '../world/LessonCatalog';
 import { applyChapterText } from '../world/ContentPack';
 import { portalDestination } from '../world/WorldZones';
 import { VillageHub } from '../ui/VillageHub';
+import {VillageNameplates} from '../ui/VillageNameplates';
+import {VillageHUD} from '../ui/VillageHUD';
+import {chapters} from '../world/CampaignContent';
 const { ccclass, disallowMultiple, requireComponent } = _decorator;
 const npcArt=[['co-tam','co-tam','CoTamSprite'],['co-giao-lan','teacher','TeacherSprite'],['ba-ban-hang','market-lady','MarketLadySprite'],['nghe-nhan-gom','potter','PotterSprite'],['ti-na','ti-na','FriendsSprite'],['chi-hang-cuoi','hang-cuoi','FestivalSprite']] as const;
 const actorScale=0.65;
@@ -97,6 +101,10 @@ export class VillageBootstrap extends Component {
     private remoteActors=new Map<string,{node:Node;sprite:Sprite;accessory:Graphics;gesture:AvatarGestureState;gestureGraphic:Graphics}>();
     private npcHitHeight=85;
     private assetsReady=false;private sceneryNodes:Node[]=[];private npcDecorated=new Set<string>();private loadingLabel?:Label;private loadingPanel?:Node;
+    private sceneryPending=false;private sceneryReady=false;private optionalScenery=new Set<Node>();
+    private nameplates?:VillageNameplates;
+    private hud?:VillageHUD;
+    private regionalScenery:Array<{node:Node;id:string;frame:number;pending:boolean}>=[];
     private networkStarted=false;
     private networkBadge?:Label;
     private demo=false;
@@ -174,18 +182,21 @@ export class VillageBootstrap extends Component {
                 const elder=this.chapter.elder,body=this.art.sprite(elder,'ElderSprite',elderFrame,140*elderFrame.rect.width/elderFrame.rect.height,140);body.setPosition(0,-5);body.setScale(actorScale,actorScale,1);elder.getComponent(Graphics)!.clear();const name=elder.getChildByName('Text');if(name){name.setPosition(0,104);const l=name.getComponent(Label)!;l.fontSize=18;l.lineHeight=24;}
             }
             const lotus=this.art.decorations.lotus;
-            if(lotus)for(const [i,tile] of [{x:26,y:10},{x:29,y:12},{x:31,y:9}].entries()){
+            if(lotus)for(const [i,tile] of [{x:2,y:21},{x:4,y:25},{x:1,y:24}].entries()){
                 const node=this.art.sprite(this.actors,`PondLotus-${i}`,lotus,100,100),p=toWorld(tile);
                 node.getComponent(UITransform)!.setAnchorPoint(0.5,0.5);node.setPosition(p.x,p.y);
             }
-            for(const object of villageDetails){const frame=this.art.details[object.frame];if(!frame)continue;const node=this.art.sprite(this.actors,'Detail-'+object.id,frame,object.width,object.height),p=toWorld(object);node.setPosition(p.x,p.y);this.sceneryNodes.push(node);}
-            for(const object of villageObjects){const node=this.art.sprite(this.actors,object.id,this.art.environment[object.frame],object.width,object.height);const p=toWorld(object);node.setPosition(p.x,p.y);this.sceneryNodes.push(node);}
+            for(const object of villageDetails){const frame=this.art.details[object.frame];if(!frame)continue;const node=this.art.sprite(this.actors,'Detail-'+object.id,frame,object.width,object.height),p=toWorld(object);node.setPosition(p.x,p.y);if(object.id==='bridge'){node.getComponent(UITransform)!.setAnchorPoint(.5,.5);node.setParent(this.world);node.setSiblingIndex(this.actors.getSiblingIndex());}this.sceneryNodes.push(node);}
+            for(const object of villageObjects){let node:Node;const objectFrame=this.art.objectFrame(object.id,object.frame);if(objectFrame)node=this.art.sprite(this.actors,object.id,objectFrame,object.width,object.height);else{node=ui(this.actors,object.id,object.width,object.height);node.getComponent(UITransform)!.setAnchorPoint(.5,0);const g=node.addComponent(Graphics);g.fillColor=new Color(139,161,102,150);g.ellipse(0,10,object.width*.3,15);g.fill();this.regionalScenery.push({node,id:object.id,frame:object.frame,pending:false});}const p=toWorld(object);node.setPosition(p.x,p.y);this.sceneryNodes.push(node);}
+            if(this.demo)await this.art.ensureEnvironment(4);
             for(let i=0;this.demo&&i<riceBundles.length;i++){
                 const p=toWorld(riceBundles[i]),node=ui(this.actors,`RiceBundle-${i}`,75,95);node.setPosition(p.x,p.y);
                 this.art.sprite(node,'Rice',this.art.environment[4],65,75);
                 const ring=ui(node,'HarvestRing').addComponent(Graphics);ring.strokeColor=new Color(255,255,180);ring.lineWidth=3;ring.ellipse(0,2,23,12);ring.stroke();
                 label(node,'Thu hoạch',100,25,16).setPosition(0,80);node.active=this.learning.data.collected.indexOf(i)<0;this.bundleNodes.push(node);
             }
+            this.nameplates=new VillageNameplates(this.world,this.actors);
+            if(this.hub){this.hud=new VillageHUD(this.root,mode=>this.hub?.open(mode),()=>this.interactNearest());this.header.active=false;this.networkBadge!.node.active=false;this.status.node.active=false;}
             this.assetsReady=true;if(this.loadingPanel)this.loadingPanel.active=false;
             if(sys.isBrowser){const requested=new URLSearchParams(window.location.search).get('server');
                 if(requested){let endpoint:URL;try{endpoint=new URL(requested);}catch{throw new Error('Địa chỉ server không hợp lệ');}
@@ -204,7 +215,7 @@ export class VillageBootstrap extends Component {
                     }else this.networkBadge!.string='Mời người lớn mở vé phòng riêng từ trang phụ huynh';
                 }
             }
-        }catch(error){if(this.loadingPanel)this.loadingPanel.active=false;this.statusRemaining=10;this.status.string='Không tải được hình ảnh. Prototype vẫn chạy; hãy mở lại project.';console.warn('Village art:',error);}
+        }catch(error){if(this.loadingPanel)this.loadingPanel.active=false;this.statusRemaining=10;this.status.string='Chưa tải được hình. Nhờ người lớn mở lại giúp bé nhé!';console.warn('Village art:',error);}
     }
     private enableSolo():void{
         if(sys.isBrowser){try{saveSoloSession(window.sessionStorage,this.profileScope.slice(1));}catch{}}
@@ -241,9 +252,7 @@ export class VillageBootstrap extends Component {
                 if (type === 'pond' && (x + y) % 3 === 0) { g.strokeColor = new Color(155, 218, 231); g.moveTo(p.x - 9, p.y); g.lineTo(p.x + 9, p.y); g.stroke(); }
             }
         }
-        for (const place of [{ text: 'SÂN ĐÌNH', x: 20, y: 23 }, { text: 'AO LÀNG', x: 28, y: 11 }, { text: 'RUỘNG LÚA', x: 9, y: 15 }]) {
-            const p = toWorld(place); label(this.world, place.text, 200, 32, 18).setPosition(p.x, p.y);
-        }
+        // Zone names belong to the minimap: world labels otherwise collide with roofs/NPCs.
     }
     private character(name: string, shirt: Color, farmer: boolean): Node {
         const n = ui(this.actors, name, 64, 90), g = n.addComponent(Graphics);
@@ -295,8 +304,16 @@ export class VillageBootstrap extends Component {
         this.player.step(dt);
         this.chapter?.step();
         this.hub?.step(dt);
+        if(this.hud&&this.hub){const scale=sys.isMobile?Math.max(1,1/pixelScale):1;this.hud.resize(size.width,size.height,scale);const data=this.hub.campaign.data;this.hud.step({stars:this.hub.campaign.stars,completed:data.completed.length,total:chapters.reduce((sum,c)=>sum+c.quests.length,0),practice:data.practice.length,objective:this.objective,avatar:this.art.avatarFrame(data.avatar,0,6,data.hair),player:this.player.position},!this.modalActive&&!this.loadingPanel?.active);
+            this.header.active=false;this.networkBadge!.node.active=false;this.status.node.active=this.statusRemaining>0&&!this.modalActive;
+            if(this.status.node.active){const portraitNotice=size.width/scale<600;this.status.node.setPosition(portraitNotice?-size.width/2+105*scale:0,-size.height/2+(portraitNotice?210:115)*scale);this.status.node.getComponent(UITransform)!.setContentSize(portraitNotice?180:320,48);this.status.fontSize=14;this.status.lineHeight=20;}
+            const narrow=size.width/scale<360,controlScale=scale*(narrow?.8:1),edge=narrow?55:65;
+            this.journalButton?.setScale(controlScale,controlScale,1);this.parentButton?.setScale(controlScale,controlScale,1);this.questButton?.setScale(controlScale,controlScale,1);
+            this.journalButton?.setPosition(-size.width/2+edge*scale,size.height/2-178*scale);this.parentButton?.setPosition(size.width/2-edge*scale,size.height/2-178*scale);this.questButton?.setPosition(0,size.height/2-178*scale);
+            const portrait=size.width/scale<600;this.zoomButtons.forEach((button,i)=>button.setPosition(size.width/2-(portrait?38:168-i*64)*scale,size.height/2-(portrait?248+i*56:245)*scale));
+        }
         if(this.hub&&this.assetsReady){const home=this.hub.campaign.data.home,house=this.actors.getChildByName('house')?.getComponent(Sprite);if(home!==this.homeStyle&&house){this.homeStyle=home;house.color=[new Color(255,255,255),new Color(175,235,205),new Color(225,190,255),new Color(255,240,150)][home];}
-            const stars=this.hub.campaign.stars;if(stars!==this.starCount){this.starCount=stars;if(!this.treeLights){const n=ui(this.actors,'BanyanLights'),p=toWorld({x:8,y:23});n.setPosition(p.x,p.y+180);this.treeLights=n.addComponent(Graphics);}const g=this.treeLights;g.clear();for(let i=0;i<8;i++){g.fillColor=i<stars?new Color(255,228,100):new Color(110,135,100);g.circle(Math.cos(i*Math.PI/4)*60,Math.sin(i*Math.PI/4)*35,7);g.fill();}}}
+            const stars=this.hub.campaign.stars;if(stars!==this.starCount){this.starCount=stars;if(!this.treeLights){const n=ui(this.world,'BanyanLights'),p=toWorld(villageObjects.find(o=>o.id==='banyan')!);n.setPosition(p.x,p.y+280);this.treeLights=n.addComponent(Graphics);}const g=this.treeLights;g.clear();for(let i=0;i<8;i++){g.fillColor=i<stars?new Color(255,228,100):new Color(110,135,100);g.circle(Math.cos(i*Math.PI/4)*60,Math.sin(i*Math.PI/4)*35,7);g.fill();}}}
 
         if(this.hub&&this.qualityStyle!==this.hub.campaign.data.quality){this.qualityStyle=this.hub.campaign.data.quality;const pipeline=director.root?.pipeline;if(pipeline)pipeline.shadingScale=this.qualityStyle==='low'?0.75:this.qualityStyle==='medium'?0.9:1;}
         this.playerVisual?.step(dt,this.player.moving,this.player.direction);
@@ -326,7 +343,13 @@ export class VillageBootstrap extends Component {
                 const width=125*frame.rect.width/frame.rect.height,body=this.art.sprite(node,name,frame,width,125);body.setPosition(0,-5);body.setScale(actorScale,actorScale,1);node.getComponent(Graphics)!.clear();node.getComponent(UITransform)!.setContentSize(Math.max(96,width),110);node.getChildByName('Text')?.setPosition(0,95);
             });
         }
-        for(const scenery of this.sceneryNodes){const bounds=scenery.getComponent(UITransform)!;scenery.active=Math.abs(scenery.position.x+camera.x)<cameraWidth/2+bounds.width&&Math.abs(scenery.position.y+camera.y)<cameraHeight/2+bounds.height;}
+        if(this.assetsReady&&!this.sceneryPending&&sceneryPlacements().some(item=>{const p=toWorld(item);return Math.abs(p.x+camera.x)<cameraWidth/2+250&&Math.abs(p.y+camera.y)<cameraHeight/2+250;})){
+            this.sceneryPending=true;void this.art.ensureScenery().then(()=>{if(!this.isValid)return;for(const item of sceneryPlacements()){const frame=this.art.scenery[item.cell];if(!frame)continue;const n=this.art.sprite(this.actors,'Scenery-'+item.id,frame,item.width,item.height),p=toWorld(item);n.setPosition(p.x,p.y);this.sceneryNodes.push(n);if(!item.essential)this.optionalScenery.add(n);}this.sceneryReady=this.art.scenery.length===8;});
+        }
+        for(const scenery of this.sceneryNodes){const bounds=scenery.getComponent(UITransform)!;scenery.active=(!this.optionalScenery.has(scenery)||this.hub?.campaign.data.quality!=='low')&&Math.abs(scenery.position.x+camera.x)<cameraWidth/2+bounds.width&&Math.abs(scenery.position.y+camera.y)<cameraHeight/2+bounds.height;}
+        // Foliage/roofs fade when they would cover the local child's face. Collision is unchanged.
+        for(const scenery of this.sceneryNodes){const sprite=scenery.getComponent(Sprite);if(!sprite||scenery.parent!==this.actors)continue;const bounds=scenery.getComponent(UITransform)!,faceY=this.player.position.y+58,behind=this.player.position.y>scenery.position.y,covered=behind&&Math.abs(this.player.position.x-scenery.position.x)<bounds.width*.5&&faceY>scenery.position.y&&faceY<scenery.position.y+bounds.height,alpha=covered?92:255;if(sprite.color.a!==alpha){const color=sprite.color;sprite.color=new Color(color.r,color.g,color.b,alpha);}}
+        for(const item of this.regionalScenery)if(item.node.active&&!item.pending){item.pending=true;void this.art.ensureObject(item.id,item.frame).then(frame=>{if(!this.isValid||!item.node.isValid||!frame)return;item.node.getComponent(Graphics)?.clear();const sprite=item.node.addComponent(Sprite);sprite.sizeMode=Sprite.SizeMode.CUSTOM;sprite.spriteFrame=frame;});}
         for (const chunk of this.terrainChunks) {
             chunk.node.active = Math.abs(chunk.center.x + camera.x) < cameraWidth / 2 + 256
                 && Math.abs(chunk.center.y + camera.y) < cameraHeight / 2 + 128;
@@ -335,6 +358,7 @@ export class VillageBootstrap extends Component {
         else if(this.status.string!==this.objective)this.status.string=this.objective;
         const sorted=[...this.actors.children].sort((a,b)=>b.position.y-a.position.y);
         for(let i=0;i<sorted.length;i++)if(sorted[i].getSiblingIndex()!==i)sorted[i].setSiblingIndex(i);
+        this.nameplates?.step(this.player.position,this.modalActive);
         if (this.lastDirection !== this.player.direction) {
             this.lastDirection = this.player.direction; const angle = this.lastDirection * Math.PI / 4, g = this.arrow.getComponent(Graphics)!;
             g.clear(); g.fillColor = new Color(255, 255, 245); const x = Math.cos(angle), y = Math.sin(angle);
@@ -365,13 +389,17 @@ export class VillageBootstrap extends Component {
             const d = this.local(p, this.dialog); if (Math.abs(d.x) <= 310 && Math.abs(d.y) <= 170) this.dialog.active = false;
             return;
         }
+        if(this.hud?.handle(p))return;
         const zoomControl=this.zoomControl(p);if(zoomControl){this.changeZoom(zoomControl.name==='ZoomReset'?1:this.zoom.value*(zoomControl.name==='ZoomIn'?1.2:1/1.2));return;}
         for(const [button,mode] of [[this.journalButton,'journal'],[this.parentButton,'gate']] as const)if(button){const local=this.local(p,button);if(Math.abs(local.x)<=55&&Math.abs(local.y)<=29){this.hub?.open(mode);return;}}
         if(this.questButton){const local=this.local(p,this.questButton);if(Math.abs(local.x)<=this.questButton.getComponent(UITransform)!.width/2&&Math.abs(local.y)<=29){
             if(this.chapter?.navigateObjective()){this.keys.clear();this.releaseStick();this.pendingNpc=false;this.pendingBundle=null;}return;
         }}
         if(this.isHeader(p))return;
-        const world = this.local(p, this.world), npc = this.farmer.node.position,minHalfWidth=22/(this.worldScale*view.getScaleX()/view.getDevicePixelRatio());
+        this.selectWorld(this.local(p,this.world));
+    }
+    private selectWorld(world:Point):void{
+        const npc = this.farmer.node.position,minHalfWidth=22/(this.worldScale*view.getScaleX()/view.getDevicePixelRatio());
         const hubTarget=this.hub?.select(world,minHalfWidth);if(hubTarget){if(hubTarget==='accepted'){this.chapter?.cancel();this.pendingNpc=false;this.pendingBundle=null;}return;}
         const chapterTarget=this.chapter?.select(world,minHalfWidth);
         if(chapterTarget){if(chapterTarget==='accepted'){this.hub?.cancel();this.pendingNpc=false;this.pendingBundle=null;}return;}
@@ -396,13 +424,14 @@ export class VillageBootstrap extends Component {
         if(this.status)this.status.string=this.objective;this.statusRemaining=0;
     }
     private isHeader(p:Point):boolean {
-        if(!this.header)return false;
+        if(!this.header||!this.header.active)return false;
         const local=this.local(p,this.header),width=this.header.getChildByName('Instructions')!.getComponent(UITransform)!.width+20;
         return Math.abs(local.x)<=width/2&&Math.abs(local.y)<=48;
     }
     private tapThreshold():number { return 15*view.getDevicePixelRatio()/view.getScaleX(); }
     private zoomControl(p:Point):Node|undefined{return this.zoomButtons.find(n=>{if(!n.active)return false;const point=this.local(p,n);return Math.abs(point.x)<=28&&Math.abs(point.y)<=24;});}
-    private isHudControl(p:Point):boolean{return !!this.zoomControl(p)||[this.questButton,this.journalButton,this.parentButton].some(n=>{if(!n?.active)return false;const point=this.local(p,n),size=n.getComponent(UITransform)!;return Math.abs(point.x)<=size.width/2&&Math.abs(point.y)<=size.height/2;});}
+    private isHudControl(p:Point):boolean{return !!this.hud?.hit(p)||!!this.zoomControl(p)||[this.questButton,this.journalButton,this.parentButton].some(n=>{if(!n?.active)return false;const point=this.local(p,n),size=n.getComponent(UITransform)!;return Math.abs(point.x)<=size.width/2&&Math.abs(point.y)<=size.height/2;});}
+    private interactNearest():void{const targets=[this.farmer.node,...(this.chapter?[this.chapter.elder]:[]),...(this.hub?.npcNodes??[])].sort((a,b)=>Math.hypot(a.position.x-this.player.position.x,a.position.y-this.player.position.y)-Math.hypot(b.position.x-this.player.position.x,b.position.y-this.player.position.y));const n=targets[0];if(n&&Math.hypot(n.position.x-this.player.position.x,n.position.y-this.player.position.y)<100)this.selectWorld({x:n.position.x,y:n.position.y+60});else this.chapter?.navigateObjective();}
     private changeZoom(value:number):void{this.zoom.set(value);this.zoomSaveDelay=0.3;}
     private handleWheel=(event:WheelEvent):void=>{if(event.ctrlKey||this.modalActive||this.loadingPanel?.active||this.pinchIds||event.target!==game.canvas)return;event.preventDefault();this.changeZoom(this.zoom.wheel(event.deltaY));};
     private keyDown(e: EventKeyboard): void {if(this.loadingPanel?.active)return;

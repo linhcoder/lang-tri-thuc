@@ -1,0 +1,8 @@
+const fs=require('node:fs'),path=require('node:path'),vm=require('node:vm'),ts=require('typescript');
+const root=path.resolve(__dirname,'..'),cache=new Map();
+function load(file){file=path.resolve(file);if(cache.has(file))return cache.get(file).exports;const module={exports:{}};cache.set(file,module);const js=ts.transpileModule(fs.readFileSync(file,'utf8'),{compilerOptions:{target:ts.ScriptTarget.ES2020,module:ts.ModuleKind.CommonJS}}).outputText;vm.runInThisContext(`(function(require,module,exports){${js}\n})`,{filename:file})(name=>name.startsWith('.')?load(path.resolve(path.dirname(file),name+'.ts')):require(name),module,module.exports);return module.exports;}
+const scripts=path.join(root,'apps/game-client/assets/scripts/world'),catalog=load(path.join(scripts,'VisualAssets.ts')),model=load(path.join(scripts,'VillageModel.ts'));
+const assets=catalog.visualAssets.map(asset=>{const file=path.join(root,'apps/game-client',asset.path);if(!fs.existsSync(file))throw Error('Missing asset source: '+asset.id);if(!asset.path.endsWith('.png'))return asset;const data=fs.readFileSync(file);return {...asset,pixels:[data.readUInt32BE(16),data.readUInt32BE(20)],bytes:data.length};});
+if(new Set(assets.map(a=>a.id)).size!==assets.length)throw Error('Duplicate asset ID');
+const result={version:1,groups:catalog.assetGroups,assets,placements:catalog.sceneryPlacements(),solidFootprints:model.villageSolids,projection:{tile:[64,32],map:[40,40]}};
+const output=path.join(root,'docs/design/asset-manifest.json');fs.writeFileSync(output,JSON.stringify(result,null,2)+'\n');console.log(`Exported ${assets.length} assets, ${result.placements.length} placements: docs/design/asset-manifest.json`);

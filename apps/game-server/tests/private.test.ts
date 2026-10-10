@@ -8,6 +8,8 @@ import {startServer} from '../src/main';
 import {MiniGameRules} from '../../game-client/assets/scripts/world/MiniGameRules';
 import {CampaignEngine} from '../../game-client/assets/scripts/world/CampaignEngine';
 import {ChapterOneProgress} from '../../game-client/assets/scripts/world/ChapterOneProgress';
+import {toWorld} from '../../game-client/assets/scripts/world/VillageModel';
+import {worldZones} from '../../game-client/assets/scripts/world/WorldZones';
 import {mkdir,writeFile} from 'node:fs/promises';
 const secret='integration-only-room-secret-32-characters-long';
 const wait=(ms:number)=>new Promise(r=>setTimeout(r,ms));
@@ -30,7 +32,7 @@ test('private rooms enforce invitations, authoritative results, emotes and 10/16
   const a=await client.joinOrCreate('private-friend',{roomCode:invitation.roomCode,ticket:invitation.ticket}),b=await client.joinOrCreate('private-friend',{roomCode:admitted.roomCode,ticket:admitted.ticket});rooms=[a,b];let progress:any,emotes=0,version='';a.onMessage('content-version',(v:string)=>version=v);b.onMessage('content-version',()=>{});
   a.onMessage('progress-state',v=>progress=v);a.onMessage('correction',()=>{});a.onMessage('storage-warning',()=>{});b.onMessage('progress-state',()=>{});b.onMessage('storage-warning',()=>{});b.onMessage('emote',()=>emotes++);a.onMessage('emote',()=>{});a.onMessage('blocked',()=>{});a.onMessage('report-sent',()=>{});
   a.send('ready');await until(()=>!!progress);assert.match(version,/^[a-f0-9]{8}$/);a.send('claim-star',{index:7});await wait(100);assert.equal(progress.campaign.receipts.length,1);
-  a.send('move',{x:999,y:999,direction:0,moving:true,seq:1});await wait(100);assert.equal(a.state.players.get(a.sessionId).x,0);a.send('portal',{id:'farm'});await wait(100);assert.equal(a.state.players.get(a.sessionId).x,0);for(let n=1;n<=4;n++){a.send('move',{x:-16*n,y:-640-8*n,direction:4,moving:true,seq:n+1});await wait(150);}a.send('portal',{id:'farm'});await until(()=>a.state.players.get(a.sessionId).x===96);assert.equal(a.state.players.get(a.sessionId).y,-400);
+  a.send('move',{x:999,y:999,direction:0,moving:true,seq:1});await wait(100);assert.equal(a.state.players.get(a.sessionId).x,0);a.send('portal',{id:'farm'});await wait(100);assert.equal(a.state.players.get(a.sessionId).x,0);for(let n=1;n<=4;n++){a.send('move',{x:-16*n,y:-640-8*n,direction:4,moving:true,seq:n+1});await wait(150);}a.send('portal',{id:'farm'});const farm=toWorld(worldZones.find(z=>z.id==='farm')!.spawn);await until(()=>a.state.players.get(a.sessionId).x===farm.x&&a.state.players.get(a.sessionId).y===farm.y);assert.equal(a.state.players.get(a.sessionId).y,farm.y);
   a.send('start-game',{questId:'q.ch02.play-o-an-quan'});await until(()=>!!b.state.gameJson);assert.equal(a.state.gameJson,b.state.gameJson);a.send('pause-game',{paused:true});await until(()=>JSON.parse(a.state.gameJson).paused===true);const pausedClock=JSON.parse(a.state.gameJson).clock;await wait(250);assert.equal(JSON.parse(a.state.gameJson).clock,pausedClock);a.send('pause-game',{paused:false});await until(()=>JSON.parse(a.state.gameJson).paused===false);
   a.send('game-action',{type:'forged-win',index:0});await wait(100);assert.equal((await store.transaction(d=>d.progress[profile.id].receipts.length)),0);
   for(let turn=0;turn<130;turn++){const g=MiniGameRules.restore(JSON.parse(a.state.gameJson));if(g.ended)break;(turn%2?a:b).send('game-action',{type:'pit',index:g.data.board.slice(0,5).findIndex((n:number)=>n>0)});await wait(100);}

@@ -7,7 +7,7 @@ import {CampaignEngine} from '../../game-client/assets/scripts/world/CampaignEng
 import {EducationEngine,lessonQuestions,riceQuestions} from '../../game-client/assets/scripts/world/EducationEngine';
 import {chapters,AgeBand,miniGameIds} from '../../game-client/assets/scripts/world/CampaignContent';
 import {MiniGameRules} from '../../game-client/assets/scripts/world/MiniGameRules';
-import {elderTile,toWorld} from '../../game-client/assets/scripts/world/VillageModel';
+import {elderTile,farmerTile,toWorld} from '../../game-client/assets/scripts/world/VillageModel';
 import {portalDestination} from '../../game-client/assets/scripts/world/WorldZones';
 import {contentVersion} from '../../game-client/assets/scripts/world/ContentVersion';
 interface Member {profileId:string;parentId:string;age:AgeBand;blocked:string[];first:ChapterOneProgress;campaign:CampaignEngine;lastEmote:number;saveQueue:Promise<unknown>}
@@ -67,9 +67,9 @@ export class PrivateFriendRoom extends VillageRoom {
         const near=(tile:{x:number;y:number},distance=55)=>{const w=toWorld(tile);return Math.hypot(p.x-w.x,p.y-w.y)<distance;};let accepted=false;
         if(v.type==='enter')accepted=m.first.enterVillage();
         else if(v.type==='greet'&&near(elderTile))accepted=m.first.greet();
-        else if(v.type==='accept'&&near({x:14,y:10}))accepted=m.first.accept();
+        else if(v.type==='accept'&&near(farmerTile))accepted=m.first.accept();
         else if(v.type==='plant'&&Number.isInteger(v.index)&&plantingPlots[v.index]&&near(plantingPlots[v.index],9))accepted=m.first.plant(v.index);
-        else if(v.type==='count'&&near({x:14,y:10})&&v.round===m.first.data.countRound&&riceQuestions[v.round]?.count===v.value)accepted=m.first.finishCountRound();
+        else if(v.type==='count'&&near(farmerTile)&&v.round===m.first.data.countRound&&riceQuestions[v.round]?.count===v.value)accepted=m.first.finishCountRound();
         else if(v.type==='turn-in'&&near(elderTile))accepted=m.first.turnIn();
         if(accepted){m.campaign.syncChapterOne(m.first.data);this.persist(client,m);}else this.sendProgress(client);
     }

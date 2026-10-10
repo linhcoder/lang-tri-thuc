@@ -1,5 +1,30 @@
 # Kết quả nghiệm thu bản playable
 
+## Visual upgrade — hoàn thành milestone 1–6 — 10/10/2026
+
+Đã hoàn thành triển khai Ground/Paths, Vegetation/Props, Buildings/Water, Characters/NPC, responsive HUD và tối ưu render. Xem [báo cáo nghiệm thu đầy đủ](../../docs/design/VISUAL_UPGRADE_REPORT.md), [art direction](../../docs/design/ART_DIRECTION.md) và [asset manifest](../../docs/design/ASSET_MANIFEST.md). Các mục bên dưới là lịch sử những phiên trước.
+
+- Strict TypeScript và Web build Creator 3.8.8 đạt; 48 nhóm client + 3 network lifecycle, 5 server và 5 MySQL/API test đạt.
+- Browser visual bốn viewport, assets, avatars, zoom, Chương 1 desktop/mobile, signed online/offline stack và toàn bộ 8 chương đạt; report cuối không có JavaScript error.
+- 25 chunk terrain dùng hai atlas; culling, tải sprite theo khu, baked shadows, Low/Medium/High và dispose đã kiểm thử. Mẫu High khoảng 60.27–60.33 FPS, p95 17 ms trên AMD/ANGLE; chưa chứng nhận điện thoại/Intel yếu thật.
+- 48 record / 10 nhóm, 43 scenery instance; asset độc lập, có metadata/provenance. Tất cả còn placeholder/candidate; đường/bờ ao, lighting, icon HUD và padding atlas cần artist hoàn thiện, chưa đạt ngang ảnh mẫu.
+- Cầu đi được, cây/mái mờ khi che bé, NPC/nameplate được bố trí lại. Footprint/portal mới đồng bộ client/API/server, contentVersion acac7f05; deploy sau này cần cập nhật cả ba.
+- Preview: Creator 3.8.8 → assets/scenes/VillageScene.scene → Preview Browser; local http://127.0.0.1:38080/. Không commit/push/deploy trong đợt này.
+
+## Visual upgrade — milestone 1 Ground + Paths — 10/10/2026
+
+Đã phân tích `docs/design/village-reference.png` và scene/runtime renderer; xem [Art direction](../../docs/design/ART_DIRECTION.md) và [Asset manifest](../../docs/design/ASSET_MANIFEST.md). GroundPaths tạo nền cỏ có mảng màu mềm/seed ổn định và đường đất cong, ngã rẽ bằng control point độc lập. Bake vào 25 chunk hiện có, không tăng node terrain hoặc vẽ lại mỗi frame. Giữ nguyên projection 64×32, navigation, NPC, collision và save. Không dùng ảnh tham chiếu làm background. Chỉ triển khai milestone 1, chưa commit/push/deploy.
+
+- TypeScript strict và Cocos Creator 3.8.8 Web build đạt; 45 nhóm client + 3 test network lifecycle đạt.
+- Browser assets: Ông Đồ, Cô Tấm, sen, toàn bộ NPC truyện và detail atlas hiển thị; click NPC đạt, không lỗi JS. Đã xem screenshot thật và sửa mảng cỏ quá rõ thành gradient mềm. Ảnh cuối: `temp/assets-qa/elder.png`, cùng các khu khác trong thư mục đó.
+- Browser zoom bản cuối: wheel, nút ±, pinch, giới hạn 60–180%, HUD cố định, click-to-move, modal, reload zoom, joystick, portrait/landscape đều đạt; không lỗi JS. Report `temp/zoom-qa/report.json`.
+- Chương 1 bản cuối: full desktop/mobile, gieo trồng, trả lời sai/hint, reload progress/replay, sao không trùng, migration legacy/future/corrupt save đạt. Lượt đầu timeout 90 giây ở reload legacy; chạy lại toàn suite trên build cuối ổn định đạt. Không xác định nguyên nhân timeout từ bằng chứng hiện có; không tính lượt đầu là pass. Report `temp/chapter-one-qa/report.json`.
+- Mẫu 5 giây trên AMD Radeon integrated/ANGLE D3D11: khoảng 60.1 FPS, p95 16.9 ms, 75 draw calls, JS heap 74.4 MiB. Đây là một mẫu ngắn desktop, chưa chứng nhận GPU Intel yếu/mobile thật hoặc worst-case; Low mode, atlas batching và streaming theo khu thuộc milestone 6.
+
+**Art còn thiếu:** texture cỏ/đất vẽ tay final, alpha edge/corner/junction, transitions bờ ao/ruộng, đá/cỏ/hoa mép đường và baked shadow. Ground/Paths hiện là procedural placeholder; đường còn màu phẳng và ranh tile/đường nối chunk có thể thấy ở mức zoom lớn. Ao/ruộng/sân vẫn atlas cũ. Tỷ lệ nhà/cây, bố cục trái/phải, chợ có quầy riêng và HUD chưa theo ảnh mẫu, dành cho milestone tiếp theo.
+
+**Preview:** mở `apps/game-client` bằng Creator **3.8.8**, chờ import, mở `assets/scenes/VillageScene.scene`, chọn **Preview Browser**. Build local đang xem tại `http://127.0.0.1:38080/`. Thử zoom, đi qua nhánh đường và chơi Ông Đồ → ruộng → sân đình. Chưa hỗ trợ terrain Canvas ở Native Preview.
+
 ## Tỷ lệ nhân vật và zoom cảnh — 10/10/2026
 
 Avatar local/remote và NPC dùng phần hình 65% kích thước cũ; tên không bị thu theo phần hình, phụ kiện/gesture đi cùng body. Không đổi tọa độ/collision/speed. Cổng dời sang ô 17,25 để hết che Tí–Na; cổng vẫn là scenery không blocked. Vùng chạm NPC có mức tối thiểu theo zoom; hai điểm NPC cặp vẫn nhận click lệch tâm.

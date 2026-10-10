@@ -5,7 +5,7 @@ import { PlayerController } from '../player/PlayerController';
 import { ChapterOneProgress, plantingPlots } from '../world/ChapterOneProgress';
 import { ChapterOneSave } from '../world/ChapterOneSave';
 import { RiceCountGame } from '../world/RiceCountGame';
-import { elderTile, Point, toWorld } from '../world/VillageModel';
+import { elderTile, Point, toWorld, villageObjects } from '../world/VillageModel';
 interface Button {node:Node;width:number;height:number;action:()=>void}
 export class ChapterOneView {
     readonly node:Node;readonly elder:Node;readonly plots:Node[]=[];
@@ -31,7 +31,7 @@ export class ChapterOneView {
         g.fillColor=new Color(50,48,45);g.roundRect(-20,100,40,12,5);g.fill();g.circle(-6,88,2);g.circle(6,88,2);g.fill();
         this.text(this.elder,'Ông Đồ',0,139,150,35,22);
         for(let i=0;i<plantingPlots.length;i++){const n=this.make(actors,`PlantPlot-${i}`,64,70),p=toWorld(plantingPlots[i]);n.setPosition(p.x,p.y);n.addComponent(Graphics);this.plots.push(n);}
-        const starNode=this.make(actors,'KnowledgeStar',70,70),tree=toWorld({x:8,y:23});starNode.setPosition(tree.x,tree.y+230);this.star=starNode.addComponent(Graphics);
+        const starNode=this.make(actors.parent??actors,'KnowledgeStar',70,70),tree=toWorld(villageObjects.find(o=>o.id==='banyan')!);starNode.setPosition(tree.x,tree.y+395);this.star=starNode.addComponent(Graphics);
         this.refreshWorld();if(progress.stage==='intro')this.open('elder');
     }
     private make(parent:Node,name:string,width:number,height:number):Node{const n=new Node(name);n.layer=parent.layer;parent.addChild(n);n.addComponent(UITransform).setContentSize(width,height);return n;}

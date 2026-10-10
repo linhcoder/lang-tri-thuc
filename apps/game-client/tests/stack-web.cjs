@@ -21,7 +21,7 @@ const output=path.resolve(__dirname,'../temp/stack-qa');fs.mkdirSync(output,{rec
   await game.waitForFunction(()=>village.network.room.state.players.get(village.network.room.sessionId)?.avatar===2&&village.network.room.state.players.get(village.network.room.sessionId)?.accessory===3&&village.network.room.state.players.get(village.network.room.sessionId)?.hair===1);
   assert.equal(await game.evaluate(()=>village.art.hairVariants[2]?.includes(village.childSprite.spriteFrame)),true);
   await parent();await tapGame('WorldMap');await tapGame('Zone-courtyard');await game.waitForFunction(()=>!village.player.hasPath);await game.waitForTimeout(250);
-  await parent();await tapGame('WorldMap');await tapGame('PortalMode');await tapGame('Zone-farm');await game.waitForFunction(()=>Math.abs(village.player.position.x-96)<.1&&Math.abs(village.player.position.y+400)<.1);
+  await parent();await tapGame('WorldMap');await tapGame('PortalMode');await tapGame('Zone-farm');await game.waitForFunction(()=>Math.abs(village.player.position.x+64)<.1&&Math.abs(village.player.position.y+448)<.1);
   await parent();await tapGame('Collection');await tapGame('MyHome');await tapGame('Home-0');await game.screenshot({path:path.join(output,'home.png')});await tapGame('HubClose');
   await parent();await tapGame('OnlineMenu');await tapGame('Emote-hello');await game.waitForFunction(()=>village.network.visibleMessage.includes('Chào bạn'));await tapGame('HubClose');
   await game.waitForTimeout(2100);await parent();await tapGame('Avatar');await tapGame('Gesture-happy');

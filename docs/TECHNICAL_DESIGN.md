@@ -1,5 +1,7 @@
 # Technical Design
 
+10/10/2026 — visual pipeline mới: [Art direction](design/ART_DIRECTION.md), [registry/manifest](design/ASSET_MANIFEST.md), [báo cáo sáu milestone](design/VISUAL_UPGRADE_REPORT.md). Map vẫn 40×40/64×32; bố cục/footprint/NPC/portal đã đổi, contentVersion thêm walkability và portal spawn. Cần chạy client/API/server cùng bản. Các snapshot M0 bên dưới là lịch sử.
+
 09/10/2026. Phần “hiện tại” là snapshot audit M0 trước M2; phần “đích” là proposal. Thay đổi Chương 1/save/input/resize mới nằm ở [MILESTONE_M2.md](MILESTONE_M2.md). Không tạo thêm service ở M0/M1/M2.
 
 ## Kiến trúc hiện tại sau prototype tám chương

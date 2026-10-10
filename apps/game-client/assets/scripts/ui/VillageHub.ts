@@ -11,7 +11,7 @@ import { PlayerController } from '../player/PlayerController';
 import { SpeechReader } from './SpeechReader';
 import { MiniGameView } from './MiniGameView';
 interface Button {node:Node;width:number;action:()=>void}
-type Mode='journal'|'chapter'|'lesson'|'game'|'gate'|'parent'|'age'|'quality'|'avatar'|'accessory'|'hair'|'activities'|'inventory'|'map'|'reset'|'help'|'online'|'home';
+type Mode='menu'|'achievements'|'settings'|'journal'|'chapter'|'lesson'|'game'|'gate'|'parent'|'age'|'quality'|'avatar'|'accessory'|'hair'|'activities'|'inventory'|'map'|'reset'|'help'|'online'|'home';
 export class VillageHub {
     onGesture?:(id:'hello'|'happy')=>void;
     onAvatarPreview?:(parent:Node,id:number,hair?:number)=>void;
@@ -96,7 +96,7 @@ export class VillageHub {
         this.cancelDrag();
         this.stopReading();this.spokenParts=[];this.readingButton=undefined;this.readingNotice=undefined;
         for(const n of [...this.node.children]){n.active=false;n.destroy();}this.buttons=[];this.gameBoard=undefined;this.indicator=undefined;this.lastRhythm=null;
-        const titles:Record<Mode,string>={activities:'HOẠT ĐỘNG MỞ RỘNG',hair:'CH\u1eccN KI\u1ec2U T\u00d3C',accessory:'KHĂN QUÀNG CỦA BÉ',home:'NHÀ CỦA BÉ',online:'BẠN BÈ • PHÒNG RIÊNG',journal:'SỔ LÀNG • TÁM CHƯƠNG',chapter:chapters[this.chapterIndex].title.toUpperCase(),lesson:'BÀI HỌC',game:this.game?gameNames[this.game.id]:'TRÒ CHƠI',gate:'GÓC PHỤ HUYNH',parent:'PHỤ HUYNH • BẢN THỬ',age:'MỨC HỌC',quality:'HÌNH ẢNH',avatar:'CHỌN NHÂN VẬT',inventory:'SAO VÀ BỘ SƯU TẬP',map:'BẢN ĐỒ LÀNG',reset:'XÁC NHẬN XÓA SỔ',help:'HƯỚNG DẪN TRÒ CHƠI'};
+        const titles:Record<Mode,string>={menu:'SỔ TAY CỦA BÉ',achievements:'THÀNH TÍCH CỦA BÉ',settings:'CÀI ĐẶT',activities:'HOẠT ĐỘNG MỞ RỘNG',hair:'CH\u1eccN KI\u1ec2U T\u00d3C',accessory:'KHĂN QUÀNG CỦA BÉ',home:'NHÀ CỦA BÉ',online:'BẠN BÈ • PHÒNG RIÊNG',journal:'SỔ LÀNG • TÁM CHƯƠNG',chapter:chapters[this.chapterIndex].title.toUpperCase(),lesson:'BÀI HỌC',game:this.game?gameNames[this.game.id]:'TRÒ CHƠI',gate:'GÓC PHỤ HUYNH',parent:'PHỤ HUYNH • BẢN THỬ',age:'MỨC HỌC',quality:'HÌNH ẢNH',avatar:'CHỌN NHÂN VẬT',inventory:'SAO VÀ BỘ SƯU TẬP',map:'BẢN ĐỒ LÀNG',reset:'XÁC NHẬN XÓA SỔ',help:'HƯỚNG DẪN TRÒ CHƠI'};
         this.readingNotice=this.text(this.node,this.message||titles[this.mode],0,225,590,65,this.message?20:26).getComponent(Label)!;this.button('HubClose','Đóng',0,-235,155,()=>this.close());
         if(this.mode==='journal'){
             this.grid(chapters.map((c,i)=>({id:'Chapter-'+i,label:`${i+1}. ${c.title}${this.campaign.data.receipts.includes('reward.star.'+c.id)?' ★':this.campaign.unlocked(i)?'':' 🔒'}`,action:()=>{if(i===0){this.message='Chương 1 chơi cùng Ông Đồ và bác trong làng.';this.render();}else{this.chapterIndex=i;this.mode='chapter';this.render();}}})));
@@ -171,6 +171,22 @@ export class VillageHub {
             this.button('BackToAvatar','Chọn nhân vật',0,-165,350,()=>{this.mode='avatar';this.render();});
         }
         else if(this.mode==='home'){this.grid(['Nhà mái ngói','Nhà xanh • 2 sao','Nhà tím • 4 sao','Nhà vàng • 8 sao'].map((label,i)=>({id:'Home-'+i,label,action:()=>{if(this.campaign.stars>=[0,2,4,8][i]){this.campaign.data.home=i;this.persist();this.message='Đã trang trí ngôi nhà.';}else this.message='Màu này mở khi có thêm sao.';this.render();}})));}
+        else if(this.mode==='menu')this.grid([
+            {id:'MenuBag',label:'Túi đồ',action:()=>{this.mode='inventory';this.render();}},
+            {id:'MenuBadges',label:'Thành tích',action:()=>{this.mode='achievements';this.render();}},
+            {id:'MenuMap',label:'Bản đồ',action:()=>{this.mode='map';this.render();}},
+            {id:'MenuSettings',label:'Cài đặt',action:()=>{this.mode='settings';this.render();}},
+        ]);
+        else if(this.mode==='settings'){
+            this.text(this.node,'Hình ảnh và âm thanh',0,135,550,60);
+            (['low','medium','high'] as const).forEach((quality,i)=>this.button('HudQuality-'+quality,(quality===this.campaign.data.quality?'✓ ':'')+quality,(i-1)*180,40,160,()=>{this.campaign.data.quality=quality;this.persist();this.render();}));
+            this.button('HudSound',this.campaign.data.sound?'Âm thanh: bật':'Âm thanh: tắt',0,-60,360,()=>{this.campaign.data.sound=!this.campaign.data.sound;this.stopReading();this.persist();this.render();});
+            this.button('HudParent','Góc người lớn',0,-160,360,()=>{this.mode='gate';this.gateAnswer=12+Math.floor(Math.random()*9);this.render();});
+        }
+        else if(this.mode==='achievements'){
+            this.text(this.node,`★ Sao Tri Thức: ${this.campaign.stars}/8\nLuyện tập: ${this.campaign.data.practice.length}/12 trò chơi\n${chapters.map(c=>(this.campaign.data.receipts.includes('reward.star.'+c.id)?'★ ':'○ ')+c.title).join('\n')}`,0,20,550,360,20);
+            this.button('Practice','Luyện tập nhận huy hiệu',0,-205,400,()=>{this.mode='activities';this.render();});
+        }
         else if(this.mode==='inventory'){this.button('Activities','Luyện / lễ hội',215,-235,180,()=>{this.mode='activities';this.render();});this.button('MyHome','Nhà của bé',-215,-235,180,()=>{this.mode='home';this.render();});this.text(this.node,`★ Sao Tri Thức: ${this.campaign.stars}/8\n${chapters.filter(c=>this.campaign.data.receipts.includes('reward.star.'+c.id)).map(c=>'✓ '+c.title).join('\n')}`,0,30,550,330,22);}
         else if(this.mode==='activities'){
             if(this.campaign.stars<8)this.text(this.node,'Sau khi thắp sáng đủ tám sao, cháu có thể luyện lại các trò và chơi hoạt động lễ hội quanh năm.',0,40,550,220,24);

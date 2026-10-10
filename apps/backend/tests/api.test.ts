@@ -39,7 +39,7 @@ test('lesson administration validates answers, protects roles, resets review and
         const catalog=(await req('GET','/admin/catalog',undefined,token)).json();assert.equal(catalog.games.length,12);assert.equal(catalog.zones.length,10);assert.equal(catalog.npcs.length,6);
         assert.equal(catalog.assets.length,24);
         const npc=catalog.npcs[0],npcUrl='/admin/catalog/npc/'+npc.id;
-        assert.equal((await req('PUT',npcUrl,{value:{...npc,x:25,y:10},note:body.note},token)).statusCode,400);
+        assert.equal((await req('PUT',npcUrl,{value:{...npc,x:2,y:21},note:body.note},token)).statusCode,400);
         assert.equal((await req('PUT',npcUrl,{value:{...npc,name:'Fixture NPC'},note:body.note},token)).statusCode,200);
         const assetUrl='/admin/catalog/asset/child';assert.equal((await req('PUT',assetUrl,{value:{title:'Fixture asset',source:'Fixture origin',license:'Fixture only'},note:body.note},token)).statusCode,200);
         assert.equal((await req('PUT',assetUrl+'/review',{status:'approved',note:body.note},token)).statusCode,409);

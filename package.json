@@ -22,6 +22,8 @@
     "test:speech": "node apps/game-client/tests/speech-web.cjs",
     "test:drag": "node apps/game-client/tests/drag-web.cjs",
     "test:zoom": "node apps/game-client/tests/zoom-web.cjs",
+    "test:visual": "node apps/game-client/tests/visual-upgrade-web.cjs",
+    "assets:manifest": "node tools/export-visual-assets.cjs",
     "test:admin": "node apps/admin/tests/admin-web.cjs",
     "test:campaign": "node apps/game-client/tests/campaign-web.cjs",
     "api": "npm run start --workspace game-backend",

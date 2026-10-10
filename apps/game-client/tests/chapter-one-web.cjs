@@ -26,10 +26,10 @@ const saveKey='lang-tri-thuc.chapter-one.v2',legacyKey='lang-tri-thuc.learning.v
         const node=kind==='button'?c.node.getChildByName(id):kind==='objective'?b.questButton:kind==='elder'?c.elder:kind==='farmer'?b.farmer.node:kind==='plot'?c.plots[id]:b.joystick;
         const y=kind==='elder'||kind==='farmer'?60:0;
         const w=node.getComponent(cc.UITransform).convertToWorldSpaceAR(new cc.Vec3(0,y,0)),s=b.node.getComponent(cc.Canvas).cameraComponent.worldToScreen(w),canvas=cc.game.canvas,r=canvas.getBoundingClientRect();
-        return {x:r.left+s.x/canvas.width*r.width,y:r.top+(canvas.height-s.y)/canvas.height*r.height};
+        return {x:r.left+s.x/canvas.width*r.width,y:r.top+(canvas.height-s.y)/canvas.height*r.height,hud:b.isHudControl(w)};
     },{kind,id});}
-    async function tap(page,kind,id,mobile=false){const p=await point(page,kind,id);assert.ok(p.x>=0&&p.y>=0,`${kind} outside viewport`);if(mobile)await page.touchscreen.tap(p.x,p.y);else await page.mouse.click(p.x,p.y);}
-    async function npc(page,kind,mobile=false){const p=await point(page,kind,null),size=page.viewportSize();await tap(page,p.x<0||p.x>size.width||p.y<180||p.y>size.height?'objective':kind,null,mobile);await page.waitForFunction(()=>village.dialog.active,undefined,{timeout:20000});}
+    async function tap(page,kind,id,mobile=false){const p=await point(page,kind,id);assert.ok(p.x>=0&&p.y>=0,`${kind} outside viewport`);if(mobile)await page.touchscreen.tap(p.x,p.y);else await page.mouse.click(p.x,p.y);await page.waitForTimeout(80);}
+    async function npc(page,kind,mobile=false){const p=await point(page,kind,null),size=page.viewportSize();await tap(page,p.hud||p.x<0||p.x>size.width||p.y<0||p.y>size.height?'objective':kind,null,mobile);await page.waitForFunction(()=>village.dialog.active,undefined,{timeout:20000});}
     async function reload(page){await page.reload();await ready(page);}
     async function answer(page,value,mobile=false){await tap(page,'button','Answer-'+value,mobile);}
     try{

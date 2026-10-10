@@ -2,7 +2,7 @@
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
 const {spawn}=require('node:child_process'),{chromium}=require('playwright'),{Client}=require('@colyseus/sdk');
 const output=path.resolve(__dirname,'../temp/avatars-qa');fs.mkdirSync(output,{recursive:true});
-const origin=process.env.GAME_WEB_URL||'http://127.0.0.1:8080';
+const origin=(process.env.GAME_WEB_URL||'http://127.0.0.1:8080').replace(/\/+$/,'');
 (async()=>{
  const browser=await chromium.launch({executablePath:require('../../../tools/browser-path.cjs')(),headless:true,args:['--enable-webgl','--enable-gpu',...(process.platform==='win32'?['--use-angle=d3d11']:[])]});
  const contexts=[],errors=[];let server,peer;

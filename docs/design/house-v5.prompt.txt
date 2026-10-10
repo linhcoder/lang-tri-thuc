@@ -1,0 +1,11 @@
+Tool: OpenAI built-in image_gen (imagegen skill), 2026-10-10.
+Saved asset: apps/game-client/assets/resources/village/house-v5.png
+Inputs, in order:
+1. apps/game-client/assets/resources/village/house.png (edit target)
+2. docs/design/village-reference.png (style and subject reference)
+transparent_background: true
+Output inspected: RGBA, 1254 x 1254, alpha range 0..255.
+The original house.png is retained. The house ID now loads house-v5.png.
+
+Exact prompt:
+Use case: style-transfer. Asset type: transparent isometric village-game building sprite. Image 1 is the edit target (the current yellow tiled-roof house sprite). Image 2 is a style and subject reference only: match the small wooden thatched house on the far right of that Vietnamese village illustration. Replace Image 1's yellow plaster walls and terracotta ornamental roof with a humble dark warm timber cottage, thick golden straw thatch, a plain gable roof without temple ornaments, wooden doors and shutters, a small stone step, and a few earthen pots at the doorstep. Preserve Image 1's camera orientation, isometric perspective, single-building composition and roughly square sprite footprint. Render in the warm, detailed, soft painterly Vietnamese children's-game style and sunny lighting of Image 2. Keep the entire roof and doorstep inside the canvas with a modest transparent margin. Produce one isolated cottage only on genuine transparent alpha. No landscape background, no other buildings, no people, no animals, no interface, no labels, no writing, no watermark. Low small plants at the base are fine; no large foreground tree hiding the house.

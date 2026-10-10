@@ -1,5 +1,6 @@
 import type { Client, Room } from '@colyseus/sdk';
 import { resources, TextAsset } from 'cc';
+import {avatarGestures} from '../world/AvatarGestures';
 import { Point } from '../world/VillageModel';
 import { MiniGameRules } from '../world/MiniGameRules';
 import {contentVersion} from '../world/ContentVersion';
@@ -37,7 +38,7 @@ export class VillageNetwork {
             if(this.privateMode){
                 room.onMessage('content-version',version=>{if(this.room!==room)return;if(version===contentVersion())this.contentReady=true;else{this.offline();this.lastMessage='Nội dung khác phiên bản. Mời người lớn tải lại game trước khi vào phòng.';this.status='Cần cập nhật game';}});
                 room.onMessage('progress-state',v=>{if(this.room===room)this.onProgress?.(v);});room.onMessage('storage-warning',v=>{this.lastMessage=String(v).slice(0,150);});
-                room.onMessage('emote',v=>{const labels:Record<string,string>={happy:'M\u00ecnh vui qu\u00e1!',hello:'Chào bạn!',thanks:'Cảm ơn!', 'your-turn':'Đến lượt bạn!', 'need-help':'Mình cần giúp',bye:'Tạm biệt!'};if(this.room===room&&v&&typeof v.sessionId==='string'&&labels[v.id]&&!this.blocked.has(v.sessionId)){this.onEmote?.(v.sessionId,v.id);this.lastMessage=(this.players.get(v.sessionId)?.name??'Bạn')+': '+labels[v.id];}});
+                room.onMessage('emote',v=>{const labels:Record<string,string>={...Object.fromEntries(avatarGestures.map(g=>[g.id,g.message])),happy:'M\u00ecnh vui qu\u00e1!',hello:'Chào bạn!',thanks:'Cảm ơn!', 'your-turn':'Đến lượt bạn!', 'need-help':'Mình cần giúp',bye:'Tạm biệt!'};if(this.room===room&&v&&typeof v.sessionId==='string'&&labels[v.id]&&!this.blocked.has(v.sessionId)){this.onEmote?.(v.sessionId,v.id);this.lastMessage=(this.players.get(v.sessionId)?.name??'Bạn')+': '+labels[v.id];}});
                 room.onMessage('blocked',v=>{if(typeof v.sessionId==='string'){this.blocked.add(v.sessionId);this.players.delete(v.sessionId);}});room.onMessage('report-sent',()=>{this.lastMessage='Đã gửi báo cáo tới người lớn phụ trách.';});room.send('ready');
             }
             room.onLeave(()=>{if(this.room===room){this.room=null;this.players.clear();this.status=this.wantOnline?'Mất kết nối • đang thử lại':'Chơi một mình';this.retry=this.wantOnline?3:0;}});

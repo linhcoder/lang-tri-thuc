@@ -1,6 +1,21 @@
 # Làng Tri Thức
 
-**Tỷ lệ và zoom:** người trong làng/online đã thu về 65% kích thước cũ, giữ tên và vùng chạm. Dùng **− / +**, bấm tỷ lệ để về **100%**, lăn chuột hoặc chụm/tách hai ngón trên cảnh; giới hạn **60–180%**. HUD giữ kích thước, zoom lưu theo trình duyệt. [Phần còn phát triển](docs/DEVELOPMENT_BACKLOG.md).
+Trong bản preview hiện tại, cây đa và Ông Đồ nằm phía trên bên trái; đình ở phía trên bên phải, chợ ở tiền cảnh và bác nông dân đứng cạnh trâu ở bờ ruộng. Ao mở rộng vào khung cảnh với cầu tre có thể đi qua và giếng bên bờ. Nhà bé nằm phía trên ruộng, có lối đi trống tới cửa nhà. Các điểm đến trên bản đồ dùng cùng bố cục này. HUD dùng bảng tối trong suốt, biểu tượng không có khung dày và nút zoom nằm trong bản đồ nhỏ trên desktop.
+
+**Preview bố cục theo ảnh thiết kế:** chân dung, checklist theo tiến độ thật, sổ chương dưới bản đồ và bong bóng thoại có thể chạm để tới NPC. Thanh biểu cảm có Chào, Vui mừng, Vẫy tay, Ngồi, Khóc và Nhảy; màn hình nhỏ mở qua **Menu → Biểu cảm**. Di chuyển tự dừng biểu cảm và trả nhân vật về tư thế thường. Nút **Di chuyển** trên desktop bật/tắt joystick dùng được bằng chuột; điện thoại vẫn có joystick cảm ứng. Bản đồ nhỏ dùng hình công trình thật, bờ ao có nước chuyển màu, lá sen và đường bờ mềm hơn. Cây đa lớn hơn, nhà bé và Cô Tấm ở phía phải. Các công trình tải muộn dùng renderer riêng để hiển thị đúng. Bộ art hiện tại vẫn chưa giống hoàn toàn ảnh tham chiếu.
+
+Nếu Windows khóa thư mục build cũ, có thể build và chạy preview riêng:
+
+```powershell
+$env:GAME_BUILD_NAME='reference-complete-v6'
+npm.cmd run web:build
+$env:WEB_PORT='8081'
+npm.cmd run web
+```
+
+Mở `http://127.0.0.1:8081/`. QA bản preview: `$env:GAME_WEB_URL='http://127.0.0.1:8081/'; npm.cmd run test:visual`, rồi `npm.cmd run test:reference` và `npm.cmd run test:assets`. Khi chạy online cần build game server cùng phiên bản vì vị trí bản đồ và danh sách biểu cảm cùng tham gia kiểm tra tương thích. Nền cỏ mở rộng ngoài khu chơi để không lộ nền màu phẳng ở mép bản đồ; giới hạn đường đi giữ nguyên. Màn hình rộng có ô sao và tiến độ riêng, dùng số liệu thật. Bộ minh họa công trình, NPC và nhân vật đã được thay đồng bộ; cây đa dùng ảnh riêng có độ nét cao. [Chi tiết thay đổi](docs/design/REFERENCE_COMPLETION.md), [prompt và nguồn imagegen](docs/design/reference-completion-prompts.json). Bấm bảng nhiệm vụ để đi tới mục tiêu; mở mục phụ huynh qua Cài đặt. Camera desktop giữ bố cục trung tâm và chừa vùng HUD khi theo nhân vật. `GAME_BUILD_NAME` không đặt vẫn dùng `web-desktop` như trước.
+
+**Tỷ lệ và zoom:** người trong làng/online đã thu về 78% kích thước cũ, giữ tên và vùng chạm. Dùng **− / +**, bấm tỷ lệ để về **100%**, lăn chuột hoặc chụm/tách hai ngón trên cảnh; giới hạn **60–180%**. HUD giữ kích thước, zoom lưu theo trình duyệt. [Phần còn phát triển](docs/DEVELOPMENT_BACKLOG.md).
 
 **Staging aaPanel đã chạy:** [ltt.vui-hoc.xyz](https://ltt.vui-hoc.xyz/) (phụ huynh/admin), [game](https://ltt.vui-hoc.xyz/game/). Giao diện có mật khẩu preview; thông tin truy cập sinh riêng nằm trong file local ignored `temp/deploy/access.txt`. [Runbook aaPanel](deploy/aapanel/README.md). Đã kiểm tra HTTPS, signed WebSocket hai client, MySQL-compatible MariaDB, save/reload và backup/restore. Nội dung vẫn draft, chưa nghiệm thu beta công khai.
 ## Hoàn thiện ngày 10/10/2026

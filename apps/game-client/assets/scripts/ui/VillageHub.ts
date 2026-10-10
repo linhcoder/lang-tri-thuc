@@ -12,10 +12,11 @@ import { PlayerController } from '../player/PlayerController';
 import { SpeechReader } from './SpeechReader';
 import { MiniGameView } from './MiniGameView';
 import {paintVillageMap} from './VillageHUD';
+import {AvatarGesture,avatarGestures} from '../world/AvatarGestures';
 interface Button {node:Node;width:number;action:()=>void}
-type Mode='menu'|'achievements'|'settings'|'journal'|'chapter'|'lesson'|'game'|'gate'|'parent'|'age'|'quality'|'avatar'|'accessory'|'hair'|'activities'|'inventory'|'map'|'reset'|'help'|'online'|'home';
+type Mode='menu'|'gestures'|'achievements'|'settings'|'journal'|'chapter'|'lesson'|'game'|'gate'|'parent'|'age'|'quality'|'avatar'|'accessory'|'hair'|'activities'|'inventory'|'map'|'reset'|'help'|'online'|'home';
 export class VillageHub {
-    onGesture?:(id:'hello'|'happy')=>void;
+    onGesture?:(id:AvatarGesture)=>void;
     onAvatarPreview?:(parent:Node,id:number,hair?:number)=>void;
     onChapterIntro?:(index:number)=>void;onClaim?:(index:number)=>void;
     onLessonAnswer?:(data:{questId:string;round:number;index:number})=>void;
@@ -103,7 +104,7 @@ export class VillageHub {
         this.cancelDrag();
         this.stopReading();this.spokenParts=[];this.readingButton=undefined;this.readingNotice=undefined;
         for(const n of [...this.node.children]){n.active=false;n.destroy();}this.buttons=[];this.gameBoard=undefined;this.indicator=undefined;this.lastRhythm=null;
-        const titles:Record<Mode,string>={menu:'SỔ TAY CỦA BÉ',achievements:'THÀNH TÍCH CỦA BÉ',settings:'CÀI ĐẶT',activities:'HOẠT ĐỘNG MỞ RỘNG',hair:'CH\u1eccN KI\u1ec2U T\u00d3C',accessory:'KHĂN QUÀNG CỦA BÉ',home:'NHÀ CỦA BÉ',online:'BẠN BÈ • PHÒNG RIÊNG',journal:'SỔ LÀNG • TÁM CHƯƠNG',chapter:chapters[this.chapterIndex].title.toUpperCase(),lesson:'BÀI HỌC',game:this.game?gameNames[this.game.id]:'TRÒ CHƠI',gate:'GÓC PHỤ HUYNH',parent:'PHỤ HUYNH • BẢN THỬ',age:'MỨC HỌC',quality:'HÌNH ẢNH',avatar:'CHỌN NHÂN VẬT',inventory:'SAO VÀ BỘ SƯU TẬP',map:'BẢN ĐỒ LÀNG',reset:'XÁC NHẬN XÓA SỔ',help:'HƯỚNG DẪN TRÒ CHƠI'};
+        const titles:Record<Mode,string>={gestures:'BI\u1ec2U C\u1ea2M',menu:'SỔ TAY CỦA BÉ',achievements:'THÀNH TÍCH CỦA BÉ',settings:'CÀI ĐẶT',activities:'HOẠT ĐỘNG MỞ RỘNG',hair:'CH\u1eccN KI\u1ec2U T\u00d3C',accessory:'KHĂN QUÀNG CỦA BÉ',home:'NHÀ CỦA BÉ',online:'BẠN BÈ • PHÒNG RIÊNG',journal:'SỔ LÀNG • TÁM CHƯƠNG',chapter:chapters[this.chapterIndex].title.toUpperCase(),lesson:'BÀI HỌC',game:this.game?gameNames[this.game.id]:'TRÒ CHƠI',gate:'GÓC PHỤ HUYNH',parent:'PHỤ HUYNH • BẢN THỬ',age:'MỨC HỌC',quality:'HÌNH ẢNH',avatar:'CHỌN NHÂN VẬT',inventory:'SAO VÀ BỘ SƯU TẬP',map:'BẢN ĐỒ LÀNG',reset:'XÁC NHẬN XÓA SỔ',help:'HƯỚNG DẪN TRÒ CHƠI'};
         this.readingNotice=this.text(this.node,this.message||titles[this.mode],0,225,590,65,this.message?20:26).getComponent(Label)!;this.button('HubClose','Đóng',0,-235,155,()=>this.close());
         if(this.mode==='journal'){
             this.grid(chapters.map((c,i)=>({id:'Chapter-'+i,label:`${i+1}. ${c.title}${this.campaign.data.receipts.includes('reward.star.'+c.id)?' ★':this.campaign.unlocked(i)?'':' 🔒'}`,action:()=>{if(i===0){this.message='Chương 1 chơi cùng Ông Đồ và bác trong làng.';this.render();}else{this.chapterIndex=i;this.mode='chapter';this.render();}}})));
@@ -183,7 +184,9 @@ export class VillageHub {
             {id:'MenuBadges',label:'Thành tích',action:()=>{this.mode='achievements';this.render();}},
             {id:'MenuMap',label:'Bản đồ',action:()=>{this.mode='map';this.render();}},
             {id:'MenuSettings',label:'Cài đặt',action:()=>{this.mode='settings';this.render();}},
+            {id:'MenuGestures',label:'Biểu cảm',action:()=>{this.mode='gestures';this.render();}},
         ]);
+        else if(this.mode==='gestures')this.grid(avatarGestures.map(g=>({id:'Gesture-'+g.id,label:g.title,action:()=>{this.close();this.onGesture?.(g.id);}})));
         else if(this.mode==='settings'){
             this.text(this.node,'Hình ảnh và âm thanh',0,135,550,60);
             (['low','medium','high'] as const).forEach((quality,i)=>this.button('HudQuality-'+quality,(quality===this.campaign.data.quality?'✓ ':'')+quality,(i-1)*180,40,160,()=>{this.campaign.data.quality=quality;this.persist();this.render();}));

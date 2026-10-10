@@ -22,17 +22,17 @@ const output=path.resolve(__dirname,'../temp/assets-qa');fs.mkdirSync(output,{re
    await page.waitForFunction(name=>name==='elder'?village.chapter.node.active:village.hub.node.active,name,{timeout:10000});
   }
   const sprites=await page.evaluate(()=>({elder:!!village.chapter.elder.getChildByName('ElderSprite')?.getComponent(cc.Sprite)?.spriteFrame,tam:!!village.hub.npcNodes.find(n=>n.name==='co-tam')?.getChildByName('CoTamSprite')?.getComponent(cc.Sprite)?.spriteFrame,lotus:village.actors.children.filter(n=>n.name.startsWith('PondLotus-')&&n.getComponent(cc.Sprite)?.spriteFrame).length}));
-  assert.equal(sprites.elder,true);assert.equal(sprites.lotus,3);
+  assert.equal(sprites.elder,true);assert.equal(sprites.lotus,7);
 
-  await inspect('elder',{x:11,y:21});await clickNpc('elder');
-  await inspect('co-tam',{x:11,y:8});await clickNpc('tam');
-  await inspect('pond',{x:6,y:23});
+  await inspect('elder',{x:18,y:19});await clickNpc('elder');
+  await inspect('co-tam',{x:28,y:15});await clickNpc('tam');
+  await inspect('pond',{x:16,y:28});
   await inspect('teacher',{x:5,y:28});await clickNpc('co-giao-lan');
   await inspect('potter',{x:6,y:28});await clickNpc('nghe-nhan-gom');
-  await inspect('friends',{x:20,y:24});await clickNpc('ti-na',-45);
-  await inspect('market',{x:26,y:34});await clickNpc('ba-ban-hang');
+  await inspect('friends',{x:23,y:13});await clickNpc('ti-na',-45);
+  await inspect('market',{x:26,y:29});await clickNpc('ba-ban-hang');
   await inspect('festival',{x:32,y:28});await clickNpc('chi-hang-cuoi',45);
-  assert.equal(await page.evaluate(()=>village.hub.npcNodes.filter(n=>n.children.some(c=>c.getComponent(cc.Sprite)?.spriteFrame)).length),6);assert.equal(await page.evaluate(()=>village.art.details.length),8);assert.equal(await page.evaluate(()=>[...village.actors.children,...village.world.children].filter(n=>n.name.startsWith('Detail-')).length),9);assert.equal(await page.evaluate(()=>village.world.getChildByName('Detail-bridge').getSiblingIndex()<village.actors.getSiblingIndex()),true);
+  assert.equal(await page.evaluate(()=>village.hub.npcNodes.filter(n=>n.children.some(c=>c.getComponent(cc.Sprite)?.spriteFrame)).length),6);assert.equal(await page.evaluate(()=>village.art.details.length),8);assert.equal(await page.evaluate(()=>[...village.actors.children,...village.world.children].filter(n=>n.name.startsWith('Detail-')).length),12);assert.equal(await page.evaluate(()=>['Detail-bridge','Detail-bridge-west'].every(id=>village.world.getChildByName(id).getComponent(cc.Sprite)?.spriteFrame&&village.world.getChildByName(id).getSiblingIndex()<village.actors.getSiblingIndex())),true);
   assert.deepEqual(errors,[]);fs.writeFileSync(path.join(output,'report.json'),JSON.stringify({sprites,npcClicks:true,errors},null,2));console.log(JSON.stringify({sprites,npcClicks:true,errors},null,2));
  }finally{await context.close();await browser.close();}
 })().catch(e=>{console.error(e);process.exitCode=1;});

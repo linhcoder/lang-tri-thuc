@@ -50,14 +50,14 @@ export class ChapterOneView {
     private changed():void{this.save.save();this.refreshWorld();}
     refreshWorld():void{
         for(let i=0;i<this.plots.length;i++){
-            const n=this.plots[i],g=n.getComponent(Graphics)!;g.clear();const planted=this.progress.data.planted.indexOf(i)>=0;
+            const n=this.plots[i],g=n.getComponent(Graphics)!;g.clear();const planted=this.progress.data.planted.indexOf(i)>=0;n.active=planted||this.progress.stage==='plant';
             g.strokeColor=new Color(255,239,145);g.lineWidth=3;g.ellipse(0,0,26,13);g.stroke();
             const existing=n.getChildByName('RiceSeedling');if(existing){existing.active=planted&&!!this.riceFrame;existing.getComponent(Sprite)!.spriteFrame=this.riceFrame??null;}
             if(planted&&this.riceFrame){if(!existing)this.riceSprite(n,'RiceSeedling',0,-2,31,46);}
             else if(planted){g.strokeColor=new Color(58,139,56);g.lineWidth=2;for(const x of [-6,0,6]){g.moveTo(x,0);g.quadraticCurveTo(x-7,13,x-4,25);g.moveTo(x,0);g.quadraticCurveTo(x+9,12,x+7,21);}g.stroke();}
             else{g.fillColor=new Color(115,84,51);g.ellipse(0,0,19,8);g.fill();}
         }
-        const g=this.star;g.clear();g.fillColor=this.progress.stars?new Color(255,219,78):new Color(136,155,110);
+        const g=this.star;g.clear();this.star.node.active=this.progress.stars>0;g.fillColor=new Color(255,219,78);
         for(let i=0;i<10;i++){const angle=Math.PI/2+i*Math.PI/5,r=i%2?12:28,x=Math.cos(angle)*r,y=Math.sin(angle)*r;if(i===0)g.moveTo(x,y);else g.lineTo(x,y);}g.close();g.fill();
     }
     select(world:Point,minHalfWidth=38):'accepted'|'blocked'|null {

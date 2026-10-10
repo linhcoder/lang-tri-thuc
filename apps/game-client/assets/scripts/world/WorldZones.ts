@@ -2,14 +2,14 @@ import { Point, VillageMap, toWorld } from './VillageModel';
 export interface WorldZone {id:string;name:string;spawn:Point;chapter:number|null}
 export const worldZones:WorldZone[]=[
     {id:'gate',name:'Cổng làng',spawn:{x:20,y:25},chapter:null},
-    {id:'courtyard',name:'Sân đình',spawn:{x:20,y:22},chapter:1},
+    {id:'courtyard',name:'Sân đình',spawn:{x:21,y:16},chapter:1},
     {id:'school',name:'Trường học',spawn:{x:4,y:29},chapter:3},
-    {id:'farm',name:'Nông trại',spawn:{x:13,y:15},chapter:5},
-    {id:'market',name:'Chợ quê',spawn:{x:26,y:34},chapter:2},
+    {id:'farm',name:'Nông trại',spawn:{x:29,y:21},chapter:5},
+    {id:'market',name:'Chợ quê',spawn:{x:25,y:31},chapter:2},
     {id:'craft',name:'Làng nghề',spawn:{x:6,y:28},chapter:4},
-    {id:'pond',name:'Ao làng',spawn:{x:6,y:23},chapter:null},
-    {id:'home',name:'Nhà của bé',spawn:{x:30,y:28},chapter:null},
-    {id:'banyan',name:'Cây đa tri thức',spawn:{x:9,y:23},chapter:0},
+    {id:'pond',name:'Ao làng',spawn:{x:16,y:28},chapter:null},
+    {id:'home',name:'Nhà của bé',spawn:{x:29,y:15},chapter:null},
+    {id:'banyan',name:'Cây đa tri thức',spawn:{x:16,y:21},chapter:0},
     {id:'festival',name:'Khu lễ hội',spawn:{x:32,y:28},chapter:6},
 ];
 export function nearestZone(tile:Point):WorldZone{return worldZones.reduce((a,b)=>Math.hypot(a.spawn.x-tile.x,a.spawn.y-tile.y)<=Math.hypot(b.spawn.x-tile.x,b.spawn.y-tile.y)?a:b);}

@@ -1,0 +1,59 @@
+{
+  "tool": "OpenAI built-in imagegen",
+  "date": "2026-10-11",
+  "reference": "docs/design/village-reference.png",
+  "assets": [
+    {
+      "path": "apps/game-client/assets/resources/village/reference-props-v1.png",
+      "initial_prompt": "Use case: style-transfer / background-extraction. Input image: the attached village design is the visual reference and edit source. Produce a production-ready TRANSPARENT RGBA game sprite atlas, exactly FOUR equal columns and THREE equal rows (12 cells), preferably 2048x1536, with no grid lines and no text. Reconstruct the objects from the design in its SAME lush warm hand-painted children's-book Vietnamese village style, soft brush texture, golden sunlight from upper left, gentle outlines, NOT photorealistic and NOT glossy 3D. Every object must be entirely isolated within its own cell with transparent space between cells and no clipping. Exact row-major cell contents: row 1: [0] the ornate wooden Vietnamese communal temple with red curved tiled roof and stone steps, [1] the enormous lush banyan with thick twisted trunk, hanging roots and mossy stone-and-flower base, [2] the wooden thatched cottage from the right side of the design with front steps and clay jars, [3] the rustic village produce market with golden thatch AND the blue-white striped fabric awning, baskets of fruit and vegetables, no person. Row 2: [4] the round grey stone village well with little golden thatched roof and wooden bucket, [5] the low bamboo footbridge viewed diagonally left-to-right, [6] the gentle dark grey water buffalo facing right, [7] a traditional curved-red-roof village stone gate. Row 3: [8] a small brown wooden boat with an oar facing right, [9] the orange-and-white sitting cat from beside the cottage, [10] an elongated connected garden border of dense green leaves with white yellow pink flowers and smooth grey stones, [11] a leafy flowering shrub clump with warm dappled light. Perspective is the slightly elevated three-quarter view in the source design. Objects touch a consistent virtual ground baseline near the bottom of each cell. Do not draw broad grass diamonds, backdrops, shadows outside cells, people, speech bubbles, UI, lettering, badges, or scenery behind the objects. Preserve the subject identities and visual language from the reference.",
+      "final_prompt": "Edit only the placement and scale of the twelve existing subjects in this transparent sprite atlas. Preserve their identities, beautiful illustration style, colors, details, and row-major order EXACTLY. Correct the grid: exactly FOUR equal columns and THREE equal rows on a 4:3 canvas. Each object must be scaled down and centered inside its own cell with AT LEAST 12 percent transparent empty margin on all four sides of that cell. Temple must not cross into banyan; banyan must not cross into cottage; all objects must have complete unclipped outlines and be surrounded by actual transparent alpha, not connected to any neighbor. Keep the 12 subjects unchanged, no lettering or grid lines, no new objects, no checkerboard. Preserve transparency. This is a layout correction of the existing atlas only.",
+      "source": "exec-b33ac19d-9c66-4443-85a3-1732d3e9213d.png",
+      "layout": {
+        "columns": 4,
+        "row_cuts": [
+          0.3664825046040516,
+          0.6758747697974218
+        ]
+      }
+    },
+    {
+      "path": "apps/game-client/assets/resources/village/reference-npcs-v1.png",
+      "initial_prompt": "Use case: style-transfer / background-extraction. Edit source and style reference: attached village design. Create a genuinely transparent RGBA character sprite atlas, exactly FOUR equal columns and TWO equal rows, 2048x1024 wide if possible. Eight individual sprites, each fully isolated with at least 12 percent TRANSPARENT margin on EVERY side inside its equal cell; no subject can touch or cross cell boundaries. Match the reference's friendly Vietnamese children's-book hand-painted chibi characters, generous round expressive faces, dark brown hair, warm sunlight, soft brushwork and gentle outlines; NOT realistic and NOT 3D. Row-major subjects: row 1 cell 0: Ong Do, the white-bearded elderly scholar in dark blue ao dai and black round cap holding an open ochre book, cell 1: the smiling elderly farmer in a straw conical hat, blue jacket over cream shirt and brown trousers, cell 2: Co Tam, the young woman in green blouse and pink long skirt holding a round bamboo basket, cell 3: Ba Ban Hang, the friendly market woman with black hair and pink head scarf and purple-pink clothes holding a basket of fruit. Row 2 cell 4: Ti and Na, TWO cheerful young Vietnamese children together, one boy orange shirt and one girl green-yellow blouse, cell 5: Co Giao Lan, a friendly female teacher in light pink ao dai holding a book, cell 6: a friendly male pottery artisan in simple ochre traditional clothes holding a ceramic pot, cell 7: Chi Hang and Chu Cuoi, a woman in lilac traditional dress with a moon hair ornament and a boy in blue and ochre clothing standing together. Every subject full body standing with feet near its own cell's bottom baseline, facing slightly toward camera. No scenery, no terrain, no buildings, no letters, no captions, no speech bubbles, no UI, no square backdrops. Preserve the reference identities, costume colors and illustration language. Maintain exactly 4x2 equal cells with generous invisible gaps.",
+      "final_prompt": "Edit ONLY the placement and scale of the eight existing character sprites. Preserve every identity, pose, face, costume, colors and exact hand-painted illustration style. Correct the sheet into EXACTLY four equal columns and two equal rows, eight cells on a 2:1 canvas. Scale every existing sprite down to fit completely inside its own equal cell, with a minimum of 15 percent actual transparent empty margin on all FOUR sides. Especially the two children in the bottom-left cell must fit INSIDE that cell including BOTH children's hands and feet; the tips of their fingers must not reach the next cell. Preserve row-major order: scholar, farmer, Co Tam, market lady / two children, teacher, potter, moon lady and boy. Keep both pairs as pairs. All sprites complete head to feet, same consistent relative scale and common virtual floor baseline within every cell. Transparent background. Do not add text, frames, UI, scenery, new poses or new characters. This is only a strict atlas-layout correction; preserve the existing art.",
+      "source": "exec-3ff14ae9-3294-444a-b0eb-52f7cf58777a.png",
+      "layout": {
+        "columns": 4,
+        "row_cuts": [
+          0.5073280721533259
+        ]
+      }
+    },
+    {
+      "path": "apps/game-client/assets/resources/village/reference-child-v1.png",
+      "prompt": "Use case: style-transfer. Image 1 is the EDIT TARGET: a transparent 8-column by 3-row animation sprite sheet. Image 2 is the STYLE AND CHARACTER reference: the village design. Redraw ONLY the boy in all 24 existing frames to match Be An in the design: round expressive dark brown eyes, soft brown-black swept hair, cheerful Vietnamese child, RED T-shirt with one YELLOW FIVE-POINT STAR centered on the chest, dark navy shorts, simple white sneakers with red accents. Exact warm soft hand-painted children's-book chibi illustration style of the design, no realistic rendering, no glossy 3D. Preserve the original sheet's EXACT grid, EIGHT columns and THREE rows, all equal cells, same framing, full bodies, consistent scale and floor baseline in every cell. Directions in columns from left to right must remain: facing RIGHT/EAST, back-right/NORTHEAST, BACK/NORTH, back-left/NORTHWEST, LEFT/WEST, front-left/SOUTHWEST, FRONT/SOUTH, front-right/SOUTHEAST. Row 1 = standing idle, row 2 = walking left foot forward, row 3 = walking right foot forward. Back-facing frames have NO visible face or chest star. Each boy isolated with actual transparent space between cells, clear 10% margins, no clipping and no overlapping frames. Keep transparency and 8x3 layout, no extra frames, no text, no scenery, no shadows that cross cells. Preserve the boy's identity across all directions and poses.",
+      "source": "exec-b2e86800-eea5-483b-91c1-d37a4b225a81.png",
+      "layout": {
+        "columns": 8,
+        "animation_rows": [
+          [
+            0.030439684329199548,
+            0.31905298759864714
+          ],
+          [
+            0.34498308906426156,
+            0.31905298759864714
+          ],
+          [
+            0.657271702367531,
+            0.31905298759864714
+          ]
+        ]
+      }
+    },
+    {
+      "path": "apps/game-client/assets/resources/village/reference-banyan-v1.png",
+      "final_prompt": "Use case: background-extraction / precise-object-edit. Image 1 is the edit target: the transparent 4x3 village props atlas. Extract and redraw ONLY the banyan tree from the SECOND cell of its TOP row as one large, high-detail standalone transparent sprite. Image 2 is the supporting original village style reference. Preserve this same tree's warm hand-painted children's-book style, its broad leafy golden-green crown, hanging aerial roots, twisted thick trunk, tiny red lanterns, stone steps, mossy rocks and colorful flowers around the foot. Give the tree crisp brush detail at full image resolution; do not leave it small inside the canvas. The whole tree, including every branch and the entire stone-and-flower base, must fit in the image with about 8 percent transparent margin. Broad crown and substantial trunk, slightly elevated three-quarter perspective, warm sunlight upper left, rich green foliage. Transparent RGBA background, no other buildings or objects from the atlas, no people, no letters, no signboards, no UI, no ground diamond, no background forest, no checkerboard. Preserve the exact reference illustration language; NOT realistic, NOT 3D, no photoreal leaves. This standalone large sprite replaces an enlarged atlas crop, so sharpness and complete unclipped edges matter.",
+      "source": "exec-6dc1162c-81ad-4679-a810-0871d08b3797.png"
+    }
+  ]
+}

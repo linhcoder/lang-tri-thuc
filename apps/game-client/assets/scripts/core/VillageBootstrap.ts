@@ -1,8 +1,10 @@
 import { _decorator, Color, Component, director, EventKeyboard, EventTouch, game, Game, Graphics, input, Input, JsonAsset, resources, Label, Layers, Node, Sprite, sys, UITransform, Vec3, view } from 'cc';
 import { cameraOffset, inputAxis, Point, SIZE, terrain, tileAt, toWorld, VillageMap, storyNpcs, villageDetails, villageObjects } from '../world/VillageModel';
+import {referenceCameraFocus} from '../world/ReferenceCamera';
 import { AvatarGesture, AvatarGestureState, PlayerController, PlayerVisual } from '../player/PlayerController';
 import { FarmerNPC } from '../npc/FarmerNPC';
 import {CameraZoom} from '../player/CameraZoom';
+import {isAvatarGesture} from '../world/AvatarGestures';
 import { VillageArt } from '../world/VillageArt';
 import {sceneryPlacements} from '../world/VisualAssets';
 import { LearningProgress, riceBundles } from '../world/LearningProgress';
@@ -22,7 +24,8 @@ import {VillageHUD} from '../ui/VillageHUD';
 import {chapters} from '../world/CampaignContent';
 const { ccclass, disallowMultiple, requireComponent } = _decorator;
 const npcArt=[['co-tam','co-tam','CoTamSprite'],['co-giao-lan','teacher','TeacherSprite'],['ba-ban-hang','market-lady','MarketLadySprite'],['nghe-nhan-gom','potter','PotterSprite'],['ti-na','ti-na','FriendsSprite'],['chi-hang-cuoi','hang-cuoi','FestivalSprite']] as const;
-const actorScale=0.65;
+const actorScale=0.78;
+function scenerySprite(node:Node):Sprite|null{return node.getComponent(Sprite)??node.getChildByName('RegionalArt')?.getComponent(Sprite)??null;}
 function ui(parent: Node, name: string, width = 1, height = 1): Node {
     const n = new Node(name); n.layer = Layers.Enum.UI_2D; parent.addChild(n);
     n.addComponent(UITransform).setContentSize(width, height); return n;
@@ -46,15 +49,22 @@ function drawAccessory(g:Graphics,id:number,direction:number,row:number):void {
 }
 function animateGesture(state:AvatarGestureState,sprite:Sprite,scarf:Graphics,g:Graphics,dt:number,moving:boolean):void {
     state.step(dt,moving);const jump=state.jump;
-    sprite.node.setPosition(0,-7+jump);scarf.node.setPosition(0,jump);g.clear();
-    if(state.kind==='hello'){
-        const x=32+Math.sin(state.elapsed*18)*5,y=68+Math.cos(state.elapsed*18)*3;
+    const seated=state.kind==='sit',sway=state.kind==='wave'?Math.sin(state.elapsed*15)*4:state.kind==='sad'?-4:0;
+    sprite.node.setPosition(0,(seated?-13:-7)+jump);scarf.node.setPosition(0,(seated?-6:0)+jump);sprite.node.setScale(1,seated?.76:1,1);scarf.node.setScale(1,seated?.76:1,1);sprite.node.angle=scarf.node.angle=sway;g.clear();
+    if(state.kind==='hello'||state.kind==='wave'){
+        const x=32+Math.sin(state.elapsed*18)*(state.kind==='wave'?11:5),y=68+Math.cos(state.elapsed*18)*3;
         g.fillColor=new Color(250,207,163);g.roundRect(x-6,y-7,12,14,4);g.fill();
         for(let i=0;i<4;i++){g.roundRect(x-6+i*3,y+3,2.5,9,1);g.fill();}
         g.roundRect(x-10,y-3,5,3,1);g.fill();
     }else if(state.kind==='happy'){
         g.fillColor=new Color(255,210,65);
         for(const x of [-32,32]){g.circle(x,92+jump,3+Math.sin(state.elapsed*12));g.fill();}
+    }else if(state.kind==='sad'){
+        g.fillColor=new Color(111,202,239);for(const x of [-11,11]){const y=81-(state.elapsed*38)%28;g.moveTo(x,y+5);g.quadraticCurveTo(x-6,y-3,x,y-5);g.quadraticCurveTo(x+6,y-3,x,y+5);g.close();g.fill();}
+    }else if(state.kind==='sit'){
+        g.fillColor=new Color(77,66,47,85);g.ellipse(0,-6,28,8);g.fill();g.strokeColor=new Color(255,239,185);g.lineWidth=2;g.moveTo(-19,0);g.lineTo(19,0);g.stroke();
+    }else if(state.kind==='jump'){
+        g.fillColor=new Color(64,64,45,75);g.ellipse(0,-6,Math.max(10,22-jump*.25),6);g.fill();g.strokeColor=new Color(255,241,186);g.lineWidth=2;for(const x of [-24,24]){g.moveTo(x,8+jump*.3);g.lineTo(x,22+jump*.6);g.stroke();}
     }
 }
 @ccclass('VillageBootstrap')
@@ -62,6 +72,7 @@ function animateGesture(state:AvatarGestureState,sprite:Sprite,scarf:Graphics,g:
 @requireComponent(UITransform)
 export class VillageBootstrap extends Component {
     private map = new VillageMap();
+    private desktopJoystick=true;
     private root!: Node;
     private world!: Node;
     private actors!: Node;
@@ -152,7 +163,7 @@ export class VillageBootstrap extends Component {
             this.hub=new VillageHub(this.root,this.actors,new CampaignSave(sys.localStorage,'lang-tri-thuc.campaign.v1'+this.profileScope),this.chapterSave!,this.player,()=>this.resetInput(),p=>this.showDestination(p));
             this.hub.onPortal=id=>{const p=portalDestination(this.player.position,id);if(p){this.resetInput();this.player.position=p;}};
             this.chapter.onCampaignRequested=()=>this.hub?.open('chapter',1);this.chapter.canRead=()=>!!this.hub?.campaign.data.sound;
-            this.journalButton=ui(this.root,'OpenJournal',110,58);const j=this.journalButton.addComponent(Graphics);j.fillColor=new Color(235,235,187);j.roundRect(-55,-29,110,58,10);j.fill();label(this.journalButton,'Sổ làng',105,55,19);
+            this.journalButton=ui(this.root,'OpenJournal',110,58);const j=this.journalButton.addComponent(Graphics);j.fillColor=new Color(235,235,187);j.roundRect(-55,-29,110,58,10);j.fill();label(this.journalButton,'Nhiệm vụ',105,55,19);
             this.parentButton=ui(this.root,'OpenParent',110,58);const p=this.parentButton.addComponent(Graphics);p.fillColor=new Color(235,235,187);p.roundRect(-55,-29,110,58,10);p.fill();label(this.parentButton,'Người lớn',105,55,19);
             this.journalButton.active=this.parentButton.active=!this.modalActive;
         }
@@ -171,22 +182,23 @@ export class VillageBootstrap extends Component {
                 const old=this.terrainChunks.find(chunk=>chunk.node.name===`Terrain-${cx}-${cy}`);if(old){old.node.active=false;old.node.destroy();old.node=node;}
                 node.setSiblingIndex(0);
             }}
+            this.art.meadowBackdrop(this.world);
             for(const child of [...this.player.node.children])if(child!==this.arrow)child.destroy();
             const body=ui(this.player.node,'ActorBody');body.setScale(actorScale,actorScale,1);this.playerVisual=undefined;this.childSprite=this.art.sprite(body,'ChildSprite',this.art.child[6],90,110).getComponent(Sprite)!;this.accessoryGraphic=ui(body,'Scarf').addComponent(Graphics);this.gestureGraphic=ui(body,'Gesture').addComponent(Graphics);
             this.childSprite.node.setPosition(0,-7);
-            if(this.hub){this.hub.onGesture=id=>{if(this.networkStarted&&this.network.privateMode&&!this.network.offlineMode){this.network.emote(id);}else this.gesture.start(id);};this.network.onEmote=(sessionId,id)=>{if(id!=='hello'&&id!=='happy')return;const state=sessionId===this.network.room?.sessionId?this.gesture:this.remoteActors.get(sessionId)?.gesture;state?.start(id as AvatarGesture);};this.hub.onAvatarPreview=(parent,id,hair=this.hub?.campaign.data.hair??0)=>{const n=this.art.sprite(parent,'AvatarPreview',this.art.avatarFrame(id,0,6,hair),55,70);n.setPosition(-100,-35);void Promise.all([this.art.ensureAvatar(id),hair===1?this.art.ensureHair(id):Promise.resolve()]).then(()=>{if(n.isValid)n.getComponent(Sprite)!.spriteFrame=this.art.avatarFrame(id,0,6,hair);});};this.hub.applyServerProgress();}
-            this.farmer.node.getComponent(Graphics)!.clear();const farmerSprite=this.art.sprite(this.farmer.node,'FarmerSprite',this.art.environment[6],130,145);farmerSprite.setPosition(0,-5);farmerSprite.setScale(actorScale,actorScale,1);
+            if(this.hub){this.hub.onGesture=id=>{if(this.networkStarted&&this.network.privateMode&&!this.network.offlineMode){this.network.emote(id);}else this.gesture.start(id);};this.network.onEmote=(sessionId,id)=>{if(!isAvatarGesture(id))return;const state=sessionId===this.network.room?.sessionId?this.gesture:this.remoteActors.get(sessionId)?.gesture;state?.start(id as AvatarGesture);};this.hub.onAvatarPreview=(parent,id,hair=this.hub?.campaign.data.hair??0)=>{const n=this.art.sprite(parent,'AvatarPreview',this.art.avatarFrame(id,0,6,hair),55,70);n.setPosition(-100,-35);void Promise.all([this.art.ensureAvatar(id),hair===1?this.art.ensureHair(id):Promise.resolve()]).then(()=>{if(n.isValid)n.getComponent(Sprite)!.spriteFrame=this.art.avatarFrame(id,0,6,hair);});};this.hub.applyServerProgress();}
+            this.farmer.node.getComponent(Graphics)!.clear();const farmerFrame=this.art.environment[6],farmerSprite=this.art.sprite(this.farmer.node,'FarmerSprite',farmerFrame,145*farmerFrame.rect.width/farmerFrame.rect.height,145);farmerSprite.setPosition(0,-5);farmerSprite.setScale(actorScale,actorScale,1);
             this.farmer.node.getChildByName('FarmerName')!.setPosition(0,104);this.npcHitHeight=110;
             const elderFrame=this.art.decorations.elder;
             if(this.chapter&&elderFrame){
                 const elder=this.chapter.elder,body=this.art.sprite(elder,'ElderSprite',elderFrame,140*elderFrame.rect.width/elderFrame.rect.height,140);body.setPosition(0,-5);body.setScale(actorScale,actorScale,1);elder.getComponent(Graphics)!.clear();const name=elder.getChildByName('Text');if(name){name.setPosition(0,104);const l=name.getComponent(Label)!;l.fontSize=18;l.lineHeight=24;}
             }
             const lotus=this.art.decorations.lotus;
-            if(lotus)for(const [i,tile] of [{x:2,y:21},{x:4,y:25},{x:1,y:24}].entries()){
+            if(lotus)for(const [i,tile] of [{x:14,y:29},{x:15,y:30},{x:12,y:29},{x:11,y:30},{x:14,y:24},{x:12,y:26},{x:7,y:25}].entries()){
                 const node=this.art.sprite(this.actors,`PondLotus-${i}`,lotus,100,100),p=toWorld(tile);
                 node.getComponent(UITransform)!.setAnchorPoint(0.5,0.5);node.setPosition(p.x,p.y);
             }
-            for(const object of villageDetails){const frame=this.art.details[object.frame];if(!frame)continue;const node=this.art.sprite(this.actors,'Detail-'+object.id,frame,object.width,object.height),p=toWorld(object);node.setPosition(p.x,p.y);if(object.id==='bridge'){node.getComponent(UITransform)!.setAnchorPoint(.5,.5);node.setParent(this.world);node.setSiblingIndex(this.actors.getSiblingIndex());}this.sceneryNodes.push(node);}
+            for(const object of villageDetails){const frame=this.art.detailFrame(object.id,object.frame);if(!frame)continue;const node=this.art.sprite(this.actors,'Detail-'+object.id,frame,object.width,object.height),p=toWorld(object);node.setPosition(p.x,p.y);if(object.id.startsWith('bridge')){node.getComponent(UITransform)!.setAnchorPoint(.5,.5);node.setParent(this.world);node.setSiblingIndex(this.actors.getSiblingIndex());}this.sceneryNodes.push(node);}
             for(const object of villageObjects){let node:Node;const objectFrame=this.art.objectFrame(object.id,object.frame);if(objectFrame)node=this.art.sprite(this.actors,object.id,objectFrame,object.width,object.height);else{node=ui(this.actors,object.id,object.width,object.height);node.getComponent(UITransform)!.setAnchorPoint(.5,0);const g=node.addComponent(Graphics);g.fillColor=new Color(139,161,102,150);g.ellipse(0,10,object.width*.3,15);g.fill();this.regionalScenery.push({node,id:object.id,frame:object.frame,pending:false});}const p=toWorld(object);node.setPosition(p.x,p.y);this.sceneryNodes.push(node);}
             if(this.demo)await this.art.ensureEnvironment(4);
             for(let i=0;this.demo&&i<riceBundles.length;i++){
@@ -196,7 +208,7 @@ export class VillageBootstrap extends Component {
                 label(node,'Thu hoạch',100,25,16).setPosition(0,80);node.active=this.learning.data.collected.indexOf(i)<0;this.bundleNodes.push(node);
             }
             this.nameplates=new VillageNameplates(this.world,this.actors);
-            if(this.hub){this.hud=new VillageHUD(this.root,mode=>this.hub?.open(mode),()=>this.interactNearest());this.header.active=false;this.networkBadge!.node.active=false;this.status.node.active=false;}
+            if(this.hub){this.hud=new VillageHUD(this.root,mode=>this.hub?.open(mode),()=>this.interactNearest(),id=>{this.resetInput();this.player.cancel();this.hub?.onGesture?.(id);},()=>{this.desktopJoystick=!this.desktopJoystick;this.releaseStick();},()=>this.navigateQuest());this.header.active=false;this.networkBadge!.node.active=false;this.status.node.active=false;}
             this.assetsReady=true;if(this.loadingPanel)this.loadingPanel.active=false;
             if(sys.isBrowser){const requested=new URLSearchParams(window.location.search).get('server');
                 if(requested){let endpoint:URL;try{endpoint=new URL(requested);}catch{throw new Error('Địa chỉ server không hợp lệ');}
@@ -273,7 +285,7 @@ export class VillageBootstrap extends Component {
             this.lastPixelScale = pixelScale;
             // Keep mobile HUD dimensions in CSS pixels despite a 1280px design Canvas.
             const uiScale = sys.isMobile ? Math.max(1, 1 / pixelScale) : 1;
-            this.baseWorldScale = sys.isMobile ? uiScale * 0.8 : 1;
+            this.baseWorldScale = sys.isMobile ? uiScale * 0.8 : Math.max(1,Math.min(size.width/1440,size.height/810));
             this.zoomButtons.forEach((button,i)=>{button.setScale(uiScale,uiScale,1);button.setPosition(size.width/2-(168-i*64)*uiScale,size.height/uiScale<500?-10*uiScale:size.height/2-225*uiScale);});
             this.backdrop.clear(); this.backdrop.fillColor = new Color(193, 218, 179);
             this.backdrop.rect(-size.width / 2, -size.height / 2, size.width, size.height); this.backdrop.fill();
@@ -304,16 +316,26 @@ export class VillageBootstrap extends Component {
         this.player.step(dt);
         this.chapter?.step();
         this.hub?.step(dt);
-        if(this.hud&&this.hub){const scale=sys.isMobile?Math.max(1,1/pixelScale):1;this.hud.resize(size.width,size.height,scale);const data=this.hub.campaign.data;this.hud.step({stars:this.hub.campaign.stars,completed:data.completed.length,total:chapters.reduce((sum,c)=>sum+c.quests.length,0),practice:data.practice.length,objective:this.objective,avatar:this.art.avatarFrame(data.avatar,0,6,data.hair),player:this.player.position},!this.modalActive&&!this.loadingPanel?.active);
+        if(this.hud&&this.hub){const scale=sys.isMobile?Math.max(1,1/pixelScale):1;this.hud.resize(size.width,size.height,scale);const data=this.hub.campaign.data;const chapterIndex=chapters.findIndex(c=>!data.receipts.includes('reward.star.'+c.id)),currentChapter=chapters[chapterIndex<0?chapters.length-1:chapterIndex];this.hud.step({stars:this.hub.campaign.stars,completed:data.completed.length,total:chapters.reduce((sum,c)=>sum+c.quests.length,0),practice:data.practice.length,objective:this.objective,chapterTitle:`Ch\u01b0\u01a1ng ${chapterIndex<0?8:chapterIndex+1} - ${currentChapter.title}`,quests:currentChapter.quests.map(q=>({title:q.title,done:data.completed.includes(q.id)})),avatar:this.art.avatarFrame(data.avatar,0,6,data.hair),player:this.player.position},!this.modalActive&&!this.loadingPanel?.active);
             this.header.active=false;this.networkBadge!.node.active=false;this.status.node.active=this.statusRemaining>0&&!this.modalActive;
-            if(this.status.node.active){const portraitNotice=size.width/scale<600;this.status.node.setPosition(portraitNotice?-size.width/2+105*scale:0,-size.height/2+(portraitNotice?210:115)*scale);this.status.node.getComponent(UITransform)!.setContentSize(portraitNotice?180:320,48);this.status.fontSize=14;this.status.lineHeight=20;}
+            if(this.status.node.active){const portraitNotice=size.width/scale<600;this.status.node.setPosition(portraitNotice?-size.width/2+105*scale:((size.width/scale<900||size.height/scale<600)?50*scale:0),-size.height/2+(portraitNotice?210:115)*scale);this.status.node.getComponent(UITransform)!.setContentSize(portraitNotice?180:320,48);this.status.fontSize=14;this.status.lineHeight=20;}
             this.hud.skinControls();
+            this.joystick.active=!this.modalActive&&(sys.isMobile||this.desktopJoystick&&size.width/scale>=900&&size.height/scale>=600);if(!sys.isMobile){this.joystick.setScale(scale*.65,scale*.65,1);this.joystick.setPosition(size.width/2-170*scale,-size.height/2+75*scale);}
             const narrow=size.width/scale<360,controlScale=scale*(narrow?.8:1),edge=narrow?55:65;
+            for(const button of [this.journalButton,this.parentButton])button?.getComponent(UITransform)!.setContentSize(110,58);this.questButton?.getComponent(UITransform)!.setContentSize(sys.isMobile?140:200,58);
             this.journalButton?.setScale(controlScale,controlScale,1);this.parentButton?.setScale(controlScale,controlScale,1);this.questButton?.setScale(controlScale,controlScale,1);
             this.journalButton?.setPosition(-size.width/2+edge*scale,size.height/2-178*scale);this.parentButton?.setPosition(size.width/2-edge*scale,size.height/2-178*scale);this.questButton?.setPosition(0,size.height/2-178*scale);
+            const desktop=size.width/scale>=900&&size.height/scale>=600;if(desktop){
+                for(const button of [this.journalButton,this.parentButton])button?.getComponent(UITransform)!.setContentSize(64,48);
+                this.journalButton?.setPosition(-size.width/2+42*scale,size.height/2-106*scale);if(this.parentButton)this.parentButton.active=false;if(this.questButton)this.questButton.active=false;
+                this.parentButton?.setPosition(-size.width/2+428*scale,size.height/2-112*scale);
+                this.questButton?.getComponent(UITransform)!.setContentSize(200,36);this.questButton?.setPosition(-size.width/2+129*scale,size.height/2-390*scale);
+            }
             const portrait=size.width/scale<600;this.zoomButtons.forEach((button,i)=>button.setPosition(size.width/2-(portrait?38:168-i*64)*scale,size.height/2-(portrait?248+i*56:245)*scale));
+            this.zoomButtons.forEach((button,i)=>{button.setSiblingIndex(this.root.children.length-1);button.getComponent(UITransform)!.setContentSize(desktop?24:56,desktop?24:48);if(desktop)button.setPosition(size.width/2-24*scale,size.height/2-(46+i*28)*scale);const caption=button.children[0].getComponent(Label)!;caption.node.getComponent(UITransform)!.setContentSize(desktop?22:52,desktop?22:46);caption.fontSize=desktop?18:i===1?16:26;});
+            if(desktop&&this.zoomLabel)this.zoomLabel.string='⌖';
         }
-        if(this.hub&&this.assetsReady){const home=this.hub.campaign.data.home,house=this.actors.getChildByName('house')?.getComponent(Sprite);if(home!==this.homeStyle&&house){this.homeStyle=home;house.color=[new Color(255,255,255),new Color(175,235,205),new Color(225,190,255),new Color(255,240,150)][home];}
+        if(this.hub&&this.assetsReady){const home=this.hub.campaign.data.home,houseNode=this.actors.getChildByName('house'),house=houseNode?scenerySprite(houseNode):null;if(home!==this.homeStyle&&house){this.homeStyle=home;house.color=[new Color(255,255,255),new Color(175,235,205),new Color(225,190,255),new Color(255,240,150)][home];}
             const stars=this.hub.campaign.stars;if(stars!==this.starCount){this.starCount=stars;if(!this.treeLights){const n=ui(this.world,'BanyanLights'),p=toWorld(villageObjects.find(o=>o.id==='banyan')!);n.setPosition(p.x,p.y+280);this.treeLights=n.addComponent(Graphics);}const g=this.treeLights;g.clear();for(let i=0;i<8;i++){g.fillColor=i<stars?new Color(255,228,100):new Color(110,135,100);g.circle(Math.cos(i*Math.PI/4)*60,Math.sin(i*Math.PI/4)*35,7);g.fill();}}}
 
         if(this.hub&&this.qualityStyle!==this.hub.campaign.data.quality){this.qualityStyle=this.hub.campaign.data.quality;const pipeline=director.root?.pipeline;if(pipeline)pipeline.shadingScale=this.qualityStyle==='low'?0.75:this.qualityStyle==='medium'?0.9:1;}
@@ -335,22 +357,22 @@ export class VillageBootstrap extends Component {
         const cameraWidth = size.width / this.worldScale, cameraHeight = size.height / this.worldScale;
         // Reserve the top HUD area: put the player below center so nearby NPC heads stay visible.
         const hudScale=sys.isMobile?Math.max(1,1/pixelScale):1;
-        const focus={x:this.player.position.x,y:this.player.position.y+160*hudScale/this.worldScale};
+        const focus=referenceCameraFocus(this.player.position,cameraWidth,cameraHeight,sys.isMobile||size.width<900||size.height<600,(sys.isMobile?160:45)*hudScale/this.worldScale);
         const camera = cameraOffset(focus, cameraWidth, cameraHeight); this.world.setPosition(camera.x * this.worldScale, camera.y * this.worldScale);
         if(this.assetsReady)for(const [id,asset,name] of npcArt){
             const node=this.hub?.npcNodes.find(n=>n.name===id);if(!node||this.npcDecorated.has(id)||Math.abs(node.position.x+camera.x)>cameraWidth/2+150||Math.abs(node.position.y+camera.y)>cameraHeight/2+150)continue;
             this.npcDecorated.add(id);void this.art.ensureDecoration(asset).then(()=>{
                 const frame=this.art.decorations[asset];if(!this.isValid||!node.isValid||!frame)return;
-                const width=125*frame.rect.width/frame.rect.height,body=this.art.sprite(node,name,frame,width,125);body.setPosition(0,-5);body.setScale(actorScale,actorScale,1);node.getComponent(Graphics)!.clear();node.getComponent(UITransform)!.setContentSize(Math.max(96,width),110);node.getChildByName('Text')?.setPosition(0,95);
+                const height=id==='ti-na'?90:id==='ba-ban-hang'?105:140,width=height*frame.rect.width/frame.rect.height,body=this.art.sprite(node,name,frame,width,height);body.setPosition(0,-5);body.setScale(actorScale,actorScale,1);node.getComponent(Graphics)!.clear();node.getComponent(UITransform)!.setContentSize(Math.max(96,width),110);node.getChildByName('Text')?.setPosition(0,95);
             });
         }
         if(this.assetsReady&&!this.sceneryPending&&sceneryPlacements().some(item=>{const p=toWorld(item);return Math.abs(p.x+camera.x)<cameraWidth/2+250&&Math.abs(p.y+camera.y)<cameraHeight/2+250;})){
-            this.sceneryPending=true;void this.art.ensureScenery().then(()=>{if(!this.isValid)return;for(const item of sceneryPlacements()){const frame=this.art.scenery[item.cell];if(!frame)continue;const n=this.art.sprite(this.actors,'Scenery-'+item.id,frame,item.width,item.height),p=toWorld(item);n.setPosition(p.x,p.y);this.sceneryNodes.push(n);if(item.id.startsWith('sign-')){const titles:Record<string,string>={'sign-banyan':'Cây Đa Tri Thức','sign-courtyard':'Sân Đình','sign-well':'Giếng Làng','sign-market':'Chợ Quê','sign-home':'Nhà Của Bé','sign-rice':'Ruộng Lúa'};const sign=label(n,titles[item.id]??'',110,28,14);sign.setPosition(0,32);sign.getComponent(Label)!.color=new Color(255,244,205);}if(!item.essential)this.optionalScenery.add(n);}this.sceneryReady=this.art.scenery.length===10;});
+            this.sceneryPending=true;void this.art.ensureScenery().then(()=>{if(!this.isValid)return;for(const item of sceneryPlacements()){const frame=this.art.scenery[item.cell];if(!frame)continue;const n=this.art.sprite(this.actors,'Scenery-'+item.id,frame,item.width,item.height),p=toWorld(item);n.setPosition(p.x,p.y);this.sceneryNodes.push(n);if(item.id.startsWith('sign-')){n.setParent(this.world);n.setSiblingIndex(this.world.children.length-1);const titles:Record<string,string>={'sign-banyan':'Cây Đa Tri Thức','sign-courtyard':'Sân Đình','sign-well':'Giếng Làng','sign-market':'Chợ Quê','sign-home':'Nhà Của Bé','sign-rice':'Ruộng Lúa'};const sign=label(n,titles[item.id]??'',90,item.id==='sign-banyan'?45:24,item.id==='sign-banyan'?14:12);sign.setPosition(0,item.id==='sign-banyan'?36:23);if(item.id==='sign-banyan'){const words=(titles[item.id]??'').split(' ');sign.getComponent(Label)!.string=words.slice(0,2).join(' ')+'\n'+words.slice(2).join(' ');const pin=ui(n,'QuestPin',30,38),g=pin.addComponent(Graphics);pin.setPosition(0,87);g.fillColor=new Color(255,204,64);g.circle(0,0,13);g.fill();g.moveTo(-5,-9);g.lineTo(0,-22);g.lineTo(5,-9);g.close();g.fill();g.strokeColor=new Color(255,246,196);g.lineWidth=2;g.circle(0,0,13);g.stroke();label(pin,'!',22,25,20).getComponent(Label)!.color=new Color(70,48,25);}sign.getComponent(Label)!.color=new Color(255,244,205);}if(!item.essential)this.optionalScenery.add(n);}this.sceneryReady=this.art.scenery.length===10;});
         }
         for(const scenery of this.sceneryNodes){const bounds=scenery.getComponent(UITransform)!;scenery.active=(!this.optionalScenery.has(scenery)||this.hub?.campaign.data.quality!=='low')&&Math.abs(scenery.position.x+camera.x)<cameraWidth/2+bounds.width&&Math.abs(scenery.position.y+camera.y)<cameraHeight/2+bounds.height;}
         // Foliage/roofs fade when they would cover the local child's face. Collision is unchanged.
-        for(const scenery of this.sceneryNodes){const sprite=scenery.getComponent(Sprite);if(!sprite||scenery.parent!==this.actors)continue;const bounds=scenery.getComponent(UITransform)!,faceY=this.player.position.y+58,behind=this.player.position.y>scenery.position.y,covered=behind&&Math.abs(this.player.position.x-scenery.position.x)<bounds.width*.5&&faceY>scenery.position.y&&faceY<scenery.position.y+bounds.height,alpha=covered?92:255;if(sprite.color.a!==alpha){const color=sprite.color;sprite.color=new Color(color.r,color.g,color.b,alpha);}}
-        for(const item of this.regionalScenery)if(item.node.active&&!item.pending){item.pending=true;void this.art.ensureObject(item.id,item.frame).then(frame=>{if(!this.isValid||!item.node.isValid||!frame)return;item.node.getComponent(Graphics)?.clear();const sprite=item.node.addComponent(Sprite);sprite.sizeMode=Sprite.SizeMode.CUSTOM;sprite.spriteFrame=frame;});}
+        for(const scenery of this.sceneryNodes){const sprite=scenerySprite(scenery);if(!sprite||scenery.parent!==this.actors)continue;const bounds=scenery.getComponent(UITransform)!,faceY=this.player.position.y+58,behind=this.player.position.y>scenery.position.y,covered=behind&&Math.abs(this.player.position.x-scenery.position.x)<bounds.width*.5&&faceY>scenery.position.y&&faceY<scenery.position.y+bounds.height,alpha=covered?92:255;if(sprite.color.a!==alpha){const color=sprite.color;sprite.color=new Color(color.r,color.g,color.b,alpha);}}
+        for(const item of this.regionalScenery)if(item.node.active&&!item.pending){item.pending=true;void this.art.ensureObject(item.id,item.frame).then(frame=>{if(!this.isValid||!item.node.isValid||!frame)return;item.node.getComponent(Graphics)?.clear();const bounds=item.node.getComponent(UITransform)!;this.art.sprite(item.node,'RegionalArt',frame,bounds.width,bounds.height);});}
         for (const chunk of this.terrainChunks) {
             chunk.node.active = Math.abs(chunk.center.x + camera.x) < cameraWidth / 2 + 256
                 && Math.abs(chunk.center.y + camera.y) < cameraHeight / 2 + 128;
@@ -359,7 +381,7 @@ export class VillageBootstrap extends Component {
         else if(this.status.string!==this.objective)this.status.string=this.objective;
         const sorted=[...this.actors.children].sort((a,b)=>b.position.y-a.position.y);
         for(let i=0;i<sorted.length;i++)if(sorted[i].getSiblingIndex()!==i)sorted[i].setSiblingIndex(i);
-        this.nameplates?.step(this.player.position,this.modalActive);
+        this.nameplates?.step(this.player.position,this.modalActive,{left:-camera.x-cameraWidth/2,right:-camera.x+cameraWidth/2,bottom:-camera.y-cameraHeight/2+75/this.worldScale,top:-camera.y+cameraHeight/2});
         if (this.lastDirection !== this.player.direction) {
             this.lastDirection = this.player.direction; const angle = this.lastDirection * Math.PI / 4, g = this.arrow.getComponent(Graphics)!;
             g.clear(); g.fillColor = new Color(255, 255, 245); const x = Math.cos(angle), y = Math.sin(angle);
@@ -390,16 +412,17 @@ export class VillageBootstrap extends Component {
             const d = this.local(p, this.dialog); if (Math.abs(d.x) <= 310 && Math.abs(d.y) <= 170) this.dialog.active = false;
             return;
         }
-        if(this.hud?.handle(p))return;
         const zoomControl=this.zoomControl(p);if(zoomControl){this.changeZoom(zoomControl.name==='ZoomReset'?1:this.zoom.value*(zoomControl.name==='ZoomIn'?1.2:1/1.2));return;}
-        for(const [button,mode] of [[this.journalButton,'journal'],[this.parentButton,'gate']] as const)if(button){const local=this.local(p,button);if(Math.abs(local.x)<=55&&Math.abs(local.y)<=29){this.hub?.open(mode);return;}}
-        if(this.questButton){const local=this.local(p,this.questButton);if(Math.abs(local.x)<=this.questButton.getComponent(UITransform)!.width/2&&Math.abs(local.y)<=29){
+        if(this.hud?.handle(p))return;
+        for(const [button,mode] of [[this.journalButton,'journal'],[this.parentButton,'gate']] as const)if(button?.activeInHierarchy){const local=this.local(p,button),bounds=button.getComponent(UITransform)!;if(Math.abs(local.x)<=bounds.width/2&&Math.abs(local.y)<=bounds.height/2){this.hub?.open(mode);return;}}
+        if(this.questButton?.activeInHierarchy){const local=this.local(p,this.questButton),bounds=this.questButton.getComponent(UITransform)!;if(Math.abs(local.x)<=bounds.width/2&&Math.abs(local.y)<=bounds.height/2){
             if(this.chapter?.navigateObjective()){this.keys.clear();this.releaseStick();this.pendingNpc=false;this.pendingBundle=null;}return;
         }}
         if(this.isHeader(p))return;
         this.selectWorld(this.local(p,this.world));
     }
     private selectWorld(world:Point):void{
+        world=this.nameplates?.target(world)??world;
         const npc = this.farmer.node.position,minHalfWidth=22/(this.worldScale*view.getScaleX()/view.getDevicePixelRatio());
         const hubTarget=this.hub?.select(world,minHalfWidth);if(hubTarget){if(hubTarget==='accepted'){this.chapter?.cancel();this.pendingNpc=false;this.pendingBundle=null;}return;}
         const chapterTarget=this.chapter?.select(world,minHalfWidth);
@@ -430,8 +453,9 @@ export class VillageBootstrap extends Component {
         return Math.abs(local.x)<=width/2&&Math.abs(local.y)<=48;
     }
     private tapThreshold():number { return 15*view.getDevicePixelRatio()/view.getScaleX(); }
-    private zoomControl(p:Point):Node|undefined{return this.zoomButtons.find(n=>{if(!n.active)return false;const point=this.local(p,n);return Math.abs(point.x)<=28&&Math.abs(point.y)<=24;});}
+    private zoomControl(p:Point):Node|undefined{return this.zoomButtons.find(n=>{if(!n.activeInHierarchy)return false;const point=this.local(p,n),t=n.getComponent(UITransform)!;return Math.abs(point.x)<=t.width/2&&Math.abs(point.y)<=t.height/2;});}
     private isHudControl(p:Point):boolean{return !!this.hud?.hit(p)||!!this.zoomControl(p)||[this.questButton,this.journalButton,this.parentButton].some(n=>{if(!n?.active)return false;const point=this.local(p,n),size=n.getComponent(UITransform)!;return Math.abs(point.x)<=size.width/2&&Math.abs(point.y)<=size.height/2;});}
+    private navigateQuest():void{if(this.chapter?.navigateObjective()){this.keys.clear();this.releaseStick();this.pendingNpc=false;this.pendingBundle=null;}}
     private interactNearest():void{const targets=[this.farmer.node,...(this.chapter?[this.chapter.elder]:[]),...(this.hub?.npcNodes??[])].sort((a,b)=>Math.hypot(a.position.x-this.player.position.x,a.position.y-this.player.position.y)-Math.hypot(b.position.x-this.player.position.x,b.position.y-this.player.position.y));const n=targets[0];if(n&&Math.hypot(n.position.x-this.player.position.x,n.position.y-this.player.position.y)<100)this.selectWorld({x:n.position.x,y:n.position.y+60});else this.chapter?.navigateObjective();}
     private changeZoom(value:number):void{this.zoom.set(value);this.zoomSaveDelay=0.3;}
     private handleWheel=(event:WheelEvent):void=>{if(event.ctrlKey||this.modalActive||this.loadingPanel?.active||this.pinchIds||event.target!==game.canvas)return;event.preventDefault();this.changeZoom(this.zoom.wheel(event.deltaY));};

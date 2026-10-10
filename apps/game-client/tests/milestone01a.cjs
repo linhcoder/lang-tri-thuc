@@ -266,7 +266,7 @@ test('pause freezes time, invalid saved actions cannot forge results, NPC tiles 
     for(const npc of m.storyNpcs){assert.equal(map.walkable(npc.x,npc.y),false);assert.ok([[1,0],[-1,0],[0,1],[0,-1]].some(([x,y])=>map.path({x:20,y:20},{x:npc.x+x,y:npc.y+y}).length>0));}
 });
 test('world map pins are unique, walkable and reachable; edited chapter text cannot change IDs',()=>{
- const {validateZones,portalDestination}=load(path.join(scripts,'world/WorldZones.ts'));assert.equal(validateZones(),true);assert.deepEqual(portalDestination(m.toWorld({x:20,y:22}),'farm'),m.toWorld({x:13,y:15}));assert.equal(portalDestination({x:9999,y:9999},'farm'),null);assert.equal(portalDestination({x:0,y:-640},'unknown'),null);
+ const {validateZones,portalDestination}=load(path.join(scripts,'world/WorldZones.ts'));assert.equal(validateZones(),true);assert.deepEqual(portalDestination(m.toWorld({x:21,y:16}),'farm'),m.toWorld({x:29,y:21}));assert.equal(portalDestination({x:9999,y:9999},'farm'),null);assert.equal(portalDestination({x:0,y:-640},'unknown'),null);
  const {applyChapterText}=load(path.join(scripts,'world/ContentPack.ts'));const old=chapters[0].title;
  assert.equal(applyChapterText({version:1,chapters:[{id:'unknown',title:'x',intro:'x',ending:'x',questTitles:{}}]}),false);
  assert.equal(chapters[0].title,old);assert.equal(applyChapterText({version:1,chapters:[]}),true);
@@ -337,6 +337,9 @@ test('avatar gestures expire, cancel on movement and never advance on invalid ti
  for(let i=0;i<20;i++)g.step(.1,false);assert.equal(g.kind,null);assert.equal(g.jump,0);
  g.start('hello');g.step(.1,true);assert.equal(g.kind,null);
  g.start('happy');assert.equal(g.elapsed,0);
+ const {avatarGestures}=load(path.join(scripts,'world/AvatarGestures.ts'));
+ for(const {id} of avatarGestures){g.start(id);g.step(.1,false);assert.equal(g.kind,id);if(id==='jump')assert.ok(g.jump>12&&g.jump<=30);for(let i=0;i<20;i++)g.step(.1,false);assert.equal(g.kind,null);g.start(id);g.step(.1,true);assert.equal(g.kind,null);}
+ g.start('free-text');assert.equal(g.kind,null);
 });
 test('speech reading respects mute, unavailable engines and asynchronously loaded Vietnamese voices',()=>{
  const {SpeechReader}=load(path.join(scripts,'ui/SpeechReader.ts'));let calls=0,voices=[],spoken=[];
@@ -386,8 +389,9 @@ test('young-player rhythm windows are wider and old valid action traces remain r
 test('new composition has left pond, right rice, solid market and a traversable bridge',()=>{
  assert.ok(m.toWorld({x:3,y:23}).x<m.toWorld({x:20,y:20}).x);assert.equal(m.terrain(3,23),'pond');
  assert.ok(m.toWorld({x:29,y:16}).x>m.toWorld({x:20,y:20}).x);assert.equal(m.terrain(29,16),'rice');
- assert.equal(map.walkable(26,32),false);for(let x=1;x<=5;x++){assert.equal(map.walkable(x,23),true);assert.equal(map.walkable(x,22),false);}
+ assert.equal(map.walkable(23,29),false);for(let x=1;x<=5;x++){assert.equal(map.walkable(x,23),true);assert.equal(map.walkable(x,22),false);}
  const route=map.path({x:0,y:23},{x:6,y:23});assert.equal(route.length,6);assert.ok(route.every(p=>p.y===23));
+ const mainBridge=map.path({x:10,y:28},{x:16,y:28});assert.equal(mainBridge.length,6);assert.ok(mainBridge.every(p=>p.y===28));for(let x=11;x<=15;x++){assert.equal(map.walkable(x,28),true);assert.equal(map.walkable(x,27),false);}assert.equal(map.walkable(16,26),false);
  for(const npc of m.storyNpcs)assert.ok([{x:npc.x+1,y:npc.y},{x:npc.x-1,y:npc.y},{x:npc.x,y:npc.y+1},{x:npc.x,y:npc.y-1}].some(p=>map.path({x:20,y:20},p).length>0));
 });
 test('asset registry covers ten groups and every local source exists with usable metadata',()=>{
@@ -399,4 +403,16 @@ test('compatibility hash follows mission plots/navigation and ignores cosmetic d
  const {contentVersion}=load(path.join(scripts,'world/ContentVersion.ts')),original=contentVersion(),solid=m.villageSolids[0],radius=solid.radius,width=m.villageObjects[0].width,plotX=plantingPlots[0].x;
  try{solid.radius=0;assert.notEqual(contentVersion(),original);solid.radius=radius;m.villageObjects[0].width+=10;assert.equal(contentVersion(),original);plantingPlots[0].x+=1;assert.notEqual(contentVersion(),original);}finally{solid.radius=radius;m.villageObjects[0].width=width;plantingPlots[0].x=plotX;}
 });
+
+
+
+test('framed desktop camera holds the village composition, follows edge exits and keeps mobile following',()=>{
+ const {referenceCameraFocus}=load(path.join(scripts,'world/ReferenceCamera.ts'));
+ const start=referenceCameraFocus({x:0,y:-640},1280,720,false);
+ assert.deepEqual(referenceCameraFocus({x:200,y:-700},1280,720,false),start);
+ assert.ok(referenceCameraFocus({x:800,y:-640},1280,720,false).x>start.x);
+ assert.ok(referenceCameraFocus({x:0,y:-1100},1280,720,false).y<start.y);
+ assert.deepEqual(referenceCameraFocus({x:200,y:-700},390,844,true,160),{x:200,y:-540});
+});
+
 console.log(`${checks} test groups passed`);

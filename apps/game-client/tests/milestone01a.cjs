@@ -32,6 +32,20 @@ const map = new m.VillageMap();
 let checks = 0;
 function test(name, fn) { fn(); checks++; console.log('PASS', name); }
 function close(a,b) { assert.ok(Math.abs(a-b) < 1e-7, `${a} != ${b}`); }
+test('camera zoom clamps invalid values and pinch ratios use the initial distance without drift',()=>{
+    const {CameraZoom}=load(path.join(scripts,'player/CameraZoom.ts')),zoom=new CameraZoom();
+    assert.equal(zoom.set(NaN),1);assert.equal(zoom.set(Infinity),1);assert.equal(zoom.set(9),1.8);assert.equal(zoom.set(-9),.6);
+    zoom.set(1);assert.equal(zoom.beginPinch(0),false);assert.equal(zoom.beginPinch(100),true);assert.equal(zoom.pinch(150),1.5);assert.equal(zoom.pinch(120),1.2);zoom.endPinch();assert.equal(zoom.pinch(200),1.2);
+    assert.equal(zoom.wheel(NaN),1.2);zoom.wheel(1e9);assert.ok(zoom.value>=.6&&zoom.value<=1.8);
+});
+test('two-finger zoom cancels navigation and suppresses taps after release or blur',()=>{
+    const b=new VillageBootstrap();b.player=player({x:20,y:20});b.player.goTo({x:30,y:20});b.joystick={active:false};b.knob={setPosition(){}};b.dialog={active:false};b.local=p=>p;
+    let clicks=0;b.select=()=>clicks++;const event=(id,x,y)=>({getID:()=>id,getUILocation:()=>({x,y})});
+    b.touchStart(event(1,200,200));b.touchStart(event(2,300,200));assert.equal(b.player.hasPath,false);b.touchMove(event(2,400,200));assert.equal(b.zoom.value,1.8);
+    b.touchEnd(event(2,400,200));b.touchEnd(event(1,200,200));assert.equal(clicks,0);
+    b.touchStart(event(3,200,200));b.touchStart(event(4,300,200));b.resetInput();b.touchEnd(event(3,200,200));b.touchEnd(event(4,300,200));assert.equal(clicks,0);assert.equal(b.pinchIds,undefined);
+    b.touchStart(event(5,200,200));b.touchEnd(event(5,200,200));assert.equal(clicks,1);
+});
 test('private tab reload retains valid routing, discards expired tickets and preserves explicit solo scope',()=>{
     const {restoreJoinSession,saveSoloSession,JOIN_SESSION_KEY}=load(path.join(scripts,'network/JoinSession.ts'));
     const values=new Map(),storage={getItem:key=>values.get(key)??null,setItem:(key,value)=>values.set(key,value),removeItem:key=>values.delete(key)};

@@ -54,9 +54,9 @@ export class ChapterOneView {
         const g=this.star;g.clear();g.fillColor=this.progress.stars?new Color(255,219,78):new Color(136,155,110);
         for(let i=0;i<10;i++){const angle=Math.PI/2+i*Math.PI/5,r=i%2?12:28,x=Math.cos(angle)*r,y=Math.sin(angle)*r;if(i===0)g.moveTo(x,y);else g.lineTo(x,y);}g.close();g.fill();
     }
-    select(world:Point):'accepted'|'blocked'|null {
+    select(world:Point,minHalfWidth=38):'accepted'|'blocked'|null {
         const p=this.elder.position;
-        if(Math.abs(world.x-p.x)<=38&&world.y>=p.y-12&&world.y<=p.y+125){
+        if(Math.abs(world.x-p.x)<=Math.max(38,minHalfWidth)&&world.y>=p.y-12&&world.y<=p.y+125){
             return this.approach('elder',elderTile)?'accepted':'blocked';
         }
         const index=this.plots.findIndex(n=>Math.abs(world.x-n.position.x)<26&&Math.abs(world.y-n.position.y)<=12);

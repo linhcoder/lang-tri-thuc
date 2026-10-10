@@ -28,7 +28,7 @@ export const villageDetails=[
     {id:'hen',frame:4,x:13,y:18,width:48,height:55,blocked:true},
     {id:'duck',frame:5,x:30,y:14,width:50,height:48,blocked:false},
     {id:'garden',frame:6,x:27,y:27,width:150,height:95,blocked:true},
-    {id:'gate-arch',frame:7,x:20,y:26,width:180,height:145,blocked:false},
+    {id:'gate-arch',frame:7,x:17,y:25,width:180,height:145,blocked:false},
 ];
 export function toWorld(p: Point): Point { return { x: (p.x - p.y) * 32, y: -(p.x + p.y) * 16 }; }
 export function toGrid(p: Point): Point { return { x: p.x / 64 - p.y / 32, y: -p.x / 64 - p.y / 32 }; }

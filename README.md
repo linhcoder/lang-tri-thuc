@@ -1,5 +1,7 @@
 # Làng Tri Thức
 
+**Tỷ lệ và zoom:** người trong làng/online đã thu về 65% kích thước cũ, giữ tên và vùng chạm. Dùng **− / +**, bấm tỷ lệ để về **100%**, lăn chuột hoặc chụm/tách hai ngón trên cảnh; giới hạn **60–180%**. HUD giữ kích thước, zoom lưu theo trình duyệt. [Phần còn phát triển](docs/DEVELOPMENT_BACKLOG.md).
+
 **Staging aaPanel đã chạy:** [ltt.vui-hoc.xyz](https://ltt.vui-hoc.xyz/) (phụ huynh/admin), [game](https://ltt.vui-hoc.xyz/game/). Giao diện có mật khẩu preview; thông tin truy cập sinh riêng nằm trong file local ignored `temp/deploy/access.txt`. [Runbook aaPanel](deploy/aapanel/README.md). Đã kiểm tra HTTPS, signed WebSocket hai client, MySQL-compatible MariaDB, save/reload và backup/restore. Nội dung vẫn draft, chưa nghiệm thu beta công khai.
 ## Hoàn thiện ngày 10/10/2026
 

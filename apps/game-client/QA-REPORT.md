@@ -1,5 +1,19 @@
 # Kết quả nghiệm thu bản playable
 
+## Tỷ lệ nhân vật và zoom cảnh — 10/10/2026
+
+Avatar local/remote và NPC dùng phần hình 65% kích thước cũ; tên không bị thu theo phần hình, phụ kiện/gesture đi cùng body. Không đổi tọa độ/collision/speed. Cổng dời sang ô 17,25 để hết che Tí–Na; cổng vẫn là scenery không blocked. Vùng chạm NPC có mức tối thiểu theo zoom; hai điểm NPC cặp vẫn nhận click lệch tâm.
+
+Zoom cảnh 60–180% qua −/+, tỷ lệ/reset 100%, wheel và pinch. HUD/modal/joystick giữ kích thước CSS; nút zoom 56×48 CSS px ở mobile. Zoom lưu browser preference riêng, không ghi campaign/reward. Hai ngón hủy đường đi và không phát click sau end/cancel/blur; joystick và HUD không bị chiếm để pinch. Modal chặn zoom; resize hủy input đang dở và giữ mức zoom.
+
+- Strict client, 45 nhóm client + 3 network lifecycle và build Creator thật đạt. CameraZoom.meta do Creator import; scene/UUID giữ nguyên.
+- `test:zoom` đạt local **và HTTPS live**, desktop/mobile giả lập: wheel/button/pinch, clamp/reset, HUD cố định, click-to-move tại 60%, modal, reload preference, joystick ownership, portrait/landscape; không lỗi JS. Ảnh `temp/zoom-qa` đã xem trực tiếp.
+- `test:assets` đạt mọi NPC/ao/scenery/click cặp sau đổi tỷ lệ. `test:m2` đạt chương 1 desktop/mobile, save/reload/replay/legacy/future/recovery. Mẫu AMD 60,07 FPS, p95 17 ms, 75 draw calls, JS heap 75,34 MB; chưa suy ra máy yếu/mobile thật.
+- Live signed-room suite đạt hai client, cùng tỷ lệ body local/remote, tóc/khăn/emote, authoritative save, online reload và offline reload. API vẫn contentVersion 8f30f2cc; cập nhật frontend tương thích, DB/vé không đổi.
+- QA bắt được wheel bị handler Cocos chặn bubbling (đổi capture listener) và Babel loose biến spread Map thành concat thay vì iteration (đổi Array.from(entries)). Lượt pinch đầu timeout không tính là pass; sau sửa suite local/live đều đạt.
+
+Phần còn phát triển ghi riêng tại [DEVELOPMENT_BACKLOG](../../docs/DEVELOPMENT_BACKLOG.md). Đây vẫn là staging/prototype, còn biên tập và thiết bị thật trước beta.
+
 ## Staging aaPanel live — 10/10/2026
 
 Đã triển khai `https://ltt.vui-hoc.xyz/` và `/game/` trên Nginx/Node 24.16/MariaDB 10.11 có sẵn. Hai service user langtri bind loopback 33080/32580, systemd enabled, giữ nguyên root/cert aaPanel và các vhost khác. Health external TLS hợp lệ: storage mysql, contentVersion 8f30f2cc. UI anonymous 401, internal API 403; admin login và catalog 90/6/24 đạt; room development và private room không vé bị từ chối.

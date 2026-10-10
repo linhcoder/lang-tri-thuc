@@ -2,6 +2,7 @@ import { _decorator, Color, Component, director, EventKeyboard, EventTouch, game
 import { cameraOffset, inputAxis, Point, SIZE, terrain, tileAt, toWorld, VillageMap, storyNpcs, villageDetails, villageObjects } from '../world/VillageModel';
 import { AvatarGesture, AvatarGestureState, PlayerController, PlayerVisual } from '../player/PlayerController';
 import { FarmerNPC } from '../npc/FarmerNPC';
+import {CameraZoom} from '../player/CameraZoom';
 import { VillageArt } from '../world/VillageArt';
 import { LearningProgress, riceBundles } from '../world/LearningProgress';
 import { LearningPanel } from '../ui/LearningPanel';
@@ -17,6 +18,7 @@ import { portalDestination } from '../world/WorldZones';
 import { VillageHub } from '../ui/VillageHub';
 const { ccclass, disallowMultiple, requireComponent } = _decorator;
 const npcArt=[['co-tam','co-tam','CoTamSprite'],['co-giao-lan','teacher','TeacherSprite'],['ba-ban-hang','market-lady','MarketLadySprite'],['nghe-nhan-gom','potter','PotterSprite'],['ti-na','ti-na','FriendsSprite'],['chi-hang-cuoi','hang-cuoi','FestivalSprite']] as const;
+const actorScale=0.65;
 function ui(parent: Node, name: string, width = 1, height = 1): Node {
     const n = new Node(name); n.layer = Layers.Enum.UI_2D; parent.addChild(n);
     n.addComponent(UITransform).setContentSize(width, height); return n;
@@ -78,11 +80,12 @@ export class VillageBootstrap extends Component {
     private statusRemaining = 0;
     private terrainChunks: { node: Node; center: Point }[] = [];
     private worldScale = 1;
+    private baseWorldScale=1;private zoom=new CameraZoom();private zoomButtons:Node[]=[];private zoomLabel?:Label;private pinchIds?:[number,number];private zoomSaveDelay=0;
     private lastPixelScale = 0;
     private playerVisual?: PlayerVisual;
     private marker?: Node;
     private markerTime = 0;
-    private touches = new Map<number, { start: Point; dragged: boolean; blocked: boolean;hubDrag?:boolean }>();
+    private touches = new Map<number, { start: Point; current:Point; dragged: boolean; blocked: boolean;control?:boolean;hubDrag?:boolean }>();
     private art=new VillageArt();
     private childSprite?:Sprite;
     private gesture=new AvatarGestureState();private gestureGraphic?:Graphics;private spriteTime=0;private accessoryGraphic?:Graphics;
@@ -106,6 +109,7 @@ export class VillageBootstrap extends Component {
     private get objective():string{return this.hub?.objective??this.chapterSave?.progress.description??this.learning.description;}
     onLoad(): void {
         this.demo=sys.isBrowser&&new URLSearchParams(window.location.search).get('demo')==='1';
+        try{const saved=sys.localStorage.getItem('lang-tri-thuc.view-zoom.v1'),value=Number(saved);if(saved?.trim()&&Number.isFinite(value)&&value>=this.zoom.min&&value<=this.zoom.max)this.zoom.set(value);}catch{}
         if(sys.isBrowser&&!this.demo){const fragment=new URLSearchParams(window.location.hash.slice(1));let storage:Storage|undefined;try{storage=window.sessionStorage;}catch{}const session=restoreJoinSession(fragment.get('ticket'),fragment.get('room'),storage,raw=>atob(raw.replace(/-/g,'+').replace(/_/g,'/')));if(session){this.profileScope='.'+session.profileId;this.privateJoin=session.join;}if(fragment.has('ticket')||fragment.has('room'))history.replaceState(null,'',window.location.pathname+window.location.search);}
         if(!this.demo){this.chapterSave=new ChapterOneSave(sys.localStorage,'lang-tri-thuc.chapter-one.v2'+this.profileScope);this.chapterSave.load();}
         try{this.learning.restore(sys.localStorage.getItem('lang-tri-thuc.learning.v1'));}catch{}
@@ -149,6 +153,7 @@ export class VillageBootstrap extends Component {
             label(this.questButton,'Tới mục tiêu',230,55,22);
             this.questButton.active=!this.modalActive;
         }
+        for(const [name,text] of [['ZoomOut','−'],['ZoomReset','100%'],['ZoomIn','+']]){const n=ui(this.root,name,56,48),g=n.addComponent(Graphics);g.fillColor=new Color(235,235,187);g.roundRect(-28,-24,56,48,10);g.fill();const l=label(n,text,52,46,text==='100%'?16:26).getComponent(Label)!;if(name==='ZoomReset')this.zoomLabel=l;this.zoomButtons.push(n);}
         this.loadingPanel=ui(this.root,'LoadingVillage');this.loadingPanel.addComponent(Graphics);this.loadingLabel=label(this.loadingPanel,'Đang mở làng…',520,100,26).getComponent(Label)!;this.loadingLabel.color=new Color(255,251,231);this.network.onOffline=()=>this.enableSolo();void this.loadArt();
     }
     private async loadArt():Promise<void>{
@@ -159,14 +164,14 @@ export class VillageBootstrap extends Component {
                 node.setSiblingIndex(0);
             }}
             for(const child of [...this.player.node.children])if(child!==this.arrow)child.destroy();
-            this.playerVisual=undefined;this.childSprite=this.art.sprite(this.player.node,'ChildSprite',this.art.child[6],90,110).getComponent(Sprite)!;this.accessoryGraphic=ui(this.player.node,'Scarf').addComponent(Graphics);this.gestureGraphic=ui(this.player.node,'Gesture').addComponent(Graphics);
+            const body=ui(this.player.node,'ActorBody');body.setScale(actorScale,actorScale,1);this.playerVisual=undefined;this.childSprite=this.art.sprite(body,'ChildSprite',this.art.child[6],90,110).getComponent(Sprite)!;this.accessoryGraphic=ui(body,'Scarf').addComponent(Graphics);this.gestureGraphic=ui(body,'Gesture').addComponent(Graphics);
             this.childSprite.node.setPosition(0,-7);
             if(this.hub){this.hub.onGesture=id=>{if(this.networkStarted&&this.network.privateMode&&!this.network.offlineMode){this.network.emote(id);}else this.gesture.start(id);};this.network.onEmote=(sessionId,id)=>{if(id!=='hello'&&id!=='happy')return;const state=sessionId===this.network.room?.sessionId?this.gesture:this.remoteActors.get(sessionId)?.gesture;state?.start(id as AvatarGesture);};this.hub.onAvatarPreview=(parent,id,hair=this.hub?.campaign.data.hair??0)=>{const n=this.art.sprite(parent,'AvatarPreview',this.art.avatarFrame(id,0,6,hair),55,70);n.setPosition(-100,-35);void Promise.all([this.art.ensureAvatar(id),hair===1?this.art.ensureHair(id):Promise.resolve()]).then(()=>{if(n.isValid)n.getComponent(Sprite)!.spriteFrame=this.art.avatarFrame(id,0,6,hair);});};this.hub.applyServerProgress();}
-            this.farmer.node.getComponent(Graphics)!.clear();this.art.sprite(this.farmer.node,'FarmerSprite',this.art.environment[6],130,145).setPosition(0,-5);
-            this.farmer.node.getChildByName('FarmerName')!.setPosition(0,140);this.npcHitHeight=140;
+            this.farmer.node.getComponent(Graphics)!.clear();const farmerSprite=this.art.sprite(this.farmer.node,'FarmerSprite',this.art.environment[6],130,145);farmerSprite.setPosition(0,-5);farmerSprite.setScale(actorScale,actorScale,1);
+            this.farmer.node.getChildByName('FarmerName')!.setPosition(0,104);this.npcHitHeight=110;
             const elderFrame=this.art.decorations.elder;
             if(this.chapter&&elderFrame){
-                const elder=this.chapter.elder;this.art.sprite(elder,'ElderSprite',elderFrame,140*elderFrame.rect.width/elderFrame.rect.height,140).setPosition(0,-5);elder.getComponent(Graphics)!.clear();
+                const elder=this.chapter.elder,body=this.art.sprite(elder,'ElderSprite',elderFrame,140*elderFrame.rect.width/elderFrame.rect.height,140);body.setPosition(0,-5);body.setScale(actorScale,actorScale,1);elder.getComponent(Graphics)!.clear();const name=elder.getChildByName('Text');if(name){name.setPosition(0,104);const l=name.getComponent(Label)!;l.fontSize=18;l.lineHeight=24;}
             }
             const lotus=this.art.decorations.lotus;
             if(lotus)for(const [i,tile] of [{x:26,y:10},{x:29,y:12},{x:31,y:9}].entries()){
@@ -218,7 +223,7 @@ export class VillageBootstrap extends Component {
         input.on(Input.EventType.TOUCH_START, this.touchStart, this); input.on(Input.EventType.TOUCH_MOVE, this.touchMove, this);
         input.on(Input.EventType.TOUCH_END, this.touchEnd, this); input.on(Input.EventType.TOUCH_CANCEL, this.touchCancel, this);
         game.on(Game.EVENT_HIDE, this.resetInput, this);
-        if (sys.isBrowser){window.addEventListener('blur', this.handleBlur);window.addEventListener('resize',this.handleResize);}
+        if (sys.isBrowser){window.addEventListener('blur', this.handleBlur);window.addEventListener('resize',this.handleResize);window.addEventListener('wheel',this.handleWheel,{passive:false,capture:true});}
     }
     private drawMap(): void {
         const colors = { grass: new Color(130, 183, 100), road: new Color(201, 171, 121), rice: new Color(170, 198, 75), pond: new Color(83, 174, 204), courtyard: new Color(215, 185, 145) };
@@ -259,7 +264,8 @@ export class VillageBootstrap extends Component {
             this.lastPixelScale = pixelScale;
             // Keep mobile HUD dimensions in CSS pixels despite a 1280px design Canvas.
             const uiScale = sys.isMobile ? Math.max(1, 1 / pixelScale) : 1;
-            this.worldScale = sys.isMobile ? uiScale * 0.8 : 1; this.world.setScale(this.worldScale, this.worldScale, 1);
+            this.baseWorldScale = sys.isMobile ? uiScale * 0.8 : 1;
+            this.zoomButtons.forEach((button,i)=>{button.setScale(uiScale,uiScale,1);button.setPosition(size.width/2-(168-i*64)*uiScale,size.height/uiScale<500?-10*uiScale:size.height/2-225*uiScale);});
             this.backdrop.clear(); this.backdrop.fillColor = new Color(193, 218, 179);
             this.backdrop.rect(-size.width / 2, -size.height / 2, size.width, size.height); this.backdrop.fill();
             const width = Math.min(840, size.width / uiScale - 24), hint = this.header.getChildByName('Instructions')!;
@@ -279,6 +285,10 @@ export class VillageBootstrap extends Component {
             this.hub?.node.setScale(scale,scale,1);
         }
         for(const button of [this.questButton,this.journalButton,this.parentButton])if(button)button.active=!this.modalActive;
+        this.zoomButtons.forEach(button=>button.active=!this.modalActive&&!this.loadingPanel?.active);
+        const zoomScale=this.baseWorldScale*this.zoom.value;if(zoomScale!==this.worldScale){this.worldScale=zoomScale;this.world.setScale(zoomScale,zoomScale,1);}
+        if(this.zoomLabel)this.zoomLabel.string=Math.round(this.zoom.value*100)+'%';
+        if(this.zoomSaveDelay>0){this.zoomSaveDelay-=Math.max(0,Math.min(dt,0.1));if(this.zoomSaveDelay<=0)try{sys.localStorage.setItem('lang-tri-thuc.view-zoom.v1',String(this.zoom.value));}catch{}}
         const keyboard = inputAxis(this.keys);
         this.player.axis = this.modalActive ? { x: 0, y: 0 } : Math.hypot(this.stick.x, this.stick.y) > 0.05 ? this.stick : keyboard;
         if (Math.hypot(this.player.axis.x, this.player.axis.y) > 0.05) {this.pendingNpc = false;this.pendingBundle=null;this.chapter?.cancel();this.hub?.cancel();}
@@ -313,7 +323,7 @@ export class VillageBootstrap extends Component {
             const node=this.hub?.npcNodes.find(n=>n.name===id);if(!node||this.npcDecorated.has(id)||Math.abs(node.position.x+camera.x)>cameraWidth/2+150||Math.abs(node.position.y+camera.y)>cameraHeight/2+150)continue;
             this.npcDecorated.add(id);void this.art.ensureDecoration(asset).then(()=>{
                 const frame=this.art.decorations[asset];if(!this.isValid||!node.isValid||!frame)return;
-                const width=125*frame.rect.width/frame.rect.height;this.art.sprite(node,name,frame,width,125).setPosition(0,-5);node.getComponent(Graphics)!.clear();node.getComponent(UITransform)!.setContentSize(Math.max(70,width),125);
+                const width=125*frame.rect.width/frame.rect.height,body=this.art.sprite(node,name,frame,width,125);body.setPosition(0,-5);body.setScale(actorScale,actorScale,1);node.getComponent(Graphics)!.clear();node.getComponent(UITransform)!.setContentSize(Math.max(96,width),110);node.getChildByName('Text')?.setPosition(0,95);
             });
         }
         for(const scenery of this.sceneryNodes){const bounds=scenery.getComponent(UITransform)!;scenery.active=Math.abs(scenery.position.x+camera.x)<cameraWidth/2+bounds.width&&Math.abs(scenery.position.y+camera.y)<cameraHeight/2+bounds.height;}
@@ -341,7 +351,7 @@ export class VillageBootstrap extends Component {
     private updateRemoteActors(dt:number):void{
         this.remoteActors.forEach((actor,id)=>{if(!this.network.players.has(id)){actor.node.destroy();this.remoteActors.delete(id);}});
         this.network.players.forEach((p,id)=>{void this.art.ensureAvatar(p.avatar??0);if(p.hair===1)void this.art.ensureHair(p.avatar??0);let actor=this.remoteActors.get(id);
-            if(!actor){const node=ui(this.actors,`Online-${id}`);node.setPosition(p.x,p.y);const sprite=this.art.sprite(node,'OnlineSprite',this.art.avatarFrame(p.avatar??0,0,6),90,110).getComponent(Sprite)!;const name=label(node,p.name,160,30,18);name.getComponent(Label)!.color=new Color(50,105,160);name.setPosition(0,120);const accessory=ui(node,'Scarf').addComponent(Graphics);const gestureGraphic=ui(node,'Gesture').addComponent(Graphics);actor={node,sprite,accessory,gesture:new AvatarGestureState(),gestureGraphic};this.remoteActors.set(id,actor);}
+            if(!actor){const node=ui(this.actors,`Online-${id}`);node.setPosition(p.x,p.y);const body=ui(node,'ActorBody');body.setScale(actorScale,actorScale,1);const sprite=this.art.sprite(body,'OnlineSprite',this.art.avatarFrame(p.avatar??0,0,6),90,110).getComponent(Sprite)!;const name=label(node,p.name,160,30,18);name.getComponent(Label)!.color=new Color(50,105,160);name.setPosition(0,85);const accessory=ui(body,'Scarf').addComponent(Graphics);const gestureGraphic=ui(body,'Gesture').addComponent(Graphics);actor={node,sprite,accessory,gesture:new AvatarGestureState(),gestureGraphic};this.remoteActors.set(id,actor);}
             const t=Math.min(1,dt*12);actor.node.setPosition(actor.node.position.x+(p.x-actor.node.position.x)*t,actor.node.position.y+(p.y-actor.node.position.y)*t);
             actor.sprite.spriteFrame=this.art.avatarFrame(p.avatar??0,p.moving?1+(Math.floor(this.spriteTime*8)%2):0,p.direction,p.hair??0);drawAccessory(actor.accessory,p.accessory??0,p.direction,p.moving?1+(Math.floor(this.spriteTime*8)%2):0);animateGesture(actor.gesture,actor.sprite,actor.accessory,actor.gestureGraphic,dt,p.moving);
         });
@@ -355,16 +365,17 @@ export class VillageBootstrap extends Component {
             const d = this.local(p, this.dialog); if (Math.abs(d.x) <= 310 && Math.abs(d.y) <= 170) this.dialog.active = false;
             return;
         }
+        const zoomControl=this.zoomControl(p);if(zoomControl){this.changeZoom(zoomControl.name==='ZoomReset'?1:this.zoom.value*(zoomControl.name==='ZoomIn'?1.2:1/1.2));return;}
         for(const [button,mode] of [[this.journalButton,'journal'],[this.parentButton,'gate']] as const)if(button){const local=this.local(p,button);if(Math.abs(local.x)<=55&&Math.abs(local.y)<=29){this.hub?.open(mode);return;}}
         if(this.questButton){const local=this.local(p,this.questButton);if(Math.abs(local.x)<=this.questButton.getComponent(UITransform)!.width/2&&Math.abs(local.y)<=29){
             if(this.chapter?.navigateObjective()){this.keys.clear();this.releaseStick();this.pendingNpc=false;this.pendingBundle=null;}return;
         }}
         if(this.isHeader(p))return;
-        const world = this.local(p, this.world), npc = this.farmer.node.position;
-        const hubTarget=this.hub?.select(world);if(hubTarget){if(hubTarget==='accepted'){this.chapter?.cancel();this.pendingNpc=false;this.pendingBundle=null;}return;}
-        const chapterTarget=this.chapter?.select(world);
+        const world = this.local(p, this.world), npc = this.farmer.node.position,minHalfWidth=22/(this.worldScale*view.getScaleX()/view.getDevicePixelRatio());
+        const hubTarget=this.hub?.select(world,minHalfWidth);if(hubTarget){if(hubTarget==='accepted'){this.chapter?.cancel();this.pendingNpc=false;this.pendingBundle=null;}return;}
+        const chapterTarget=this.chapter?.select(world,minHalfWidth);
         if(chapterTarget){if(chapterTarget==='accepted'){this.hub?.cancel();this.pendingNpc=false;this.pendingBundle=null;}return;}
-        if (Math.abs(world.x - npc.x) <= 40 && world.y >= npc.y - 12 && world.y <= npc.y + this.npcHitHeight) {
+        if (Math.abs(world.x - npc.x) <= Math.max(40,minHalfWidth) && world.y >= npc.y - 12 && world.y <= npc.y + this.npcHitHeight) {
             const n=this.map.npc;
             const candidates = [{ x:n.x+1,y:n.y },{x:n.x-1,y:n.y},{x:n.x,y:n.y-1},{x:n.x,y:n.y+1}];
             const distance=(goal:Point)=>{const p=toWorld(goal);return Math.hypot(p.x-this.player.position.x,p.y-this.player.position.y);};
@@ -390,6 +401,10 @@ export class VillageBootstrap extends Component {
         return Math.abs(local.x)<=width/2&&Math.abs(local.y)<=48;
     }
     private tapThreshold():number { return 15*view.getDevicePixelRatio()/view.getScaleX(); }
+    private zoomControl(p:Point):Node|undefined{return this.zoomButtons.find(n=>{if(!n.active)return false;const point=this.local(p,n);return Math.abs(point.x)<=28&&Math.abs(point.y)<=24;});}
+    private isHudControl(p:Point):boolean{return !!this.zoomControl(p)||[this.questButton,this.journalButton,this.parentButton].some(n=>{if(!n?.active)return false;const point=this.local(p,n),size=n.getComponent(UITransform)!;return Math.abs(point.x)<=size.width/2&&Math.abs(point.y)<=size.height/2;});}
+    private changeZoom(value:number):void{this.zoom.set(value);this.zoomSaveDelay=0.3;}
+    private handleWheel=(event:WheelEvent):void=>{if(event.ctrlKey||this.modalActive||this.loadingPanel?.active||this.pinchIds||event.target!==game.canvas)return;event.preventDefault();this.changeZoom(this.zoom.wheel(event.deltaY));};
     private keyDown(e: EventKeyboard): void {if(this.loadingPanel?.active)return;
         if (e.keyCode === 27) { this.hub?.close();this.chapter?.close();this.dialog.active = false; this.resetInput(); return; }
         if (!this.modalActive) this.keys.add(e.keyCode);
@@ -401,7 +416,8 @@ export class VillageBootstrap extends Component {
         const point=e.getUILocation(), start={x:point.x,y:point.y};
         const stickPoint=this.joystick.active?this.local(point,this.joystick):null;
         const onStick=!!stickPoint&&Math.hypot(stickPoint.x,stickPoint.y)<=75;
-        this.touches.set(id,{start,dragged:false,hubDrag:this.hub?.beginDrag?.(point),blocked:!this.modalActive&&(this.isHeader(point)||onStick)});
+        this.touches.set(id,{start,current:start,dragged:false,control:this.isHudControl(point),hubDrag:this.hub?.beginDrag?.(point),blocked:!!this.pinchIds||!this.modalActive&&(this.isHeader(point)||onStick)});
+        if(!this.modalActive&&this.stickId===null&&!this.pinchIds){const pair=Array.from(this.touches.entries()).filter(([,g])=>!g.blocked&&!g.control&&!g.hubDrag);if(pair.length===2){const [[first,a],[second,b]]=pair;if(this.zoom.beginPinch(Math.hypot(a.current.x-b.current.x,a.current.y-b.current.y))){this.pinchIds=[first,second];a.blocked=b.blocked=a.dragged=b.dragged=true;this.keys.clear();this.player?.cancel();this.pendingNpc=false;this.pendingBundle=null;this.chapter?.cancel();this.hub?.cancel();return;}}}
         if (!this.joystick.active || this.modalActive || this.stickId !== null) return;
         if (onStick) { this.stickId = id; this.pendingNpc = false; this.pendingBundle = null; this.chapter?.cancel();this.hub?.cancel(); this.player?.cancel(); this.updateStick(e); }
     }
@@ -412,24 +428,28 @@ export class VillageBootstrap extends Component {
     private touchMove(e: EventTouch): void {
         const id=e.getID();if(id===null)return;
         const gesture=this.touches.get(id),p=e.getUILocation();
+        if(gesture)gesture.current={x:p.x,y:p.y};
+        if(this.pinchIds){const a=this.touches.get(this.pinchIds[0]),b=this.touches.get(this.pinchIds[1]);if(a&&b)this.changeZoom(this.zoom.pinch(Math.hypot(a.current.x-b.current.x,a.current.y-b.current.y)));return;}
         if(gesture&&Math.hypot(p.x-gesture.start.x,p.y-gesture.start.y)>this.tapThreshold())gesture.dragged=true;
         if(gesture?.hubDrag&&gesture.dragged)this.hub?.moveDrag(p);if (id === this.stickId) this.updateStick(e);
     }
     private touchEnd(e: EventTouch): void {if(this.loadingPanel?.active)return;
         const id=e.getID();if(id===null)return;
         const gesture=this.touches.get(id);this.touches.delete(id);
+        if(this.pinchIds){this.pinchIds=undefined;this.zoom.endPinch();this.touches.forEach(g=>g.blocked=true);return;}
         if (id === this.stickId) { this.releaseStick(); return; }
         const p=e.getUILocation();
         if(gesture?.hubDrag&&this.hub?.endDrag(p,gesture.dragged))return;
         if(gesture&&!gesture.blocked&&!gesture.dragged&&Math.hypot(p.x-gesture.start.x,p.y-gesture.start.y)<=this.tapThreshold())this.select(p);
     }
-    private touchCancel(e: EventTouch): void { const id=e.getID();if(id===null)return;if(this.touches.get(id)?.hubDrag)this.hub?.cancelDrag();this.touches.delete(id); if (id === this.stickId) this.releaseStick(); }
+    private touchCancel(e: EventTouch): void { const id=e.getID();if(id===null)return;if(this.touches.get(id)?.hubDrag)this.hub?.cancelDrag();this.touches.delete(id);if(this.pinchIds){this.pinchIds=undefined;this.zoom.endPinch();this.touches.forEach(g=>g.blocked=true);} if (id === this.stickId) this.releaseStick(); }
     private releaseStick(): void { this.stickId = null; this.stick = { x: 0, y: 0 }; this.knob.setPosition(0, 0); }
-    private resetInput(): void { this.keys.clear(); this.releaseStick();this.touches.clear();this.player?.cancel();this.pendingNpc=false;this.pendingBundle=null;this.chapter?.cancel();this.hub?.cancel(); }
+    private resetInput(): void { this.keys.clear(); this.releaseStick();this.pinchIds=undefined;this.zoom.endPinch();this.touches.clear();this.player?.cancel();this.pendingNpc=false;this.pendingBundle=null;this.chapter?.cancel();this.hub?.cancel(); }
     private handleBlur = (): void => { this.resetInput(); };
     // Full-screen CSS keeps frame style strings constant; explicitly reapply the
     // public policy so Creator updates its backing canvas after viewport rotation.
     private handleResize = ():void=>{
+        this.resetInput();
         const size=view.getDesignResolutionSize();view.setDesignResolutionSize(size.width,size.height,view.getResolutionPolicy());
         const canvas=game.canvas;if(canvas)director.root?.resize(canvas.width,canvas.height);
     };
@@ -439,7 +459,7 @@ export class VillageBootstrap extends Component {
         input.off(Input.EventType.TOUCH_START, this.touchStart, this); input.off(Input.EventType.TOUCH_MOVE, this.touchMove, this);
         input.off(Input.EventType.TOUCH_END, this.touchEnd, this); input.off(Input.EventType.TOUCH_CANCEL, this.touchCancel, this);
         game.off(Game.EVENT_HIDE, this.resetInput, this);
-        if (sys.isBrowser){window.removeEventListener('blur', this.handleBlur);window.removeEventListener('resize',this.handleResize);}
+        if (sys.isBrowser){window.removeEventListener('blur', this.handleBlur);window.removeEventListener('resize',this.handleResize);window.removeEventListener('wheel',this.handleWheel,true);}
     }
     onDestroy(): void {this.hub?.dispose();this.chapter?.dispose();this.network.dispose();this.art.dispose(); if (this.root) this.root.destroy();}
 }

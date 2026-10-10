@@ -4,11 +4,13 @@
 
 Staging aaPanel hiện đã triển khai và nghiệm thu kỹ thuật: [runbook](../deploy/aapanel/README.md). Gate VPS/domain/TLS/WebSocket/backup-restore đã thực hiện; còn nội dung, trẻ có giám sát và thiết bị thật trước public beta.
 
+Tỷ lệ nhân vật đã giảm về 65%; zoom cảnh 60–180% có wheel/nút/pinch, giữ HUD và lưu lựa chọn. [Backlog phát triển cụ thể](DEVELOPMENT_BACKLOG.md) phân biệt phần prototype đang chạy với chức năng chưa làm đầy đủ.
+
 | Nhóm yêu cầu | Bản hiện tại | Giới hạn / việc còn lại |
 | --- | --- | --- |
 | Cocos / scene | Giữ Creator 3.8.8, scene/UUID cũ; build Web thật | Kiểm tra trực tiếp bằng Editor và thiết bị đích trước beta |
 | Cốt truyện | 8 chương, dependency, intro/end, quest, 8 sao duy nhất, save/reload | Nội dung còn draft; cần biên tập sư phạm và văn hóa |
-| Thế giới | 10 khu trên map 40×40, A*, collision, keyboard/touch/joystick, camera, depth, portal | Không phải 10 scene riêng |
+| Thế giới | 10 khu trên map 40×40, A*, collision, keyboard/touch/joystick, camera, depth, portal; zoom wheel/nút/pinch 60–180% | Không phải 10 scene riêng; chưa minimap/camera kéo tự do |
 | Art làng | NPC Ông Đồ/Cô Tấm và các NPC truyện, ao sen; giếng, tre, cầu, trâu, gà, vịt, rau, cổng | NPC idle tĩnh; cầu tre là trang trí, chưa đi qua mặt ao |
 | Avatar | 4 trang phục trai/gái, 2 kiểu tóc mỗi avatar, 4 lựa chọn khăn, idle/walk 8 hướng; hello/happy online/offline | Biểu cảm bằng code; không có sheet cử chỉ riêng |
 | NPC data | ID, spawn, tên, chương, tương tác/hội thoại; editor 6 NPC truyện | Ông Đồ/Bác Nông Dân giữ vị trí chương 1; lịch xuất hiện tùy chọn và NPC AI chưa triển khai |

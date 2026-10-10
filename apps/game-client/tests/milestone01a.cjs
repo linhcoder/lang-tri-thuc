@@ -395,8 +395,8 @@ test('asset registry covers ten groups and every local source exists with usable
  for(const group of assetGroups)assert.ok(visualAssets.some(a=>a.group===group));
  for(const asset of visualAssets){assert.ok(asset.size.every(n=>n>0));assert.ok(asset.anchor.every(n=>n>=0&&n<=1));assert.ok(asset.source.length>0);if(!asset.path.startsWith('procedural://'))assert.ok(fs.existsSync(path.resolve(__dirname,'..',asset.path)),asset.path);}
 });
-test('compatibility hash follows navigation footprints and ignores cosmetic dimensions',()=>{
- const {contentVersion}=load(path.join(scripts,'world/ContentVersion.ts')),original=contentVersion(),solid=m.villageSolids[0],radius=solid.radius,width=m.villageObjects[0].width;
- try{solid.radius=0;assert.notEqual(contentVersion(),original);solid.radius=radius;m.villageObjects[0].width+=10;assert.equal(contentVersion(),original);}finally{solid.radius=radius;m.villageObjects[0].width=width;}
+test('compatibility hash follows mission plots/navigation and ignores cosmetic dimensions',()=>{
+ const {contentVersion}=load(path.join(scripts,'world/ContentVersion.ts')),original=contentVersion(),solid=m.villageSolids[0],radius=solid.radius,width=m.villageObjects[0].width,plotX=plantingPlots[0].x;
+ try{solid.radius=0;assert.notEqual(contentVersion(),original);solid.radius=radius;m.villageObjects[0].width+=10;assert.equal(contentVersion(),original);plantingPlots[0].x+=1;assert.notEqual(contentVersion(),original);}finally{solid.radius=radius;m.villageObjects[0].width=width;plantingPlots[0].x=plotX;}
 });
 console.log(`${checks} test groups passed`);

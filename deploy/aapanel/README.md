@@ -4,7 +4,7 @@ Triển khai riêng dưới `/opt/lang-tri-thuc`, dùng Nginx/Node 24/MariaDB hi
 
 ## Bố trí
 
-- Release đang chạy: `/opt/lang-tri-thuc/releases/8940ae6-zoom-20261010`; r2/bản đầu giữ để rollback. Symlink `/opt/lang-tri-thuc/current`; file RELEASE.txt ghi commit cuối.
+- Release đang chạy: `/opt/lang-tri-thuc/releases/9ff50a2-working-visual-d129e24c-20261010`, contentVersion `d129e24c`, gồm HEAD và thay đổi visual/modal/rice chưa commit. Bản trước `/opt/lang-tri-thuc/releases/8940ae6-zoom-20261010` giữ để rollback. Symlink `/opt/lang-tri-thuc/current`; file RELEASE.txt ghi nguồn bản phát hành.
 - Admin: `https://ltt.vui-hoc.xyz/`; game: `/game/`; API: `/api/`; Colyseus: `/colyseus/`.
 - Hai systemd service `lang-tri-thuc-api`, `lang-tri-thuc-rooms`, user `langtri`.
 - Cổng chỉ bind `127.0.0.1:33080` và `127.0.0.1:32580`; `ALLOW_DEV_ROOMS=0` tắt room development kể cả loopback. `/api/internal/` bị chặn từ Nginx.

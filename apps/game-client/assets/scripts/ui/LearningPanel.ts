@@ -1,3 +1,4 @@
+import {paintModalFrame,paintModalButton,modalButtonColor} from './ModalTheme';
 import { Node, UITransform, Graphics, Color, Label, Vec3 } from 'cc';
 import { LearningProgress, sowSeeds } from '../world/LearningProgress';
 import { Point } from '../world/VillageModel';
@@ -10,7 +11,7 @@ export class LearningPanel {
     private sowResult:number[]|null=null;
     constructor(parent:Node,readonly progress:LearningProgress,private changed:()=>void){
         this.node=new Node('LearningPanel');this.node.layer=parent.layer;parent.addChild(this.node);this.node.addComponent(UITransform).setContentSize(620,560);
-        const g=this.node.addComponent(Graphics);g.fillColor=new Color(255,248,219);g.roundRect(-310,-280,620,560,18);g.fill();this.node.active=false;
+        paintModalFrame(this.node);this.node.active=false;
     }
     open():void{this.feedback='';this.sowResult=null;this.node.active=true;this.render();}
     close():void{this.node.active=false;}
@@ -20,12 +21,12 @@ export class LearningPanel {
     }
     private text(value:string,x:number,y:number,width=560,height=65,size=26):Node{
         const n=new Node('Text');n.layer=this.node.layer;this.node.addChild(n);n.setPosition(x,y);n.addComponent(UITransform).setContentSize(width,height);
-        const l=n.addComponent(Label);l.string=value;l.fontSize=size;l.lineHeight=size+8;l.color=new Color(45,68,43);l.overflow=Label.Overflow.CLAMP;l.enableWrapText=true;return n;
+        const l=n.addComponent(Label);l.string=value;l.fontSize=size;l.lineHeight=size+8;l.color=y>=210?new Color(255,245,211):new Color(70,63,40);l.overflow=Label.Overflow.CLAMP;l.enableWrapText=true;return n;
     }
     private button(value:string,x:number,y:number,width:number,action:()=>void,height=62):void{
         const n=new Node('ButtonBackground');n.layer=this.node.layer;this.node.addChild(n);n.setPosition(x,y);n.addComponent(UITransform).setContentSize(width,height);
-        const g=n.addComponent(Graphics);g.fillColor=new Color(205,229,164);g.roundRect(-width/2,-height/2,width,height,10);g.fill();
-        this.text(value,x,y,width-8,height,24);
+        paintModalButton(n,'Secondary');
+        this.text(value,x,y,width-20,height-6,24).getComponent(Label)!.overflow=Label.Overflow.SHRINK;
         this.buttons.push({x,y,width,height,action});
     }
     private render():void{

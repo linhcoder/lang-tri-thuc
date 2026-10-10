@@ -7,6 +7,7 @@ const saveKey='lang-tri-thuc.chapter-one.v2',legacyKey='lang-tri-thuc.learning.v
 (async()=>{
     const browser=await chromium.launch({executablePath:require('../../../tools/browser-path.cjs')(),headless:true,args:['--enable-webgl','--enable-gpu',...(process.platform==='win32'?['--use-angle=d3d11']:[])]});
     const errors=[],results=[];let metrics;
+    async function checkRice(page){const state=await page.evaluate(()=>({planted:village.chapterSave.progress.data.planted.length,visible:village.chapter.plots.filter(n=>n.getChildByName('RiceSeedling')?.active&&n.getChildByName('RiceSeedling')?.getComponent(ccQA.Sprite)?.spriteFrame).length}));assert.equal(state.visible,state.planted,'Every planted plot must show one rice sprite, including after reload');}
     async function aspect(page){const sizes=await page.evaluate(()=>{const c=ccQA.game.canvas,r=c.getBoundingClientRect(),w=ccQA.director.root.mainWindow;return {backing:c.width/c.height,css:r.width/r.height,canvas:[c.width,c.height],renderWindow:[w.width,w.height]};});assert.ok(Math.abs(sizes.backing/sizes.css-1)<0.01,'Canvas must retain aspect ratio after resize');assert.deepEqual(sizes.renderWindow,sizes.canvas,'Render window and cameras must resize with the canvas');}
     async function touchSize(page){const height=await page.evaluate(()=>{const b=village,c=ccQA.game.canvas,r=c.getBoundingClientRect();return b.chapter.node.getScale().y*76*ccQA.view.getScaleY()*r.height/c.height;});assert.ok(height>=44,'Chapter controls need at least 44 CSS pixels');}
     async function ready(page){
@@ -45,11 +46,11 @@ const saveKey='lang-tri-thuc.chapter-one.v2',legacyKey='lang-tri-thuc.learning.v
         await npc(page,'farmer');await tap(page,'button','Continue');assert.equal(await page.evaluate(()=>village.chapterSave.progress.stage),'plant');
         for(let i=0;i<5;i++){
             await tap(page,'plot',i);await page.waitForFunction(i=>village.chapterSave.progress.data.planted.includes(i),i,{timeout:20000});
-            if(i===0||i===3){await reload(page);assert.equal(await page.evaluate(()=>village.chapterSave.progress.data.planted.length),i+1);}
+            if(i===0||i===3){await reload(page);assert.equal(await page.evaluate(()=>village.chapterSave.progress.data.planted.length),i+1);}await checkRice(page);if(i===1)await page.screenshot({path:path.join(output,'planted-rice-desktop.png')});
         }
-        assert.equal(await page.evaluate(()=>village.chapterSave.progress.stage),'count');await npc(page,'farmer');
+        assert.equal(await page.evaluate(()=>village.chapterSave.progress.stage),'count');await npc(page,'farmer');await tap(page,'button','Close');await page.screenshot({path:path.join(output,'planted-rice-full.png')});await npc(page,'farmer');
         await answer(page,2);assert.equal(await page.evaluate(()=>village.chapterSave.progress.data.countRound),0);
-        await tap(page,'button','Hint');await page.screenshot({path:path.join(output,'count-hint.png')});
+        assert.equal(await page.evaluate(()=>village.chapter.node.getChildByName('CountingPlants').children.filter(n=>n.getComponent(ccQA.Sprite)?.spriteFrame).length),3);await tap(page,'button','Hint');await page.screenshot({path:path.join(output,'count-hint.png')});
         await answer(page,3);await reload(page);assert.equal(await page.evaluate(()=>village.chapterSave.progress.data.countRound),1);
         await npc(page,'farmer');await answer(page,5);await answer(page,2);
         assert.equal(await page.evaluate(()=>village.chapterSave.progress.stage),'return');assert.equal(await page.evaluate(()=>village.chapterSave.progress.stars),0);await tap(page,'button','Close');
@@ -70,7 +71,7 @@ const saveKey='lang-tri-thuc.chapter-one.v2',legacyKey='lang-tri-thuc.learning.v
         await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:stick.x,y:stick.y,id:1}]});await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
         assert.equal(await mobile.page.evaluate(()=>village.chapter.pending),null);
         for(let i=0;i<5;i++){await tap(mobile.page,'plot',i,true);await mobile.page.waitForFunction(i=>village.chapterSave.progress.data.planted.includes(i),i,{timeout:20000});}
-        await npc(mobile.page,'farmer',true);await mobile.page.screenshot({path:path.join(output,'count-mobile.png')});for(const n of [3,5,2])await answer(mobile.page,n,true);await tap(mobile.page,'button','Close',true);
+        await checkRice(mobile.page);await npc(mobile.page,'farmer',true);assert.equal(await mobile.page.evaluate(()=>village.chapter.node.getChildByName('CountingPlants').children.filter(n=>n.getComponent(ccQA.Sprite)?.spriteFrame).length),3);await mobile.page.screenshot({path:path.join(output,'count-mobile.png')});for(const n of [3,5,2])await answer(mobile.page,n,true);await tap(mobile.page,'button','Close',true);
         await npc(mobile.page,'elder',true);await tap(mobile.page,'button','Continue',true);assert.equal(await mobile.page.evaluate(()=>village.chapterSave.progress.stars),1);
         await aspect(mobile.page);await touchSize(mobile.page);await mobile.page.setViewportSize({width:844,height:390});await mobile.page.waitForTimeout(400);await aspect(mobile.page);await touchSize(mobile.page);assert.equal(await mobile.page.evaluate(()=>village.questButton.active),false);await mobile.page.screenshot({path:path.join(output,'ending-landscape.png')});await tap(mobile.page,'button','Close',true);assert.equal(await mobile.page.evaluate(()=>village.dialog.active),false);results.push('mobile full chapter, touch/joystick ownership, 44px controls and landscape without canvas stretch or HUD obstruction');await mobile.context.close();
         const legacy=JSON.stringify({version:1,stage:'complete',collected:[0,1,2],countWins:3,sowWins:3});const migrated=await boot(false,{key:legacyKey,value:legacy});

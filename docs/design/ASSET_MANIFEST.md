@@ -1,5 +1,11 @@
 # Asset manifest
 
+Cập nhật mạ nhiệm vụ: registry 52 asset, thêm rice-seedling.png dùng chung plot và bài đếm; xem [RICE_MISSION_FIX.md](RICE_MISSION_FIX.md). Các số lượng bên dưới là lịch sử các đợt art trước.
+
+Cập nhật HUD/lúa: 51 asset, 159 instance, atlas ui-v4 và sprite rice-v4. Xem [UI_RICE_ART_PASS.md](UI_RICE_ART_PASS.md); JSON hiện tại chứa path, size, collision và vị trí biển mới.
+
+Cập nhật art tiếp theo: cây đa và đình dùng PNG v3, scenery hiện 64 instance. Xem [REFERENCE_ART_PASS.md](REFERENCE_ART_PASS.md); JSON hiện tại là nguồn kích thước/path mới. Các số liệu đợt sáu milestone bên dưới là lịch sử.
+
 Snapshot 10/10/2026. Registry runtime: apps/game-client/assets/scripts/world/VisualAssets.ts. Snapshot máy đọc được: [asset-manifest.json](asset-manifest.json). Xuất lại bằng npm.cmd run assets:manifest; script kiểm ID trùng/source tồn tại và ghi pixel/byte PNG thật.
 
 48 record trong 10 nhóm, 43 scenery placement. Mỗi record có ID, name, group, file path, design size, anchor, logical sorting layer, collision, status/source. PNG có pixels/bytes; atlas cell có cell index. solidFootprints ghi collision instance. Layer logical Ground/Actors/HUD, không tạo Cocos Layer ID mới. Anchor actor (.5,0), ground (.5,.5), UI responsive.

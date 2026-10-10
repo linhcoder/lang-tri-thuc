@@ -13,9 +13,9 @@ export const storyNpcs:NpcSpawn[]=[
     {id:'chi-hang-cuoi',name:'Chị Hằng • Chú Cuội',x:33,y:28,chapter:6,color:[141,135,213]},
 ];
 export const villageObjects = [
-    {id:'dinh',frame:0,x:21,y:17,width:330,height:270,radius:1},
+    {id:'dinh',frame:0,x:21,y:17,width:420,height:280,radius:1},
     {id:'house',frame:1,x:30,y:26,width:230,height:210,radius:1},
-    {id:'banyan',frame:2,x:7,y:21,width:340,height:365,radius:1},
+    {id:'banyan',frame:2,x:7,y:21,width:420,height:280,radius:1},
     {id:'banana',frame:3,x:14,y:6,width:110,height:145,radius:0},
     {id:'tree-east',frame:2,x:34,y:19,width:150,height:175,radius:0},
     {id:'house-west',frame:1,x:2,y:34,width:230,height:210,radius:1},

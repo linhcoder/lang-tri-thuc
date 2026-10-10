@@ -1,6 +1,7 @@
+import {paintModalFrame,paintModalButton,modalButtonColor} from './ModalTheme';
 import { chapters } from '../world/CampaignContent';
 import { SpeechReader } from './SpeechReader';
-import { Color, Graphics, Label, Node, UITransform, Vec3 } from 'cc';
+import { Color, Graphics, Label, Node, UITransform, Vec3, Sprite, SpriteFrame } from 'cc';
 import { PlayerController } from '../player/PlayerController';
 import { ChapterOneProgress, plantingPlots } from '../world/ChapterOneProgress';
 import { ChapterOneSave } from '../world/ChapterOneSave';
@@ -17,10 +18,13 @@ export class ChapterOneView {
     private speaker:'elder'|'farmer'='elder';
     private pending:{kind:'elder'|'farmer'|'plot';index?:number;goal:Point}|null=null;
     private star:Graphics;
+    private riceFrame?:SpriteFrame;
+    setRiceFrame(frame:SpriteFrame|undefined):void{this.riceFrame=frame;this.refreshWorld();if(this.node.active)this.render();}
+    private riceSprite(parent:Node,name:string,x:number,y:number,width:number,height:number):Node{const n=this.make(parent,name,width,height);n.setPosition(x,y);n.getComponent(UITransform)!.setAnchorPoint(.5,0);const s=n.addComponent(Sprite);s.sizeMode=Sprite.SizeMode.CUSTOM;s.spriteFrame=this.riceFrame!;return n;}
     constructor(parent:Node,actors:Node,readonly progress:ChapterOneProgress,private player:PlayerController,private save:ChapterOneSave,private reset:()=>void,private destination:(p:Point)=>void){
         this.lesson=new RiceCountGame(progress);
         this.node=this.make(parent,'ChapterOneDialog',620,560);
-        const bg=this.node.addComponent(Graphics);bg.fillColor=new Color(255,248,219);bg.roundRect(-310,-280,620,560,18);bg.fill();this.node.active=false;
+        paintModalFrame(this.node);this.node.active=false;
         this.elder=this.make(actors,'OngDo',90,130);const p=toWorld(elderTile);this.elder.setPosition(p.x,p.y);
         const g=this.elder.addComponent(Graphics);
         g.fillColor=new Color(45,60,45,90);g.ellipse(0,0,22,9);g.fill();
@@ -36,11 +40,11 @@ export class ChapterOneView {
     }
     private make(parent:Node,name:string,width:number,height:number):Node{const n=new Node(name);n.layer=parent.layer;parent.addChild(n);n.addComponent(UITransform).setContentSize(width,height);return n;}
     private text(parent:Node,value:string,x:number,y:number,width=550,height=70,size=26):Node{
-        const n=this.make(parent,'Text',width,height);n.setPosition(x,y);const l=n.addComponent(Label);l.string=value;l.fontSize=size;l.lineHeight=size+8;l.enableWrapText=true;l.overflow=Label.Overflow.CLAMP;l.color=new Color(45,68,43);return n;
+        const n=this.make(parent,'Text',width,height);n.setPosition(x,y);const l=n.addComponent(Label);l.string=value;l.fontSize=size;l.lineHeight=size+8;l.enableWrapText=true;l.overflow=Label.Overflow.CLAMP;l.color=parent===this.node&&y>=210?new Color(255,245,211):new Color(70,63,40);if(parent===this.node&&y>=210)n.getComponent(UITransform)!.setContentSize(Math.min(width,536),height);return n;
     }
     private button(id:string,value:string,x:number,y:number,width:number,action:()=>void):void{
-        const n=this.make(this.node,id,width,76);n.setPosition(x,y);const g=n.addComponent(Graphics);g.fillColor=new Color(205,229,164);g.roundRect(-width/2,-38,width,76,10);g.fill();
-        this.text(n,value,0,0,width-10,76,24);this.buttons.push({node:n,width,height:76,action});
+        const n=this.make(this.node,id,width,76);n.setPosition(x,y);paintModalButton(n,id);
+        const caption=this.text(n,value,0,0,width-20,70,id.startsWith('Answer-')?30:22);caption.getComponent(Label)!.color=modalButtonColor(id);caption.getComponent(Label)!.overflow=Label.Overflow.SHRINK;this.buttons.push({node:n,width,height:76,action});
     }
     refreshContent():void{if(this.node.active)this.render();}
     private changed():void{this.save.save();this.refreshWorld();}
@@ -48,7 +52,9 @@ export class ChapterOneView {
         for(let i=0;i<this.plots.length;i++){
             const n=this.plots[i],g=n.getComponent(Graphics)!;g.clear();const planted=this.progress.data.planted.indexOf(i)>=0;
             g.strokeColor=new Color(255,239,145);g.lineWidth=3;g.ellipse(0,0,26,13);g.stroke();
-            if(planted){g.strokeColor=new Color(40,121,47);g.lineWidth=5;for(const x of [-8,0,8]){g.moveTo(x,0);g.lineTo(x,35);g.lineTo(x-9,20);g.moveTo(x,30);g.lineTo(x+9,17);}g.stroke();}
+            const existing=n.getChildByName('RiceSeedling');if(existing){existing.active=planted&&!!this.riceFrame;existing.getComponent(Sprite)!.spriteFrame=this.riceFrame??null;}
+            if(planted&&this.riceFrame){if(!existing)this.riceSprite(n,'RiceSeedling',0,-2,31,46);}
+            else if(planted){g.strokeColor=new Color(58,139,56);g.lineWidth=2;for(const x of [-6,0,6]){g.moveTo(x,0);g.quadraticCurveTo(x-7,13,x-4,25);g.moveTo(x,0);g.quadraticCurveTo(x+9,12,x+7,21);}g.stroke();}
             else{g.fillColor=new Color(115,84,51);g.ellipse(0,0,19,8);g.fill();}
         }
         const g=this.star;g.clear();g.fillColor=this.progress.stars?new Color(255,219,78):new Color(136,155,110);
@@ -128,8 +134,8 @@ export class ChapterOneView {
             if(q){
                 body=`Có bao nhiêu cây lúa? (${this.lesson.round+1}/3)\nCháu đếm từng cây rồi chọn số nhé.`;
                 const n=this.make(this.node,'CountingPlants',1,1),g=n.addComponent(Graphics);g.strokeColor=new Color(48,131,56);g.lineWidth=6;
-                for(let i=0;i<q.count;i++){const x=(i-(q.count-1)/2)*65;g.moveTo(x,20);g.lineTo(x,65);g.lineTo(x-15,42);g.moveTo(x,58);g.lineTo(x+15,38);}g.stroke();
-                for(let i=0;i<q.choices.length;i++){const answer=q.choices[i];this.button(`Answer-${answer}`,String(answer),(i-1)*165,-75,130,()=>{
+                for(let i=0;i<q.count;i++){const x=(i-(q.count-1)/2)*65;if(this.riceFrame)this.riceSprite(n,'CountingRice-'+i,x,44,42,62);else{g.moveTo(x,20);g.lineTo(x,65);g.lineTo(x-15,42);g.moveTo(x,58);g.lineTo(x+15,38);}}if(!this.riceFrame)g.stroke();
+                for(let i=0;i<q.choices.length;i++){const answer=q.choices[i];this.button(`Answer-${answer}`,String(answer),(i-1)*165,-88,130,()=>{
                     this.feedback=this.lesson.answer(answer)?'Đúng rồi! Mình cùng xem câu tiếp theo.':'Chưa đúng. Cháu chạm “Gợi ý” để đếm từng cây nhé.';this.changed();this.render();
                 });}
                 this.button('Hint','Gợi ý',0,0,155,()=>{this.feedback=Array.from({length:q.count},(_,i)=>String(i+1)).join(' → ')+`. Có ${q.count} cây.`;this.render();});

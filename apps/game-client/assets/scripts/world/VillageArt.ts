@@ -8,7 +8,7 @@ export class VillageArt {
     avatarVariants:Partial<Record<number,SpriteFrame[]>>={};
     details:SpriteFrame[]=[];
     hairVariants:Partial<Record<number,SpriteFrame[]>>={};private decorationLoads=new Map<string,Promise<void>>();private avatarLoads=new Map<number,Promise<void>>();private hairLoads=new Map<number,Promise<void>>();private disposed=false;
-    decorations:Partial<Record<'elder'|'co-tam'|'lotus'|'teacher'|'market-lady'|'potter'|'ti-na'|'hang-cuoi',SpriteFrame>>={};
+    decorations:Partial<Record<'elder'|'co-tam'|'lotus'|'teacher'|'market-lady'|'potter'|'ti-na'|'hang-cuoi'|'seedling',SpriteFrame>>={};
     private tiles?:Texture2D;
     private groundTexture?:Texture2D;
     private generatedTextures:Texture2D[]=[];
@@ -50,7 +50,7 @@ export class VillageArt {
         if(this.disposed)return;
         const frame=(texture:Texture2D)=>this.slice(texture,1,1)[0];
         this.environment=[frame(temple),frame(temple),frame(banyan),frame(temple),frame(temple),frame(temple),frame(farmer)];[0,2,6].forEach(index=>this.environmentLoaded.add(index));
-        await Promise.all((['elder','lotus'] as const).map(name=>this.ensureDecoration(name)));
+        await Promise.all((['elder','lotus','seedling'] as const).map(name=>this.ensureDecoration(name)));
     }
     private slice(texture:Texture2D,columns:number,rows:number):SpriteFrame[]{
         const result:SpriteFrame[]=[];const width=texture.width/columns,height=texture.height/rows;
@@ -60,7 +60,7 @@ export class VillageArt {
     }
     ensureDecoration(name:keyof VillageArt['decorations']):Promise<void>{
         if(this.disposed)return Promise.resolve();const existing=this.decorationLoads.get(name);if(existing)return existing;
-        const ids={elder:'character.elder',lotus:'water.lotus','co-tam':'character.co-tam',teacher:'character.co-giao-lan','market-lady':'character.ba-ban-hang',potter:'character.nghe-nhan-gom','ti-na':'character.ti-na','hang-cuoi':'character.chi-hang-cuoi'};
+        const ids={seedling:'vegetation.seedling',elder:'character.elder',lotus:'water.lotus','co-tam':'character.co-tam',teacher:'character.co-giao-lan','market-lady':'character.ba-ban-hang',potter:'character.nghe-nhan-gom','ti-na':'character.ti-na','hang-cuoi':'character.chi-hang-cuoi'};
         const task=new Promise<void>(resolve=>resources.load(`${assetResourceKey(ids[name])}/texture`,Texture2D,(error,texture)=>{
             if(!this.disposed&&!error)this.decorations[name]=this.slice(texture,1,1)[0];
             else if(error)console.warn(`Village decoration ${name} unavailable; keeping fallback`);resolve();

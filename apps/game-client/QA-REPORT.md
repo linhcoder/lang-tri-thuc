@@ -1,5 +1,38 @@
 # Kết quả nghiệm thu bản playable
 
+## Cập nhật VPS — 10/10/2026
+
+Đã deploy các thay đổi hình ảnh, HUD, lúa nhiệm vụ và modal lên https://ltt.vui-hoc.xyz/game/. Release `9ff50a2-working-visual-d129e24c-20261010` gồm HEAD và thay đổi working tree; không commit/push. Client, API và multiplayer đồng bộ contentVersion `d129e24c`; admin build dùng URL production. SHA-256 gói local/remote khớp. Hai service active, HTTPS health đạt, storage MySQL. Giữ secret, DB và cấu hình aaPanel hiện có.
+
+Trước cập nhật đã dump DB và restore vào DB thử riêng, hash state khớp; DB thử đã xóa. Release cũ `8940ae6-zoom-20261010` giữ để rollback. Live verify-api và verify-web đạt: đăng nhập admin/catalog, chặn anonymous/internal/dev room/room thiếu vé; UI phụ huynh, signed WebSocket hai client, avatar/tóc/phụ kiện, emote, lưu tiến độ, online reload và offline reload. Tài khoản QA được xóa trong finally. Live zoom desktop/mobile đạt wheel/button/pinch, clamp/reset/reload, click-to-move, modal blocking, joystick và portrait/landscape; errors rỗng. Đã xem screenshot signed-room trực tiếp. Báo cáo ignored: `temp/deploy/qa` và `apps/game-client/temp/zoom-qa`. Đây là browser viewport mobile, chưa chứng nhận điện thoại thật. Ctrl+F5 để tải bản mới.
+
+## Thiết kế lại modal tương tác — 10/10/2026
+
+ChapterOneView, VillageHub và LearningPanel dùng chung `assets/scripts/ui/ModalTheme.ts`: giấy kem viền gỗ/vàng, thanh tiêu đề xanh, nút tiếp tục xanh và đáp án vàng. Footer và nội dung có khoảng cách rõ; hàng đáp án Chương 1 dời xuống để tách Gợi ý. Caption dài tự SHRINK trong nút; đã xem ảnh minigame có “Nhờ người lớn cho nước sạch” hiển thị trọn hai dòng. Giữ ID, hit region, nút đọc/dừng/đóng, dữ liệu và reward; không vẽ Graphics lại mỗi frame.
+
+- Strict TypeScript, 48 nhóm client + 3 network lifecycle và Web build Creator 3.8.8 đạt.
+- Browser Chương 1 desktop/mobile (plant/count/replay/reload/recovery), toàn bộ 8 chương và 12 board minigame đạt, errors rỗng. Bản cuối sau sửa caption đã chạy lại hai suite này.
+- Browser visual bốn viewport trước chỉnh SHRINK đạt bounds/non-overlap, modal/menu controls và quality/reload; chỉnh SHRINK chỉ đổi caption, giữ geometry/hit rectangle. Đã xem screenshot desktop/mobile của bài đếm, Sổ làng và minigame.
+- Evidence: `temp/chapter-one-qa/count-hint.png`, `count-mobile.png`, `temp/campaign-qa/all-chapters.png`, `animal-care-board.png`. Preview Creator 3.8.8 → VillageScene → Preview Browser, hoặc http://127.0.0.1:38080/ rồi Ctrl+F5.
+
+Không commit/push/deploy trong đợt này. Demo LearningPanel dùng cùng theme nhưng không chạy lại full demo flow trong lượt kiểm thử này.
+
+## Sửa hình lúa nhiệm vụ — 10/10/2026
+
+Thay nét vẽ Graphics bằng sprite mạ xanh riêng, đồng bộ cây vừa trồng và bài đếm; dời năm ô ra khỏi NPC/nhãn và mái đình. ID/index/save/reward giữ nguyên. Strict TypeScript, 48 nhóm client + 3 network, build Creator/client/API/server đạt; server 5/5, API 4/4 đạt (MySQL skip lượt này). Browser Chương 1 desktop/mobile, sprite sau planting/reload, bài đếm, replay/unique star và recovery save; signed online/parent/server progress đạt, errors rỗng. Đã xem planted-rice-full và count-hint trực tiếp. ContentVersion d129e24c có tọa độ ô; cần client/API/server cùng bản. Xem [asset, prompt và kiểm chứng](../../docs/design/RICE_MISSION_FIX.md). Local http://127.0.0.1:38080/, Ctrl+F5; không cần High để thấy lúa nhiệm vụ. Không commit/push/deploy.
+
+## Skin các nút khoanh đỏ — 10/10/2026
+
+Đã thiết kế Sổ làng, Tới mục tiêu, Người lớn và cụm zoom bằng khung nâu/vàng, nền giấy và icon atlas hiện có; reset zoom nền xanh đậm, phần trăm vẫn cập nhật thật. Giữ ID, hit rectangle và chức năng; skin chỉ vẽ lại khi kích thước/atlas đổi, không redraw Graphics mỗi frame. Strict TypeScript và Creator 3.8.8 Web build đạt. Browser bốn viewport đạt mở Sổ làng/parent gate, đi tới mục tiêu, HUD bounds/non-overlap và vùng bấm mobile ≥44 CSS px; wheel/button/pinch, reset/clamp/reload, joystick/modal và portrait/landscape đạt; errors rỗng. Đã xem screenshot desktop/mobile. Mẫu High khoảng 60.1–60.4 FPS, p95 17–17.1 ms trên máy hiện tại; chưa chứng nhận mobile thật. Local http://127.0.0.1:38080/. Không commit/push/deploy phần mới.
+
+## HUD, biển làng và lúa — 10/10/2026
+
+Đã thêm 89 bụi lúa vàng, 6 biển gỗ tên khu, icon minh họa cho HUD và khung parchment minimap. Bản đồ có hình làng/vị trí bé và chọn khu tạo đường đi; mobile 4 khu/trang. Registry hiện 51 asset, 159 instance. Strict TypeScript, 48 nhóm client + 3 network, Web build Creator 3.8.8, browser visual bốn viewport, assets/NPC, zoom và Chương 1 desktop/mobile/save đạt. Mẫu High khoảng 60.3 FPS, p95 17 ms, 83–124 draw calls; chưa benchmark mobile thật. Các PNG vẫn candidate và map còn ký hiệu procedural. Xem [asset, prompt imagegen, khác biệt và kiểm chứng](../../docs/design/UI_RICE_ART_PASS.md). Local http://127.0.0.1:38080/; chọn High để xem đầy đủ ruộng. Không commit/push/deploy phần mới.
+
+## Reference art pass — 10/10/2026
+
+Đã thay sprite cây đa chính và đình bằng hai PNG riêng tạo qua imagegen, chỉnh kích thước 420×280; thêm 21 cụm hoa/bụi thấp (64 scenery instance). Giữ footprint, NPC/progress và contentVersion. Strict client, 48 nhóm client + 3 network, Web build Creator 3.8.8 và browser visual bốn viewport đạt. Mẫu ngắn 60.14–60.38 FPS trên máy hiện tại; chưa chứng nhận điện thoại thật. Đã xem screenshot game thật; asset vẫn là candidate, chưa đạt giống hoàn toàn reference. Xem [prompt, asset và kết quả](../../docs/design/REFERENCE_ART_PASS.md). Không commit/push/deploy trong đợt này.
+
 ## Visual upgrade — hoàn thành milestone 1–6 — 10/10/2026
 
 Đã hoàn thành triển khai Ground/Paths, Vegetation/Props, Buildings/Water, Characters/NPC, responsive HUD và tối ưu render. Xem [báo cáo nghiệm thu đầy đủ](../../docs/design/VISUAL_UPGRADE_REPORT.md), [art direction](../../docs/design/ART_DIRECTION.md) và [asset manifest](../../docs/design/ASSET_MANIFEST.md). Các mục bên dưới là lịch sử những phiên trước.

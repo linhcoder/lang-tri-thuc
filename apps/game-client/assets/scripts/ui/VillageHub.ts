@@ -1,4 +1,5 @@
-﻿import { Color, Graphics, Label, Node, UITransform, Vec3 } from 'cc';
+import {paintModalFrame,paintModalButton,modalButtonColor} from './ModalTheme';
+import { Color, Graphics, Label, Node, UITransform, Vec3, sys } from 'cc';
 import { CampaignSave } from '../world/CampaignSave';
 import { ChapterOneSave } from '../world/ChapterOneSave';
 import { AgeBand, chapters, miniGameIds, MiniGameId, storyNpcs } from '../world/CampaignContent';
@@ -10,6 +11,7 @@ import { Point, toWorld } from '../world/VillageModel';
 import { PlayerController } from '../player/PlayerController';
 import { SpeechReader } from './SpeechReader';
 import { MiniGameView } from './MiniGameView';
+import {paintVillageMap} from './VillageHUD';
 interface Button {node:Node;width:number;action:()=>void}
 type Mode='menu'|'achievements'|'settings'|'journal'|'chapter'|'lesson'|'game'|'gate'|'parent'|'age'|'quality'|'avatar'|'accessory'|'hair'|'activities'|'inventory'|'map'|'reset'|'help'|'online'|'home';
 export class VillageHub {
@@ -26,14 +28,19 @@ export class VillageHub {
     private gameBoard?:MiniGameView;private lesson?:EducationEngine;private game?:MiniGameRules;private indicator?:Graphics;
     private serverGameSignature='';private gateAnswer=0;private pendingNpc:number|null=null;private syncSignature='';private lastRhythm:boolean|null=null;
     constructor(parent:Node,actors:Node,readonly save:CampaignSave,private first:ChapterOneSave,private player:PlayerController,private reset:()=>void,private destination:(p:Point)=>void){
-        this.campaign=save.engine;this.node=this.make(parent,'VillageHub',620,560);const g=this.node.addComponent(Graphics);g.fillColor=new Color(255,248,219);g.roundRect(-310,-280,620,560,18);g.fill();this.node.active=false;
+        this.campaign=save.engine;this.node=this.make(parent,'VillageHub',620,560);paintModalFrame(this.node);this.node.active=false;
         for(const npc of storyNpcs){const n=this.make(actors,npc.id,70,110),p=toWorld(npc);n.setPosition(p.x,p.y);const g=n.addComponent(Graphics);g.fillColor=new Color(...npc.color);g.roundRect(-20,10,40,55,10);g.fill();g.fillColor=new Color(250,214,174);g.circle(0,82,18);g.fill();g.fillColor=new Color(55,45,35);g.circle(-6,84,2);g.circle(6,84,2);g.fill();this.text(n,npc.name,0,125,235,45,18);this.npcNodes.push(n);}
         this.syncFirst();
     }
     private make(parent:Node,name:string,width:number,height:number):Node{const n=new Node(name);n.layer=parent.layer;parent.addChild(n);n.addComponent(UITransform).setContentSize(width,height);return n;}
-    private text(parent:Node,value:string,x:number,y:number,width=560,height=75,size=24):Node{if(parent===this.node)this.spokenParts.push(value);const n=this.make(parent,'Text',width,height);n.setPosition(x,y);const l=n.addComponent(Label);l.string=value;l.fontSize=size;l.lineHeight=size+8;l.enableWrapText=true;l.overflow=Label.Overflow.CLAMP;l.color=new Color(45,68,43);return n;}
-    private button(id:string,label:string,x:number,y:number,width:number,action:()=>void):Node{const n=this.make(this.node,id,width,76);n.setPosition(x,y);const g=n.addComponent(Graphics);g.fillColor=new Color(205,229,164);g.roundRect(-width/2,-38,width,76,10);g.fill();this.text(n,label,0,0,width-12,76,21);this.buttons.push({node:n,width,action});return n;}
+    private text(parent:Node,value:string,x:number,y:number,width=560,height=75,size=24):Node{if(parent===this.node)this.spokenParts.push(value);const n=this.make(parent,'Text',width,height);n.setPosition(x,y);const l=n.addComponent(Label);l.string=value;l.fontSize=size;l.lineHeight=size+8;l.enableWrapText=true;l.overflow=Label.Overflow.CLAMP;l.color=parent===this.node&&y>=210?new Color(255,245,211):new Color(70,63,40);if(parent===this.node&&y>=210)n.getComponent(UITransform)!.setContentSize(Math.min(width,536),height);return n;}
+    private button(id:string,label:string,x:number,y:number,width:number,action:()=>void):Node{const n=this.make(this.node,id,width,76);n.setPosition(x,y);paintModalButton(n,id);const caption=this.text(n,label,0,0,width-20,70,21);caption.getComponent(Label)!.color=modalButtonColor(id);caption.getComponent(Label)!.overflow=Label.Overflow.SHRINK;this.buttons.push({node:n,width,action});return n;}
     private grid(items:Array<{id:string;label:string;action:()=>void}>,columns=2):void{const width=columns===1?560:columns===2?280:165;items.forEach((b,i)=>this.button(b.id,b.label,(i%columns-(columns-1)/2)*(width+12),120-Math.floor(i/columns)*92,width,b.action));}
+    private mapChoices(items:Array<{id:string;label:string;action:()=>void}>):void{
+        const map=this.make(this.node,'IllustratedVillageMap',560,170);map.setPosition(0,85);paintVillageMap(map.addComponent(Graphics),.14,true);
+        const p=this.player.position,pin=this.make(map,'CurrentPosition',12,12);pin.setPosition(p.x*.14,(p.y+640)*.14);const g=pin.addComponent(Graphics);g.fillColor=new Color(220,63,40);g.circle(0,0,5);g.fill();
+        items.forEach((item,i)=>{const h=sys.isMobile?96:48;const n=this.button(item.id,item.label,(i%2-.5)*290,-35-Math.floor(i/2)*(h+9),280,item.action);n.getComponent(UITransform)!.setContentSize(280,h);const g=n.getComponent(Graphics)!;g.clear();g.fillColor=new Color(191,144,65);g.roundRect(-140,-h/2,280,h,8);g.fill();g.fillColor=new Color(251,237,194);g.roundRect(-137,-h/2+3,274,h-6,6);g.fill();const l=n.getChildByName('Text')!.getComponent(Label)!;l.node.getComponent(UITransform)!.setContentSize(268,h-4);l.fontSize=sys.isMobile?28:18;l.lineHeight=sys.isMobile?32:22;});
+    }
     private persist():void{this.save.save();}
     syncFirst():void{const d=this.first.progress.data,signature=[d.greeted,d.planted.length,d.countRound,d.rewardReceipts.length].join(':');if(signature!==this.syncSignature){this.syncSignature=signature;this.campaign.syncChapterOne(d);this.persist();}}
     get objective():string{const index=chapters.findIndex((c,i)=>this.campaign.unlocked(i)&&!this.campaign.data.receipts.includes(`reward.star.${c.id}`));if(index<0)return 'Cây đa đã sáng • 8 Sao Tri Thức';if(index===0)return this.first.progress.description;const c=chapters[index],q=c.quests.find(q=>!this.campaign.data.completed.includes(q.id));return `${c.title} • ${q?.title??'Về nhận sao'}`;}
@@ -70,7 +77,7 @@ export class VillageHub {
             if(this.indicator&&this.game.id==='mg.fishing'){const g=this.indicator;g.clear();g.strokeColor=new Color(90,150,205);g.rect(-70,55,140,45);g.stroke();for(let i=0;i<3;i++){if(this.game.data.observed.includes(i))continue;g.fillColor=[new Color(80,175,120),new Color(230,150,60),new Color(155,110,190)][i];g.ellipse(this.game.fishX(i),75,15,9);g.fill();}}
         }
     }
-    handle(point:Point):void{const p=this.node.getComponent(UITransform)!.convertToNodeSpaceAR(new Vec3(point.x,point.y));const hit=this.buttons.find(b=>Math.abs(p.x-b.node.position.x)<=b.width/2&&Math.abs(p.y-b.node.position.y)<=38);hit?.action();}
+    handle(point:Point):void{const p=this.node.getComponent(UITransform)!.convertToNodeSpaceAR(new Vec3(point.x,point.y));const hit=this.buttons.find(b=>Math.abs(p.x-b.node.position.x)<=b.width/2&&Math.abs(p.y-b.node.position.y)<=b.node.getComponent(UITransform)!.height/2);hit?.action();}
     private finishQuest():void{if(this.practice){if(this.game?.ended&&!this.campaign.data.practice.includes(this.game.id))this.campaign.data.practice.push(this.game.id);this.persist();this.game=undefined;this.mode='activities';this.message='Đã luyện xong! Sao cốt truyện được giữ nguyên.';this.render();return;}this.campaign.complete(this.questId);this.persist();this.mode='chapter';this.lesson=undefined;this.game=undefined;this.message='Hoàn thành việc này! Không mất điểm khi dùng gợi ý.';this.render();}
     private startQuest(id:string):void{this.practice=false;
         const q=chapters[this.chapterIndex].quests.find(q=>q.id===id);if(!q||!this.campaign.available(id))return;this.questId=id;
@@ -198,7 +205,7 @@ export class VillageHub {
                 this.text(this.node,`Đã luyện ${this.campaign.data.practice.length}/12 trò. Không cấp thêm sao.`,0,-165,540,70,21);
             }
         }
-        else if(this.mode==='map'){this.button('PortalMode',this.usePortal?'Cổng khu: bật':'Cổng khu: tắt',215,-235,180,()=>{this.usePortal=!this.usePortal;this.message='Cổng chuyển khu hoạt động khi đứng gần một mốc khu trên bản đồ.';this.render();});this.grid(worldZones.slice(this.mapPage*6,this.mapPage*6+6).map(zone=>({id:'Zone-'+zone.id,label:zone.name,action:()=>{this.close();if(this.usePortal){this.onPortal?.(zone.id);return;}if(this.player.goTo(zone.spawn))this.destination(zone.spawn);}})),2);this.button('MapPage','Trang tiếp',-215,-235,170,()=>{this.mapPage=1-this.mapPage;this.render();});}
+        else if(this.mode==='map'){this.button('PortalMode',this.usePortal?'Cổng khu: bật':'Cổng khu: tắt',215,-235,180,()=>{this.usePortal=!this.usePortal;this.message='Cổng chuyển khu hoạt động khi đứng gần một mốc khu trên bản đồ.';this.render();});this.mapChoices(worldZones.slice(this.mapPage*(sys.isMobile?4:6),(this.mapPage+1)*(sys.isMobile?4:6)).map(zone=>({id:'Zone-'+zone.id,label:zone.name,action:()=>{this.close();if(this.usePortal){this.onPortal?.(zone.id);return;}if(this.player.goTo(zone.spawn))this.destination(zone.spawn);}})));this.button('MapPage','Trang tiếp',-215,-235,170,()=>{this.mapPage=(this.mapPage+1)%Math.ceil(worldZones.length/(sys.isMobile?4:6));this.render();});}
         else if(this.mode==='reset'){this.text(this.node,'Xóa sổ chương 2–8? Bản sao trước xóa được giữ trong bộ nhớ. Chương 1 và demo cũ giữ nguyên.',0,90,550,200);this.button('ConfirmReset','Xóa sổ mới',0,-110,340,()=>{const ok=this.save.resetLaterChapters();this.syncSignature='';this.syncFirst();this.message=ok?'Đã xóa sổ chương 2–8, giữ bản sao.':'Chưa xóa được; dữ liệu được giữ lại.';this.mode='parent';this.render();});}
         if(['chapter','lesson','help'].includes(this.mode))this.readingButton=this.button('HubRead','Nghe',-215,-235,180,()=>this.read()).children[0].getComponent(Label)!;
     }

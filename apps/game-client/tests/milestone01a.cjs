@@ -32,6 +32,21 @@ const map = new m.VillageMap();
 let checks = 0;
 function test(name, fn) { fn(); checks++; console.log('PASS', name); }
 function close(a,b) { assert.ok(Math.abs(a-b) < 1e-7, `${a} != ${b}`); }
+test('private tab reload retains valid routing, discards expired tickets and preserves explicit solo scope',()=>{
+    const {restoreJoinSession,saveSoloSession,JOIN_SESSION_KEY}=load(path.join(scripts,'network/JoinSession.ts'));
+    const values=new Map(),storage={getItem:key=>values.get(key)??null,setItem:(key,value)=>values.set(key,value),removeItem:key=>values.delete(key)};
+    const profileId='11111111-1111-4111-8111-111111111111',room='ABCDEF12',now=1000;
+    const ticket=Buffer.from(JSON.stringify({profileId,roomCode:room,age:'3-5',expires:2000,consent:true})).toString('base64url')+'.untrusted-signature';
+    const decode=raw=>Buffer.from(raw,'base64url').toString();
+    const fresh=restoreJoinSession(ticket,room,storage,decode,now);assert.equal(fresh.join.ticket,ticket);
+    assert.deepEqual(restoreJoinSession(null,null,storage,decode,now),fresh);
+    assert.deepEqual(restoreJoinSession(null,null,storage,decode,2500),{profileId});assert.equal(values.get(JOIN_SESSION_KEY).includes(ticket),false);
+    restoreJoinSession(ticket,room,storage,decode,now);saveSoloSession(storage,profileId);assert.deepEqual(restoreJoinSession(null,null,storage,decode,now),{profileId});assert.equal(values.get(JOIN_SESSION_KEY).includes(ticket),false);
+    assert.equal(restoreJoinSession('bad',room,storage,decode,now),null);assert.equal(values.size,0);
+    assert.equal(restoreJoinSession(ticket,'MISMATCH',storage,decode,now),null);
+    const broken={getItem:()=>{throw Error('Blocked');},setItem:()=>{throw Error('Blocked');},removeItem:()=>{throw Error('Blocked');}};
+    assert.equal(restoreJoinSession(ticket,room,broken,decode,now).join.ticket,ticket);assert.equal(restoreJoinSession(null,null,broken,decode,now),null);
+});
 test('1600 tile round-trips and fractional coordinates', () => {
     for(let y=0;y<40;y++) for(let x=0;x<40;x++) { assert.deepEqual(m.tileAt(m.toWorld({x,y})),{x,y}); const p={x:x+.23,y:y-.19}, q=m.toGrid(m.toWorld(p)); close(p.x,q.x); close(p.y,q.y); }
 });

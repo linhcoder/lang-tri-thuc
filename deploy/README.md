@@ -1,5 +1,9 @@
 # Staging MySQL / API / Colyseus / Caddy
 
+## Triển khai aaPanel thực tế — 10/10/2026
+
+Đã triển khai trên `ltt.vui-hoc.xyz` bằng Nginx, Node 24 và MariaDB sẵn có của aaPanel; không chạy Compose/Caddy và không chiếm cổng các site khác. HTTPS/API, phòng riêng hai client, save/reload và restore DB tạm đã đạt. Hướng dẫn vận hành tại [aapanel/README.md](aapanel/README.md). Những ghi chú “chưa có SSH/domain, chưa deploy” bên dưới là trạng thái trước đợt này. Docker vẫn chưa chạy, không cần cho bản aaPanel.
+
 ## Tình trạng kiểm chứng — 10/10/2026
 
 Dockerfile hiện dùng build/runtime riêng, cài dependencies production và chạy với user node. Client/server phải build cùng lesson/NPC pack để dấu phiên bản nội dung khớp. Admin export/import không tự triển khai runtime.

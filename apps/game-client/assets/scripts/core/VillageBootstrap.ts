@@ -6,6 +6,7 @@ import { VillageArt } from '../world/VillageArt';
 import { LearningProgress, riceBundles } from '../world/LearningProgress';
 import { LearningPanel } from '../ui/LearningPanel';
 import { VillageNetwork } from '../network/VillageNetwork';
+import {restoreJoinSession,saveSoloSession} from '../network/JoinSession';
 import { ChapterOneSave } from '../world/ChapterOneSave';
 import { ChapterOneView } from '../ui/ChapterOneView';
 import { CampaignSave } from '../world/CampaignSave';
@@ -105,7 +106,7 @@ export class VillageBootstrap extends Component {
     private get objective():string{return this.hub?.objective??this.chapterSave?.progress.description??this.learning.description;}
     onLoad(): void {
         this.demo=sys.isBrowser&&new URLSearchParams(window.location.search).get('demo')==='1';
-        if(sys.isBrowser&&!this.demo){const fragment=new URLSearchParams(window.location.hash.slice(1)),ticket=fragment.get('ticket'),roomCode=fragment.get('room');if(ticket&&roomCode&&/^[A-Z0-9]{8}$/.test(roomCode)){try{const payload=JSON.parse(atob(ticket.split('.')[0].replace(/-/g,'+').replace(/_/g,'/')));if(typeof payload.profileId==='string'&&/^[a-f0-9-]{36}$/.test(payload.profileId)){this.profileScope='.'+payload.profileId;this.privateJoin={roomCode,ticket};}}catch{}history.replaceState(null,'',window.location.pathname+window.location.search);}}
+        if(sys.isBrowser&&!this.demo){const fragment=new URLSearchParams(window.location.hash.slice(1));let storage:Storage|undefined;try{storage=window.sessionStorage;}catch{}const session=restoreJoinSession(fragment.get('ticket'),fragment.get('room'),storage,raw=>atob(raw.replace(/-/g,'+').replace(/_/g,'/')));if(session){this.profileScope='.'+session.profileId;this.privateJoin=session.join;}if(fragment.has('ticket')||fragment.has('room'))history.replaceState(null,'',window.location.pathname+window.location.search);}
         if(!this.demo){this.chapterSave=new ChapterOneSave(sys.localStorage,'lang-tri-thuc.chapter-one.v2'+this.profileScope);this.chapterSave.load();}
         try{this.learning.restore(sys.localStorage.getItem('lang-tri-thuc.learning.v1'));}catch{}
         this.root = ui(this.node, 'Milestone01A');
@@ -201,6 +202,7 @@ export class VillageBootstrap extends Component {
         }catch(error){if(this.loadingPanel)this.loadingPanel.active=false;this.statusRemaining=10;this.status.string='Không tải được hình ảnh. Prototype vẫn chạy; hãy mở lại project.';console.warn('Village art:',error);}
     }
     private enableSolo():void{
+        if(sys.isBrowser){try{saveSoloSession(window.sessionStorage,this.profileScope.slice(1));}catch{}}
         const hub=this.hub,first=this.chapterSave;if(!hub||!first)return;
         first.progress.onIntent=undefined;hub.onChapterIntro=undefined;hub.onClaim=undefined;hub.onLessonAnswer=undefined;
         hub.onGameStart=undefined;hub.onGameAction=undefined;hub.onGamePause=undefined;

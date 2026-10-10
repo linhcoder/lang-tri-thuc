@@ -2,6 +2,8 @@
 
 Đối chiếu master prompt với mã, build và kiểm thử thực tế. Đây là prototype chạy được, chưa phải nghiệm thu phát hành beta. Người dùng đã cho phép làm liên tục, commit và push; các yêu cầu chờ từng milestone trong tài liệu gốc là lịch sử.
 
+Staging aaPanel hiện đã triển khai và nghiệm thu kỹ thuật: [runbook](../deploy/aapanel/README.md). Gate VPS/domain/TLS/WebSocket/backup-restore đã thực hiện; còn nội dung, trẻ có giám sát và thiết bị thật trước public beta.
+
 | Nhóm yêu cầu | Bản hiện tại | Giới hạn / việc còn lại |
 | --- | --- | --- |
 | Cocos / scene | Giữ Creator 3.8.8, scene/UUID cũ; build Web thật | Kiểm tra trực tiếp bằng Editor và thiết bị đích trước beta |
@@ -18,7 +20,7 @@
 | Admin | Biên tập chương/quest title/hội thoại/câu hỏi/NPC/metadata asset; review/audit/report, export/import | Quy tắc, ID, đáp án runtime và game graph có validation; không editor luật mini game tùy ý |
 | UI | Loading, avatar, HUD, dialogue, nhật ký, túi, map, mini game, thành tích, nhà, settings, phụ huynh | Browser desktop + Android giả lập; cần điện thoại thật và thử trẻ có giám sát |
 | Hiệu năng | Atlas, culling, lazy NPC/avatar/tóc, pooled board labels, Low/Medium/High | Chưa nghiệm thu RAM/giọng/load/FPS trên Intel HD/UHD và mobile thật; không cam kết 30 FPS trên mọi máy |
-| Vận hành | Compose MySQL/API/Colyseus/Caddy, Docker nhiều stage chạy node user, backup/runbook | Máy hiện tại không có Docker; chưa build/run Compose hoặc deploy VPS/domain/TLS live |
+| Vận hành | aaPanel VPS live: Nginx/Node 24/MariaDB, services user riêng, HTTPS/WS, backup và restore drill đạt; giữ gói Compose tùy chọn | Chưa chạy Docker/Compose; không cần Docker trên aaPanel hiện tại |
 | Tài liệu | Có đủ 8 tài liệu thiết kế và báo cáo QA/art/deploy | Các số liệu từng đợt giữ lại như lịch sử |
 
 ## Gói nội dung và nghiệm thu
@@ -41,4 +43,4 @@ npm.cmd run server:build
 1. Biên tập từng câu/thoại/luật/văn hóa và nguồn/license của toàn bộ art; không duyệt tự động hàng loạt.
 2. Thử trẻ 3–5, 6–8, 9–11 có phụ huynh giám sát; ghi nhận khả năng đọc, thao tác, thời lượng và độ khó.
 3. QA Intel HD/UHD, Android/iOS thật: portrait/landscape, touch, giọng Việt, tải lạnh, RAM, FPS, mất mạng, phiên dài.
-4. Cung cấp VPS/domain/SSH, chạy Docker staging, TLS/WS, backup và thử phục hồi DB riêng. Chưa có thông tin máy đích, chưa thực hiện deployment.
+4. VPS aaPanel/domain/HTTPS/WS/backup-restore đã đạt. Tiếp tục soak WAN và lịch backup/retention trước beta; Docker là lựa chọn khác chưa được kiểm thử.

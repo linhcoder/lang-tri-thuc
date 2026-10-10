@@ -1,5 +1,19 @@
 # Kết quả nghiệm thu bản playable
 
+## Staging aaPanel live — 10/10/2026
+
+Đã triển khai `https://ltt.vui-hoc.xyz/` và `/game/` trên Nginx/Node 24.16/MariaDB 10.11 có sẵn. Hai service user langtri bind loopback 33080/32580, systemd enabled, giữ nguyên root/cert aaPanel và các vhost khác. Health external TLS hợp lệ: storage mysql, contentVersion 8f30f2cc. UI anonymous 401, internal API 403; admin login và catalog 90/6/24 đạt; room development và private room không vé bị từ chối.
+
+- Browser live: UI phụ huynh tạo hồ sơ/vé, signed WebSocket, hai client, emote, avatar/tóc/khăn, tiến độ authoritative, reload vào lại online, offline rồi reload giữ scope; không lỗi JavaScript. Tài khoản QA được xóa sau kiểm thử. Screenshot/report nằm `temp/deploy/qa`, đã xem renderer trực tiếp.
+- Backup SQL riêng và restore vào DB tạm đạt, SHA-256 state khớp; chỉ xóa DB restore tạm. Backup cuối `/opt/lang-tri-thuc/backups/database-20261010T014858Z.sql`, mode 600; secret ứng dụng mode 600 ngoài web root.
+- Sửa entrypoint API/server so realpath để chạy qua symlink current; lần khởi động đầu thoát 0 và chưa chuyển Nginx, sau sửa build Linux/start/health đạt.
+- Sửa reload sau xóa vé khỏi URL: giữ vé chưa hết hạn trong sessionStorage của tab; lựa chọn solo/hết hạn loại vé, giữ scope backup. Client routing không xác thực chữ ký, server vẫn kiểm vé/expiry/ownership. Fragment malformed không tái dùng hồ sơ trước. Khi storage bị chặn, chơi từ vé mới vẫn được, reload cần người lớn mở lại.
+- Strict client/Cocos build đạt; 43 nhóm client + 3 network lifecycle đạt. Server 5 test đạt (thêm tắt room dev loopback), production binary reservation đạt sau sửa realpath; API/MySQL 5 test đạt.
+
+Lượt browser đầu đã vào room/lưu nhưng timeout ở reload; đã sửa session và chạy lại toàn suite live đạt. Build Linux có cảnh báo thiếu tsconfig Cocos generated, nhưng build API/server đạt; Cocos Web được build thật trên máy Creator. Nginx -t có warning từ hai vhost có sẵn, syntax test và reload đạt. Đây là staging có preview password, chưa thay thế biên tập nội dung, QA thiết bị thật, trẻ có giám sát hoặc soak WAN.
+
+Runbook và rollback: [deploy/aapanel](../../deploy/aapanel/README.md). Những dòng “chưa deploy VPS” ở các đợt cũ bên dưới là lịch sử.
+
 ## Đợt hoàn thiện tổng thể — 10/10/2026
 
 Trạng thái hiện hành: [đối chiếu toàn bộ yêu cầu](../../docs/COMPLETION_CHECKLIST.md). Các mục “chưa có tóc/khăn/biểu cảm” và số test phía dưới là lịch sử.

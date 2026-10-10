@@ -5,6 +5,12 @@ import { startServer } from '../src/main';
 import { validMove, VillageState } from '../src/VillageRoom';
 import { toWorld,VillageMap } from '../../game-client/assets/scripts/world/VillageModel';
 const map=new VillageMap(),spawn=toWorld({x:20,y:20});
+test('production loopback can explicitly disable the development village room',async()=>{
+    const previous=process.env.ALLOW_DEV_ROOMS;process.env.ALLOW_DEV_ROOMS='0';
+    const server=await startServer(26579,'127.0.0.1',{roomSecret:'production-fixture-secret-at-least-32-characters'});
+    try{await assert.rejects(()=>new Client('http://127.0.0.1:26579').joinOrCreate('village'));}
+    finally{await server.gracefullyShutdown(false);if(previous===undefined)delete process.env.ALLOW_DEV_ROOMS;else process.env.ALLOW_DEV_ROOMS=previous;}
+});
 test('movement rejects malformed packets, teleport and paths across pond',()=>{
     assert.equal(validMove(map,spawn,{x:1,y:-640,direction:0,moving:true,seq:1},10),true);
     for(const packet of [null,{...spawn,x:NaN},{...spawn,x:999,direction:0,moving:true,seq:1},{...spawn,direction:99,moving:true,seq:1}])assert.equal(validMove(map,spawn,packet,20),false);

@@ -1,4 +1,6 @@
 # Làng Tri Thức
+
+**Staging aaPanel đã chạy:** [ltt.vui-hoc.xyz](https://ltt.vui-hoc.xyz/) (phụ huynh/admin), [game](https://ltt.vui-hoc.xyz/game/). Giao diện có mật khẩu preview; thông tin truy cập sinh riêng nằm trong file local ignored `temp/deploy/access.txt`. [Runbook aaPanel](deploy/aapanel/README.md). Đã kiểm tra HTTPS, signed WebSocket hai client, MySQL-compatible MariaDB, save/reload và backup/restore. Nội dung vẫn draft, chưa nghiệm thu beta công khai.
 ## Hoàn thiện ngày 10/10/2026
 
 Danh sách đối chiếu yêu cầu và giới hạn thực tế: [COMPLETION_CHECKLIST](docs/COMPLETION_CHECKLIST.md). Chọn nhân vật → **Kiểu tóc** có hai lựa chọn riêng cho mỗi avatar, lưu và đồng bộ online. Túi sao → **Luyện / lễ hội** mở sau tám sao; luyện không cấp lại sao truyện. Làng có thêm giếng, lũy tre, cầu tre, trâu, gà, vịt, vườn rau và cổng.

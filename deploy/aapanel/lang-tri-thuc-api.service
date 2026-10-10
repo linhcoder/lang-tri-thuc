@@ -1,0 +1,21 @@
+[Unit]
+Description=Lang Tri Thuc parent API
+After=network.target mariadb.service
+
+[Service]
+Type=simple
+User=langtri
+Group=langtri
+WorkingDirectory=/opt/lang-tri-thuc/current
+EnvironmentFile=/etc/lang-tri-thuc/api.env
+ExecStart=/www/server/nodejs/v24.16.0/bin/node /opt/lang-tri-thuc/current/apps/backend/dist/main.js
+Restart=on-failure
+RestartSec=3
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+UMask=0077
+
+[Install]
+WantedBy=multi-user.target

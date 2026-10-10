@@ -2,6 +2,7 @@ import Fastify,{FastifyRequest} from 'fastify';
 import cors from '@fastify/cors';
 import {randomBytes,randomUUID,createHmac,timingSafeEqual} from 'node:crypto';
 import {pathToFileURL} from 'node:url';
+import {realpathSync} from 'node:fs';
 import {BackendData,ParentRecord,Repository,MySqlRepository} from './Store';
 import {digest,passwordHash,verifyPassword,signTicket} from './Auth';
 import {CampaignEngine} from '../../game-client/assets/scripts/world/CampaignEngine';
@@ -113,4 +114,4 @@ export async function createApi(options:ApiOptions={}){
     app.post<{Body:{profileId:string;gameId:string;attemptId:string}}>('/internal/result',{schema:{body:object({profileId:str,gameId:str,attemptId:str})}},async req=>{await service(req);return store.transaction(d=>{if(!d.profiles[req.body.profileId])throw Object.assign(Error('Not found'),{statusCode:404});const id=req.body.profileId+':'+req.body.attemptId;if(d.results.includes(id))return {ok:true,duplicate:true};d.results.push(id);const p=d.progress[req.body.profileId]??{revision:0,data:null,receipts:[]};p.receipts.push('game.'+req.body.gameId+'.'+req.body.attemptId);p.revision++;d.progress[req.body.profileId]=p;return {ok:true};});});
     return app;
 }
-if(process.argv[1]&&import.meta.url===pathToFileURL(process.argv[1]).href){createApi({adminPassword:process.env.ADMIN_BOOTSTRAP_PASSWORD}).then(app=>app.listen({host:process.env.HOST||'127.0.0.1',port:Number(process.env.API_PORT||3000)})).then(address=>console.log('Parent API: '+address)).catch(e=>{console.error(e.message);process.exitCode=1;});}
+if(process.argv[1]&&import.meta.url===pathToFileURL(realpathSync(process.argv[1])).href){createApi({adminPassword:process.env.ADMIN_BOOTSTRAP_PASSWORD}).then(app=>app.listen({host:process.env.HOST||'127.0.0.1',port:Number(process.env.API_PORT||3000)})).then(address=>console.log('Parent API: '+address)).catch(e=>{console.error(e.message);process.exitCode=1;});}

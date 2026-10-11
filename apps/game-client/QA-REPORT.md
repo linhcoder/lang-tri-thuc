@@ -356,3 +356,9 @@ Commit 3d986c8, build lunar-ops-v1 đã deploy cùng contentVersion e48dccf3. Đ
 VPS có backup ngày 02:00 và restore drill Chủ nhật 02:30, giờ Việt Nam; timers enabled, jobs Result=success. Năm test chính sách/checksum/cleanup đạt local/Linux. Restore vào DB tạm so snapshot từ dump, không so DB live; chạy cùng lúc QA thay đổi tài khoản vẫn đạt. Retention chỉ áp dụng dump tự động, giữ 30 ngày/tối thiểu bảy bản/bản verify gần nhất; mode directory 0700, SQL/JSON 0600.
 
 Live calendar, API/admin/quyền truy cập và WebSocket hai client/save/reload online/offline đạt, errors rỗng. Cocos splash vẫn tắt. Gate trẻ/thiết bị thật, duyệt art/nội dung, offsite/báo lỗi chủ động và soak WAN dài vẫn còn.
+
+### Chạm trực tiếp bảng mini game — 12/10/2026
+
+Commit `148149b`, build `board-touch-v1`, release `148149b-board-touch-e48dccf3-20261012` đã triển khai HTTPS. Trồng/tưới lúa, chọn rau ở chợ, kéo co và nhảy sạp nhận chạm trên minh họa qua cùng xử lý với nút. Phòng online gửi action về server trước khi có kết quả; luật, checkpoint và contentVersion giữ nguyên.
+
+Strict client, 58 nhóm unit + 3 network tests, Cocos build và campaign tám chương đạt. Art browser local/live kiểm tra 12 bảng desktop/mobile, thao tác chuột/touch thật qua Playwright, trồng năm ô, tưới/chạm lặp không đổi ô khác, chọn rau và forwarding rhythm không tự tăng hits. Receipts không đổi, pooled labels ổn định, errors rỗng. Live API/admin/quyền truy cập và phòng riêng hai client/save/reload online/offline đạt. Hai services và hai backup timers active; release lunar-ops trước được giữ để rollback. Mobile là browser giả lập, chưa nghiệm thu thiết bị thật; chu kỳ bước đi NPC nhiều khung mỗi hướng vẫn còn.

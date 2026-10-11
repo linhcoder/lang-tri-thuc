@@ -4,7 +4,7 @@ Gói rà soát trước beta từ source đang ship: chạy `node tools/export-b
 
 Kết quả kiểm tra mới nhất ở [QA-REPORT.md](../apps/game-client/QA-REPORT.md); [AUDIT_M0.md](AUDIT_M0.md) ghi baseline lịch sử. Checklist bên dưới là kế hoạch, không phải lời khẳng định đã pass toàn bộ.
 
-Chương 1 mới có checklist/save migration ở [MILESTONE_M2.md](MILESTONE_M2.md); chạy `npm run test:m2` trên web server để kiểm trồng năm cây, học đếm và sao duy nhất. `test:web` tiếp tục nghiệm thu demo cũ bằng `?demo=1` cùng multiplayer.
+Chương 1 có checklist/save migration ở [MILESTONE_M2.md](MILESTONE_M2.md); chạy `npm run test:m2` trên web server để kiểm trồng năm cây, học đếm và sao duy nhất. `test:campaign` kiểm tám chương hiện hành; `test:web` giữ nghiệm thu demo cũ bằng `?demo=1`.
 
 ## Chạy tự động
 
@@ -22,9 +22,9 @@ Hai terminal khác: `npm run web` (8080) và `npm run server` (2567); terminal t
 
 | Lớp | Kiểm hiện có | Phần cần bổ sung |
 | --- | --- | --- |
-| Pure/controller harness | Tile round-trip, A* vs BFS, collision, input, camera, quest/save | M1 input owner; M2 planting/migration |
-| Server integration | Packets/teleport/pond, hai SDK client, prod process join | Spam, auth, private room, server reward, 10–20 players |
-| Web build thực | Harvest/count/sow/reward/reload, touch/joystick/rotation, hai browser/rejoin | Addition path, disconnect transport, soak, quality tiers |
+| Pure/controller harness | Tile round-trip, A* vs BFS, collision, ownership input, camera/zoom, planting/migration, quest/save, lịch âm và network lifecycle | Các lỗi mới tìm được và hành vi phụ thuộc thiết bị |
+| Server integration | Packets/teleport/pond, auth/vé phòng riêng, authoritative reward, reconnect, tải local 10/16/20 client | Benchmark production lớn và backend đa instance |
+| Web build thực | Tám chương, touch/joystick/rotation, NPC patrol/hai pha tám hướng, hai client/reload online/offline, quality/dispose, UI phụ huynh xóa/đăng xuất | Soak nhiều giờ, mất mạng trên thiết bị và phiên browser dài |
 | Editor GUI | Checklist thủ công | Chưa có tự động GUI đáng tin trong môi trường này |
 | Hardware | AMD headless WebGL đã có số đo cũ | Intel HD/UHD và phone thật, nhiệt/30 phút |
 | Nội dung | Toán thử nghiệm và nguồn nền | Review chuyên môn/giọng/biến thể văn hóa và quyền asset |

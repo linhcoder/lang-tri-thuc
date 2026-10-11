@@ -27,3 +27,11 @@ Ngày 12/10/2026, lúc 00:27–00:32 UTC+7, chạy từ máy phát triển tới
 Các lần chạy thử harness trước đó phát hiện mã close 4000 là rời tự nguyện, probe đang bay bị mất khi cố ý đóng socket, và snapshot null là hợp lệ cho hồ sơ chưa có hoạt động. Harness dùng close 4001, đợi probe trả về trước ngắt và phân biệt nhận snapshot với giá trị snapshot. Tài khoản lần thử đầu đã được dọn riêng; các lần sau cleanup qua API thành công.
 
 Đợt này cũng phát hiện UI phụ huynh gửi JSON header cho DELETE không có body. Bản sửa nằm trong commit `f5b6721`, cùng công cụ soak. Phiên năm phút chạy trước activation để restart triển khai không ảnh hưởng phép đo. Soak nhiều giờ/thiết bị thật vẫn còn; backup offsite và kênh báo lỗi được để sau theo lựa chọn người dùng ngày 12/10.
+
+### Phiên một giờ — 12/10/2026
+
+Chạy `SOAK_SECONDS=3600` từ 01:17:43 tới 02:17:56 UTC+7, trên release `4fe699c-npc-walk-e48dccf3-20261012` giữ nguyên cả phiên. Bốn client SDK, actualSeconds=3600; 13.684/13.684 probe, p95 265 ms, max 476 ms. 59 lần reconnect giữ session ID/roster/intro; thời gian phục hồi 2.500–2.896 ms, gồm một giây mô phỏng ngắt. Không correction/storage-warning/room error. Đối chiếu MySQL cuối phiên giữ intro và hoạt động luyện lúa, không sinh receipt thưởng; QA account được xóa thành công.
+
+Theo dõi 11 snapshot systemd và kiểm tra cuối phiên: API/game server active, PID không đổi, NRestarts=0. MemoryCurrent trước/sau: API khoảng 46,3 → 49,5 MiB; rooms 44,6 → 53,8 MiB. Đây là bộ nhớ cgroup dịch vụ, không phải heap/GPU và không chứng minh không có leak trong mọi tải. Backup timer chạy trong phiên lúc 02:00:02–02:00:03 UTC+7, Result=success/ExecMainStatus=0. Hai backup timers vẫn active.
+
+Bằng chứng local: `temp/deploy/qa/soak-private-hour.json` và `soak-private-hour-services.json`. Chỉ ghi metric/trạng thái, không có token/vé/mật khẩu. Gate soak một giờ/bốn client đã đạt; còn soak nhiều giờ hơn/tải production lớn và thiết bị thật. Đây là SDK từ một máy, chưa kiểm phiên render browser một giờ hoặc Wi-Fi/4G/background trên điện thoại.

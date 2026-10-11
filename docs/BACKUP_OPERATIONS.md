@@ -33,3 +33,5 @@ Lỗi job hiện trong status/journal; chưa có thông báo ra email/chat hoặ
 ## Kết quả cài live
 
 Ngày 11/10/2026, hai timers đã enabled trên VPS, cả backup và restore service Result=success/ExecMainStatus=0. Lịch kế tiếp lúc kiểm tra: backup 02:00 ngày 12/10/2026 và restore drill 02:30 Chủ nhật 18/10/2026, UTC+7. Phục hồi dump khớp checksum/snapshot kể cả trong khi QA live thêm/xóa tài khoản. DB thử đã xóa, thư mục mode 0700 và metadata mode 0600.
+
+Ngày 12/10/2026, backup ngày đã chạy thực tế qua timer lúc 02:00:02–02:00:03 UTC+7, Result=success/ExecMainStatus=0, trong khi soak WAN bốn client đang diễn ra. Lịch backup kế tiếp lúc kiểm tra là 02:00 ngày 13/10. Soak một giờ và cleanup QA cuối phiên đạt; hai timers vẫn active. Đây là xác nhận backup theo lịch, không phải restore drill cho dump mới nhất; lịch restore tuần giữ nguyên.

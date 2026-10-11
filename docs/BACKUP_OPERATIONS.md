@@ -29,3 +29,7 @@ cat /opt/lang-tri-thuc/backups/automatic/last-restore.json
 ```
 
 Lỗi job hiện trong status/journal; chưa có thông báo ra email/chat hoặc bản sao offsite. Backup trên cùng VPS không bảo vệ trước mất toàn bộ VPS. Mục này cần bổ sung đích offsite và kênh báo lỗi khi triển khai vận hành rộng hơn.
+
+## Kết quả cài live
+
+Ngày 11/10/2026, hai timers đã enabled trên VPS, cả backup và restore service Result=success/ExecMainStatus=0. Lịch kế tiếp lúc kiểm tra: backup 02:00 ngày 12/10/2026 và restore drill 02:30 Chủ nhật 18/10/2026, UTC+7. Phục hồi dump khớp checksum/snapshot kể cả trong khi QA live thêm/xóa tài khoản. DB thử đã xóa, thư mục mode 0700 và metadata mode 0600.

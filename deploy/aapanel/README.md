@@ -4,7 +4,7 @@ Triển khai riêng dưới `/opt/lang-tri-thuc`, dùng Nginx/Node 24/MariaDB hi
 
 ## Bố trí
 
-- Release đang chạy: `/opt/lang-tri-thuc/releases/72a3a50-no-logo-e48dccf3-20261011`, source commit `72a3a50`, contentVersion `e48dccf3`. Bản trước `/opt/lang-tri-thuc/releases/9b48e24-art-e48dccf3-20261011` giữ để rollback. Symlink `/opt/lang-tri-thuc/current`; RELEASE.txt ghi nguồn bản phát hành.
+- Release đang chạy: `/opt/lang-tri-thuc/releases/3d986c8-lunar-ops-e48dccf3-20261011`, source commit `3d986c8`, contentVersion `e48dccf3`. Bản trước `/opt/lang-tri-thuc/releases/72a3a50-no-logo-e48dccf3-20261011` giữ để rollback. Symlink `/opt/lang-tri-thuc/current`; RELEASE.txt ghi nguồn bản phát hành.
 - Admin: `https://ltt.vui-hoc.xyz/`; game: `/game/`; API: `/api/`; Colyseus: `/colyseus/`.
 - Hai systemd service `lang-tri-thuc-api`, `lang-tri-thuc-rooms`, user `langtri`.
 - Cổng chỉ bind `127.0.0.1:33080` và `127.0.0.1:32580`; `ALLOW_DEV_ROOMS=0` tắt room development kể cả loopback. `/api/internal/` bị chặn từ Nginx.
@@ -61,3 +61,9 @@ QA live đạt API/admin/quyền truy cập, parent UI, signed WebSocket hai cli
 ## Bỏ splash Cocos — 11/10/2026
 
 Commit `72a3a50` tắt splash trong tools/build-web.cjs: totalTime=0, logo.type=none và bỏ base64 logo. Mỗi lần build Web đều áp dụng cấu hình này. So sánh build cho thấy chỉ public/game/src/settings.json thay đổi. Đã deploy vào release riêng, SHA-256 khớp, giữ release art để rollback; API/rooms dùng runtime cũ cùng contentVersion, không thay DB/secret. Browser local/live xác nhận settings không có logo, splash thời lượng 0, game tải được và errors rỗng.
+
+## Lịch âm và vận hành tự động — 11/10/2026
+
+Đã deploy commit 3d986c8: Web tính Tết/Trung thu bằng lịch âm UTC+7, khoảng 1900–2199. Timer backup bật: mỗi ngày 02:00 giờ Việt Nam; restore drill Chủ nhật 02:30. Hai service đầu chạy thành công trong sandbox systemd, Result=success/ExecMainStatus=0; SQL/JSON root-only, giữ 30 ngày/tối thiểu bảy bản và bản verify gần nhất. Backup thủ công cũ được giữ. Code vận hành ở /opt/lang-tri-thuc/operations độc lập symlink game. Chi tiết [BACKUP_OPERATIONS](../../docs/BACKUP_OPERATIONS.md).
+
+QA live calendar đạt midnight/range/ngày tương lai, API/admin/quyền truy cập và signed WebSocket hai client, save/reload online/offline đạt; errors rỗng. Đã restore dump snapshot khi live QA thay đổi tài khoản, dữ liệu dump vẫn khớp. Bản sao offsite, thông báo lỗi ra kênh bên ngoài và soak WAN dài chưa được nghiệm thu.

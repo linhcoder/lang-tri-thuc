@@ -348,3 +348,11 @@ Build `art-polish-v1` có atlas NPC 64 khung tám góc quay thật, đã làm s�
 Strict client, 58 nhóm unit + 3 network tests và Cocos build đạt. Browser art kiểm tra tám NPC × tám hướng không mirror, đủ 12 bảng desktop/Android giả lập, labels không tăng theo animation và receipts truyện giữ nguyên. NPC suite đạt tiếp cận sáu NPC, pause gần bé, anchor Chương 1, mobile, hai client online và fallback solo. Campaign đạt tám chương, 11 board cốt truyện, reset lỗi giữ tiến trình và luyện không đổi sao; errors rỗng. Visual đạt năm viewport, quality/reload, collision/fade/HUD/dispose; mẫu local khoảng 60 FPS/p95 16.8–17 ms, không thay thiết bị thật. Art vẫn cần người làm hình ảnh duyệt.
 
 Deploy live đợt art ngày 11/10/2026: commit `9b48e24`, release `9b48e24-art-e48dccf3-20261011`. SHA-256 delta khớp, build Linux/Nginx/backup-restore đạt. API/admin/quyền truy cập, phòng riêng hai client, save/reload online/offline và bộ art tám hướng/12 bảng desktop-mobile qua HTTPS đạt; errors rỗng. Giữ bản completion để rollback, không thay DB/secret.
+
+### Lịch âm runtime và backup/restore định kỳ — 11/10/2026
+
+Commit 3d986c8, build lunar-ops-v1 đã deploy cùng contentVersion e48dccf3. Đã sửa biên đầu năm 1900, tích hợp lịch Tết/Trung thu tính UTC+7 thay giới hạn bảng 2026–2028. Đối chiếu 448 mốc 1976–2199 với bảng Hồ Ngọc Đức không khác biệt; test:lunar đạt 30 fixtures độc lập, tháng nhuận và 109.573 ngày đổi hai chiều. Strict client/58 nhóm unit + 3 network tests đạt, browser calendar và hai chuỗi holiday desktop/mobile đạt; không cấp thêm sao truyện.
+
+VPS có backup ngày 02:00 và restore drill Chủ nhật 02:30, giờ Việt Nam; timers enabled, jobs Result=success. Năm test chính sách/checksum/cleanup đạt local/Linux. Restore vào DB tạm so snapshot từ dump, không so DB live; chạy cùng lúc QA thay đổi tài khoản vẫn đạt. Retention chỉ áp dụng dump tự động, giữ 30 ngày/tối thiểu bảy bản/bản verify gần nhất; mode directory 0700, SQL/JSON 0600.
+
+Live calendar, API/admin/quyền truy cập và WebSocket hai client/save/reload online/offline đạt, errors rỗng. Cocos splash vẫn tắt. Gate trẻ/thiết bị thật, duyệt art/nội dung, offsite/báo lỗi chủ động và soak WAN dài vẫn còn.

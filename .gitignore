@@ -1,4 +1,5 @@
 node_modules/
+__pycache__/
 apps/game-server/dist/
 artifacts/
 apps/backend/.data/

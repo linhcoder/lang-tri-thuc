@@ -33,7 +33,7 @@ Preview offline giữ tại `http://127.0.0.1:8085/`; bản cuối dùng build `
 | Nâng cấp hình ảnh | Nâng animation NPC | Sáu NPC đã đi tuần với vị trí/collision client-server; tám NPC có nghỉ/chào bằng code, sáu cảnh vật có khám phá và năm hoạt động chăm. Đã có 24 khung đi/chào và atlas 64 khung tám góc nhìn độc lập; còn chu kỳ đi nhiều khung mỗi hướng và duyệt art bởi người làm hình ảnh |
 | Tiếp theo | Art/animation và thao tác trực quan sâu hơn cho mini game | 12 bộ luật solo, minh họa Graphics và nút; kéo thả đèn và góc vẽ tự do đã có. Ghép tranh là ô trượt có tranh gà–hoa tự vẽ, cá/ao có mắt/vây/sóng/hoa sen; mô phỏng sâu và art riêng cho toàn bộ trò vẫn là nâng cấp tiếp |
 | Trước beta online | Multiplayer trên mạng/thiết bị thật | Bốn client × 11 trò chính × ba nhóm tuổi, reconnect giữa lượt và thưởng authoritative đạt local. Chưa nghiệm thu trên thiết bị thật hoặc soak WAN dài |
-| Mở rộng nội dung | Nhiệm vụ mùa và ngày lễ truyền thống | Đã có lịch bốn mùa, hai hoạt động/mùa, huy hiệu theo năm và sáu góc khám phá. Đã có hai chuỗi Tết/Trung thu quanh năm với câu hỏi có gợi ý, trò chơi và tiến độ local. Tự nhận diện lịch lễ đã xác minh 2026–2028. Còn mở rộng năm/ngày lễ. Module chuyển đổi âm/dương 1900–2199 đã có trong source, chưa được lịch runtime sử dụng và chưa có QA riêng được ghi nhận |
+| Mở rộng nội dung | Nhiệm vụ mùa và ngày lễ truyền thống | Đã có lịch bốn mùa, hai hoạt động/mùa, huy hiệu theo năm và sáu góc khám phá. Đã có hai chuỗi Tết/Trung thu quanh năm với câu hỏi có gợi ý, trò chơi và tiến độ local. Tự nhận diện lịch lễ đã xác minh 2026–2028. Còn mở rộng năm/ngày lễ. Module âm/dương 1900–2199 đã tích hợp runtime, kiểm chứng 30 fixtures độc lập và 109.573 ngày đổi hai chiều |
 | Khi cần mở rộng | Công cụ biên tập sâu | Sửa chương/quest title/câu hỏi/NPC/asset và review đã có. Chưa editor quest graph, luật/board mini game tùy ý; hai NPC chương 1 giữ cấu hình cố định |
 | Khi tăng tải | Backend nhiều instance | MySQL-compatible snapshot JSON single-row, transaction/locking và backup đã có. Chưa schema chuẩn hóa, Redis presence/room coordination hoặc benchmark production đa instance |
 
@@ -43,7 +43,7 @@ NPC AI và lịch xuất hiện là tùy chọn trong master prompt, không ph�
 
 - Biên tập sư phạm, tiếng Việt, văn hóa và nguồn/license art; nội dung còn draft.
 - Thử trẻ có giám sát ở ba nhóm tuổi, điện thoại Android/iOS và Intel HD/UHD thật; xác nhận giọng Việt, touch, tải lạnh, RAM và phiên dài.
-- Soak mạng, lịch backup/retention và kiểm tra phục hồi định kỳ trước beta công khai. aaPanel staging/HTTPS/WebSocket và restore drill đã chạy; Docker tùy chọn chưa kiểm thử.
+- Soak mạng dài, bản sao offsite và kênh báo lỗi trước beta công khai. Backup ngày/retention và phục hồi thử tuần đã được triển khai riêng. aaPanel staging/HTTPS/WebSocket và restore drill đã chạy; Docker tùy chọn chưa kiểm thử.
 
 Chi tiết yêu cầu gốc và giới hạn: [COMPLETION_CHECKLIST](COMPLETION_CHECKLIST.md). Bằng chứng chạy: [QA-REPORT](../apps/game-client/QA-REPORT.md).
 
@@ -53,3 +53,5 @@ Chi tiết yêu cầu gốc và giới hạn: [COMPLETION_CHECKLIST](COMPLETION_
 Đợt art tiếp theo bổ sung tám hướng NPC, nền ruộng liền/chi tiết bờ ao và đường, cùng minh họa/phản hồi thị giác 12 bảng mini game. Chi tiết [ART_POLISH_PASS](design/ART_POLISH_PASS.md). Việc này không thay thế nghiệm thu art hoặc QA thiết bị thật.
 
 Bản art đã deploy trên staging ngày 11/10/2026, commit `9b48e24`; API/room và browser QA live đạt, giữ release completion để rollback.
+
+Lịch âm runtime và vận hành backup: [LUNAR_CALENDAR_QA](design/LUNAR_CALENDAR_QA.md), [BACKUP_OPERATIONS](BACKUP_OPERATIONS.md). Lịch UTC+7 tính ngày lễ sau 2028; backup tự động giữ 30 ngày, tối thiểu bảy bản và bản verify gần nhất. Backup thủ công cũ không bị dọn.

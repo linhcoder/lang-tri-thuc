@@ -29,7 +29,8 @@ export function solarToLunar(date:CivilDate):LunarDate|null{
     return month?{year:month.year,month:month.month,day:jd-month.start+1,leap:month.leap}:null;
 }
 export function lunarToSolar(date:LunarDate):CivilDate|null{
-    if(!date||![date.year,date.month,date.day].every(Number.isInteger)||date.year<1900||date.year>2199||date.month<1||date.month>12||date.day<1||date.day>30||typeof date.leap!=='boolean')return null;
+    // January at the civil lower boundary can still belong to the previous lunar year.
+    if(!date||![date.year,date.month,date.day].every(Number.isInteger)||date.year<lunarCalendarRange.min-1||date.year>lunarCalendarRange.max||date.month<1||date.month>12||date.day<1||date.day>30||typeof date.leap!=='boolean')return null;
     const month=[...winterPeriod(date.year-1),...winterPeriod(date.year)].find(m=>m.year===date.year&&m.month===date.month&&m.leap===date.leap);
     if(!month||date.day>month.end-month.start)return null;const result=fromJd(month.start+date.day-1);return valid(result)?result:null;
 }

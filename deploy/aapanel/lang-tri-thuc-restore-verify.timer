@@ -1,0 +1,10 @@
+[Unit]
+Description=Lang Tri Thuc restore drill weekly at 02:30 Sunday Vietnam time
+
+[Timer]
+OnCalendar=Sun *-*-* 02:30:00 Asia/Bangkok
+Persistent=true
+Unit=lang-tri-thuc-restore-verify.service
+
+[Install]
+WantedBy=timers.target

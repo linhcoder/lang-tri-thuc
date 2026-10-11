@@ -1,0 +1,392 @@
+[
+  {
+    "solar": {
+      "year": 1976,
+      "month": 1,
+      "day": 31
+    },
+    "lunar": {
+      "year": 1976,
+      "month": 1,
+      "day": 1,
+      "leap": false
+    }
+  },
+  {
+    "solar": {
+      "year": 1976,
+      "month": 9,
+      "day": 8
+    },
+    "lunar": {
+      "year": 1976,
+      "month": 8,
+      "day": 15,
+      "leap": false
+    }
+  },
+  {
+    "solar": {
+      "year": 1985,
+      "month": 1,
+      "day": 21
+    },
+    "lunar": {
+      "year": 1985,
+      "month": 1,
+      "day": 1,
+      "leap": false
+    }
+  },
+  {
+    "solar": {
+      "year": 1985,
+      "month": 9,
+      "day": 29
+    },
+    "lunar": {
+      "year": 1985,
+      "month": 8,
+      "day": 15,
+      "leap": false
+    }
+  },
+  {
+    "solar": {
+      "year": 2007,
+      "month": 2,
+      "day": 17
+    },
+    "lunar": {
+      "year": 2007,
+      "month": 1,
+      "day": 1,
+      "leap": false
+    }
+  },
+  {
+    "solar": {
+      "year": 2007,
+      "month": 9,
+      "day": 25
+    },
+    "lunar": {
+      "year": 2007,
+      "month": 8,
+      "day": 15,
+      "leap": false
+    }
+  },
+  {
+    "solar": {
+      "year": 2023,
+      "month": 1,
+      "day": 22
+    },
+    "lunar": {
+      "year": 2023,
+      "month": 1,
+      "day": 1,
+      "leap": false
+    }
+  },
+  {
+    "solar": {
+      "year": 2023,
+      "month": 9,
+      "day": 29
+    },
+    "lunar": {
+      "year": 2023,
+      "month": 8,
+      "day": 15,
+      "leap": false
+    }
+  },
+  {
+    "solar": {
+      "year": 2026,
+      "month": 2,
+      "day": 17
+    },
+    "lunar": {
+      "year": 2026,
+      "month": 1,
+      "day": 1,
+      "leap": false
+    }
+  },
+  {
+    "solar": {
+      "year": 2026,
+      "month": 9,
+      "day": 25
+    },
+    "lunar": {
+      "year": 2026,
+      "month": 8,
+      "day": 15,
+      "leap": false
+    }
+  },
+  {
+    "solar": {
+      "year": 2027,
+      "month": 2,
+      "day": 6
+    },
+    "lunar": {
+      "year": 2027,
+      "month": 1,
+      "day": 1,
+      "leap": false
+    }
+  },
+  {
+    "solar": {
+      "year": 2027,
+      "month": 9,
+      "day": 15
+    },
+    "lunar": {
+      "year": 2027,
+      "month": 8,
+      "day": 15,
+      "leap": false
+    }
+  },
+  {
+    "solar": {
+      "year": 2028,
+      "month": 1,
+      "day": 26
+    },
+    "lunar": {
+      "year": 2028,
+      "month": 1,
+      "day": 1,
+      "leap": false
+    }
+  },
+  {
+    "solar": {
+      "year": 2028,
+      "month": 10,
+      "day": 3
+    },
+    "lunar": {
+      "year": 2028,
+      "month": 8,
+      "day": 15,
+      "leap": false
+    }
+  },
+  {
+    "solar": {
+      "year": 2029,
+      "month": 2,
+      "day": 13
+    },
+    "lunar": {
+      "year": 2029,
+      "month": 1,
+      "day": 1,
+      "leap": false
+    }
+  },
+  {
+    "solar": {
+      "year": 2029,
+      "month": 9,
+      "day": 22
+    },
+    "lunar": {
+      "year": 2029,
+      "month": 8,
+      "day": 15,
+      "leap": false
+    }
+  },
+  {
+    "solar": {
+      "year": 2030,
+      "month": 2,
+      "day": 2
+    },
+    "lunar": {
+      "year": 2030,
+      "month": 1,
+      "day": 1,
+      "leap": false
+    }
+  },
+  {
+    "solar": {
+      "year": 2030,
+      "month": 9,
+      "day": 12
+    },
+    "lunar": {
+      "year": 2030,
+      "month": 8,
+      "day": 15,
+      "leap": false
+    }
+  },
+  {
+    "solar": {
+      "year": 2033,
+      "month": 1,
+      "day": 31
+    },
+    "lunar": {
+      "year": 2033,
+      "month": 1,
+      "day": 1,
+      "leap": false
+    }
+  },
+  {
+    "solar": {
+      "year": 2033,
+      "month": 9,
+      "day": 8
+    },
+    "lunar": {
+      "year": 2033,
+      "month": 8,
+      "day": 15,
+      "leap": false
+    }
+  },
+  {
+    "solar": {
+      "year": 2034,
+      "month": 2,
+      "day": 19
+    },
+    "lunar": {
+      "year": 2034,
+      "month": 1,
+      "day": 1,
+      "leap": false
+    }
+  },
+  {
+    "solar": {
+      "year": 2034,
+      "month": 9,
+      "day": 26
+    },
+    "lunar": {
+      "year": 2034,
+      "month": 8,
+      "day": 15,
+      "leap": false
+    }
+  },
+  {
+    "solar": {
+      "year": 2053,
+      "month": 2,
+      "day": 18
+    },
+    "lunar": {
+      "year": 2053,
+      "month": 1,
+      "day": 1,
+      "leap": false
+    }
+  },
+  {
+    "solar": {
+      "year": 2053,
+      "month": 9,
+      "day": 26
+    },
+    "lunar": {
+      "year": 2053,
+      "month": 8,
+      "day": 15,
+      "leap": false
+    }
+  },
+  {
+    "solar": {
+      "year": 2099,
+      "month": 1,
+      "day": 21
+    },
+    "lunar": {
+      "year": 2099,
+      "month": 1,
+      "day": 1,
+      "leap": false
+    }
+  },
+  {
+    "solar": {
+      "year": 2099,
+      "month": 9,
+      "day": 28
+    },
+    "lunar": {
+      "year": 2099,
+      "month": 8,
+      "day": 15,
+      "leap": false
+    }
+  },
+  {
+    "solar": {
+      "year": 2100,
+      "month": 2,
+      "day": 9
+    },
+    "lunar": {
+      "year": 2100,
+      "month": 1,
+      "day": 1,
+      "leap": false
+    }
+  },
+  {
+    "solar": {
+      "year": 2100,
+      "month": 9,
+      "day": 18
+    },
+    "lunar": {
+      "year": 2100,
+      "month": 8,
+      "day": 15,
+      "leap": false
+    }
+  },
+  {
+    "solar": {
+      "year": 2199,
+      "month": 1,
+      "day": 26
+    },
+    "lunar": {
+      "year": 2199,
+      "month": 1,
+      "day": 1,
+      "leap": false
+    }
+  },
+  {
+    "solar": {
+      "year": 2199,
+      "month": 10,
+      "day": 4
+    },
+    "lunar": {
+      "year": 2199,
+      "month": 8,
+      "day": 15,
+      "leap": false
+    }
+  }
+]

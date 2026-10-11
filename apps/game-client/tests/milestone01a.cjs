@@ -38,7 +38,7 @@ test('festival dates follow Vietnam midnight, Tet range and verified year rollov
     assert.equal(vietnamDate(new Date('2026-02-16T16:59:59Z')),'2026-02-16');assert.equal(vietnamDate(new Date('2026-02-16T17:00:00Z')),'2026-02-17');
     assert.equal(festivalOccurrence('tet',new Date('2026-02-16T17:00:00Z')).active,true);assert.equal(festivalOccurrence('tet',new Date('2026-02-19T16:59:59Z')).active,true);
     assert.equal(festivalOccurrence('tet',new Date('2026-02-19T17:00:00Z')).date,'2027-02-06');assert.equal(festivalOccurrence('trung-thu',new Date('2026-09-24T17:00:00Z')).active,true);
-    assert.equal(festivalOccurrence('trung-thu',new Date('2027-09-15T17:00:00Z')).date,'2028-10-03');assert.equal(festivalOccurrence('tet',new Date('2030-01-01T00:00:00Z')),null);assert.equal(festivalOccurrence('tet',new Date(NaN)),null);
+    assert.equal(festivalOccurrence('trung-thu',new Date('2027-09-15T17:00:00Z')).date,'2028-10-03');assert.equal(festivalOccurrence('tet',new Date('2030-01-01T00:00:00Z')).date,'2030-02-02');assert.equal(festivalOccurrence('tet',new Date(NaN)),null);
 });
 test('activity snapshots exclude rewards, preserve holiday badges and allow drawing/ care replay reset',()=>{
     const {restoreActivities,mergeActivities}=load(path.join(scripts,'world/ActivitySnapshot.ts'));

@@ -1,0 +1,10 @@
+[Unit]
+Description=Lang Tri Thuc backup daily at 02:00 Vietnam time
+
+[Timer]
+OnCalendar=*-*-* 02:00:00 Asia/Bangkok
+Persistent=true
+Unit=lang-tri-thuc-backup.service
+
+[Install]
+WantedBy=timers.target

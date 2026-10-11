@@ -114,7 +114,7 @@ export class VillageBootstrap extends Component {
     private network=new VillageNetwork();
     private remoteActors=new Map<string,{node:Node;sprite:Sprite;accessory:Graphics;gesture:AvatarGestureState;gestureGraphic:Graphics}>();
     private npcHitHeight=85;
-    private npcMotion=new Map<Node,{body:Node;time:number;near:boolean;greeting:number;baseY:number;scale:number;row:number;idle:SpriteFrame|null}>();
+    private npcMotion=new Map<Node,{body:Node;time:number;near:boolean;greeting:number;baseY:number;scale:number;row:number;width:number;height:number;idle:SpriteFrame|null}>();
     private npcPatrol=new NpcPatrol();private npcWalking=new Map<Node,PatrolPose>();
     private updateNpcPatrol(dt:number):void{
         if(!this.hub||!this.assetsReady)return;const online=!!this.network.room&&this.network.npcs.size===this.hub.npcNodes.length;
@@ -124,7 +124,8 @@ export class VillageBootstrap extends Component {
     }
     private registerNpcMotion(node:Node,body:Node):void{
         const row=['ElderSprite','FarmerSprite','CoTamSprite','MarketLadySprite','FriendsSprite','TeacherSprite','PotterSprite','FestivalSprite'].indexOf(body.name);
-        this.npcMotion.set(node,{body,time:this.npcMotion.size*.73,near:false,greeting:0,baseY:body.position.y,scale:body.scale.x,row,idle:body.getComponent(Sprite)?.spriteFrame??null});
+        const transform=body.getComponent(UITransform)!;
+        this.npcMotion.set(node,{body,time:this.npcMotion.size*.73,near:false,greeting:0,baseY:body.position.y,scale:body.scale.x,row,width:transform.width,height:transform.height,idle:body.getComponent(Sprite)?.spriteFrame??null});
     }
     private animateNpcs(dt:number,camera:Point,width:number,height:number):void{
         for(const [node,state] of this.npcMotion){
@@ -135,9 +136,12 @@ export class VillageBootstrap extends Component {
             state.near=near;state.time+=Math.min(dt,.1);state.greeting=Math.max(0,state.greeting-Math.min(dt,.1));
             const greeting=state.greeting>0?Math.sin((1.4-state.greeting)*Math.PI/1.4):0;
             const walk=this.npcWalking.get(node),moving=walk?.moving===true,facing=walk&&[3,4,5].includes(walk.direction)?-1:1;
-            const sprite=state.body.getComponent(Sprite),poses=this.art.npcPoses[state.row];if(sprite)sprite.spriteFrame=poses&&(moving||greeting>0)?poses[moving?Math.floor(state.time*6)%2:2]:state.idle;
+            const sprite=state.body.getComponent(Sprite),poses=this.art.npcPoses[state.row],directions=this.art.npcDirections[state.row];
+            const directional=!!directions&&(moving||greeting===0);
+            if(sprite)sprite.spriteFrame=directional?directions[walk?.direction??6]:poses&&(moving||greeting>0)?poses[moving?Math.floor(state.time*6)%2:2]:state.idle;
+            state.body.getComponent(UITransform)!.setContentSize(directional?state.height*directions[0].rect.width/directions[0].rect.height:state.width,state.height);
             state.body.setPosition(0,state.baseY+(moving?Math.abs(Math.sin(state.time*9))*2:Math.sin(state.time*1.8)*.65)+greeting*3);
-            state.body.setScale(state.scale*facing,state.scale*(1+Math.sin(state.time*1.8)*.006),1);
+            state.body.setScale(state.scale*(directional?1:facing),state.scale*(1+Math.sin(state.time*1.8)*.006),1);
             state.body.angle=(moving?Math.sin(state.time*9)*2:0)+greeting*Math.sin((1.4-state.greeting)*9)*3;
         }
     }

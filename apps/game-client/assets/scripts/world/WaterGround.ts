@@ -26,6 +26,16 @@ export function paintWaterAndShadows(ctx:CanvasRenderingContext2D,cx:number,cy:n
     for(let x=-1100;x<-250;x+=24)for(let y=300;y<850;y+=14){const n=groundNoise(x,y,28);if(n<.5)continue;ctx.strokeStyle='rgba(227,252,225,.27)';ctx.lineWidth=1;ctx.beginPath();ctx.ellipse(x+n*14,y,5+n*7,2,0,.2,2.6);ctx.stroke();}
     for(let x=0;x<SIZE;x++)for(let y=0;y<SIZE;y++)if(terrain(x,y)==='pond'&&!bridgeTile(x,y)&&groundNoise(x,y,45)>.5){const p=toWorld({x,y});ctx.fillStyle='#81bc65';ctx.beginPath();ctx.ellipse(p.x-8,-p.y+3,9,4,0,.2,6);ctx.lineTo(p.x-8,-p.y+3);ctx.closePath();ctx.fill();ctx.fillStyle='#b9dc81';ctx.beginPath();ctx.ellipse(p.x+11,-p.y-4,6,3,0,0,Math.PI*2);ctx.fill();}
     ctx.restore();coast(ctx);ctx.lineJoin='round';for(const [width,color] of [[22,'rgba(52,104,63,.23)'],[14,'rgba(116,146,80,.62)'],[7,'#c4c29a'],[2,'#eee0b6']] as const){ctx.lineWidth=width;ctx.strokeStyle=color;ctx.stroke();}
+    // Reeds, soft stone clusters and soil follow the complete shoreline across chunks.
+    for(const loop of contours)for(let i=0;i<loop.length;i++){
+        const a=loop[i],b=loop[(i+1)%loop.length],x=(a.x+b.x)/2,y=(a.y+b.y)/2,n=groundNoise(x,y,72);
+        if(n<.55)continue;
+        const length=Math.hypot(b.x-a.x,b.y-a.y)||1,nx=(b.y-a.y)/length,ny=-(b.x-a.x)/length;
+        const px=x+nx*8,py=y+ny*8;
+        ctx.fillStyle='rgba(99,113,67,.26)';ctx.beginPath();ctx.ellipse(px,py+2,8,3,0,0,Math.PI*2);ctx.fill();
+        if(n>.80){for(let j=0;j<3;j++){ctx.fillStyle=j%2?'#d3ccb0':'#a6ad87';ctx.beginPath();ctx.ellipse(px+j*4-4,py+j%2,3+j%2,2,0,0,Math.PI*2);ctx.fill();}}
+        else {ctx.strokeStyle='#668345';ctx.lineWidth=1.5;for(let j=0;j<3;j++){ctx.beginPath();ctx.moveTo(px+j*3-3,py);ctx.quadraticCurveTo(px+j*3-4,py-5,px+j*4-5,py-8-j*2);ctx.stroke();}}
+    }
     for(const o of villageObjects){const p=toWorld(o),width=o.width*.38;if(Math.abs(p.x-center.x)>257+width||Math.abs(p.y-center.y)>129+Math.max(9,width*.21))continue;ctx.fillStyle='rgba(38,62,32,.20)';ctx.beginPath();ctx.ellipse(p.x+8,-p.y+3,width,Math.max(9,width*.21),0,0,Math.PI*2);ctx.fill();}
     ctx.restore();
 }

@@ -27,6 +27,7 @@
     "test:backlog": "node apps/game-client/tests/backlog-web.cjs",
     "test:creative": "node apps/game-client/tests/creative-web.cjs",
     "test:npc": "node apps/game-client/tests/npc-patrol-web.cjs",
+    "test:art": "node apps/game-client/tests/art-polish-web.cjs",
     "test:activity-sync": "node apps/game-client/tests/activities-sync-web.cjs",
     "test:calendar": "node apps/game-client/tests/calendar-web.cjs",
     "test:holidays": "node apps/game-client/tests/holidays-web.cjs",

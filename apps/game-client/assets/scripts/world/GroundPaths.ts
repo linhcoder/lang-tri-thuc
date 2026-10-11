@@ -1,4 +1,7 @@
 import { Point, terrain, toWorld } from './VillageModel';
+import {terrainContours,traceTerrain} from './TerrainContours';
+
+const fieldContours=terrainContours((x,y)=>x>=25&&x<=34&&y>=12&&y<=20);
 
 /** Visual geometry only: navigation and saved grid coordinates remain authoritative. */
 export const groundAssets = [
@@ -36,10 +39,13 @@ export function paintGround(context:CanvasRenderingContext2D,cx:number,cy:number
     // diamond edges would otherwise leave diagonal antialias seams in the grass.
     context.save();context.beginPath();context.rect(0,0,514,258);context.clip();context.translate(257-center.x,129+center.y);
     paintMeadow(context,center.x-400,-center.y-240,center.x+400,-center.y+240,grass);
-    // Field soil and stubble share the gameplay terrain footprint, baked once.
+    // One soft field outline removes tile seams without changing planting coordinates.
+    traceTerrain(context,fieldContours);context.fillStyle='#b4a75a';context.fill();
+    context.lineJoin='round';
+    for(const [width,color] of [[18,'rgba(149,155,76,.24)'],[10,'rgba(169,161,79,.40)'],[3,'rgba(207,191,111,.65)']] as const){context.lineWidth=width;context.strokeStyle=color;context.stroke();}
+    // Stubble remains tied to the field, baked once.
     for(let y=12;y<=20;y++)for(let x=25;x<=34;x++){
-        const p=toWorld({x,y});context.beginPath();context.moveTo(p.x-32,-p.y);context.lineTo(p.x,-p.y-16);context.lineTo(p.x+32,-p.y);context.lineTo(p.x,-p.y+16);context.closePath();
-        context.fillStyle=groundNoise(x,y,18)>.5?'#b7ab58':'#afa451';context.fill();
+        const p=toWorld({x,y});
         context.strokeStyle='rgba(111,112,40,.28)';context.lineWidth=1;
         for(let i=0;i<8;i++){const dx=(groundNoise(x*8+i,y,19)-.5)*40,dy=(groundNoise(x,y*8+i,20)-.5)*15;context.beginPath();context.moveTo(p.x+dx,-p.y+dy);context.lineTo(p.x+dx-2,-p.y+dy-5);context.stroke();}
     }
@@ -53,6 +59,18 @@ export function paintGround(context:CanvasRenderingContext2D,cx:number,cy:number
         const end=world[world.length-1];context.lineTo(end.x,end.y*2);context.lineCap='round';context.lineJoin='round';
         for(const [width,color] of [[83,'rgba(150,142,87,.06)'],[73,'rgba(190,164,113,.12)'],[65,'rgba(211,177,126,.25)'],[57,'rgba(222,185,137,.48)'],[49,'#e4bf8e'],[32,'rgba(246,213,160,.35)']] as const){context.lineWidth=width;context.strokeStyle=color;context.stroke();}
         context.restore();
+        // Small paired wheel marks and verge tufts follow the same global path.
+        for(let i=1;i<world.length;i++){
+            const a=world[i-1],b=world[i],length=Math.hypot(b.x-a.x,(b.y-a.y)*2),steps=Math.max(1,Math.ceil(length/35));
+            const nx=-(b.y-a.y)*2/(length||1),ny=(b.x-a.x)/(length||1)*.5;
+            for(let j=1;j<steps;j++){
+                const t=j/steps,x=a.x+(b.x-a.x)*t,y=a.y+(b.y-a.y)*t,n=groundNoise(Math.round(x),Math.round(y),61);
+                if(n<.38)continue;
+                context.fillStyle='rgba(125,94,53,.16)';for(const side of [-1,1]){context.beginPath();context.ellipse(x+nx*11*side,y+ny*11*side,3+n*3,1,0,0,Math.PI*2);context.fill();}
+                context.strokeStyle='rgba(75,110,51,.42)';context.lineWidth=1;
+                for(const side of [-1,1]){const px=x+nx*29*side,py=y+ny*29*side;context.beginPath();context.moveTo(px,py);context.quadraticCurveTo(px-2,py-4,px-5,py-5);context.moveTo(px,py);context.quadraticCurveTo(px+1,py-5,px+3,py-7);context.stroke();}
+            }
+        }
     }
     // Sparse global speckles; deterministic across chunk boundaries, no per-frame work.
     for(let x=Math.floor((center.x-300)/12)*12;x<center.x+300;x+=12)for(let y=Math.floor((-center.y-160)/12)*12;y<-center.y+160;y+=12){

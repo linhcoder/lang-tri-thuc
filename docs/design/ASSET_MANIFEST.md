@@ -1,5 +1,7 @@
 # Asset manifest
 
+Trạng thái ngày 11/10/2026: registry hiện có 57 asset, gồm atlas NPC 24 tư thế và 64 khung tám hướng, HUD ui-v4, nhà house-v5 và mạ mới. Path/kích thước hiện hành lấy từ asset-manifest.json; các snapshot bên dưới là lịch sử. Asset đang chạy vẫn là candidate chờ nghiệm thu mỹ thuật.
+
 Cập nhật mạ nhiệm vụ: registry 52 asset, thêm rice-seedling.png dùng chung plot và bài đếm; xem [RICE_MISSION_FIX.md](RICE_MISSION_FIX.md). Các số lượng bên dưới là lịch sử các đợt art trước.
 
 Cập nhật HUD/lúa: 51 asset, 159 instance, atlas ui-v4 và sprite rice-v4. Xem [UI_RICE_ART_PASS.md](UI_RICE_ART_PASS.md); JSON hiện tại chứa path, size, collision và vị trí biển mới.

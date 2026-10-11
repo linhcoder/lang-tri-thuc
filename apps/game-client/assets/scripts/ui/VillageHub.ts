@@ -33,7 +33,7 @@ export class VillageHub {
     private reader=new SpeechReader();private spokenParts:string[]=[];private readingButton?:Label;private readingNotice?:Label;
     private practice=false;private activityPage=0;private festivalOnly=false;private mode:Mode='journal';private chapterIndex=1;private questId='';private buttons:Button[]=[];private message='';
     private dragPiece?:{index:number;node:Node};
-    private gameBoard?:MiniGameView;private lesson?:EducationEngine;private game?:MiniGameRules;private indicator?:Graphics;
+    private boardState='';private gameBoard?:MiniGameView;private lesson?:EducationEngine;private game?:MiniGameRules;private indicator?:Graphics;
     private serverGameSignature='';private gateAnswer=0;private pendingNpc:number|null=null;private syncSignature='';private lastRhythm:boolean|null=null;
     private pendingDetail:string|null=null;private selectedDetail:string|null=null;
     private selectedHoliday='tet';private holidayRun:string|null=null;
@@ -131,7 +131,7 @@ export class VillageHub {
         if(this.gameBoard&&this.game&&this.node.active&&this.mode==='game')this.gameBoard.update(this.game);this.syncFirst();
         this.npcReplan=Math.max(0,this.npcReplan-dt);
         if(this.pendingNpc!==null){const index=this.pendingNpc,npc=this.npcNodes[index];if(!this.player.hasPath&&Math.hypot(npc.position.x-this.player.position.x,npc.position.y-this.player.position.y)<55){this.pendingNpc=null;this.open('chapter',storyNpcs[index].chapter);}else if(this.npcReplan===0&&(!this.player.hasPath||this.npcDestination&&Math.hypot(npc.position.x-this.npcDestination.x,npc.position.y-this.npcDestination.y)>18)){if(!this.approachNpc(index))this.pendingNpc=null;}}
-        if(this.node.active&&this.mode==='game'&&this.game){if(this.practice||!this.onGameAction)this.game.advance(dt);const rhythm=this.game.rhythmOpen;if(this.indicator&&(this.game.id==='mg.tug-of-war'||this.game.id==='mg.bamboo-dance')&&rhythm!==this.lastRhythm){this.lastRhythm=rhythm;this.indicator.clear();this.indicator.fillColor=rhythm?new Color(95,185,90):new Color(185,160,120);this.indicator.roundRect(-220,65,440,28,12);this.indicator.fill();}
+        if(this.node.active&&this.mode==='game'&&this.game){if(this.practice||!this.onGameAction)this.game.advance(dt);const rhythm=this.game.rhythmOpen;if(this.indicator&&(this.game.id==='mg.tug-of-war'||this.game.id==='mg.bamboo-dance')&&rhythm!==this.lastRhythm){this.lastRhythm=rhythm;this.indicator.clear();this.indicator.fillColor=rhythm?new Color(95,185,90):new Color(185,160,120);this.indicator.roundRect(-220,51,440,10,5);this.indicator.fill();}
             if(this.indicator&&this.game.id==='mg.fishing'){const g=this.indicator;g.clear();g.strokeColor=new Color(90,150,205);g.rect(-70,55,140,45);g.stroke();for(let i=0;i<3;i++){if(this.game.data.observed.includes(i))continue;g.fillColor=[new Color(80,175,120),new Color(230,150,60),new Color(155,110,190)][i];g.ellipse(this.game.fishX(i),75,15,9);g.fill();}}
         }
     }
@@ -220,7 +220,7 @@ export class VillageHub {
             else if(game.status==='ended'){this.text(this.node,game.feedback,0,80,550,190);this.button('GameFinish','Xong • nhận tiến độ',0,-100,390,()=>this.finishQuest());}
             else{
                 const summary=game.id==='mg.o-an-quan'?`Cháu: ${game.data.scores[0]} • NPC: ${game.data.scores[1]}\nChọn ô dân 1–5; NPC chơi lượt kế.`:game.id==='mg.fishing'?'Chờ cá vào vùng giữa; quan sát màu rồi thả.':game.prompt;
-                this.text(this.node,summary,0,167,550,55,18);this.gameBoard=new MiniGameView(this.node);this.gameBoard.update(game);
+                this.text(this.node,summary,0,167,550,55,18);const boardState=game.id+JSON.stringify(game.data);this.gameBoard=new MiniGameView(this.node,this.boardState.startsWith(game.id)&&this.boardState!==boardState);this.boardState=boardState;this.gameBoard.update(game);
                 const options=game.options,columns=options.length>3?3:options.length===1?1:3,width=columns===1?400:165;
                 options.forEach((o,i)=>{const n=this.button('GameAction-'+o.type+'-'+o.index,o.label,(i%columns-(columns-1)/2)*(width+10),options.length>3?20-Math.floor(i/columns)*86:-65,width,()=>{if(!this.practice&&this.onGameAction){this.onGameAction(o.type,o.index);return;}game.action(o.type,o.index);this.message=game.feedback;if(!this.practice)this.campaign.data.resume[this.questId]={kind:'game',data:game.save()};this.persist();this.render();});if(game.id==='mg.dong-ho'){folkPuzzleTile(n,game.data.tiles[i]);const caption=n.getChildByName('Text')!;caption.setSiblingIndex(n.children.length-1);caption.setPosition(56,22);caption.getComponent(UITransform)!.setContentSize(30,25);caption.getComponent(Label)!.fontSize=15;}});
                 if(['mg.tug-of-war','mg.bamboo-dance'].includes(game.id))this.indicator=this.make(this.node,'GameMotion',1,1).addComponent(Graphics);

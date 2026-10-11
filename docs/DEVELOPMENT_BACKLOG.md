@@ -12,7 +12,7 @@ Chương 2 thay nhiệm vụ Ô ăn quan bằng ghép đèn ông sao: năm cặp
 
 Bảng nhiệm vụ chương đã thiết kế lại: tên chương cố định, NPC/tiến độ, thẻ số thứ tự và trạng thái rõ ràng, hai nút Nghe hướng dẫn/Về làng cân đối. Kiểm tra desktop và mobile dọc/ngang đạt.
 
-## Đã bổ sung trong đợt hoàn thiện local
+## Đã bổ sung và triển khai staging
 
 - Minimap có dấu của tám NPC và bạn trong phòng; vị trí bạn cập nhật theo trạng thái mạng, bị chặn/rời phòng thì xóa dấu. Có chú giải màu.
 - Kéo nền bằng chuột hoặc một ngón để xem làng. Di chuyển hoặc mở menu đưa camera về theo bé; pinch và joystick vẫn có quyền riêng.
@@ -26,14 +26,14 @@ Bảng nhiệm vụ chương đã thiết kế lại: tên chương cố định
 
 Sổ ngày lễ mở từ menu hoặc bộ sưu tập: hai chuỗi Tết/Trung thu có minh họa Graphics, câu hỏi có gợi ý, ghép bánh chưng/đèn ông sao, lưu bước và ván đang chơi. Chơi lại giữ dấu hoàn thành, không cộng sao truyện. Nội dung học mở quanh năm; sổ tự nhận diện ngày Tết/Trung thu theo bảng đã xác minh 2026–2028, giờ Việt Nam. Ngoài bảng giữ chế độ quanh năm.
 
-Preview offline giữ tại `http://127.0.0.1:8085/`; bản cuối dùng build `completion-v1`. Stack online local dùng game 38080, phụ huynh 35173, API 33000. Các bổ sung này chưa triển khai staging. Đợt NPC đổi hash nội dung; cần cập nhật client, game server và API cùng phiên bản.
+Preview offline giữ tại `http://127.0.0.1:8085/`; bản cuối dùng build `completion-v1`. Stack online local dùng game 38080, phụ huynh 35173, API 33000. Các bổ sung này đã triển khai lên https://ltt.vui-hoc.xyz ngày 11/10/2026, source commit `0b4a42e`, contentVersion `e48dccf3`; Web, API và game server cùng phiên bản. QA live đạt phòng riêng hai client, save/reload, offline fallback và tranh desktop → mobile; errors rỗng.
 
 | Mức ưu tiên | Phần còn lại | Hiện có / giới hạn |
 | --- | --- | --- |
-| Nâng cấp hình ảnh | Nâng animation NPC | Sáu NPC đã đi tuần với vị trí/collision client-server; tám NPC có nghỉ/chào bằng code, sáu cảnh vật có khám phá và năm hoạt động chăm. Đã có 24 khung đi/chào riêng; còn tám góc nhìn độc lập và duyệt art bởi người làm hình ảnh |
+| Nâng cấp hình ảnh | Nâng animation NPC | Sáu NPC đã đi tuần với vị trí/collision client-server; tám NPC có nghỉ/chào bằng code, sáu cảnh vật có khám phá và năm hoạt động chăm. Đã có 24 khung đi/chào và atlas 64 khung tám góc nhìn độc lập; còn chu kỳ đi nhiều khung mỗi hướng và duyệt art bởi người làm hình ảnh |
 | Tiếp theo | Art/animation và thao tác trực quan sâu hơn cho mini game | 12 bộ luật solo, minh họa Graphics và nút; kéo thả đèn và góc vẽ tự do đã có. Ghép tranh là ô trượt có tranh gà–hoa tự vẽ, cá/ao có mắt/vây/sóng/hoa sen; mô phỏng sâu và art riêng cho toàn bộ trò vẫn là nâng cấp tiếp |
 | Trước beta online | Multiplayer trên mạng/thiết bị thật | Bốn client × 11 trò chính × ba nhóm tuổi, reconnect giữa lượt và thưởng authoritative đạt local. Chưa nghiệm thu trên thiết bị thật hoặc soak WAN dài |
-| Mở rộng nội dung | Nhiệm vụ mùa và ngày lễ truyền thống | Đã có lịch bốn mùa, hai hoạt động/mùa, huy hiệu theo năm và sáu góc khám phá. Đã có hai chuỗi Tết/Trung thu quanh năm với câu hỏi có gợi ý, trò chơi và tiến độ local. Tự nhận diện lịch lễ đã xác minh 2026–2028. Còn mở rộng năm/ngày lễ và bộ chuyển đổi âm/dương tổng quát |
+| Mở rộng nội dung | Nhiệm vụ mùa và ngày lễ truyền thống | Đã có lịch bốn mùa, hai hoạt động/mùa, huy hiệu theo năm và sáu góc khám phá. Đã có hai chuỗi Tết/Trung thu quanh năm với câu hỏi có gợi ý, trò chơi và tiến độ local. Tự nhận diện lịch lễ đã xác minh 2026–2028. Còn mở rộng năm/ngày lễ. Module chuyển đổi âm/dương 1900–2199 đã có trong source, chưa được lịch runtime sử dụng và chưa có QA riêng được ghi nhận |
 | Khi cần mở rộng | Công cụ biên tập sâu | Sửa chương/quest title/câu hỏi/NPC/asset và review đã có. Chưa editor quest graph, luật/board mini game tùy ý; hai NPC chương 1 giữ cấu hình cố định |
 | Khi tăng tải | Backend nhiều instance | MySQL-compatible snapshot JSON single-row, transaction/locking và backup đã có. Chưa schema chuẩn hóa, Redis presence/room coordination hoặc benchmark production đa instance |
 
@@ -49,3 +49,5 @@ Chi tiết yêu cầu gốc và giới hạn: [COMPLETION_CHECKLIST](COMPLETION_
 
 
 Đợt hoàn thiện mới có đồng bộ tranh/chăm/ngày lễ/checkpoint theo hồ sơ phòng riêng (không cấp sao truyện), lịch lễ giờ Việt Nam 2026–2028, art ghép tranh/ao cá và atlas 24 tư thế NPC. Chi tiết: [ACTIVITY_SYNC](design/ACTIVITY_SYNC.md), [TRADITIONAL_FESTIVALS](design/TRADITIONAL_FESTIVALS.md), [NPC_POSES](design/NPC_POSES.md). Cần cập nhật Web, API và game server cùng rules 6.
+
+Đợt art tiếp theo bổ sung tám hướng NPC, nền ruộng liền/chi tiết bờ ao và đường, cùng minh họa/phản hồi thị giác 12 bảng mini game. Chi tiết [ART_POLISH_PASS](design/ART_POLISH_PASS.md). Việc này không thay thế nghiệm thu art hoặc QA thiết bị thật.

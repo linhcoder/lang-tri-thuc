@@ -41,3 +41,14 @@ export function npcPoseFrames(texture:Texture2D):SpriteFrame[][]{
     }
     return rows;
 }
+
+/** Eight genuine viewpoints per NPC, in the same east-to-northeast order as direction8. */
+export function npcDirectionFrames(texture:Texture2D):SpriteFrame[][]{
+    const width=texture.width/8,height=texture.height/8,rows:SpriteFrame[][]=[];
+    for(let row=0;row<8;row++){
+        const frames:SpriteFrame[]=[];
+        for(let direction=0;direction<8;direction++){const frame=new SpriteFrame();frame.texture=texture;frame.rect=new Rect(direction*width,row*height,width,height);frames.push(frame);}
+        rows.push(frames);
+    }
+    return rows;
+}

@@ -36,3 +36,16 @@ Rollback app: đổi `current` về release đã kiểm tra trước, restart ha
 Chạy `node deploy/aapanel/verify-web.cjs` trên máy QA có file local ignored `temp/deploy/access.txt`. Suite tạo tài khoản thử rồi xóa nó ở finally, không sử dụng tài khoản admin thật. Chưa thay thế soak WAN, kiểm thử thiết bị thật hoặc biên tập nội dung trước beta.
 
 `node deploy/aapanel/verify-api.cjs` kiểm tra admin/catalog, chặn UI anonymous/internal API, từ chối room development và phòng riêng thiếu vé; logout phiên admin thử ở finally.
+
+## Cập nhật completion (đã đóng gói local)
+
+Gói `temp/deploy/completion-release.tar.gz` chứa source working tree, public/admin dùng URL staging, public/game build completion-v1. Metadata/SHA-256 ở completion-release.json; contentVersion e48dccf3. Chưa activate: xác thực SSH bằng khóa hiện có bị từ chối ngày 11/10/2026.
+
+Khi có phiên SSH xác thực, upload archive vào `/opt/lang-tri-thuc/completion-release.tar.gz` và script local `deploy/aapanel/update-release.sh` vào `/opt/lang-tri-thuc/update-release.sh`, rồi chạy:
+
+```sh
+sh /opt/lang-tri-thuc/update-release.sh working-completion-e48dccf3-20261011 completion-release.tar.gz
+python3 /opt/lang-tri-thuc/releases/working-completion-e48dccf3-20261011/deploy/aapanel/activate-release.py working-completion-e48dccf3-20261011 e48dccf3
+```
+
+Script update chỉ chuẩn bị release mới. Script activate kiểm tra health MySQL/contentVersion và hai services, tự rollback app khi sai; giữ DB/secret. Sau activate chạy verify-api.cjs, verify-web.cjs và test đồng bộ trên hai browser. Chưa thay thế nghiệm thu trẻ/thiết bị thật hoặc soak WAN.

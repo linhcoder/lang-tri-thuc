@@ -85,13 +85,31 @@ npm.cmd run test:api
 npm.cmd run test:server
 npm.cmd run test:m2
 npm.cmd run test:campaign
+npm.cmd run test:backlog
+npm.cmd run test:creative
+npm.cmd run test:npc
+npm.cmd run test:holidays
 npm.cmd run test:stack
 ```
 
 Browser tests cần web build; `test:m2`/`test:campaign` dùng server web cổng 8080 (`npm run web`); `test:stack` dùng `npm run local:stack`. `test:web` hồi quy demo cũ cần web 8080 và server dev 2567 (`npm run server`). Browser được tìm từ Chrome/Edge; có thể đặt `CHROME_EXECUTABLE`. Typecheck client cần mở Editor/build một lần để tạo `temp/declarations`.
+
+`test:backlog` kiểm tra checkpoint luyện, sổ khám phá, huy hiệu mùa, minimap NPC/bạn và kéo camera bằng chuột/touch. Có thể đặt `GAME_WEB_URL` để kiểm tra bản build đang phục vụ. Checkpoint luyện và sổ khám phá hiện lưu theo hồ sơ local. Ngày hội theo bốn mùa của game, chưa dùng lịch âm. Xem [phần đã hoàn thiện và còn lại](docs/DEVELOPMENT_BACKLOG.md).
+
+`test:creative` kiểm tra góc vẽ chuột/touch, hủy nét, chấm màu, lùi nét, tải lại, xác nhận xóa/phục hồi và năm hoạt động chăm góc làng. Góc vẽ mở từ menu hoặc hoạt động; chăm góc làng mở sau khi đi tới trâu/gà/vịt/mèo/vườn rau. Tranh và các bước chăm lưu theo hồ sơ local, không tăng sao truyện.
+
+`test:npc` kiểm tra sáu NPC đi tuần, dừng gần bé, bấm tới vị trí hiện tại, hủy tiếp cận bằng phím, mobile và hai client qua vé phòng riêng thật. API/SQLite test riêng dùng cổng 26601–26602. NPC có collision theo vị trí hiện tại; Ông Đồ/Bác Nông Dân giữ vị trí Chương 1. Thay đổi này đổi hash nội dung, cần build/cập nhật cả Web, game server và API.
 
 Nếu Creator cài khác đường dẫn mặc định, đặt `COCOS_CREATOR` hoặc `node tools/build-web.cjs <đường-dẫn-CocosCreator.exe>`.
 
 Tài liệu: [Milestone 01A](apps/game-client/MILESTONE-01A.md), [Chương 1](docs/MILESTONE_M2.md), [nguồn art](apps/game-client/ART.md), [cốt truyện](docs/STORY_BIBLE.md), [kế hoạch](docs/IMPLEMENTATION_PLAN.md), [QA](docs/QA_TEST_PLAN.md). Các tài liệu milestone cũ ghi trạng thái tại thời điểm viết; bản bàn giao mới là trạng thái triển khai hiện tại.
 
 MySQL localhost đã chuyển dữ liệu và kiểm thử trực tiếp; xem [cấu hình Laragon / migration / backup](docs/MYSQL_LOCAL.md). `npm run test:mysql` chạy database test riêng.
+
+`test:holidays` kiểm tra hai chuỗi Tết/Trung thu trên desktop/mobile: chọn sai nhận gợi ý, lưu bước, tiếp tục ván sau reload, hoàn thành cả hai và giữ nguyên sao truyện. Mở Sổ ngày lễ từ menu hoặc bộ sưu tập. Đây là nội dung học quanh năm, chưa tự kích hoạt theo lịch âm; xem [thiết kế và nguồn](docs/design/TRADITIONAL_FESTIVALS.md).
+
+Góc vẽ có nút Lưu ảnh tải PNG 1080 × 500, chỉ gồm tranh. Browser test creative kiểm tra tải ảnh thật, kích thước, màu nét và dữ liệu tranh vẫn giữ nguyên.
+
+`npm.cmd run test:activity-sync` kiểm tra hai browser desktop/mobile với cùng hồ sơ thật: nhận tranh/ngày lễ/checkpoint, xóa trên thiết bị khác và vẽ offline rồi nối lại. `npm.cmd run test:calendar` kiểm tra ngày lễ qua mốc 00:00 giờ Việt Nam. Calendar hiện dùng dữ kiện đã xác minh cho 2026–2028, giữ học quanh năm khi ngoài phạm vi. NPC có atlas 24 khung đi/chào; trò ghép tranh dùng tranh gà–hoa tự vẽ.
+
+Đóng gói staging sau khi build game và admin với URL staging: `python tools/prepare-release.py --build completion-v1`. Archive và SHA-256 tại `temp/deploy/completion-release.*`, gồm source working tree và public game/admin, loại secret/cache. Phải cập nhật cả API/server/client vì rules 6; giữ DB/secret và release trước để rollback.

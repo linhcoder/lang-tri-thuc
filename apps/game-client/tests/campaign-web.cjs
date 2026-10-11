@@ -14,7 +14,7 @@ function puzzleSolution(start){
     await context.addInitScript(()=>{if(!sessionStorage.seeded){localStorage.setItem('lang-tri-thuc.chapter-one.v2',JSON.stringify({version:2,introSeen:true,greeted:true,accepted:true,planted:[0,1,2,3,4],countRound:3,rewardReceipts:['reward.star.ch01'],replayRound:null,legacyDemoBadge:false}));sessionStorage.seeded='1';}});
     const page=await context.newPage();page.on('pageerror',e=>{errors.push(String(e));console.error(e);});page.on('console',m=>{if(m.type()==='error'){errors.push(m.text());console.error(m.text());}});
     async function ready(){await page.waitForFunction(()=>!!window.System);await page.evaluate(async()=>window.cc=await System.import('cc'));await page.waitForFunction(()=>cc.director.getScene()?.getChildByName('Canvas')?.getComponent('VillageBootstrap')?.assetsReady,undefined,{timeout:90000});await page.evaluate(()=>window.village=cc.director.getScene().getChildByName('Canvas').getComponent('VillageBootstrap'));}
-    async function tap(id,root=false){const p=await page.evaluate(({id,root})=>{const b=village,n=root?b[id]:b.hub.node.getChildByName(id);if(!n)throw Error('Missing button '+id);const world=n.getComponent(cc.UITransform).convertToWorldSpaceAR(new cc.Vec3()),s=b.node.getComponent(cc.Canvas).cameraComponent.worldToScreen(world),canvas=cc.game.canvas,r=canvas.getBoundingClientRect();return {x:r.left+s.x/canvas.width*r.width,y:r.top+(canvas.height-s.y)/canvas.height*r.height};},{id,root});await page.mouse.click(p.x,p.y);await page.waitForTimeout(40);}
+    async function tap(id,root=false){if(root&&id==='parentButton'){await tap('HudSettings',true);await tap('HudParent');return;}const p=await page.evaluate(({id,root})=>{const b=village,n=root?(id.startsWith('Hud')?b.hud.node.getChildByName(id):b[id]):b.hub.node.getChildByName(id);if(!n)throw Error('Missing button '+id);const world=n.getComponent(cc.UITransform).convertToWorldSpaceAR(new cc.Vec3()),s=b.node.getComponent(cc.Canvas).cameraComponent.worldToScreen(world),canvas=cc.game.canvas,r=canvas.getBoundingClientRect();return {x:r.left+s.x/canvas.width*r.width,y:r.top+(canvas.height-s.y)/canvas.height*r.height};},{id,root});await page.mouse.click(p.x,p.y);await page.waitForTimeout(40);}
     async function action(type,index){await tap('GameAction-'+type+'-'+index);}
     async function game(){return page.evaluate(()=>({id:village.hub.game.id,data:village.hub.game.data,ended:village.hub.game.ended,clock:village.hub.game.clock}));}
     async function play(){const state=await game(),id=state.id;assert.equal(await page.evaluate(()=>!!village.hub.gameBoard?.node.activeInHierarchy),true);await page.screenshot({path:path.join(output,id.replace('mg.','')+'-board.png')});
@@ -41,14 +41,14 @@ function puzzleSolution(start){
             const ids=await page.evaluate(()=>village.hub.buttons.map(b=>b.node.name).filter(n=>n.startsWith('q.')));chapterQuests[chapter]=ids;
             for(const id of ids){await tap(id);const mode=await page.evaluate(()=>village.hub.mode);
                 if(mode==='lesson'){for(let round=0;round<3;round++){const answer=await page.evaluate(()=>village.hub.lesson.question.answer);await tap('LessonAnswer-'+answer);}}
-                else if(mode==='game')await play();else throw Error('Quest did not start '+id);
+                else if(mode==='game'){if(id==='q.ch02.play-o-an-quan')assert.equal((await game()).id,'mg.star-lantern','Chapter two must use the easier matching game');await play();}else throw Error('Quest did not start '+id);
                 assert.equal(await page.evaluate(id=>village.hub.campaign.data.completed.includes(id),id),true);
             }
             await tap('ClaimStar');assert.equal(await page.evaluate(()=>village.hub.campaign.stars),chapter+1);await tap('HubClose');console.log('CHAPTER',chapter+1,'COMPLETE');
             await page.reload();await ready();assert.equal(await page.evaluate(()=>village.hub.campaign.stars),chapter+1);
         }
         assert.equal(await page.evaluate(()=>village.hub.campaign.stars),8);await tap('journalButton',true);await page.screenshot({path:path.join(output,'all-chapters.png')});assert.deepEqual(errors,[]);
-        await tap('HubClose');await tap('parentButton',true);await tap('ParentAnswer-1');await tap('Collection');await tap('Activities');await tap('FestivalOnly');await tap('Practice-mg.star-lantern');
+        await tap('HubClose');await tap('parentButton',true);await tap('ParentAnswer-1');await tap('Collection');await tap('Activities');await tap('Practice-mg.star-lantern');
         const storyBefore=await page.evaluate(()=>({completed:[...village.hub.campaign.data.completed],receipts:[...village.hub.campaign.data.receipts]}));
         await play();assert.deepEqual(await page.evaluate(()=>({completed:village.hub.campaign.data.completed,receipts:village.hub.campaign.data.receipts})),storyBefore);
         assert.deepEqual(await page.evaluate(()=>village.hub.campaign.data.practice),['mg.star-lantern']);await page.reload();await ready();assert.equal(await page.evaluate(()=>village.hub.campaign.data.practice.includes('mg.star-lantern')),true);
@@ -66,6 +66,6 @@ function puzzleSolution(start){
         }finally{await page.evaluate(()=>{Storage.prototype.setItem=window.originalStorageSet;delete window.originalStorageSet;});}
         await page.reload();await ready();assert.equal(await page.evaluate(()=>village.hub.campaign.stars),8);
         assert.deepEqual(errors,[]);
-        fs.writeFileSync(path.join(output,'report.json'),JSON.stringify({chapters:8,completedGames:results,chapterQuests,failedResetPreservesProgress:true,practiceKeepsStory:true,visualBoards:12,errors},null,2));console.log(JSON.stringify({chapters:8,completedGames:results,failedResetPreservesProgress:true,practiceKeepsStory:true,visualBoards:12,errors},null,2));
+        fs.writeFileSync(path.join(output,'report.json'),JSON.stringify({chapters:8,completedGames:results,chapterQuests,failedResetPreservesProgress:true,practiceKeepsStory:true,visualBoards:new Set(results).size,errors},null,2));console.log(JSON.stringify({chapters:8,completedGames:results,failedResetPreservesProgress:true,practiceKeepsStory:true,visualBoards:new Set(results).size,errors},null,2));
     }finally{await browser.close();}
 })().catch(e=>{console.error(e);process.exitCode=1;});

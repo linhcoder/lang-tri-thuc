@@ -1,23 +1,23 @@
-# Đối chiếu hoàn thiện — 10/10/2026
+# Đối chiếu hoàn thiện — 11/10/2026
 
 Đối chiếu master prompt với mã, build và kiểm thử thực tế. Đây là prototype chạy được, chưa phải nghiệm thu phát hành beta. Người dùng đã cho phép làm liên tục, commit và push; các yêu cầu chờ từng milestone trong tài liệu gốc là lịch sử.
 
 Staging aaPanel hiện đã triển khai và nghiệm thu kỹ thuật: [runbook](../deploy/aapanel/README.md). Gate VPS/domain/TLS/WebSocket/backup-restore đã thực hiện; còn nội dung, trẻ có giám sát và thiết bị thật trước public beta.
 
-Tỷ lệ nhân vật đã giảm về 65%; zoom cảnh 60–180% có wheel/nút/pinch, giữ HUD và lưu lựa chọn. [Backlog phát triển cụ thể](DEVELOPMENT_BACKLOG.md) phân biệt phần prototype đang chạy với chức năng chưa làm đầy đủ.
+Tỷ lệ nhân vật bản local hiện là 78%; zoom cảnh 60–180% có wheel/nút/pinch, giữ HUD và lưu lựa chọn. Bản local 11/10 bổ sung minimap NPC/bạn, camera kéo, sáu góc khám phá, checkpoint luyện, ngày hội theo mùa, chăm góc làng, vẽ tự do sáu NPC đi tuần và sổ Tết/Trung thu; chưa triển khai các thay đổi này lên staging. [Backlog phát triển cụ thể](DEVELOPMENT_BACKLOG.md) phân biệt phần prototype đang chạy với chức năng chưa làm đầy đủ.
 
 | Nhóm yêu cầu | Bản hiện tại | Giới hạn / việc còn lại |
 | --- | --- | --- |
 | Cocos / scene | Giữ Creator 3.8.8, scene/UUID cũ; build Web thật | Kiểm tra trực tiếp bằng Editor và thiết bị đích trước beta |
 | Cốt truyện | 8 chương, dependency, intro/end, quest, 8 sao duy nhất, save/reload | Nội dung còn draft; cần biên tập sư phạm và văn hóa |
-| Thế giới | 10 khu trên map 40×40, A*, collision, keyboard/touch/joystick, camera, depth, portal; zoom wheel/nút/pinch 60–180% | Không phải 10 scene riêng; chưa minimap/camera kéo tự do |
-| Art làng | NPC Ông Đồ/Cô Tấm và các NPC truyện, ao sen; giếng, tre, cầu, trâu, gà, vịt, rau, cổng | NPC idle tĩnh; cầu tre là trang trí, chưa đi qua mặt ao |
+| Thế giới | 10 khu trên map 40×40, A*, collision, keyboard/touch/joystick, camera, depth, portal; zoom wheel/nút/pinch 60–180%, kéo camera, minimap NPC/bạn | Không phải 10 scene riêng; cần nghiệm thu điện thoại thật |
+| Art làng | NPC truyện, ao sen, giếng, tre, cầu đi qua ao, trâu/gà/vịt/rau/cổng; sáu điểm khám phá có sổ và Nghe; năm hoạt động chăm góc làng có checkpoint/chơi lại; sáu NPC đi tuyến ngắn, dừng gần bé, đồng bộ server và collision theo vị trí | NPC đi/nghỉ/chào bằng code với art sẵn, chưa sheet đi/cử chỉ theo hướng riêng; chăm góc làng là mô phỏng ba bước, không có đói/khát theo thời gian |
 | Avatar | 4 trang phục trai/gái, 2 kiểu tóc mỗi avatar, 4 lựa chọn khăn, idle/walk 8 hướng; hello/happy online/offline | Biểu cảm bằng code; không có sheet cử chỉ riêng |
-| NPC data | ID, spawn, tên, chương, tương tác/hội thoại; editor 6 NPC truyện | Ông Đồ/Bác Nông Dân giữ vị trí chương 1; lịch xuất hiện tùy chọn và NPC AI chưa triển khai |
+| NPC data | ID, spawn, tên, chương, tương tác/hội thoại; editor 6 NPC truyện; tuyến ngắn sinh từ spawn hợp lệ, bấm/tương tác tới vị trí hiện tại | Ông Đồ/Bác Nông Dân giữ vị trí chương 1; chưa editor tuyến tùy ý, lịch xuất hiện tùy chọn hoặc NPC AI |
 | Giáo dục | 90 câu cấu hình: 3 nhóm tuổi × 10 kỹ năng × 3 lượt; nhân/chia/toán lời văn, ghép vần, địa lý có nguồn; hint, đọc thoại | Chưa có xác nhận chuyên gia; giọng thật phụ thuộc trình duyệt/hệ điều hành |
-| Mini game | 12 luật riêng, hình minh họa theo state, chơi solo, pause/resume truyện, trace validation; kéo thả đèn + click thay thế | Bản mô phỏng giáo dục, chưa đạt mức art/animation thương mại; tô tranh dùng ghép ô, câu cá quan sát/thả |
-| Quest / thưởng | Main quest, receipt sao, huy hiệu/bộ sưu tập, nhà/trang trí; luyện và lễ hội sau 8 sao | Lễ hội chơi quanh năm, chưa lịch mùa riêng; luyện không có checkpoint giữa trò |
-| Multiplayer | Colyseus, phòng riêng vé phụ huynh, room minigame, authoritative action/reward, rate limit, block/report, reconnect/solo | Bench local 20 client; chưa soak WAN/multi-instance hoặc nghiệm thu đồng chơi tất cả 12 trò |
+| Mini game | 12 luật riêng, hình minh họa theo state, chơi solo, pause/resume truyện, trace validation; kéo thả đèn + click thay thế; góc vẽ tự do sáu màu có undo/lưu local | Bản mô phỏng giáo dục, chưa đạt mức art/animation thương mại; ghép tranh vẫn dùng ô trượt, câu cá quan sát/thả. Góc vẽ là hoạt động riêng, chưa xuất PNG/đồng bộ thiết bị |
+| Quest / thưởng | Main quest, receipt sao, sổ khám phá, nhà/trang trí; checkpoint luyện local, huy hiệu theo bốn mùa/năm và hai chuỗi Tết/Trung thu quanh năm | Đồng bộ hoạt động/checkpoint theo hồ sơ phòng riêng và nhận diện lễ 2026–2028 đã có; còn lịch âm tổng quát, nội dung lễ khác và art đã duyệt |
+| Multiplayer | Colyseus, phòng riêng vé phụ huynh, room minigame, authoritative action/reward, rate limit, block/report, reconnect/solo; bốn client × 11 trò chính × ba nhóm tuổi, reconnect giữa mỗi ván đạt | Bench local 20 client; chưa soak WAN/multi-instance hoặc nghiệm thu thiết bị thật. Ô ăn quan là luyện solo tùy chọn |
 | Backend | Fastify, tài khoản/hồ sơ/tiến độ, ownership, revision, MySQL transaction, xuất/xóa | MySQL theo quyết định hiện tại; snapshot JSON single-row, chưa schema chuẩn hóa/Redis đa instance |
 | Admin | Biên tập chương/quest title/hội thoại/câu hỏi/NPC/metadata asset; review/audit/report, export/import | Quy tắc, ID, đáp án runtime và game graph có validation; không editor luật mini game tùy ý |
 | UI | Loading, avatar, HUD, dialogue, nhật ký, túi, map, mini game, thành tích, nhà, settings, phụ huynh | Browser desktop + Android giả lập; cần điện thoại thật và thử trẻ có giám sát |

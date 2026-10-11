@@ -17,8 +17,10 @@ const origin=(process.env.GAME_WEB_URL||'http://127.0.0.1:8080').replace(/\/+$/,
   await page.goto(origin+query);await ready(page);return page;
  }
  async function tap(page,id,kind='hub',mobile=false){
+  if(id==='parentButton'&&kind==='root'){if(mobile){await tap(page,'HudMenu','hud',true);await tap(page,'MenuSettings','hub',true);}else await tap(page,'HudSettings','hud');await tap(page,'HudParent','hub',mobile);return;}
   const point=await page.evaluate(({id,kind})=>{const b=village,n=kind==='root'?b[id]:b[kind].node.getChildByName(id);const w=n.getComponent(cc.UITransform).convertToWorldSpaceAR(new cc.Vec3()),s=b.node.getComponent(cc.Canvas).cameraComponent.worldToScreen(w),c=cc.game.canvas,r=c.getBoundingClientRect();return {x:r.left+s.x/c.width*r.width,y:r.top+(c.height-s.y)/c.height*r.height};},{id,kind});
   if(mobile)await page.touchscreen.tap(point.x,point.y);else await page.mouse.click(point.x,point.y);
+  await page.waitForTimeout(80);
  }
  async function avatarMenu(page,mobile=false){await tap(page,'parentButton','root',mobile);await tap(page,'ParentAnswer-1','hub',mobile);await tap(page,'Avatar','hub',mobile);}
  async function matches(page,id){await page.waitForFunction(id=>{const b=village,frames=b.hub.campaign.data.hair===1?b.art.hairVariants[id]:id===0?b.art.child:b.art.avatarVariants[id];return b.hub.campaign.data.avatar===id&&!!frames&&frames.includes(b.childSprite.spriteFrame);},id);}

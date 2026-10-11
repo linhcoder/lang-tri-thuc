@@ -1,0 +1,8 @@
+import type {MiniGameId} from './CampaignContent';
+export interface TraditionalFestival{id:string;title:string;lunarDate:string;body:string;question:string;choices:[string,string];answer:0|1;hint:string;game:MiniGameId}
+// Original child-facing summaries; source notes: docs/design/TRADITIONAL_FESTIVALS.md.
+export const traditionalFestivals:TraditionalFestival[]=[
+ {id:'tet',title:'Tết đoàn viên',lunarDate:'Bắt đầu mùng 1 tháng Giêng âm lịch',body:'Tết là dịp đón năm mới và sum họp gia đình. Bé cùng người lớn chuẩn bị nhà cửa, chúc nhau những điều tốt đẹp. Mình thử gói một chiếc bánh chưng trong game nhé!',question:'Ngày Tết, mình nói gì với người thân?',choices:['Chúc mọi người năm mới vui khỏe!','Mình không muốn chào ai cả.'],answer:0,hint:'Một lời chúc vui khỏe làm người thân vui lòng.',game:'mg.banh-chung'},
+ {id:'trung-thu',title:'Trung thu của bé',lunarDate:'Rằm tháng Tám âm lịch',body:'Trung thu có đèn lồng, bánh trung thu và những buổi rước đèn. Bé cùng gia đình ngắm trăng, chia sẻ niềm vui với bạn bè. Mình thử ghép chiếc đèn ông sao trong game nhé!',question:'Khi rước đèn cùng các bạn, mình làm gì?',choices:['Chen lấn để đi trước.','Đi cùng nhóm và nhường đường cho bạn.'],answer:1,hint:'Đi cùng nhóm, nhường đường để ai cũng vui.',game:'mg.star-lantern'},
+];
+export function restoreHolidayProgress(raw:unknown):Record<string,number>{const result:Record<string,number>={};if(raw&&typeof raw==='object')for(const holiday of traditionalFestivals){const step=(raw as Record<string,unknown>)[holiday.id];if(typeof step==='number'&&Number.isInteger(step)&&step>=0&&step<=3)result[holiday.id]=step;}return result;}

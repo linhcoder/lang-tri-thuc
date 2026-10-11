@@ -28,6 +28,10 @@ test('two clients join, synchronize validated movement and clean up on leave',as
         const client=new Client(`http://127.0.0.1:${port}`);a=await client.joinOrCreate<VillageState>('village');b=await client.joinOrCreate<VillageState>('village');
         a.onMessage('correction',()=>{});b.onMessage('correction',()=>{});
         await until(()=>a.state.players.size===2&&b.state.players.size===2);
+        await until(()=>a.state.npcs.size===6&&b.state.npcs.size===6);
+        const npcStart=a.state.npcs.get('ti-na')!.x;await until(()=>Math.abs(a.state.npcs.get('ti-na')!.x-npcStart)>1);
+        await until(()=>Math.abs(a.state.npcs.get('ti-na')!.x-b.state.npcs.get('ti-na')!.x)<2);
+        assert.equal(a.state.npcs.get('ti-na')!.moving,true);
         a.send('move',{x:10,y:-640,direction:0,moving:true,seq:1,avatar:2,accessory:3,hair:1});
         await until(()=>b.state.players.get(a.sessionId)?.x===10&&b.state.players.get(a.sessionId)?.avatar===2&&b.state.players.get(a.sessionId)?.accessory===3&&b.state.players.get(a.sessionId)?.hair===1);
         a.send('move',{x:10,y:-640,direction:0,moving:false,seq:2,avatar:99});await new Promise(r=>setTimeout(r,100));assert.equal(b.state.players.get(a.sessionId)?.avatar,2);

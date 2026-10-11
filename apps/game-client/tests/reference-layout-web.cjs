@@ -10,6 +10,17 @@ const output=path.resolve(__dirname,'../temp/reference-layout-qa');fs.mkdirSync(
   await page.evaluate(()=>{window.village=cc.director.getScene().getChildByName('Canvas').getComponent('VillageBootstrap');});
   async function tapNode(area,id){const p=await page.evaluate(({area,id})=>{const b=village,n=area==='nameplates'?b.nameplates.node.getChildByName(id):b[area].node.getChildByName(id),w=n.getComponent(cc.UITransform).convertToWorldSpaceAR(new cc.Vec3()),s=b.node.getComponent(cc.Canvas).cameraComponent.worldToScreen(w),c=cc.game.canvas,r=c.getBoundingClientRect();return{x:r.left+s.x/c.width*r.width,y:r.top+(c.height-s.y)/c.height*r.height};},{area,id});await page.mouse.click(p.x,p.y);await page.waitForTimeout(100);}
   await tapNode('chapter','Continue');await page.waitForFunction(()=>!village.modalActive);
+  await page.evaluate(()=>{
+   const b=village,state=b.npcMotion.get(b.farmer.node),assertAnchor={x:b.farmer.node.position.x,y:b.farmer.node.position.y};
+   window.npcAnchor=assertAnchor;
+   window.beforeNpcMotion={...b.player.position};
+   if(!state)throw Error('Farmer motion missing');
+   b.player.cancel();b.player.position={x:assertAnchor.x+65,y:assertAnchor.y};state.near=false;
+  });
+  await page.waitForFunction(()=>village.npcMotion.get(village.farmer.node).greeting>0);
+  await page.waitForFunction(()=>village.npcMotion.get(village.farmer.node).greeting===0);
+  assert.equal(await page.evaluate(()=>village.farmer.node.position.x===npcAnchor.x&&village.farmer.node.position.y===npcAnchor.y&&village.npcMotion.get(village.farmer.node).body.angle===0),true);
+  await page.evaluate(()=>{village.player.position=beforeNpcMotion;});
   await page.waitForFunction(()=>!!village.actors.getChildByName('house')?.getChildByName('RegionalArt')?.getComponent(cc.Sprite)?.spriteFrame,undefined,{timeout:30000});
   await page.waitForFunction(()=>village.hud.mapFrames.length===6);
   await page.evaluate(()=>{village.hub.campaign.data.quality='high';});await page.waitForTimeout(300);

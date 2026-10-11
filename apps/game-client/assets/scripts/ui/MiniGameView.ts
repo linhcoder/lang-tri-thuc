@@ -37,7 +37,10 @@ export class MiniGameView {
                 d.tiles.forEach((tile:number,i:number)=>{const x=(i%3-1)*43,y=(1-Math.floor(i/3))*22;rect(x-19,y-10,38,19,tile===8?pale:new Color(116+tile*12,180,105));if(tile!==8)text(this.node,String(tile+1),x,y);});break;
             case 'mg.fishing':
                 rect(-240,-31,480,62,new Color(190,226,238));rect(-70,-31,140,62,new Color(222,241,219));
-                for(let i=0;i<3;i++)if(!d.observed.includes(i)){const x=game.fishX(i),y=(i-1)*17;g.fillColor=[blue,new Color(239,150,65),new Color(171,104,196)][i];g.ellipse(x,y,12,6);g.fill();g.moveTo(x-10,y);g.lineTo(x-20,y+7);g.lineTo(x-20,y-7);g.close();g.fill();}break;
+                g.strokeColor=new Color(120,187,199,160);g.lineWidth=1;
+                for(let i=0;i<8;i++){const x=-200+i*58+Math.sin(game.clock+i)*3;g.moveTo(x,-23);g.quadraticCurveTo(x+8,-19,x+16,-23);g.stroke();}
+                for(const x of [-224,220]){g.strokeColor=green;g.lineWidth=2;for(let j=0;j<3;j++){g.moveTo(x+j*5,-30);g.quadraticCurveTo(x+j*5-3,-10,x+j*5+2,8);g.stroke();}g.fillColor=green;g.ellipse(x-14,20,13,5);g.fill();dot(x-14,21,3,new Color(232,132,162));}
+                for(let i=0;i<3;i++)if(!d.observed.includes(i)){const x=game.fishX(i),y=(i-1)*17;g.fillColor=[blue,new Color(239,150,65),new Color(171,104,196)][i];g.ellipse(x,y,12,6);g.fill();g.moveTo(x-10,y);g.lineTo(x-20,y+7);g.lineTo(x-20,y-7);g.close();g.fill();dot(x+7,y+1,2,new Color(255,255,235));dot(x+8,y+1,1,brown);}break;
             case 'mg.secret-letters':
                 d.word.forEach((letter:string,i:number)=>{const x=(i-(d.word.length-1)/2)*55;rect(x-23,-24,46,48,i<d.step?gold:pale);text(this.node,i<d.step?letter:'?',x,0);});break;
             case 'mg.animal-care':

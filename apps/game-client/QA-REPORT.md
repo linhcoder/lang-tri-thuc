@@ -225,3 +225,112 @@ Hai lần đo trong 5 giây ở viewport 1280 × 720: khoảng **60 FPS**, p95 *
 Ảnh kiểm tra và báo cáo JSON được tạo tại `temp/release-qa/` khi chạy `npm run test:web`; thư mục sinh tự động không đưa vào Git. Hướng dẫn chạy ở [PLAYABLE-VILLAGE.md](PLAYABLE-VILLAGE.md) và README root.
 
 Scene và các `.meta` có sẵn được giữ nguyên trong đợt mở rộng này; asset mới được Cocos CLI import thật. Công cụ điều khiển giao diện Windows không khởi tạo được trong môi trường hiện tại, nên thao tác GUI Editor chưa được kiểm tra tự động. Không có điện thoại kết nối ADB để nghiệm thu phần cứng. Không commit hoặc push các thay đổi mới.
+# NPC chuyển động — 11/10/2026
+
+- Tám NPC có chuyển động nghỉ nhẹ và phản ứng chào 1,4 giây khi người chơi tới gần; chỉ biến đổi sprite, giữ điểm nhiệm vụ/collision/tên. NPC ngoài khung nhìn bỏ qua cập nhật animation. Chưa có sprite sheet cử chỉ riêng hoặc đi tuần.
+- `check:client`, `test:client` (49 nhóm + 3 network tests), build Cocos `npc-motion` và `test:reference` tại cổng 8083 đạt. Browser kiểm tra chào/kết thúc và điểm đứng NPC không đổi, rồi chạy lại luồng HUD/joystick/map/journal.
+- Build trong sandbox thất bại do cache/GPU Creator; chạy ngoài sandbox đạt. Chưa kiểm tra thiết bị thật.
+
+## Sửa ruộng và mục tiêu trồng — 11/10/2026
+
+Năm ô trồng dùng tọa độ ruộng phải thay cho ruộng cũ, client/server cùng import `plantingPlots`; save theo chỉ số ô không đổi. Lúa chín có kích thước lớn hơn, hiển thị ở Low, chừa ô nhiệm vụ. Thêm nền đất/rạ baked và tăng kích thước cây non.
+
+Typecheck, 49 nhóm client + 3 network tests, build server/Cocos `rice-location-fix`, và 5 server tests đạt. `test:m2` đạt toàn bộ desktop/mobile giả lập, năm ô trồng, đếm/nhận sao, reload/replay, legacy/future/corrupt save; không lỗi browser. Ảnh ruộng được kiểm tra trực tiếp. Mẫu AMD trong lượt này khoảng 34 FPS, p95 50 ms, 187 draw calls, JS heap 59,56 MB; chưa nghiệm thu hiệu năng thiết bị thật. Khi triển khai phải cập nhật client và server cùng phiên bản.
+
+`test:visual` chạy tuần tự đạt cả 1280×720, 960×540, 390×844, 844×390 và 320×568: HUD/vùng chạm, Low/High, reload, tương tác và dispose; không lỗi browser. Mẫu ngắn khoảng 55–60 FPS trên máy AMD, không đại diện điện thoại vật lý. Lượt chạy đồng thời trước đó bị dừng rồi chạy lại tuần tự.
+
+## Trâu ngoài khu trồng, thay sprite mạ — 11/10/2026
+
+Trâu thu về 100×78 ở bờ (31,23); biển ruộng (34,24). Regression xác nhận sprite trâu không giao bounding box năm ô trồng và đường đi vẫn tới được từng ô. Thay PNG mạ bằng built-in imagegen: nhiều lá dài cong, không rễ/cục đất/củ lộ thiên; alpha trim, giữ UUID. Manifest xuất lại.
+
+### Thiết kế bảng nhiệm vụ chương
+
+Tên chương cố định thay cho thông báo hoàn thành; dòng NPC/tiến độ, thẻ nhiệm vụ có số/✓, mô tả trạng thái, màu xanh cho việc mở và màu trung tính cho việc chưa mở. Footer Nghe hướng dẫn/Về làng đối xứng. Giữ quest IDs, phần thưởng và điều kiện mở.
+
+Typecheck và build Cocos `chapter-mission-layout` đạt. Browser QA riêng tại `temp/check-chapter-layout.cjs` dùng state fixture rồi click/touch thật ở 1280×720, 390×844, 844×390: bố cục/tiến độ, nhiệm vụ khóa giữ nguyên màn, nhiệm vụ mở vào Đi Chợ Quê đạt, pageerrors rỗng. Đã xem ảnh desktop/mobile trong `temp/chapter-layout-qa`. Preview 8085 cập nhật; chưa staging.
+
+### Chương 2 dễ tiếp cận hơn
+
+Thay nhiệm vụ bắt buộc Ô ăn quan bằng Ghép đèn cùng Tí và Na (`mg.star-lantern`): năm cặp cùng số, bấm/kéo thả, không timer/đấu điểm. Giữ quest ID và completion; restore loại checkpoint game cũ không khớp game hiện tại. Ô ăn quan giữ trong luyện tùy chọn. Khi mở nhiệm vụ mới xóa thông báo hoàn thành bài trước.
+
+Typecheck, 50 nhóm client + 3 network tests, build server/API và Web Cocos đạt. Browser campaign qua đủ tám chương, xác nhận Chương 2 dùng ghép đèn, mở nhiệm vụ sau, sao/reload/practice/reset failure đều đạt; errors rỗng. Browser harness cập nhật đường vào phụ huynh qua HUD Settings hiện hành. Bản cuối `easy-chapter-two-final` cập nhật preview 8085; dữ liệu theo origin giữ nguyên, chưa triển khai staging. Client/server cần cùng phiên bản.
+
+### Năm ô trồng nhìn rõ và bấm được
+
+Giãn ô thành (26,18), (28,18), (30,18), (28,20), (32,17); hiển thị số 1–5/dấu ✓. Loại lúa/hoa/cỏ trang trí khi bounding box hình phủ vùng ô trồng; regression kiểm tra thêm hàng rào, trâu và khoảng cách giữa các ô. Giữ tiến độ theo index. Đã xem `five-empty-plots.png`: đủ năm số, ô 5 tránh hàng rào.
+
+Typecheck, client 49 nhóm + 3 network tests, build server/Cocos `five-visible-plots-v2` đạt. `test:m2` bản cuối đạt desktop/mobile, click đủ năm cây, lưu/reload sau bốn cây rồi trồng cây cuối, đếm/nhận sao/replay và legacy/future/corrupt save; errors rỗng. Mẫu AMD 60,13 FPS/p95 16,7 ms, không thay thế thiết bị thật. Bản cuối được sao chép vào preview 8085 để giữ origin và dữ liệu người chơi; staging chưa cập nhật.
+
+Strict typecheck, 49 nhóm client + 3 network tests, build server và Cocos `rice-buffalo-fix` đạt. `test:m2` desktop/mobile giả lập đạt đủ trồng/đếm/sao, reload/replay và legacy/future/corrupt save; browser errors rỗng. Đã xem trực tiếp ảnh trồng trong cảnh: trâu đứng ngoài ruộng, mạ không có gốc củ. Mẫu AMD khoảng 60,17 FPS, p95 16,8 ms, 188 draw calls; chưa nghiệm thu thiết bị thật. Preview cổng 8085; chưa triển khai staging.
+
+### Hoàn thiện local: khám phá, ngày hội và tiếp tục ván luyện — 11/10/2026
+
+Build Cocos `backlog-complete-v1` thêm minimap tám NPC/bạn trong phòng, kéo camera chuột/touch, sáu điểm khám phá có Nghe và sổ lưu, checkpoint từng trò luyện, hai hoạt động ngày hội theo mùa và huy hiệu mùa/năm. Checkpoint luyện/sổ khám phá hiện lưu local; lịch mùa không phải lịch âm. Preview 8085 đã cập nhật cùng build, giữ origin; HTTP 200. Chưa triển khai staging.
+
+Strict typecheck, 53 nhóm client + 3 network tests, build client/server/API/admin đạt. Browser `test:backlog` xác nhận resume sau reload, xóa checkpoint khi kết thúc, không tăng sao truyện, huy hiệu sau hai hoạt động, đủ sáu khám phá, hủy ý định bằng phím, minimap bạn/chặn bạn và pan desktop/mobile; errors rỗng. Ảnh ở `temp/backlog-qa` đã kiểm tra bố cục.
+
+Hồi quy `test:m2`, `test:campaign` đủ tám chương, `test:visual` năm viewport, `test:reference`, `test:zoom`, `test:drag`, `test:assets`, `test:stack`, avatar và đọc hướng dẫn đều đạt. Harness sửa các giả định cũ: đường vào phụ huynh qua HUD, scale 0.78, tương tác cảnh vật gần nhất và checkpoint luyện có thay đổi save. Browser desktop/mobile là giả lập; đọc hướng dẫn dùng speech adapter, chưa xác nhận âm thanh giọng OS. Mẫu máy phát triển khoảng 60 FPS/p95 16.8–16.9 ms, không thay thế Intel/mobile thật.
+
+MySQL Laragon local chạy trở lại; `test:mysql` đạt 5/5 trên database test riêng. Server có bài kiểm tra mới `cooperative-games.test.ts`: bốn tài khoản/vé thật × 11 trò truyện × ba nhóm tuổi (33 kịch bản), ngắt/kết nối lại người thứ tư giữa mỗi ván, cả bốn nhận đúng receipt/completion; đạt trong khoảng 83 giây. Suite server trước đó đạt 6 tests và tải 10/16/20 client. Bài matrix dùng API/SQLite in-memory riêng và signed sockets thật, không thay đổi tiến độ người dùng.
+
+Còn cần nghiệm thu với trẻ/thiết bị thật, soak WAN và biên tập nội dung/art. NPC đi tuần, sprite cử chỉ riêng, art mini game chuyên biệt và chuỗi lễ âm lịch vẫn là phần mở rộng, không ghi nhận đã hoàn thành.
+### Chăm góc làng và góc vẽ tự do — 11/10/2026
+
+Build Cocos `village-creative-v1` thêm năm hoạt động ở trâu/gà/vịt/mèo/vườn rau. Đi tới góc khám phá rồi chọn Chăm; ba bước có gợi ý khi sai, checkpoint và Chăm lại. Dùng art sẵn của đúng cảnh vật trong khung chơi. Đây là mô phỏng giáo dục ba bước, không phải hệ thống đói/khát theo thời gian.
+
+Góc vẽ mở ngay từ menu hoặc màn hoạt động: sáu màu, nét chuột/touch và chấm màu, lùi nét, xác nhận Trang mới, phục hồi trang vừa xóa bằng Lùi nét và tự lưu theo hồ sơ local. Giới hạn 64 nét × 128 điểm, loại dữ liệu ngoài canvas/màu không hợp lệ/quá dài khi restore. Modal giữ một pointer để ngón thứ hai không thay nét hoặc chạm nhầm nút. Tranh và chăm góc làng được giữ khi server cập nhật tiến độ; chưa đồng bộ giữa thiết bị hoặc xuất PNG.
+
+Màn luyện dùng năm trò/trang và một thẻ Vẽ tự do đủ lớn; đủ 12 trò qua ba trang, Ô ăn quan chuyển về cuối. Không thay game bắt buộc, quest ID hoặc receipt truyện.
+
+Strict typecheck, 54 nhóm client + 3 network tests, build server/API và Cocos đạt. `test:creative` bản cuối đạt desktop 1280×720 và mobile giả lập 390×844: hai lối vào vẽ, chọn màu/nét/chấm, undo, cancel/blur, ngón thứ hai không thay nét, reload, xác nhận xóa/phục hồi, năm góc chăm đi tới được, chọn sai không tiến bước, lưu bước giữa chừng, hoàn thành/chơi lại và đủ 12 thẻ trò trên ba trang. Sao/completion truyện giữ nguyên; pageerrors rỗng. Đã xem ảnh `temp/creative-qa` desktop/mobile và màn hoạt động.
+
+Harness đa chạm dùng `touchMove` với danh sách ngón còn giữ để nhấc riêng ngón thứ hai; `touchEnd` có ngón còn giữ tạo kết thúc sai nên đã sửa. Thử giọng OS, trẻ/điện thoại thật và WAN vẫn cần nghiệm thu riêng; chưa staging.
+
+Hồi quy bản cuối `test:backlog` và `test:drag` đạt: checkpoint/reload, huy hiệu mùa, khám phá, minimap/chặn bạn, pan desktop/mobile và kéo đèn/cancel/click thay thế; errors rỗng. Đã sao chép build cuối vào cả preview 8085 và thư mục game của stack local 38080, HTTP 200, giữ origin. Staging chưa cập nhật.
+
+### NPC đi tuần, tiếp cận đúng chỗ và collision theo vị trí — 11/10/2026
+
+Sáu NPC chương 2–7 có tuyến ngắn quanh spawn hợp lệ, dừng khi bất kỳ bé/bạn trong phòng ở gần 80 world pixels. Cô Tấm đi một đoạn ngắn cạnh ruộng; tuyến tránh năm ô trồng và các spawn chuyển khu. Bấm NPC/bóng thoại dùng vị trí hiện tại và cập nhật đường khi NPC đi; khám phá giữ ý định/tìm đường lại nếu route bị ngắt. Ông Đồ và Bác Nông Dân giữ nguyên tọa độ Chương 1.
+
+`NpcPatrol` dùng chung luật solo/server; room phát sáu trạng thái NPC bằng schema (x/y/hướng/đi), client theo vị trí server và minimap theo node thực. Map collision lấy ô của vị trí NPC hiện tại; ô cũ và đoạn đường trống đi qua được. Lúa chín giữ mật độ; vật trang trí che NPC mờ tạm thời giống khi che bé. Sprite sẵn được đổi hướng nhìn/nhún/nghiêng bằng code, chưa có sheet đi/cử chỉ theo từng hướng.
+
+Strict typecheck, 55 nhóm client + 3 network tests và build Cocos `npc-patrol-v1` đạt. Unit kiểm tra tuyến không chồng nhau/không vào plot/portal, đủ sáu NPC thực sự di chuyển, dừng gần người, nằm trong tuyến, thời gian không hợp lệ và collision ô hiện tại/ô cũ. Server suite cuối đạt 6 tests, gồm bốn người × 11 trò × ba nhóm tuổi với reconnect (33 kịch bản), room đồng bộ NPC và tải 10/16/20 client; p95 RTT local khoảng 5.9–17.8 ms. Build server/API đạt.
+
+Browser `test:npc` đạt sáu cuộc tiếp cận bằng click tại vị trí đang đi, dừng gần bé, hủy bằng phím, giữ anchor Chương 1, mobile touch, hai browser dùng tài khoản/vé phòng riêng thật, trò chuyện online và về solo/rời NPC thì đi tiếp. API/SQLite test riêng dùng cổng 26601–26602, không dùng DB người chơi. `test:reference` đạt bóng thoại/nameplate, gesture và journal. Đã xem ảnh `temp/npc-patrol-qa`.
+
+`test:m2` đạt desktop/mobile, đủ năm cây, partial reload/count/replay và legacy/future/corrupt save. `test:visual` đạt năm viewport, rice density, fade, HUD/control, quality reload/dispose; errors rỗng. Mẫu AMD của visual khoảng 59–60 FPS/p95 16.8–16.9 ms. Các mẫu khi nhiều browser/build chạy đồng thời thấp hơn, không thay thế máy/điện thoại thật. `test:creative`/`test:backlog` đạt chăm/vẽ, lưu ván, sáu khám phá (bao gồm fixture ngắt route rồi đi tiếp), minimap và camera. `test:stack` đạt xác thực/phòng riêng/MySQL/server progress/portal/home/offline; errors rỗng.
+
+Khoảng trống quanh tuyến ban đầu làm ruộng quá thưa nên đã sửa thành fade theo vị trí NPC, giữ kiểm tra mật độ lúa. Test fallback ban đầu chờ NPC đi ngay khi bé còn đứng gần, được sửa bằng thao tác cho bé rời đi trước. Đây là lỗi kỳ vọng QA; dừng khi bé gần là hành vi chủ đích.
+
+Hash nội dung đổi (rules 5 và tuyến NPC). Stack local đã khởi động lại với client/game server/API cùng phiên bản, game 38080 và phụ huynh 35173. Preview 8085 cập nhật cùng build, HTTP 200 cả hai origin; dữ liệu theo origin giữ nguyên. Chưa cập nhật staging. Các gate nội dung/art, thử trẻ, thiết bị thật và WAN vẫn còn.
+### Sổ Tết/Trung thu quanh năm — 11/10/2026
+
+Build `traditional-festivals-v1` bổ sung hai chuỗi đọc/nghe → câu hỏi có gợi ý → ghép bánh chưng/đèn ông sao. Mở từ menu hoặc bộ sưu tập, lưu bước theo hồ sơ local, tiếp tục ván sau đóng/reload và giữ dấu hoàn thành khi chơi lại. Không tăng sao truyện. Minh họa Graphics tự vẽ; nguồn văn hóa và giới hạn ghi trong `docs/design/TRADITIONAL_FESTIVALS.md`. Chưa có lịch âm runtime hoặc đồng bộ tiến độ ngày lễ giữa thiết bị.
+
+Strict client typecheck, 56 nhóm client + 3 network tests, build server/API và Cocos đạt. `test:holidays` đạt desktop/mobile: sai đáp án không qua bước, đúng mở trò tương ứng, pause/reload tiếp tục ván, hoàn thành cả hai, checkpoint kết thúc bị xóa và sao/receipt truyện không đổi; page errors rỗng. Đã xem ảnh mobile Tết và desktop bộ sưu tập trong `temp/holidays-qa`, bố cục không chồng lấn. `test:backlog` hồi quy checkpoint luyện, huy hiệu mùa, sáu điểm khám phá, minimap và camera đạt.
+
+Đã cập nhật preview 8085 và game local 38080 cùng build; HTTP 200 cả hai, giữ origin. Đợt sổ ngày lễ không đổi protocol/hash so với bản NPC; chưa cập nhật staging. Các gate art, biên tập, trẻ/thiết bị thật và WAN vẫn còn.
+
+Hồi quy cuối test:campaign đạt đủ tám chương và 11 board khác nhau; luyện không đổi truyện, reset thất bại do quota giữ dữ liệu, reload giữ tám sao; errors rỗng.
+
+### Xuất tranh PNG — 11/10/2026
+
+Build `painting-export-v1` thêm Lưu ảnh tại góc vẽ. Canvas riêng xuất PNG 1080 × 500 chỉ chứa nền giấy và nét đã lưu, không chứa HUD hay hồ sơ; màu, độ dày và trục Y khớp bản vẽ. Không thay đổi save hay protocol. Nếu trình duyệt không hỗ trợ, hiển thị thông báo và giữ tranh.
+
+Strict typecheck, 56 nhóm client + 3 network tests và build Cocos đạt. Browser creative đạt desktop/mobile với tải file thật, tên/PNG signature/kích thước, pixel xanh tại vị trí nét, dữ liệu tranh không đổi; hồi quy cancel/dot/undo/reload/clear/recovery và năm hoạt động chăm đạt, không tăng sao truyện. Xem ảnh trong `temp/creative-qa`; ảnh xuất là `drawing-desktop.png` và `drawing-mobile.png`. Preview 8085 và game local 38080 đã cập nhật, chưa staging. Lịch âm tự động, art/animation riêng và nghiệm thu thiết bị/người vẫn còn.
+### Hoàn thiện đồng bộ, lịch lễ, art trò chơi và NPC — 11/10/2026
+
+Build `completion-v1`, contentVersion `e48dccf3` (rules 6). Hoạt động có snapshot riêng qua vé hồ sơ: tranh, chăm, khám phá, ngày lễ, huy hiệu mùa và checkpoint luyện. Không dùng snapshot này để cấp sao/quest truyện. Giữ dirty khi offline/lỗi, xác nhận ID tránh áp bản lưu cũ lên thay đổi mới, thử lại và khôi phục trên thiết bị khác; snapshot tranh/checkpoint tải lên cuối thắng, không đồng biên tập. Save cũ có hoạt động chưa sync được giữ để tải lên.
+
+Calendar dùng ngày Tết/Trung thu đã đối chiếu cho 2026–2028, qua mốc 00:00 UTC+7, Tết ba ngày trong game/Trung thu một ngày, không khóa bài học ngoài lễ. Đây là bảng lịch lễ có phạm vi xác minh, chưa bộ chuyển đổi âm/dương tổng quát. Nguồn ghi trong TRADITIONAL_FESTIVALS.md. Tranh gà–hoa original Canvas được cắt thật thành tám mảnh cho board trượt; ao có sóng/sen/sậy/vây/mắt. Không tái tạo tranh lịch sử được bảo hộ.
+
+Atlas NPC mới RGBA 768 × 2048 có 24 tư thế đi/chào của tám NPC; idle dùng art gốc, mirror trái/phải. Xem NPC_POSES.md. Ảnh tạo bằng imagegen rồi bỏ nền bằng imagegen; kiểm tra alpha thật, sửa ranh crop y1040 tránh cắt chân và dùng crop chung mỗi hàng. Dự phòng art gốc khi tải lỗi; giải phóng khung với VillageArt.
+
+Strict client typecheck, 58 nhóm client + 3 network tests, build Cocos/API/server/admin đạt. API suite 4 tests đạt, MySQL test riêng có điều kiện bị skip khi không truyền DB test. Server 7 tests đạt, gồm đồng bộ hai client cùng hồ sơ, từ chối chữ ký thiếu, không cấp sao giả, 33 kịch bản bốn người × 11 trò × ba nhóm tuổi có reconnect và tải phòng 10/16/20 người (p95 RTT local khoảng 2.5–3.4 ms).
+
+Browser activity-sync đạt với Cocos thật desktop/mobile: nhận tranh/bước ngày lễ/checkpoint, xóa trên máy khác, tải lại máy trước nhận xóa và vẽ offline rồi gửi lên sau reconnect. Browser NPC đạt sáu cuộc tiếp cận, atlas 8 × 3 khung căn chung, Bác Nông Dân chào thật, pause gần bé, anchors Chương 1, mobile, hai client và fallback offline. Kiểm thử fallback chọn hướng có đường trống ra xa NPC thay cho cố định phím phải; điều hướng chỉ đổi fragment được sửa thành reload thật trong harness sync.
+
+Campaign đạt tám chương/11 board, luyện không đổi truyện, reset thất bại giữ save; holidays đạt hai chuỗi desktop/mobile. Creative đạt tải PNG thật, màu/kích thước/save, vẽ/chăm/replay và calendar đạt midnight/đổi năm/range/fallback. Visual đạt năm viewport, HUD/collision/fade/quality/dispose, errors rỗng. Mẫu FPS local khoảng 55.6–60.2, p95 16.8–33.3 ms khi có browser kiểm thử khác chạy; không thay thiết bị thật. Đã xem ảnh chào NPC, board ghép tranh và tranh xuất.
+
+Preview 8085 cập nhật; stack local đã restart với Web/API/game server cùng e48dccf3, health MySQL và HTTP 200 tại 8085/38080. Gói staging chuẩn bị bằng tools/prepare-release.py, không kèm secret/cache; scripts update/activate giữ DB/secret và có rollback app khi health sai. Các gate biên tập văn hóa/art, thử trẻ, Android/iOS/Intel thật và soak WAN vẫn chưa được nghiệm thu.
+Gói completion đã sẵn sàng nhưng SSH tới staging trả về `Permission denied (publickey,password)` khi kiểm tra xác thực bằng khóa hiện có. Chưa upload/activate bản mới. Cần phiên SSH đã xác thực; không cần xin lại quyền triển khai. Stack MySQL cuối `test:stack` đạt parentFlow/signedRoom/serverProgress, portal/home/offline và ba mức quality, errors rỗng; p95 frame local khoảng 16.8–17.0 ms.

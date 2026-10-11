@@ -30,7 +30,7 @@ M2 triển khai luồng Chương 1 riêng (năm cây trồng), không đổi tê
 - Intro: Tí và Na chuẩn bị một buổi chơi, cần bé cùng học luật và chia lượt.
 - Mở: `ch01.complete`. Khu: Sân Đình. NPC: Tí, Na, Ông Đồ.
 - `q.ch02.learn-rules`: học phiên bản Ô ăn quan được game công bố, xem một nước mẫu, chọn lượt đi hợp lệ.
-- `q.ch02.play-o-an-quan`: hoàn thành một ván với NPC; thắng/thua đều hoàn thành mục tiêu tham gia, không chặn sao.
+- `q.ch02.play-o-an-quan`: ghép năm mảnh đèn ông sao cùng số với Tí và Na; không giới hạn thời gian hoặc đấu điểm. Giữ ID cũ để bảo toàn tiến độ; Ô ăn quan chuyển sang phần luyện tùy chọn.
 - `q.ch02.pull-together`: hoàn thành đoạn kéo co hợp tác với NPC, dùng chế độ nhịp chậm hoặc trợ giúp. Không yêu cầu bấm cực nhanh.
 - `q.ch02.share`: chọn câu mời bạn/chia lượt, quay về Ông Đồ. Reward `reward.star.ch02`, `badge.fair-play`, flag `ch02.complete`.
 - Mini game: Ô ăn quan và Kéo co; Nhảy sạp là side quest sau nghiệm thu, chưa bắt buộc.

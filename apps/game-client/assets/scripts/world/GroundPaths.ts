@@ -36,6 +36,13 @@ export function paintGround(context:CanvasRenderingContext2D,cx:number,cy:number
     // diamond edges would otherwise leave diagonal antialias seams in the grass.
     context.save();context.beginPath();context.rect(0,0,514,258);context.clip();context.translate(257-center.x,129+center.y);
     paintMeadow(context,center.x-400,-center.y-240,center.x+400,-center.y+240,grass);
+    // Field soil and stubble share the gameplay terrain footprint, baked once.
+    for(let y=12;y<=20;y++)for(let x=25;x<=34;x++){
+        const p=toWorld({x,y});context.beginPath();context.moveTo(p.x-32,-p.y);context.lineTo(p.x,-p.y-16);context.lineTo(p.x+32,-p.y);context.lineTo(p.x,-p.y+16);context.closePath();
+        context.fillStyle=groundNoise(x,y,18)>.5?'#b7ab58':'#afa451';context.fill();
+        context.strokeStyle='rgba(111,112,40,.28)';context.lineWidth=1;
+        for(let i=0;i<8;i++){const dx=(groundNoise(x*8+i,y,19)-.5)*40,dy=(groundNoise(x,y*8+i,20)-.5)*15;context.beginPath();context.moveTo(p.x+dx,-p.y+dy);context.lineTo(p.x+dx-2,-p.y+dy-5);context.stroke();}
+    }
     // A worn yard blends into the paths, instead of a bright diamond of tiles.
     const yard=toWorld({x:21,y:16});context.save();context.translate(yard.x,-yard.y);context.scale(1,.45);const yardTint=context.createRadialGradient(0,0,20,0,0,150);yardTint.addColorStop(0,'rgba(211,176,115,.90)');yardTint.addColorStop(.65,'rgba(211,176,115,.72)');yardTint.addColorStop(1,'rgba(211,176,115,0)');context.fillStyle=yardTint;context.fillRect(-150,-150,300,300);context.restore();
     for(const points of villagePaths){

@@ -4,6 +4,7 @@ import {VillageRoom} from './VillageRoom';
 import {verifyTicket} from '../../backend/src/Auth';
 import {ChapterOneProgress,plantingPlots} from '../../game-client/assets/scripts/world/ChapterOneProgress';
 import {CampaignEngine} from '../../game-client/assets/scripts/world/CampaignEngine';
+import {restoreActivities} from '../../game-client/assets/scripts/world/ActivitySnapshot';
 import {EducationEngine,lessonQuestions,riceQuestions} from '../../game-client/assets/scripts/world/EducationEngine';
 import {chapters,AgeBand,miniGameIds} from '../../game-client/assets/scripts/world/CampaignContent';
 import {MiniGameRules} from '../../game-client/assets/scripts/world/MiniGameRules';
@@ -19,7 +20,14 @@ export class PrivateFriendRoom extends VillageRoom {
     onCreate(options:any={}):void{
         super.onCreate();this.maxClients=20;this.secret=options.secret;this.api=options.apiUrl;this.code=options.roomCode;
         if(typeof this.secret!=='string'||this.secret.length<32||!/^[A-Z0-9]{8}$/.test(this.code))throw Error('Private room configuration invalid');
-        this.onMessage('ready',client=>{client.send('content-version',contentVersion());this.sendProgress(client);});
+        this.onMessage('ready',client=>{client.send('content-version',contentVersion());this.sendProgress(client);client.send('activities-state',{snapshot:(client.auth as any)?.activities??null});});
+        this.onMessage('activities-save',(client,value:unknown)=>{
+            const m=this.members.get(client.sessionId),v=value as {id?:unknown;snapshot?:unknown};
+            if(!m||typeof v?.id!=='string'||v.id.length>80||!v.snapshot||typeof v.snapshot!=='object')return;
+            const raw=JSON.stringify(v.snapshot);if(raw.length>240000)return;
+            const snapshot=JSON.stringify(restoreActivities(v.snapshot));
+            m.saveQueue=m.saveQueue.then(async()=>{const saved=await this.service('/internal/activities',{profileId:m.profileId,snapshot});(client.auth as any).activities=saved.snapshot;client.send('activities-state',{id:v.id,snapshot:saved.snapshot});}).catch(()=>this.warn(client,'Hoạt động chưa đồng bộ được. Bản lưu trên máy vẫn còn.'));
+        });
         this.onMessage('portal',(client,value:unknown)=>{const p=this.state.players.get(client.sessionId),id=(value as any)?.id;if(!p||typeof id!=='string')return;const target=portalDestination(p,id);if(target)this.relocate(client,target);});
         this.onMessage('probe',(client,value:unknown)=>{if(typeof value==='number'&&Number.isFinite(value))client.send('probe',value);});
         this.onMessage('emote',(client,value:unknown)=>{

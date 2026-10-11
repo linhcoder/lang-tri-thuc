@@ -18,8 +18,10 @@ const output=path.resolve(__dirname,'../temp/speech-qa');fs.mkdirSync(output,{re
   await page.evaluate(()=>window.village=cc.director.getScene().getChildByName('Canvas').getComponent('VillageBootstrap'));return page;
  }
  async function tap(page,id,kind='hub',mobile=false){
+  if(id==='parentButton'&&kind==='root'){if(mobile){await tap(page,'HudMenu','hud',true);await tap(page,'MenuSettings','hub',true);}else await tap(page,'HudSettings','hud');await tap(page,'HudParent','hub',mobile);return;}
   const p=await page.evaluate(({id,kind})=>{const b=village,n=kind==='root'?b[id]:b[kind].node.getChildByName(id);if(!n)throw Error('Missing '+id);const w=n.getComponent(cc.UITransform).convertToWorldSpaceAR(new cc.Vec3()),s=b.node.getComponent(cc.Canvas).cameraComponent.worldToScreen(w),c=cc.game.canvas,r=c.getBoundingClientRect();return {x:r.left+s.x/c.width*r.width,y:r.top+(c.height-s.y)/c.height*r.height};},{id,kind});
   if(mobile)await page.touchscreen.tap(p.x,p.y);else await page.mouse.click(p.x,p.y);
+  await page.waitForTimeout(80);
  }
  async function enableSound(page,mobile=false){await tap(page,'parentButton','root',mobile);await tap(page,'ParentAnswer-1','hub',mobile);await tap(page,'Sound','hub',mobile);await tap(page,'HubClose','hub',mobile);}
  try{

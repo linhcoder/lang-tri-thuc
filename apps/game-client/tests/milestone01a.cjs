@@ -32,6 +32,46 @@ const map = new m.VillageMap();
 let checks = 0;
 function test(name, fn) { fn(); checks++; console.log('PASS', name); }
 function close(a,b) { assert.ok(Math.abs(a-b) < 1e-7, `${a} != ${b}`); }
+
+test('festival dates follow Vietnam midnight, Tet range and verified year rollover',()=>{
+    const {festivalOccurrence,vietnamDate}=load(path.join(scripts,'world/FestivalCalendar.ts'));
+    assert.equal(vietnamDate(new Date('2026-02-16T16:59:59Z')),'2026-02-16');assert.equal(vietnamDate(new Date('2026-02-16T17:00:00Z')),'2026-02-17');
+    assert.equal(festivalOccurrence('tet',new Date('2026-02-16T17:00:00Z')).active,true);assert.equal(festivalOccurrence('tet',new Date('2026-02-19T16:59:59Z')).active,true);
+    assert.equal(festivalOccurrence('tet',new Date('2026-02-19T17:00:00Z')).date,'2027-02-06');assert.equal(festivalOccurrence('trung-thu',new Date('2026-09-24T17:00:00Z')).active,true);
+    assert.equal(festivalOccurrence('trung-thu',new Date('2027-09-15T17:00:00Z')).date,'2028-10-03');assert.equal(festivalOccurrence('tet',new Date('2030-01-01T00:00:00Z')),null);assert.equal(festivalOccurrence('tet',new Date(NaN)),null);
+});
+test('activity snapshots exclude rewards, preserve holiday badges and allow drawing/ care replay reset',()=>{
+    const {restoreActivities,mergeActivities}=load(path.join(scripts,'world/ActivitySnapshot.ts'));
+    const remote=restoreActivities({holidayProgress:{tet:3},care:{garden:3},painting:[{color:0,points:[{x:0,y:0}]}],explored:['garden'],practice:['mg.star-lantern'],receipts:['reward.star.ch08']});
+    assert.equal(remote.receipts,undefined);const merged=mergeActivities(remote,restoreActivities({holidayProgress:{tet:1},care:{garden:0},painting:[],explored:['cat']}));
+    assert.equal(merged.holidayProgress.tet,3);assert.equal(merged.care.garden,0);assert.deepEqual(merged.painting,[]);assert.deepEqual(merged.explored,['garden','cat']);assert.deepEqual(merged.practice,['mg.star-lantern']);
+    const legacy=new CampaignEngine();legacy.restore(JSON.stringify({...legacy.data,painting:[{color:0,points:[{x:0,y:0}]}]}));assert.equal(legacy.data.activitiesDirty,true);legacy.restore(JSON.stringify({...legacy.data,activitiesDirty:false}));assert.equal(legacy.data.activitiesDirty,false);
+});
+test('traditional festival save retains only known bounded steps without granting story stars',()=>{
+    const {restoreHolidayProgress,traditionalFestivals}=load(path.join(scripts,'world/TraditionalFestivals.ts'));
+    assert.deepEqual(restoreHolidayProgress({tet:2,'trung-thu':3,fake:3}),{tet:2,'trung-thu':3});assert.deepEqual(restoreHolidayProgress({tet:'3','trung-thu':4}),{});
+    const engine=new CampaignEngine();assert.ok(engine.restore(JSON.stringify({...engine.data,holidayProgress:{tet:3}})));assert.equal(engine.stars,0);assert.equal(engine.data.holidayProgress.tet,3);assert.ok(traditionalFestivals.every(h=>miniGameIds.includes(h.game)&&h.choices.length===2));
+});
+
+test('six short NPC lanes protect mission plots/portals and patrol pauses near players',()=>{
+    const {NpcPatrol}=load(path.join(scripts,'world/NpcPatrol.ts')),routes=m.npcPatrolRoutes(),patrol=new NpcPatrol();assert.equal(routes.length,6);assert.ok(routes.every(r=>r.points.length>=2&&r.points.length<=3));
+    const ids=new Set();for(const route of routes)for(const [i,p] of route.points.entries()){assert.ok(!ids.has(p.x+':'+p.y));ids.add(p.x+':'+p.y);assert.equal(map.walkable(p.x,p.y),i>0);assert.equal(map.walkableForNpc(p.x,p.y,route.id),true);if(i)assert.equal(Math.abs(p.x-route.points[i-1].x)+Math.abs(p.y-route.points[i-1].y),1);}
+    const movingMap=new m.VillageMap(),lane=routes[0].points;movingMap.npcPositions=[m.toWorld(lane[1])];assert.equal(movingMap.walkable(lane[0].x,lane[0].y),true);assert.equal(movingMap.canStand(m.toWorld(lane[1])),false);assert.equal(movingMap.walkable(lane[2].x,lane[2].y),true);
+    for(const p of [...plantingPlots,...Object.values(m.zoneSpawns)])assert.ok(map.walkable(p.x,p.y));
+    const initial=Array.from(patrol.poses.values(),p=>({x:p.x,y:p.y})),moved=new Set();for(let i=0;i<200;i++){patrol.step(.05,[]);Array.from(patrol.poses.values()).forEach((p,j)=>{if(Math.hypot(p.x-initial[j].x,p.y-initial[j].y)>1)moved.add(p.id);});}assert.equal(moved.size,6);
+    const npc=patrol.poses.get('ti-na'),held={x:npc.x,y:npc.y};for(let i=0;i<40;i++)patrol.step(.05,[held]);assert.equal(npc.moving,false);assert.equal(npc.x,held.x);assert.equal(npc.y,held.y);
+    for(let i=0;i<1000;i++){patrol.step(.05,[]);for(const [id,p] of patrol.poses){const tile=m.tileAt(p);assert.ok(routes.find(r=>r.id===id).points.some(t=>t.x===tile.x&&t.y===tile.y));}}
+    const raw={x:npc.x,y:npc.y};patrol.step(NaN,[]);assert.equal(npc.x,raw.x);assert.equal(npc.y,raw.y);
+});
+
+test('creative save rejects oversized/out-of-bounds strokes and invalid care without touching story',()=>{
+    const {restorePainting,restoreCare,maxPaintStrokes,maxPaintPoints}=load(path.join(scripts,'world/VillageActivities.ts'));
+    const valid={color:2,points:[{x:0,y:0},{x:260,y:-115}]};
+    assert.equal(restorePainting(Array(100).fill(valid)).length,maxPaintStrokes);
+    assert.deepEqual(restorePainting([{color:99,points:[{x:0,y:0}]},{color:0,points:[{x:Infinity,y:0}]},{color:0,points:[{x:0,y:116}]},{color:0,points:Array(maxPaintPoints+1).fill({x:0,y:0})},valid]),[valid]);
+    assert.deepEqual(restoreCare({cat:3,hen:1,duck:4,buffalo:'2',garden:NaN,unknown:2}),{hen:1,cat:3});
+    const engine=new CampaignEngine(),raw={...engine.data,care:{cat:2},painting:[valid]};assert.ok(engine.restore(JSON.stringify(raw)));assert.deepEqual(engine.data.care,{cat:2});assert.deepEqual(engine.data.painting,[valid]);assert.equal(engine.stars,0);
+});
 test('camera zoom clamps invalid values and pinch ratios use the initial distance without drift',()=>{
     const {CameraZoom}=load(path.join(scripts,'player/CameraZoom.ts')),zoom=new CameraZoom();
     assert.equal(zoom.set(NaN),1);assert.equal(zoom.set(Infinity),1);assert.equal(zoom.set(9),1.8);assert.equal(zoom.set(-9),.6);
@@ -45,6 +85,10 @@ test('two-finger zoom cancels navigation and suppresses taps after release or bl
     b.touchEnd(event(2,400,200));b.touchEnd(event(1,200,200));assert.equal(clicks,0);
     b.touchStart(event(3,200,200));b.touchStart(event(4,300,200));b.resetInput();b.touchEnd(event(3,200,200));b.touchEnd(event(4,300,200));assert.equal(clicks,0);assert.equal(b.pinchIds,undefined);
     b.touchStart(event(5,200,200));b.touchEnd(event(5,200,200));assert.equal(clicks,1);
+});
+test('dragging the village pans the camera and cancels movement without generating a tap',()=>{
+ const b=new VillageBootstrap();b.player=player({x:20,y:20});b.player.goTo({x:30,y:20});b.world={position:{x:10,y:20}};b.joystick={active:false};b.knob={setPosition(){}};b.dialog={active:false};b.local=p=>p;let clicks=0;b.select=()=>clicks++;
+ const event=(id,x,y)=>({getID:()=>id,getUILocation:()=>({x,y})});b.touchStart(event(1,300,300));b.touchMove(event(1,400,350));assert.deepEqual(b.freeCameraOffset,{x:110,y:70});assert.equal(b.player.hasPath,false);b.touchEnd(event(1,400,350));assert.equal(clicks,0);b.resetInput();assert.equal(b.freeCameraOffset,undefined);
 });
 test('private tab reload retains valid routing, discards expired tickets and preserves explicit solo scope',()=>{
     const {restoreJoinSession,saveSoloSession,JOIN_SESSION_KEY}=load(path.join(scripts,'network/JoinSession.ts'));
@@ -239,6 +283,25 @@ test('campaign unlocks sequential quests/chapters and gives exactly eight idempo
     assert.equal(c.stars,8);const copy=new CampaignEngine();assert.equal(copy.restore(JSON.stringify(c.data)),true);assert.equal(copy.stars,8);
     const forged=new CampaignEngine();forged.restore(JSON.stringify({...c.data,completed:[],receipts:c.data.receipts}));assert.equal(forged.stars,0);
 });
+test('chapter two uses simple lantern matching and drops only the replaced unfinished game',()=>{
+ const c=new CampaignEngine(),id='q.ch02.play-o-an-quan';c.introduce(0);for(const q of chapters[0].quests)c.complete(q.id);c.claim(0);c.introduce(1);c.complete('q.ch02.learn-rules');
+ assert.equal(chapters[1].quests.find(q=>q.id===id).game,'mg.star-lantern');
+ c.data.resume[id]={kind:'game',data:new MiniGameRules('mg.o-an-quan').save()};const migrated=new CampaignEngine();assert.equal(migrated.restore(JSON.stringify(c.data)),true);assert.equal(migrated.data.resume[id],undefined);assert.equal(migrated.stars,1);assert.ok(migrated.available(id));
+ const game=new MiniGameRules('mg.star-lantern');for(let i=0;i<5;i++){assert.ok(game.action('part',i));assert.ok(game.action('place',i));}assert.ok(game.ended);
+ c.data.resume[id]={kind:'game',data:game.save()};assert.ok(migrated.restore(JSON.stringify(c.data)));assert.equal(migrated.data.resume[id].data.id,'mg.star-lantern');
+ c.complete(id);assert.ok(migrated.restore(JSON.stringify(c.data)));assert.ok(migrated.data.completed.includes(id));assert.ok(migrated.available('q.ch02.pull-together'));
+});
+test('practice checkpoint restoration validates traces without changing story rewards',()=>{
+ const e=new CampaignEngine(),g=new MiniGameRules('mg.star-lantern');g.action('part',2);g.action('place',2);
+ const saved={...e.data,practiceResume:{'mg.star-lantern':g.save(),'mg.market':g.save(),fake:g.save()},explored:['well','well','fake'],festivalProgress:{'2026-autumn':['mg.star-lantern','mg.star-lantern','mg.market'],fake:['mg.market']}};
+ assert.ok(e.restore(JSON.stringify(saved)));assert.deepEqual(Object.keys(e.data.practiceResume),['mg.star-lantern']);assert.deepEqual(MiniGameRules.restore(e.data.practiceResume['mg.star-lantern']).data.placed,[2]);assert.equal(e.stars,0);assert.deepEqual(e.data.explored,['well']);assert.deepEqual(e.data.festivalProgress,{'2026-autumn':['mg.star-lantern']});
+ const corrupt={...g.save(),actions:[{type:'place',index:99,at:0}]};assert.ok(e.restore(JSON.stringify({...saved,practiceResume:{'mg.star-lantern':corrupt}})));assert.deepEqual(e.data.practiceResume,{});
+});
+test('season calendar uses Vietnamese dates and preserves the winter year across January',()=>{
+ const {seasonalActivities}=load(path.join(scripts,'world/CampaignContent.ts'));
+ assert.equal(seasonalActivities(new Date('2026-10-11T00:00:00Z')).key,'2026-autumn');assert.equal(seasonalActivities(new Date('2027-01-15T00:00:00Z')).key,'2026-winter');assert.equal(seasonalActivities(new Date('2027-02-01T00:00:00Z')).key,'2027-spring');assert.equal(seasonalActivities(new Date('2026-04-30T18:00:00Z')).key,'2026-summer');
+ for(const guide of m.environmentGuides){const target=m.villageDetails.find(d=>d.id===guide.id);assert.ok(target&&guide.body.length>20);assert.ok([{x:target.x+1,y:target.y},{x:target.x-1,y:target.y},{x:target.x,y:target.y+1},{x:target.x,y:target.y-1}].some(p=>map.path({x:20,y:20},p).length>0),'Each exploration target must have a reachable approach');}
+});
 test('lessons validate arithmetic at all three age levels and reject draft publication',()=>{
     for(const age of ['3-5','6-8','9-11']){const questions=lessonQuestions('math',age),e=new EducationEngine(questions);for(const q of questions){const match=q.prompt.match(/(\d+) ([+×−÷]) (\d+)/);assert.ok(match);const a=+match[1],b=+match[3],expected=match[2]==='+'?a+b:match[2]==='−'?a-b:match[2]==='÷'?a/b:a*b;assert.equal(+q.choices[q.answer],expected);assert.equal(e.answer(-1),false);assert.equal(e.answer(q.answer),true);}assert.equal(e.complete,true);}
     assert.throws(()=>new EducationEngine(lessonQuestions('math','3-5'),0,true));
@@ -387,6 +450,15 @@ test('young-player rhythm windows are wider and old valid action traces remain r
  for(const age of ['3-5','6-8','9-11']){const game=new MiniGameRules('mg.tug-of-war',age);for(let i=0;i<6;i++){game.clock=i+.1;assert.equal(game.action('beat',0),true);}assert.equal(MiniGameRules.restore(game.save()).ended,true);}
 });
 test('new composition has left pond, right rice, solid market and a traversable bridge',()=>{
+ for(const p of plantingPlots){assert.ok(p.x>=25&&p.x<=34&&p.y>=12&&p.y<=20,'Mission plot must be in the visible right field');assert.ok(map.path({x:m.farmerTile.x+1,y:m.farmerTile.y},p).length>0);}
+ const buffalo=m.villageDetails.find(o=>o.id==='buffalo'),bp=m.toWorld(buffalo);
+ assert.notEqual(m.terrain(buffalo.x,buffalo.y),'rice','Buffalo stands on the berm');
+ for(const p of plantingPlots){const wp=m.toWorld(p);assert.ok(Math.abs(wp.x-bp.x)>(buffalo.width+64)/2||wp.y-13>bp.y+buffalo.height||wp.y+56<bp.y,'Buffalo silhouette must not cover a planting plot');}
+ const rice=load(path.join(scripts,'world/VisualAssets.ts')).sceneryPlacements().filter(p=>p.id.startsWith('golden-rice-'));
+ const plants=load(path.join(scripts,'world/VisualAssets.ts')).sceneryPlacements().filter(p=>[0,1,4,6,8].includes(p.cell));
+ for(const item of plants){const base=m.toWorld(item);assert.ok(plantingPlots.every(p=>{const plot=m.toWorld(p);return Math.abs(plot.x-base.x)>=item.width/2+33||base.y>=plot.y+62||base.y+item.height<=plot.y-22;}),'Flowers, grass and rice cannot cover the planting area');}
+ for(let i=0;i<plantingPlots.length;i++)for(let j=i+1;j<plantingPlots.length;j++){const a=m.toWorld(plantingPlots[i]),b=m.toWorld(plantingPlots[j]);assert.ok(Math.hypot(a.x-b.x,a.y-b.y)>=60,'Planting markers must be separated');}
+ assert.ok(rice.length>=20,'golden rice clump count: '+rice.length);assert.ok(rice.every(r=>r.essential&&!plantingPlots.some(p=>{const rp=m.toWorld(r),pp=m.toWorld(p);return Math.abs(pp.x-rp.x)<76&&rp.y<pp.y+62&&rp.y+68>pp.y-22;})),'Rice stays visible on Low and its full silhouette leaves mission plots clear');
  assert.ok(m.toWorld({x:3,y:23}).x<m.toWorld({x:20,y:20}).x);assert.equal(m.terrain(3,23),'pond');
  assert.ok(m.toWorld({x:29,y:16}).x>m.toWorld({x:20,y:20}).x);assert.equal(m.terrain(29,16),'rice');
  assert.equal(map.walkable(23,29),false);for(let x=1;x<=5;x++){assert.equal(map.walkable(x,23),true);assert.equal(map.walkable(x,22),false);}

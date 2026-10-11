@@ -1,9 +1,11 @@
 import { Room, Client } from '@colyseus/core';
 import { schema, t } from '@colyseus/schema';
 import { Point, toWorld, VillageMap } from '../../game-client/assets/scripts/world/VillageModel.js';
+import {NpcPatrol} from '../../game-client/assets/scripts/world/NpcPatrol.js';
 
 export class PlayerState extends schema({x:t.number().default(0),y:t.number().default(-640),direction:t.uint8().default(6),moving:t.boolean().default(false),name:t.string().default(''),avatar:t.uint8().default(0),accessory:t.uint8().default(0),hair:t.uint8().default(0)}) {}
-export class VillageState extends schema({players:t.map(PlayerState),gameJson:t.string().default(''),gameQuest:t.string().default('')}) {}
+export class NpcState extends schema({x:t.number().default(0),y:t.number().default(0),direction:t.uint8().default(6),moving:t.boolean().default(false)}) {}
+export class VillageState extends schema({players:t.map(PlayerState),npcs:t.map(NpcState),gameJson:t.string().default(''),gameQuest:t.string().default('')}) {}
 export interface MovePacket extends Point { direction:number; moving:boolean; seq:number; avatar?:number; accessory?:number; hair?:number }
 export function validMove(map:VillageMap, from:Point, packet:unknown, budget:number): packet is MovePacket {
     if (!packet || typeof packet !== 'object') return false;
@@ -20,9 +22,11 @@ export function validMove(map:VillageMap, from:Point, packet:unknown, budget:num
 }
 export class VillageRoom extends Room<{state:VillageState}> {
     private map = new VillageMap();
+    private patrol=new NpcPatrol();
     private limits = new Map<string,{time:number;budget:number;seq:number}>();
     onCreate():void {
         this.maxClients=16;this.maxMessagesPerSecond=32;this.setState(new VillageState());this.setPatchRate(50);
+        const patrol=()=>{this.patrol.step(.05,Array.from(this.state.players.values()));for(const [id,pose] of this.patrol.poses){let npc=this.state.npcs.get(id);if(!npc){npc=new NpcState();this.state.npcs.set(id,npc);}npc.x=pose.x;npc.y=pose.y;npc.direction=pose.direction;npc.moving=pose.moving;}this.map.npcPositions=Array.from(this.state.npcs.values());};patrol();this.clock.setInterval(patrol,50);
         this.onMessage('move',(client,packet:unknown)=>{
             const player=this.state.players.get(client.sessionId), limit=this.limits.get(client.sessionId);
             if(!player||!limit)return;

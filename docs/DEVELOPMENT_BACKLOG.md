@@ -1,14 +1,39 @@
-# Phần còn phát triển — 10/10/2026
+# Phần còn phát triển — 11/10/2026
 
 Bản hiện tại là prototype tám chương đã có staging. Tỷ lệ người/cảnh đã sửa; cảnh làng có zoom 60–180% bằng nút, wheel và pinch. Các mục sau chưa có đầy đủ, không tính là đã hoàn thành chỉ vì có tên trong menu hoặc registry.
 
+Đợt 11/10: năm ô trồng Chương 1 chuyển sang ruộng phải cạnh Bác Nông Dân, dùng chung tọa độ client/server. Ruộng có nền đất/rạ và lúa chín dày hơn, giữ lúa ở chất lượng Low; chừa khu trồng cây non. Save theo chỉ số ô giữ nguyên tiến độ. Khi triển khai cần cập nhật cả client và game server vì hash nội dung thay đổi.
+
+Trâu đã thu nhỏ và đưa ra bờ ngoài khu trồng; sprite mạ thay bằng bụi lá dài không có rễ/cục đất lộ thiên. Có kiểm tra hình trâu không che năm ô trồng.
+
+Năm ô trồng được giãn và đánh số 1–5 (đã trồng hiện ✓). Khoảng trống xét toàn bộ hình lúa/hoa/cỏ trên màn hình để tránh che ô, thay cho khoảng cách tile đơn thuần. Save vẫn giữ chỉ số ô; cần build client/server cùng phiên bản.
+
+Chương 2 thay nhiệm vụ Ô ăn quan bằng ghép đèn ông sao: năm cặp cùng số, bấm hoặc kéo thả, không đấu điểm/giới hạn thời gian. Giữ quest ID để không mất nhiệm vụ đã hoàn thành; checkpoint Ô ăn quan dở được bỏ, mở trò ghép đèn mới. Ô ăn quan còn trong luyện tùy chọn sau tám sao.
+
+Bảng nhiệm vụ chương đã thiết kế lại: tên chương cố định, NPC/tiến độ, thẻ số thứ tự và trạng thái rõ ràng, hai nút Nghe hướng dẫn/Về làng cân đối. Kiểm tra desktop và mobile dọc/ngang đạt.
+
+## Đã bổ sung trong đợt hoàn thiện local
+
+- Minimap có dấu của tám NPC và bạn trong phòng; vị trí bạn cập nhật theo trạng thái mạng, bị chặn/rời phòng thì xóa dấu. Có chú giải màu.
+- Kéo nền bằng chuột hoặc một ngón để xem làng. Di chuyển hoặc mở menu đưa camera về theo bé; pinch và joystick vẫn có quyền riêng.
+- Giếng, vườn rau, trâu, gà, vịt và mèo có nội dung khám phá, đi tới trước khi mở; có nút Nghe và lưu sáu điểm vào sổ. Nút Tương tác chọn cả NPC và cảnh vật gần nhất.
+- Ván luyện lưu checkpoint theo từng trò trong hồ sơ local; đóng/tạm nghỉ/reload rồi tiếp tục. Trò đã kết thúc xóa checkpoint, không cấp thêm sao truyện. Checkpoint được đồng bộ theo hồ sơ phòng riêng; hồ sơ solo vẫn lưu trên máy.
+- Ngày hội thay bộ hai hoạt động theo bốn mùa (giờ Việt Nam), lưu huy hiệu mùa/năm vào sổ sau khi xong cả hai. Đây là lịch mùa của game, không phải lịch âm/Tết/Trung thu.
+- Server QA đã có bốn client dùng vé thật chơi đủ 11 trò chính ở cả ba nhóm tuổi, kết nối lại giữa mỗi ván và xác nhận thưởng cho cả bốn (33 kịch bản). Ô ăn quan còn trong luyện solo; bộ registry vẫn có 12 trò.
+- Chăm trâu, gà, vịt, mèo và vườn rau ngay sau khi đi tới góc khám phá: ba bước, gợi ý khi chọn sai, lưu bước đang làm và chơi lại. Hoạt động mô phỏng giáo dục, không có đói/khát theo thời gian và không cấp sao truyện.
+- Góc vẽ tự do mở ngay từ menu hoặc hoạt động: sáu màu, vẽ chuột/touch, chấm màu, lùi nét, xác nhận trang mới và phục hồi vừa xóa. Tranh tự lưu local theo hồ sơ; giới hạn 64 nét × 128 điểm để tránh save phình to. Đã xuất PNG 1080 × 500 qua nút Lưu ảnh; tranh/chăm góc làng được đồng bộ theo hồ sơ phòng riêng.
+- Sáu NPC chương 2–7 đi tuyến ngắn quanh điểm xuất hiện; Cô Tấm đi một đoạn ngắn cạnh ruộng. Dừng khi bé/bạn tới gần để nói chuyện. Bấm NPC/bóng thoại tiếp cận vị trí hiện tại và cập nhật đường khi NPC di chuyển. Collision theo vị trí hiện tại; đoạn đã trống đi qua được. Server phát vị trí/hướng/trạng thái đi cho các client; offline dùng cùng luật. Ông Đồ/Bác Nông Dân giữ vị trí Chương 1. Đã có atlas 24 tư thế đi/chào cho tám NPC, dùng hình gốc khi nghỉ; trái/phải bằng mirror.
+
+Sổ ngày lễ mở từ menu hoặc bộ sưu tập: hai chuỗi Tết/Trung thu có minh họa Graphics, câu hỏi có gợi ý, ghép bánh chưng/đèn ông sao, lưu bước và ván đang chơi. Chơi lại giữ dấu hoàn thành, không cộng sao truyện. Nội dung học mở quanh năm; sổ tự nhận diện ngày Tết/Trung thu theo bảng đã xác minh 2026–2028, giờ Việt Nam. Ngoài bảng giữ chế độ quanh năm.
+
+Preview offline giữ tại `http://127.0.0.1:8085/`; bản cuối dùng build `completion-v1`. Stack online local dùng game 38080, phụ huynh 35173, API 33000. Các bổ sung này chưa triển khai staging. Đợt NPC đổi hash nội dung; cần cập nhật client, game server và API cùng phiên bản.
+
 | Mức ưu tiên | Phần còn lại | Hiện có / giới hạn |
 | --- | --- | --- |
-| Tiếp theo | NPC đi lại, idle/gesture riêng và tương tác môi trường | NPC là sprite tĩnh; giếng, cầu, trâu/gà/vịt và vườn rau phần lớn là cảnh trang trí. Cầu chưa bắc qua ao để đi được |
-| Tiếp theo | Art/animation và thao tác trực quan sâu hơn cho mini game | 12 bộ luật solo, minh họa Graphics và nút; kéo thả đèn đã có. Ghép tranh là ô trượt, câu cá là quan sát/thả; chưa art riêng, tô tranh tự do hoặc mô phỏng đầy đủ |
-| Tiếp theo | Multiplayer cần QA/polish từng trò | Phòng riêng, đồng bộ làng, emote, vé, shared game state tối đa 4 participant và authoritative validation đã có. Chưa nghiệm thu đồng chơi đầy đủ cả 12 trò hoặc soak WAN dài |
-| Sau gameplay | Bản đồ tổng quan trực quan, UI làng gọn hơn trên mobile | Đã có menu 10 khu, portal, camera theo người và zoom. Chưa minimap với vị trí NPC/bạn, camera kéo tự do; HUD landscape vẫn cần thêm polish |
-| Sau gameplay | Lễ hội theo lịch, nhiệm vụ phụ/mùa và bộ sưu tập phong phú | Luyện/lễ hội mở sau tám sao, chơi quanh năm; chưa lịch mùa riêng. Luyện không giữ checkpoint giữa trò |
+| Nâng cấp hình ảnh | Nâng animation NPC | Sáu NPC đã đi tuần với vị trí/collision client-server; tám NPC có nghỉ/chào bằng code, sáu cảnh vật có khám phá và năm hoạt động chăm. Đã có 24 khung đi/chào riêng; còn tám góc nhìn độc lập và duyệt art bởi người làm hình ảnh |
+| Tiếp theo | Art/animation và thao tác trực quan sâu hơn cho mini game | 12 bộ luật solo, minh họa Graphics và nút; kéo thả đèn và góc vẽ tự do đã có. Ghép tranh là ô trượt có tranh gà–hoa tự vẽ, cá/ao có mắt/vây/sóng/hoa sen; mô phỏng sâu và art riêng cho toàn bộ trò vẫn là nâng cấp tiếp |
+| Trước beta online | Multiplayer trên mạng/thiết bị thật | Bốn client × 11 trò chính × ba nhóm tuổi, reconnect giữa lượt và thưởng authoritative đạt local. Chưa nghiệm thu trên thiết bị thật hoặc soak WAN dài |
+| Mở rộng nội dung | Nhiệm vụ mùa và ngày lễ truyền thống | Đã có lịch bốn mùa, hai hoạt động/mùa, huy hiệu theo năm và sáu góc khám phá. Đã có hai chuỗi Tết/Trung thu quanh năm với câu hỏi có gợi ý, trò chơi và tiến độ local. Tự nhận diện lịch lễ đã xác minh 2026–2028. Còn mở rộng năm/ngày lễ và bộ chuyển đổi âm/dương tổng quát |
 | Khi cần mở rộng | Công cụ biên tập sâu | Sửa chương/quest title/câu hỏi/NPC/asset và review đã có. Chưa editor quest graph, luật/board mini game tùy ý; hai NPC chương 1 giữ cấu hình cố định |
 | Khi tăng tải | Backend nhiều instance | MySQL-compatible snapshot JSON single-row, transaction/locking và backup đã có. Chưa schema chuẩn hóa, Redis presence/room coordination hoặc benchmark production đa instance |
 
@@ -21,3 +46,6 @@ NPC AI và lịch xuất hiện là tùy chọn trong master prompt, không ph�
 - Soak mạng, lịch backup/retention và kiểm tra phục hồi định kỳ trước beta công khai. aaPanel staging/HTTPS/WebSocket và restore drill đã chạy; Docker tùy chọn chưa kiểm thử.
 
 Chi tiết yêu cầu gốc và giới hạn: [COMPLETION_CHECKLIST](COMPLETION_CHECKLIST.md). Bằng chứng chạy: [QA-REPORT](../apps/game-client/QA-REPORT.md).
+
+
+Đợt hoàn thiện mới có đồng bộ tranh/chăm/ngày lễ/checkpoint theo hồ sơ phòng riêng (không cấp sao truyện), lịch lễ giờ Việt Nam 2026–2028, art ghép tranh/ao cá và atlas 24 tư thế NPC. Chi tiết: [ACTIVITY_SYNC](design/ACTIVITY_SYNC.md), [TRADITIONAL_FESTIVALS](design/TRADITIONAL_FESTIVALS.md), [NPC_POSES](design/NPC_POSES.md). Cần cập nhật Web, API và game server cùng rules 6.

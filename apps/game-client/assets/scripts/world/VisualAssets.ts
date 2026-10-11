@@ -1,5 +1,6 @@
-import { villageObjects, villageDetails, storyNpcs, Point, VillageMap, terrain, bridgeTile,villageSolids } from './VillageModel';
+import { villageObjects, villageDetails, storyNpcs, Point, VillageMap, terrain, bridgeTile,villageSolids,toWorld,npcPatrolRoutes } from './VillageModel';
 import { groundAssets, groundNoise } from './GroundPaths';
+import {plantingPlots} from './ChapterOneProgress';
 export const assetGroups=['Ground','Paths','Buildings','Vegetation','Water','Props','Characters','Animals','UI','Effects'] as const;
 export type AssetGroup=typeof assetGroups[number];
 export interface VisualAsset {id:string;name:string;group:AssetGroup;path:string;size:readonly number[];anchor:readonly number[];layer:'Ground'|'Actors'|'HUD';collision:null|{radius:number}|{tiles:ReadonlyArray<Point>};status:'placeholder'|'final';source:string;cell?:number;columns?:number;rows?:number;trim?:boolean;rowCuts?:readonly number[];animationRows?:ReadonlyArray<readonly [number,number]>;}
@@ -8,7 +9,8 @@ const names=['flowers','shrub','stones','market','fence','shade-tree','grass-tuf
 export const sceneryAssets:VisualAsset[]=names.map((name,cell)=>({id:'scenery.'+name,name,group:cell===3?'Buildings':cell===2||cell===4||cell===7?'Props':'Vegetation',path:resource+'scenery-v2.png',size:[cell===3?250:100,cell===3?220:100],anchor:[.5,0],layer:'Actors',collision:cell===3?{radius:1}:cell===4||cell===5||cell===7?{radius:0}:null,status:'placeholder',source:'OpenAI built-in imagegen, 2026-10-10; generated candidate awaiting artist approval',cell}));
 sceneryAssets.push({id:'scenery.golden-rice',name:'Ripe rice clump',group:'Vegetation',path:resource+'rice-v4.png',size:[62,58],anchor:[.5,0],layer:'Actors',collision:null,status:'placeholder',source:'OpenAI built-in imagegen; docs/design/UI_RICE_ART_PASS.md'},{id:'scenery.wood-sign',name:'Wooden village sign',group:'Props',path:resource+'ui-v4.png',size:[132,68],anchor:[.5,0],layer:'Actors',collision:null,status:'placeholder',cell:6,source:'OpenAI built-in imagegen; docs/design/UI_RICE_ART_PASS.md'});
 export const visualAssets:VisualAsset[]=[
-    {id:'vegetation.seedling',name:'Young rice for chapter one',group:'Vegetation',path:resource+'rice-seedling.png',size:[31,46],anchor:[.5,0],layer:'Actors',collision:null,status:'placeholder',source:'OpenAI built-in imagegen; docs/design/RICE_MISSION_FIX.md'},
+    {id:'animation.npc-poses',name:'Eight NPC walk and greeting poses',group:'Characters',path:resource+'npc-poses-v1.png',size:[256,256],anchor:[.5,0],layer:'Actors',collision:null,status:'placeholder',columns:3,rows:8,source:'OpenAI built-in imagegen, 11/10/2026; docs/design/NPC_POSES.md; artist review pending'},
+    {id:'vegetation.seedling',name:'Young rice for chapter one',group:'Vegetation',path:resource+'rice-seedling.png',size:[40,56],anchor:[.5,0],layer:'Actors',collision:null,status:'placeholder',trim:true,source:'OpenAI built-in imagegen, replacement 11/10/2026; docs/design/RICE_MISSION_FIX.md'},
     {id:'ui.painted-atlas',name:'Painted HUD icons and signs',group:'UI',path:resource+'ui-v4.png',size:[82,48],anchor:[.5,.5],layer:'HUD',collision:null,status:'placeholder',source:'OpenAI built-in imagegen; docs/design/UI_RICE_ART_PASS.md'},
     ...groundAssets.map(a=>({...a,layer:'Ground' as const,source:'Project Canvas renderer'})),
     {id:'ground.meadow-texture',name:'Painted meadow',group:'Ground',path:resource+'ground-v2.png',size:[276,138],anchor:[.5,.5],layer:'Ground',collision:null,status:'placeholder',source:'OpenAI built-in imagegen, 2026-10-10; generated candidate awaiting artist approval'},
@@ -40,6 +42,7 @@ export function assetResourceKey(id:string):string{const asset=visualAssets.find
 export interface SceneryPlacement extends Point {id:string;cell:number;width:number;height:number;essential:boolean;}
 export function sceneryPlacements():SceneryPlacement[]{
     const map=new VillageMap(),placements:SceneryPlacement[]=[{id:'market',cell:3,x:23,y:29,width:340,height:180,essential:true}];
+    const patrolPoints=npcPatrolRoutes().flatMap(route=>route.points.map(toWorld));
     // Sparse repeatable foliage. Skip the interaction routes and all solid footprints.
     for(let y=3;y<38;y+=3)for(let x=2;x<38;x+=3){
         if(terrain(x,y)!=='grass'||!map.walkable(x,y)||storyNpcs.some(n=>Math.hypot(n.x-x,n.y-y)<3)||villageObjects.some(o=>Math.hypot(o.x-x,o.y-y)<3)||Math.abs(x-16)<3||Math.abs(y-21)<3)continue;
@@ -60,8 +63,17 @@ export function sceneryPlacements():SceneryPlacement[]{
     for(const [i,p] of [{x:1,y:18},{x:9,y:31},{x:33,y:25},{x:36,y:15}].entries()){
         if(map.walkable(p.x,p.y)&&!storyNpcs.some(n=>Math.hypot(n.x-p.x,n.y-p.y)<4))placements.push({...p,id:'village-grove-'+i,cell:5,width:160,height:180,essential:false});
     }
-    for(let y=12;y<=20;y++)for(let x=25;x<=34;x++){if(!map.walkable(x,y)||storyNpcs.some(n=>Math.hypot(n.x-x,n.y-y)<=1)||Math.hypot(x-30,y-12)<=2||[{x:29,y:15},{x:26,y:17}].some(p=>Math.hypot(p.x-x,p.y-y)<=1))continue;placements.push({id:`golden-rice-${x}-${y}`,cell:8,x,y,width:62,height:58,essential:x%2===0&&y%2===0});}
-    for(const [id,title,x,y] of [['banyan','Cây Đa Tri Thức',12.5,18.5],['courtyard','Sân Đình',19,12],['well','Giếng Làng',16,23],['market','Chợ Quê',21.5,26.5],['home','Nhà Của Bé',27,9.5],['rice','Ruộng Lúa',31,23]] as const)placements.push({id:'sign-'+id,cell:9,x,y,width:100,height:id==='banyan'?78:48,essential:true});
+    for(let y=12;y<=20;y++)for(let x=25;x<=34;x++){if(!map.walkable(x,y)||storyNpcs.some(n=>Math.hypot(n.x-x,n.y-y)<=1)||Math.hypot(x-30,y-12)<=2||[{x:29,y:15},{x:26,y:17}].some(p=>Math.hypot(p.x-x,p.y-y)<=1))continue;
+        // Reserve the full projected sprite footprint, not just its ground tile.
+        const base=toWorld({x,y});
+        if(plantingPlots.some(p=>{const plot=toWorld(p);return Math.abs(plot.x-base.x)<76&&base.y<plot.y+62&&base.y+68>plot.y-22;}))continue;
+        placements.push({id:`golden-rice-${x}-${y}`,cell:8,x,y,width:86,height:68,essential:true});
+    }
+    for(const [id,title,x,y] of [['banyan','Cây Đa Tri Thức',12.5,18.5],['courtyard','Sân Đình',19,12],['well','Giếng Làng',16,23],['market','Chợ Quê',21.5,26.5],['home','Nhà Của Bé',27,9.5],['rice','Ruộng Lúa',34,24]] as const)placements.push({id:'sign-'+id,cell:9,x,y,width:100,height:id==='banyan'?78:48,essential:true});
     for(const item of placements)if(item.cell===0){item.width=Math.max(item.width,95);item.height=Math.min(item.height,45);}
-    return placements;
+    return placements.filter(item=>{
+        if(![0,1,6,8].includes(item.cell))return true;
+        const base=toWorld(item);
+        return !plantingPlots.some(p=>{const plot=toWorld(p);return Math.abs(plot.x-base.x)<item.width/2+33&&base.y<plot.y+62&&base.y+item.height>plot.y-22;})&&(item.cell===8||!patrolPoints.some(p=>Math.abs(p.x-base.x)<item.width/2+24&&base.y<=p.y+2&&base.y+item.height>p.y-8));
+    });
 }

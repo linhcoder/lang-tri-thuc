@@ -1,5 +1,13 @@
 # Sửa hình lúa nhiệm vụ — 10/10/2026
 
+## Cập nhật 11/10/2026: trâu và hình mạ
+
+Đợt tiếp theo: ô trồng giãn thành (26,18), (28,18), (30,18), (28,20), (32,17), đánh số 1–5 khi chưa trồng, ✓ khi đã trồng. Khoảng trống xét bounding box hiển thị đầy đủ của lúa, hoa, cỏ; kiểm tra cả hàng rào và trâu. Ô 5 đã dời khỏi hàng rào sau kiểm tra ảnh. Những tọa độ ghi dưới đây là lịch sử. Tiến độ theo index giữ nguyên; build client/server cùng phiên bản.
+
+Thay sprite `rice-seedling.png` bằng một bụi mạ lá dài mảnh, nhiều lá cong, không rễ lộ thiên/cục đất/củ; giữ PNG alpha và UUID/meta cũ. Nguồn: built-in imagegen, ảnh sinh `01a128c5-1083-7800-a8d3-67dfa915f87a/exec-58850722-ec77-42ad-ac94-f85220d97430.png`. Prompt yêu cầu Oryza sativa, 7–10 lá dạng cỏ, thân trồng sát nhau, gốc ở mặt đất, no garlic/onion/bulb/roots/soil ball, một sprite đơn có nền trong suốt. Registry trim alpha; sprite trong ruộng 40×56, bài đếm 42×62.
+
+Trâu chuyển từ (30,20), 130×105 sang bờ (31,23), 100×78. Biển ruộng chuyển tới (34,24). Năm ô nhiệm vụ hiện là (28,19), (29,19), (28,18), (29,18), (30,18); các mô tả vị trí cũ bên dưới là lịch sử. Regression kiểm tra bounding box trâu không giao với ô trồng và đường từ Bác Nông Dân tới cả năm ô. Client/server cần cập nhật cùng nhau vì collision/hash thay đổi.
+
 Nguyên nhân: ChapterOneView vẫn dùng Graphics nét thẳng cho plot đã trồng và bài đếm; sprite lúa của ruộng trang trí chưa nối với nhiệm vụ. Nét vẽ giống cành cây và không đồng bộ cảnh.
 
 Thêm `apps/game-client/assets/resources/village/rice-seedling.png`, tạo bằng built-in imagegen qua skill imagegen, giữ alpha và các PNG cũ. Đây là mạ xanh vừa trồng, không phải lúa chín vàng. Asset candidate/placeholder, ID vegetation.seedling trong registry (52 record). Sprite plot 31×46, anchor (.5,0); vòng ô và hit region giữ nguyên. Năm ô được dời vào phần ruộng thoáng, tránh NPC và mái đình; ID/index và save/reward giữ nguyên. Hash nội dung bổ sung tọa độ ô để chống client/server lệch nhiệm vụ; phải build client, API và server cùng nhau. Counting dùng cùng sprite 42×62, một hình cho một cây, không bị nút Gợi ý che gốc. Texture/frame do VillageArt sở hữu và dispose; dùng lại giữa plot và bài đếm. Nếu tải asset thất bại vẫn có fallback mảnh, game tiếp tục hoạt động.

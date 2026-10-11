@@ -38,12 +38,15 @@ const saveKey='lang-tri-thuc.chapter-one.v2',legacyKey='lang-tri-thuc.learning.v
         assert.deepEqual(await page.evaluate(()=>({
             elder:!!village.chapter.elder.getChildByName('ElderSprite')?.getComponent(ccQA.Sprite)?.spriteFrame,
             lotus:village.actors.children.filter(n=>n.name.startsWith('PondLotus-')&&n.getComponent(ccQA.Sprite)?.spriteFrame).length,
-        })),{elder:true,lotus:3});
+        })),{elder:true,lotus:7});
+        assert.ok(await page.evaluate(()=>village.chapter.plots.every(n=>{const x=n.position.x/64-n.position.y/32,y=-n.position.x/64-n.position.y/32;return x>=25&&x<=34&&y>=12&&y<=20;})),'All planting targets must be inside the visible right field');
         await page.screenshot({path:path.join(output,'intro-desktop.png')});
         await tap(page,'button','Read');await tap(page,'button','StopRead');assert.equal(await page.evaluate(()=>village.chapterSave.progress.stage),'intro');
         assert.equal(await page.evaluate(()=>village.chapterSave.progress.stage),'intro');await tap(page,'button','Continue');
         await npc(page,'elder');await tap(page,'button','Continue');assert.equal(await page.evaluate(()=>village.chapterSave.progress.stage),'meet-farmer');
         await npc(page,'farmer');await tap(page,'button','Continue');assert.equal(await page.evaluate(()=>village.chapterSave.progress.stage),'plant');
+        assert.deepEqual(await page.evaluate(()=>village.chapter.plots.map(n=>n.getChildByName('PlotNumber').getComponent(ccQA.Label).string)),['1','2','3','4','5']);
+        await page.screenshot({path:path.join(output,'five-empty-plots.png')});
         for(let i=0;i<5;i++){
             await tap(page,'plot',i);await page.waitForFunction(i=>village.chapterSave.progress.data.planted.includes(i),i,{timeout:20000});
             if(i===0||i===3){await reload(page);assert.equal(await page.evaluate(()=>village.chapterSave.progress.data.planted.length),i+1);}await checkRice(page);if(i===1)await page.screenshot({path:path.join(output,'planted-rice-desktop.png')});

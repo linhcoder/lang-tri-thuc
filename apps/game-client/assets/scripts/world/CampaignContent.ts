@@ -5,7 +5,7 @@ export interface ChapterDefinition {id:string;title:string;npc:string;intro:stri
 const quest=(id:string,title:string,game?:string,lesson?:string):QuestDefinition=>({id,title,game,lesson,prerequisites:[]});
 export const chapters:ChapterDefinition[]=[
     {id:'ch01',title:'Ngày Về Làng',npc:'Ông Đồ',intro:'Cháu cùng dân làng học hỏi để thắp sáng cây đa trong câu chuyện nhé!',ending:'Ngôi sao đầu tiên sáng rồi!',review:'draft',quests:[quest('q.ch01.greet','Chào Ông Đồ'),quest('q.ch01.plant','Trồng năm cây lúa'),quest('q.ch01.count','Đếm cây lúa'),quest('q.ch01.return','Về nhận sao')]},
-    {id:'ch02',title:'Sân Đình Rộn Rã',npc:'Tí và Na',intro:'Mình cùng học cách chia lượt và chơi vui với bạn nhé!',ending:'Cảm ơn bạn đã chơi cùng mình. Một ngôi sao nữa đã sáng!',review:'draft',quests:[quest('q.ch02.learn-rules','Học cách chia lượt',undefined,'fair-play'),quest('q.ch02.play-o-an-quan','Chơi Ô ăn quan','mg.o-an-quan'),quest('q.ch02.pull-together','Kéo co cùng NPC','mg.tug-of-war'),quest('q.ch02.share','Cùng chơi nhảy sạp','mg.bamboo-dance')]},
+    {id:'ch02',title:'Sân Đình Rộn Rã',npc:'Tí và Na',intro:'Mình cùng học cách chia lượt và chơi vui với bạn nhé!',ending:'Cảm ơn bạn đã chơi cùng mình. Một ngôi sao nữa đã sáng!',review:'draft',quests:[quest('q.ch02.learn-rules','Học cách chia lượt',undefined,'fair-play'),quest('q.ch02.play-o-an-quan','Ghép đèn cùng Tí và Na','mg.star-lantern'),quest('q.ch02.pull-together','Kéo co cùng NPC','mg.tug-of-war'),quest('q.ch02.share','Cùng chơi nhảy sạp','mg.bamboo-dance')]},
     {id:'ch03',title:'Phiên Chợ Quê',npc:'Bà Bán Hàng',intro:'Cháu giúp bà xếp giỏ rồi tính xu của trò chơi nhé. Xu này không phải tiền thật.',ending:'Cháu đã chọn đủ đồ và nói lời cảm ơn!',review:'draft',quests:[quest('q.ch03.sort','Phân loại rau củ',undefined,'sorting'),quest('q.ch03.basket','Đi chợ theo danh sách','mg.market'),quest('q.ch03.polite','Chào hỏi và cảm ơn',undefined,'polite')]},
     {id:'ch04',title:'Trường Học Dưới Tán Đa',npc:'Cô Giáo Lan',intro:'Cháu có thể chọn gợi ý, đọc lại và nghỉ khi muốn. Mình bắt đầu với chữ nhé!',ending:'Cháu đã thử chữ, số và từ mới. Cây sáng hơn rồi!',review:'draft',quests:[quest('q.ch04.letters','Tìm chữ bí mật','mg.secret-letters'),quest('q.ch04.numbers','Bài Toán theo mức học',undefined,'math'),quest('q.ch04.words','Từ tiếng Anh qua hình',undefined,'english'),quest('q.ch04.share','Chia sẻ điều đã học',undefined,'fair-play')]},
     {id:'ch05',title:'Những Bàn Tay Khéo Léo',npc:'Nghệ Nhân Gốm',intro:'Cháu thử sắp các bước làm đồ gốm và ghép hình minh họa làng nghề trên màn hình nhé.',ending:'Tác phẩm của cháu được trưng bày trong sổ làng!',review:'draft',quests:[quest('q.ch05.clay','Thứ tự tạo hình',undefined,'clay'),quest('q.ch05.picture','Ghép tranh làng nghề','mg.dong-ho'),quest('q.ch05.tools','Quan sát vật dụng',undefined,'shapes'),quest('q.ch05.show','Chọn cách chia sẻ lịch sự',undefined,'polite')]},
@@ -16,6 +16,17 @@ export const chapters:ChapterDefinition[]=[
 for(const chapter of chapters)chapter.quests.forEach((q,i)=>{q.prerequisites=i?[chapter.quests[i-1].id]:[];});
 export const miniGameIds=['mg.rice-count','mg.o-an-quan','mg.tug-of-war','mg.bamboo-dance','mg.market','mg.star-lantern','mg.banh-chung','mg.dong-ho','mg.fishing','mg.secret-letters','mg.animal-care','mg.village-maze'] as const;
 export type MiniGameId=typeof miniGameIds[number];
+export const seasonalDefinitions={
+    spring:{title:'Ngày hội mùa xuân',games:['mg.banh-chung','mg.secret-letters']},
+    summer:{title:'Ngày hội mùa hè',games:['mg.fishing','mg.rice-count']},
+    autumn:{title:'Ngày hội mùa thu',games:['mg.star-lantern','mg.village-maze']},
+    winter:{title:'Ngày hội mùa đông',games:['mg.animal-care','mg.dong-ho']},
+} as const;
+export function seasonalActivities(date=new Date()):{key:string;title:string;games:MiniGameId[]}{
+    const parts=new Intl.DateTimeFormat('en-US',{timeZone:'Asia/Ho_Chi_Minh',year:'numeric',month:'numeric'}).formatToParts(date),month=Number(parts.find(p=>p.type==='month')!.value),year=Number(parts.find(p=>p.type==='year')!.value);
+    const season=month>=2&&month<=4?'spring':month>=5&&month<=7?'summer':month>=8&&month<=10?'autumn':'winter',definition=seasonalDefinitions[season],seasonYear=month===1?year-1:year;
+    return {key:seasonYear+'-'+season,title:definition.title+' · '+seasonYear,games:[...definition.games]};
+}
 export function validateContent(requireApproved=false):string[]{
     const errors:string[]=[],ids=new Set<string>();
     for(const c of chapters){if(ids.has(c.id))errors.push('Duplicate '+c.id);ids.add(c.id);if(requireApproved&&c.review!=='approved')errors.push('Unapproved '+c.id);

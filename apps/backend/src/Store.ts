@@ -8,7 +8,7 @@ export interface ProfileRecord {id:string;parentId:string;label:string;age:'3-5'
 export interface BackendData {
     parents:Record<string,ParentRecord>;profiles:Record<string,ProfileRecord>;
     sessions:Record<string,{parentId:string;expires:number}>;
-    progress:Record<string,{revision:number;data:unknown;receipts:string[];trusted?:{chapterOne:unknown;campaign:unknown}}>;
+    progress:Record<string,{revision:number;data:unknown;receipts:string[];activities?:unknown;trusted?:{chapterOne:unknown;campaign:unknown}}>;
     rooms:Record<string,{ownerId:string;allowedParents:string[];expires:number;locked:boolean}>;
     invitations:Record<string,{roomCode:string;expires:number;remaining:number}>;
     reports:Array<{id:string;reporter:string;target:string;reason:string;created:number;status:'open'|'resolved'}>;

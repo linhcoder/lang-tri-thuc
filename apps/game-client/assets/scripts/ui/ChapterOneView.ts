@@ -34,7 +34,7 @@ export class ChapterOneView {
         g.fillColor=new Color(240,238,220);g.moveTo(-14,81);g.lineTo(0,63);g.lineTo(14,81);g.close();g.fill();
         g.fillColor=new Color(50,48,45);g.roundRect(-20,100,40,12,5);g.fill();g.circle(-6,88,2);g.circle(6,88,2);g.fill();
         this.text(this.elder,'Ông Đồ',0,139,150,35,22);
-        for(let i=0;i<plantingPlots.length;i++){const n=this.make(actors,`PlantPlot-${i}`,64,70),p=toWorld(plantingPlots[i]);n.setPosition(p.x,p.y);n.addComponent(Graphics);this.plots.push(n);}
+        for(let i=0;i<plantingPlots.length;i++){const n=this.make(actors,`PlantPlot-${i}`,64,70),p=toWorld(plantingPlots[i]);n.setPosition(p.x,p.y);n.addComponent(Graphics);const number=this.text(n,String(i+1),0,0,40,25,18);number.name='PlotNumber';this.plots.push(n);}
         const starNode=this.make(actors.parent??actors,'KnowledgeStar',70,70),tree=toWorld(villageObjects.find(o=>o.id==='banyan')!);starNode.setPosition(tree.x,tree.y+395);this.star=starNode.addComponent(Graphics);
         this.refreshWorld();if(progress.stage==='intro')this.open('elder');
     }
@@ -53,9 +53,10 @@ export class ChapterOneView {
             const n=this.plots[i],g=n.getComponent(Graphics)!;g.clear();const planted=this.progress.data.planted.indexOf(i)>=0;n.active=planted||this.progress.stage==='plant';
             g.strokeColor=new Color(255,239,145);g.lineWidth=3;g.ellipse(0,0,26,13);g.stroke();
             const existing=n.getChildByName('RiceSeedling');if(existing){existing.active=planted&&!!this.riceFrame;existing.getComponent(Sprite)!.spriteFrame=this.riceFrame??null;}
-            if(planted&&this.riceFrame){if(!existing)this.riceSprite(n,'RiceSeedling',0,-2,31,46);}
+            if(planted&&this.riceFrame){if(!existing)this.riceSprite(n,'RiceSeedling',0,-2,40,56);}
             else if(planted){g.strokeColor=new Color(58,139,56);g.lineWidth=2;for(const x of [-6,0,6]){g.moveTo(x,0);g.quadraticCurveTo(x-7,13,x-4,25);g.moveTo(x,0);g.quadraticCurveTo(x+9,12,x+7,21);}g.stroke();}
             else{g.fillColor=new Color(115,84,51);g.ellipse(0,0,19,8);g.fill();}
+            const number=n.getChildByName('PlotNumber')!;number.active=this.progress.stage==='plant';number.setPosition(0,planted?-19:0);const caption=number.getComponent(Label)!;caption.string=planted?'✓':String(i+1);caption.color=new Color(255,250,211);
         }
         const g=this.star;g.clear();this.star.node.active=this.progress.stars>0;g.fillColor=new Color(255,219,78);
         for(let i=0;i<10;i++){const angle=Math.PI/2+i*Math.PI/5,r=i%2?12:28,x=Math.cos(angle)*r,y=Math.sin(angle)*r;if(i===0)g.moveTo(x,y);else g.lineTo(x,y);}g.close();g.fill();

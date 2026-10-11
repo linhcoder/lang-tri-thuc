@@ -1,5 +1,5 @@
-import { Point } from './VillageModel';
-export const plantingPlots:ReadonlyArray<Point>=[{x:6,y:13},{x:8,y:11},{x:7,y:12},{x:6,y:11},{x:8,y:9}];
+import { Point,ricePlantingPlots } from './VillageModel';
+export const plantingPlots:ReadonlyArray<Point>=ricePlantingPlots;
 export const FIRST_STAR='reward.star.ch01';
 export type ChapterStage='intro'|'greet'|'meet-farmer'|'plant'|'count'|'return'|'complete';
 export interface ChapterOneData {

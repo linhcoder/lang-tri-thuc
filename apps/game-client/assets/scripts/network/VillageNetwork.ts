@@ -4,12 +4,15 @@ import {avatarGestures} from '../world/AvatarGestures';
 import { Point } from '../world/VillageModel';
 import { MiniGameRules } from '../world/MiniGameRules';
 import {contentVersion} from '../world/ContentVersion';
+import {PatrolPose} from '../world/NpcPatrol';
 export interface NetworkPlayer extends Point {direction:number;moving:boolean;name:string;avatar?:number;accessory?:number;hair?:number}
 export class VillageNetwork {
     room:Room<any>|null=null;status='Chơi một mình';players=new Map<string,NetworkPlayer>();
+    npcs=new Map<string,PatrolPose>();
     private disposed=false;private elapsed=0;private seq=0;private retry=0;private endpoint='';private paused=false;private contentReady=false;
     correction:Point|null=null;
     onProgress?:(value:any)=>void;onGame?:(game:MiniGameRules)=>void;
+    onActivities?:(value:any)=>void;
     onEmote?:(sessionId:string,id:string)=>void;
     onOffline?:()=>void;
     private joinOptions?:{roomCode:string;ticket:string;miniGame?:boolean};private pending:Array<{type:string;data:unknown}>=[];
@@ -31,6 +34,7 @@ export class VillageNetwork {
             const snapshot=()=>{
                 if(this.room!==room)return;
                 this.players.clear();room.state.players?.forEach((p:NetworkPlayer,id:string)=>{if(id!==room.sessionId&&!this.blocked.has(id))this.players.set(id,{x:p.x,y:p.y,direction:p.direction,moving:p.moving,name:p.name,avatar:p.avatar??0,accessory:p.accessory??0,hair:p.hair??0});});
+                this.npcs.clear();room.state.npcs?.forEach((p:PatrolPose,id:string)=>{if([p.x,p.y,p.direction].every(Number.isFinite))this.npcs.set(id,{id,x:p.x,y:p.y,direction:p.direction,moving:p.moving});});
                 if(this.privateMode&&room.state.gameJson&&this.gameSnapshot!==room.state.gameJson){this.gameSnapshot=room.state.gameJson;try{const raw=JSON.parse(this.gameSnapshot),game=MiniGameRules.restore(raw);if(raw.paused)game.pause();this.onGame?.(game);}catch{this.status='Chưa đọc được trạng thái trò chơi online';}}
             };
             room.onStateChange(snapshot);snapshot();
@@ -38,10 +42,11 @@ export class VillageNetwork {
             if(this.privateMode){
                 room.onMessage('content-version',version=>{if(this.room!==room)return;if(version===contentVersion())this.contentReady=true;else{this.offline();this.lastMessage='Nội dung khác phiên bản. Mời người lớn tải lại game trước khi vào phòng.';this.status='Cần cập nhật game';}});
                 room.onMessage('progress-state',v=>{if(this.room===room)this.onProgress?.(v);});room.onMessage('storage-warning',v=>{this.lastMessage=String(v).slice(0,150);});
+                room.onMessage('activities-state',v=>{if(this.room===room)this.onActivities?.(v);});
                 room.onMessage('emote',v=>{const labels:Record<string,string>={...Object.fromEntries(avatarGestures.map(g=>[g.id,g.message])),happy:'M\u00ecnh vui qu\u00e1!',hello:'Chào bạn!',thanks:'Cảm ơn!', 'your-turn':'Đến lượt bạn!', 'need-help':'Mình cần giúp',bye:'Tạm biệt!'};if(this.room===room&&v&&typeof v.sessionId==='string'&&labels[v.id]&&!this.blocked.has(v.sessionId)){this.onEmote?.(v.sessionId,v.id);this.lastMessage=(this.players.get(v.sessionId)?.name??'Bạn')+': '+labels[v.id];}});
                 room.onMessage('blocked',v=>{if(typeof v.sessionId==='string'){this.blocked.add(v.sessionId);this.players.delete(v.sessionId);}});room.onMessage('report-sent',()=>{this.lastMessage='Đã gửi báo cáo tới người lớn phụ trách.';});room.send('ready');
             }
-            room.onLeave(()=>{if(this.room===room){this.room=null;this.players.clear();this.status=this.wantOnline?'Mất kết nối • đang thử lại':'Chơi một mình';this.retry=this.wantOnline?3:0;}});
+            room.onLeave(()=>{if(this.room===room){this.room=null;this.players.clear();this.npcs.clear();this.status=this.wantOnline?'Mất kết nối • đang thử lại':'Chơi một mình';this.retry=this.wantOnline?3:0;}});
             room.onError((code,message)=>{this.status=`Kết nối đang gián đoạn (${code})`;console.warn('Colyseus room:',code,message);});
             room.onDrop(()=>{this.paused=true;this.status='Mất kết nối • đang thử lại';});
             room.onReconnect(()=>{this.paused=false;this.status='Đã vào làng online';});
@@ -64,6 +69,6 @@ export class VillageNetwork {
     emote(id:string):boolean{return this.intent('emote',{id});}
     block(sessionId:string):void{this.blocked.add(sessionId);this.players.delete(sessionId);this.intent('block',{sessionId});}
     report(sessionId:string,reason:string):void{this.intent('report',{sessionId,reason});}
-    offline():void{this.wantOnline=false;this.retry=0;this.pending=[];this.correction=null;void this.room?.leave();this.room=null;this.players.clear();this.status='Chơi một mình';this.onOffline?.();}
-    dispose():void{this.disposed=true;void this.room?.leave();this.room=null;this.players.clear();}
+    offline():void{this.wantOnline=false;this.retry=0;this.pending=[];this.correction=null;void this.room?.leave();this.room=null;this.players.clear();this.npcs.clear();this.status='Chơi một mình';this.onOffline?.();}
+    dispose():void{this.disposed=true;void this.room?.leave();this.room=null;this.players.clear();this.npcs.clear();}
 }

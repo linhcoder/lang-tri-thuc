@@ -24,3 +24,20 @@ export function animationFrames(texture:Texture2D,id:string):SpriteFrame[]{
     const rows=visualAssets.find(a=>a.id===id)?.animationRows??[[0,1/3],[1/3,1/3],[2/3,1/3]],frames:SpriteFrame[]=[];
     for(const [top,height] of rows)for(let col=0;col<8;col++){const frame=new SpriteFrame();frame.texture=texture;frame.rect=new Rect(col*texture.width/8,top*texture.height,texture.width/8,height*texture.height);frames.push(frame);}return frames;
 }
+
+/** One shared crop per actor keeps its three poses aligned at the same floor line. */
+export function npcPoseFrames(texture:Texture2D):SpriteFrame[][]{
+    const canvas=document.createElement('canvas');canvas.width=texture.width;canvas.height=texture.height;
+    const ctx=canvas.getContext('2d',{willReadFrequently:true});if(!ctx)return [];
+    ctx.drawImage(texture.image!.data as CanvasImageSource,0,0);const data=ctx.getImageData(0,0,canvas.width,canvas.height).data;
+    const width=Math.floor(texture.width/3),cuts=[0,256,512,768,1040,1280,1536,1792,2048].map(y=>Math.round(y/2048*texture.height)),rows:SpriteFrame[][]=[];
+    for(let row=0;row<8;row++){
+        const top=cuts[row],height=cuts[row+1]-top;
+        let minX=width,minY=height,maxX=-1,maxY=-1;
+        for(let col=0;col<3;col++)for(let y=0;y<height;y++)for(let x=0;x<width;x++)if(data[((top+y)*texture.width+col*width+x)*4+3]>24){minX=Math.min(minX,x);maxX=Math.max(maxX,x);minY=Math.min(minY,y);maxY=Math.max(maxY,y);}
+        if(maxX<minX)return [];
+        minX=Math.max(0,minX-2);minY=Math.max(0,minY-2);maxX=Math.min(width-1,maxX+2);maxY=Math.min(height-1,maxY+2);
+        const frames:SpriteFrame[]=[];for(let col=0;col<3;col++){const frame=new SpriteFrame();frame.texture=texture;frame.rect=new Rect(col*width+minX,top+minY,maxX-minX+1,maxY-minY+1);frames.push(frame);}rows.push(frames);
+    }
+    return rows;
+}

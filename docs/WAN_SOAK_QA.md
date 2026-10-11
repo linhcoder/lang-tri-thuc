@@ -22,4 +22,8 @@ RTT là vòng request/response probe SDK qua HTTPS/WebSocket, chưa đo độ tr
 
 ## Kết quả live
 
-Chưa ghi nhận kết quả cho tới khi bộ kiểm tra hoàn tất. Report có requested/actual duration, số probe, p95/max, từng lần reconnect, trạng thái save và cleanup.
+Ngày 12/10/2026, lúc 00:27–00:32 UTC+7, chạy từ máy phát triển tới VPS staging, contentVersion `e48dccf3`: 300 giây, bốn client, 1.144/1.144 probe. P95 228 ms, max 532 ms; bốn lần reconnect 2.683/2.617/2.568/2.579 ms, gồm một giây chờ ngắt có chủ đích. Không correction, storage-warning hay room error. Intro/hoạt động luyện lúa giữ nguyên sau reconnect và được đọc lại từ MySQL; tài khoản QA đã xóa. Hai services active, NRestarts=0 trong phiên đo.
+
+Các lần chạy thử harness trước đó phát hiện mã close 4000 là rời tự nguyện, probe đang bay bị mất khi cố ý đóng socket, và snapshot null là hợp lệ cho hồ sơ chưa có hoạt động. Harness dùng close 4001, đợi probe trả về trước ngắt và phân biệt nhận snapshot với giá trị snapshot. Tài khoản lần thử đầu đã được dọn riêng; các lần sau cleanup qua API thành công.
+
+Đợt này cũng phát hiện UI phụ huynh gửi JSON header cho DELETE không có body. Bản sửa nằm trong commit `f5b6721`, cùng công cụ soak. Phiên năm phút chạy trước activation để restart triển khai không ảnh hưởng phép đo. Soak nhiều giờ/thiết bị thật vẫn còn; backup offsite và kênh báo lỗi được để sau theo lựa chọn người dùng ngày 12/10.

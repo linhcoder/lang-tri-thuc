@@ -136,9 +136,10 @@ export class VillageBootstrap extends Component {
             state.near=near;state.time+=Math.min(dt,.1);state.greeting=Math.max(0,state.greeting-Math.min(dt,.1));
             const greeting=state.greeting>0?Math.sin((1.4-state.greeting)*Math.PI/1.4):0;
             const walk=this.npcWalking.get(node),moving=walk?.moving===true,facing=walk&&[3,4,5].includes(walk.direction)?-1:1;
-            const sprite=state.body.getComponent(Sprite),poses=this.art.npcPoses[state.row],directions=this.art.npcDirections[state.row];
+            const sprite=state.body.getComponent(Sprite),poses=this.art.npcPoses[state.row],directions=this.art.npcDirections[state.row],steps=this.art.npcWalkSteps[state.row];
             const directional=!!directions&&(moving||greeting===0);
-            if(sprite)sprite.spriteFrame=directional?directions[walk?.direction??6]:poses&&(moving||greeting>0)?poses[moving?Math.floor(state.time*6)%2:2]:state.idle;
+            const walkingFrames=moving&&steps&&Math.floor(state.time*4)%2===1?steps:directions;
+            if(sprite)sprite.spriteFrame=directional?walkingFrames[walk?.direction??6]:poses&&(moving||greeting>0)?poses[moving?Math.floor(state.time*6)%2:2]:state.idle;
             state.body.getComponent(UITransform)!.setContentSize(directional?state.height*directions[0].rect.width/directions[0].rect.height:state.width,state.height);
             state.body.setPosition(0,state.baseY+(moving?Math.abs(Math.sin(state.time*9))*2:Math.sin(state.time*1.8)*.65)+greeting*3);
             state.body.setScale(state.scale*(directional?1:facing),state.scale*(1+Math.sin(state.time*1.8)*.006),1);

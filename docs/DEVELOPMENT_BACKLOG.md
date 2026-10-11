@@ -30,7 +30,7 @@ Preview offline giữ tại `http://127.0.0.1:8085/`; bản cuối dùng build `
 
 | Mức ưu tiên | Phần còn lại | Hiện có / giới hạn |
 | --- | --- | --- |
-| Nâng cấp hình ảnh | Nâng animation NPC | Sáu NPC đã đi tuần với vị trí/collision client-server; tám NPC có nghỉ/chào bằng code, sáu cảnh vật có khám phá và năm hoạt động chăm. Đã có 24 khung đi/chào và atlas 64 khung tám góc nhìn độc lập; còn chu kỳ đi nhiều khung mỗi hướng và duyệt art bởi người làm hình ảnh |
+| Nâng cấp hình ảnh | Nâng animation NPC | Sáu NPC đã đi tuần với vị trí/collision client-server; tám NPC có nghỉ/chào, sáu cảnh vật có khám phá và năm hoạt động chăm. Đã có 24 khung đi/chào, atlas 64 góc nhìn và 64 khung bước chân bổ sung: hai khung mỗi hướng. Còn gait bốn/tám khung tinh chỉnh, duyệt art và QA RAM thiết bị thật |
 | Tiếp theo | Art/animation và thao tác trực quan sâu hơn cho mini game | 12 bộ luật solo, minh họa Graphics và nút; kéo thả đèn và góc vẽ tự do đã có. Ghép tranh là ô trượt có tranh gà–hoa tự vẽ, cá/ao có mắt/vây/sóng/hoa sen; mô phỏng sâu và art riêng cho toàn bộ trò vẫn là nâng cấp tiếp |
 | Trước beta online | Multiplayer trên mạng/thiết bị thật | Bốn client × 11 trò chính × ba nhóm tuổi, reconnect giữa lượt và thưởng authoritative đạt local. Soak WAN năm phút/bốn client/bốn reconnect đạt ngày 12/10, p95 228 ms, MySQL/save giữ nguyên. Chưa nghiệm thu thiết bị thật hoặc soak nhiều giờ |
 | Mở rộng nội dung | Nhiệm vụ mùa và ngày lễ truyền thống | Đã có lịch bốn mùa, hai hoạt động/mùa, huy hiệu theo năm và sáu góc khám phá. Đã có hai chuỗi Tết/Trung thu quanh năm với câu hỏi có gợi ý, trò chơi và tiến độ local. Module âm/dương 1900–2199 đã tích hợp runtime, kiểm chứng 30 fixtures độc lập và 109.573 ngày đổi hai chiều. Còn mở rộng các ngày lễ khác |

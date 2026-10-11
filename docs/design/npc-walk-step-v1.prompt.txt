@@ -1,0 +1,10 @@
+﻿Tool: OpenAI built-in imagegen, 12/10/2026.
+Reference/edit target: apps/game-client/assets/resources/village/npc-directions-v1.png
+Generated source retained: exec-3cc08def-302d-4d16-bc61-b676c57e3c46.png in Codex generated_images.
+Output: npc-walk-step-v1.png, RGBA 2048x2048; 8 rows x 8 directions.
+Normalization: tools/normalize-npc-atlas.py, with prior user authorization for alpha cleanup/grid normalization.
+
+Prompt:
+Edit this exact transparent NPC atlas to create the second walking animation phase. Preserve EXACTLY the 8 by 8 grid, the 64 subjects/groups, all eight viewpoints in each row, every face, hair, clothes, props, colors, body size and location. ONLY change lower legs/feet to a visibly alternating walking step: one foot forward and the opposite foot back, with the opposite stride from the source. Do not wave or change hands or props. Both people in paired rows walk in place. Keep the torso/head invariant for smooth frame switching. Preserve original 2048x2048 size and fixed 256x256 cells, floor baseline at y240 in each cell. Every sprite completely contained in its cell, true transparent alpha background, no lines/text/shadows. This is a game animation asset, not a redesign. Side views must show an obvious stride; back/front views alternate knees and feet without turning the character. Keep north/back views as real back views.
+
+Actual generation was 1254x1254 with near-transparent/pure-red fringe. Normalizer removed 148316 fringe pixels, grouped alpha into 64 cells, applied a shared scale per actor row and aligned feet at y240. Original atlas was retained. Two-frame candidate, not a hand-animated four/eight-frame gait; clothing/face details can still vary slightly and need artist review.

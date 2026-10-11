@@ -14,4 +14,12 @@ Creator giữ atlas nguyên; `npcPoseFrames` tính chung một vùng crop alpha 
 
 Nguồn: built-in imagegen, tham chiếu atlas cũ; prompt đầy đủ tại [npc-directions-v1.prompt.txt](npc-directions-v1.prompt.txt). Ảnh sinh có nhiễu alpha và nhóm nhân vật vượt cột. Người dùng cho phép làm sạch bằng script ngày 11/10/2026: `tools/normalize-npc-atlas.py` bỏ nhiễu gần trong suốt/chroma đỏ, gom hình theo thành phần alpha, giữ một tỷ lệ chung mỗi hàng rồi căn giữa/chân. File sinh gốc giữ riêng; không ghi đè atlas cũ. Runtime dùng SpriteFrame cố định, không đọc pixel mỗi frame; dispose giải phóng cả hai bộ khung. Nếu atlas tám hướng không tải được, giữ fallback cũ.
 
-Tám góc nhìn đã có; chuyển động bước chân/nhún vẫn bằng code, chưa có chu kỳ đi nhiều khung cho mỗi hướng. Asset là candidate cần người làm art duyệt độ nhất quán, đạo cụ và hai nhóm nhân vật trước beta.
+Đợt tám hướng đầu chỉ có một khung mỗi hướng và chuyển động nhún bằng code. Asset là candidate cần người làm art duyệt độ nhất quán, đạo cụ và hai nhóm nhân vật trước beta.
+
+## Hai khung bước đi mỗi hướng — 12/10/2026
+
+`npc-walk-step-v1.png` thêm 64 khung bước chân, cùng RGBA 2048 × 2048/ô 256 × 256/thứ tự tám hàng và tám hướng. Built-in imagegen chỉnh atlas tám hướng làm tham chiếu; [prompt và provenance](npc-walk-step-v1.prompt.txt). Script normalize đã được người dùng cho phép làm sạch alpha/viền đỏ và căn chân y=240; atlas cũ không ghi đè.
+
+Runtime luân phiên khung gốc và bước chân mới ở bốn khung/giây khi moving, không mirror. Đứng nghỉ trả về atlas gốc đúng hướng; chào dùng atlas cũ. Nếu atlas mới thiếu hoặc chưa tải, vẫn dùng tám hướng gốc. Các SpriteFrame được cache và giải phóng cùng VillageArt. Không đổi vị trí/collision/patrol/save hoặc contentVersion.
+
+Đây là chu kỳ hai khung cơ bản, chưa phải gait bốn/tám khung do animator làm. Một số chi tiết mặt/vải có thể dao động nhẹ giữa ảnh sinh; chuyển động dưới áo dài/váy dài ít rõ hơn nhân vật mặc quần. Texture bổ sung 16 MiB RGBA trước overhead GPU; PNG khoảng 3,95 MB. Cần duyệt art và đo RAM/tải lạnh trên điện thoại thật trước beta.

@@ -8,6 +8,7 @@ export class VillageArt {
     child:SpriteFrame[]=[];environment:SpriteFrame[]=[];
     npcPoses:SpriteFrame[][]=[];
     npcDirections:SpriteFrame[][]=[];
+    npcWalkSteps:SpriteFrame[][]=[];
     avatarVariants:Partial<Record<number,SpriteFrame[]>>={};
     details:SpriteFrame[]=[];
     hairVariants:Partial<Record<number,SpriteFrame[]>>={};private decorationLoads=new Map<string,Promise<void>>();private avatarLoads=new Map<number,Promise<void>>();private hairLoads=new Map<number,Promise<void>>();private disposed=false;
@@ -58,6 +59,7 @@ export class VillageArt {
         await Promise.all([
             new Promise<void>(resolve=>resources.load('village/npc-poses-v1/texture',Texture2D,(error,texture)=>{if(!error&&!this.disposed){try{this.npcPoses=npcPoseFrames(texture);}catch{this.npcPoses=[];}}resolve();})),
             new Promise<void>(resolve=>resources.load('village/npc-directions-v1/texture',Texture2D,(error,texture)=>{if(!error&&!this.disposed)this.npcDirections=npcDirectionFrames(texture);resolve();})),
+            new Promise<void>(resolve=>resources.load('village/npc-walk-step-v1/texture',Texture2D,(error,texture)=>{if(!error&&!this.disposed)this.npcWalkSteps=npcDirectionFrames(texture);resolve();})),
         ]);
     }
     detailFrame(id:string,index:number):SpriteFrame|undefined{return this.objectFrames.get(id)??this.details[index];}
@@ -130,5 +132,5 @@ export class VillageArt {
         const image=new ImageAsset(canvas),texture=new Texture2D();texture.image=image;this.generatedTextures.push(texture);const frame=new SpriteFrame();frame.texture=texture;frame.rect=new Rect(0,0,canvas.width,canvas.height);this.environment.push(frame);
         const node=this.sprite(parent,'MeadowOutskirts',frame,6144,2880);node.getComponent(UITransform)!.setAnchorPoint(.5,.5);node.setPosition(0,-720);node.setSiblingIndex(0);return node;
     }
-    dispose():void{this.disposed=true;for(const frame of [...Array.from(this.objectFrames.values()),...this.npcPoses.flat(),...this.npcDirections.flat(),...this.scenery,...this.child,...this.details,...this.environment,...Object.values(this.decorations),...Object.values(this.avatarVariants).flat(),...Object.values(this.hairVariants).flat()])frame?.destroy();for(const texture of this.generatedTextures){const image=texture.image;texture.destroy();image?.destroy();}this.objectFrames.clear();this.objectLoads.clear();this.environmentLoads.clear();this.environmentLoaded.clear();this.sceneryLoad=undefined;this.terrainFrames.clear();this.scenery=[];this.npcPoses=[];this.npcDirections=[];this.child=[];this.details=[];this.environment=[];this.decorations={};this.avatarVariants={};this.hairVariants={};this.hairLoads.clear();this.avatarLoads.clear();this.decorationLoads.clear();this.generatedTextures=[];}
+    dispose():void{this.disposed=true;for(const frame of [...Array.from(this.objectFrames.values()),...this.npcPoses.flat(),...this.npcDirections.flat(),...this.npcWalkSteps.flat(),...this.scenery,...this.child,...this.details,...this.environment,...Object.values(this.decorations),...Object.values(this.avatarVariants).flat(),...Object.values(this.hairVariants).flat()])frame?.destroy();for(const texture of this.generatedTextures){const image=texture.image;texture.destroy();image?.destroy();}this.objectFrames.clear();this.objectLoads.clear();this.environmentLoads.clear();this.environmentLoaded.clear();this.sceneryLoad=undefined;this.terrainFrames.clear();this.scenery=[];this.npcPoses=[];this.npcDirections=[];this.npcWalkSteps=[];this.child=[];this.details=[];this.environment=[];this.decorations={};this.avatarVariants={};this.hairVariants={};this.hairLoads.clear();this.avatarLoads.clear();this.decorationLoads.clear();this.generatedTextures=[];}
 }

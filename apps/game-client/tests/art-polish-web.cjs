@@ -16,15 +16,25 @@ const credentials=access?{httpCredentials:{username:'staging',password:/^Preview
     const directions=await page.evaluate(()=>{
      const original=b.player.position;b.player.position={x:9000,y:9000};b.enabled=false;
      try{return [...b.npcMotion].map(([node,state])=>{
-      const frames=b.art.npcDirections[state.row];if(!frames||frames.length!==8)return false;
+      const frames=b.art.npcDirections[state.row],steps=b.art.npcWalkSteps[state.row];if(!frames||frames.length!==8||!steps||steps.length!==8)return false;
       state.greeting=0;state.near=false;
       for(let direction=0;direction<8;direction++){
        b.npcWalking.set(node,{id:node.name,x:node.position.x,y:node.position.y,moving:true,direction});
+       state.time=0;
        b.animateNpcs(.016,{x:-node.position.x,y:-node.position.y},1280,720);
        if(state.body.getComponent(cc.Sprite).spriteFrame!==frames[direction]||state.body.scale.x<0)return false;
+       state.time=.3;b.animateNpcs(0,{x:-node.position.x,y:-node.position.y},1280,720);
+       if(state.body.getComponent(cc.Sprite).spriteFrame!==steps[direction]||state.body.scale.x<0)return false;
+       b.npcWalking.set(node,{id:node.name,x:node.position.x,y:node.position.y,moving:false,direction});
+       b.animateNpcs(0,{x:-node.position.x,y:-node.position.y},1280,720);
+       if(state.body.getComponent(cc.Sprite).spriteFrame!==frames[direction])return false;
+       b.npcWalking.set(node,{id:node.name,x:node.position.x,y:node.position.y,moving:true,direction});
+       b.art.npcWalkSteps[state.row]=undefined;
+       try{b.animateNpcs(0,{x:-node.position.x,y:-node.position.y},1280,720);if(state.body.getComponent(cc.Sprite).spriteFrame!==frames[direction])return false;}
+       finally{b.art.npcWalkSteps[state.row]=steps;}
       }return true;
      });}finally{b.player.position=original;b.enabled=true;}
-    });assert.equal(directions.length,8);assert.ok(directions.every(Boolean),'All eight NPCs must render eight actual viewpoints without mirroring');
+    });assert.equal(directions.length,8);assert.ok(directions.every(Boolean),'Eight NPCs must alternate two walking frames in eight viewpoints, stop on idle and retain fallback without mirroring');
    }
    await page.evaluate(()=>{b.hub.campaign.data.receipts=Array.from({length:8},(_,i)=>'reward.star.ch0'+(i+1));});
    const storyBefore=await page.evaluate(()=>JSON.stringify(b.hub.campaign.data.receipts));
@@ -63,8 +73,10 @@ const credentials=access?{httpCredentials:{username:'staging',password:/^Preview
     }
    }
    assert.equal(await page.evaluate(()=>JSON.stringify(b.hub.campaign.data.receipts)),storyBefore);
-   await page.evaluate(()=>{b.hub.close();b.freeCameraOffset=null;});await page.screenshot({path:path.join(output,(mobile?'mobile':'desktop')+'-village.png')});await context.close();
+   await page.evaluate(()=>{b.hub.close();b.freeCameraOffset=null;});await page.screenshot({path:path.join(output,(mobile?'mobile':'desktop')+'-village.png')});
+   assert.equal(await page.evaluate(()=>{window.walkFrames=b.art.npcWalkSteps.flat();b.enabled=false;b.root.active=false;b.art.dispose();b.art.dispose();return b.art.npcWalkSteps.length===0&&b.art.npcDirections.length===0&&walkFrames.length===64;}),true);
+   await page.waitForTimeout(100);assert.equal(await page.evaluate(()=>walkFrames.every(f=>!f.isValid)),true,'Walking SpriteFrames are released on dispose');await context.close();
   }
-  assert.deepEqual(errors,[]);console.log('PASS art polish: 8 NPC viewpoints, 12 boards desktop/mobile, direct mouse/touch controls, server forwarding, pooled labels, no story rewards, viewport bounds and no browser errors');
+  assert.deepEqual(errors,[]);console.log('PASS art polish: 8 NPCs x 8 directions x 2 walk frames, idle/fallback/dispose, 12 boards desktop/mobile, direct mouse/touch controls, server forwarding, pooled labels, no story rewards, viewport bounds and no browser errors');
  }finally{await browser.close();}
 })().catch(error=>{console.error(error);process.exitCode=1;});

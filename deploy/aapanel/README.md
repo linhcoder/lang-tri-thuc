@@ -4,7 +4,7 @@ Triển khai riêng dưới `/opt/lang-tri-thuc`, dùng Nginx/Node 24/MariaDB hi
 
 ## Bố trí
 
-- Release đang chạy: `/opt/lang-tri-thuc/releases/9b48e24-art-e48dccf3-20261011`, source commit `9b48e248272ad07dbcd0f30184d25c74895494a4`, contentVersion `e48dccf3`. Bản trước `/opt/lang-tri-thuc/releases/0b4a42e-completion-e48dccf3-20261011` giữ để rollback. Symlink `/opt/lang-tri-thuc/current`; RELEASE.txt ghi nguồn bản phát hành.
+- Release đang chạy: `/opt/lang-tri-thuc/releases/72a3a50-no-logo-e48dccf3-20261011`, source commit `72a3a50`, contentVersion `e48dccf3`. Bản trước `/opt/lang-tri-thuc/releases/9b48e24-art-e48dccf3-20261011` giữ để rollback. Symlink `/opt/lang-tri-thuc/current`; RELEASE.txt ghi nguồn bản phát hành.
 - Admin: `https://ltt.vui-hoc.xyz/`; game: `/game/`; API: `/api/`; Colyseus: `/colyseus/`.
 - Hai systemd service `lang-tri-thuc-api`, `lang-tri-thuc-rooms`, user `langtri`.
 - Cổng chỉ bind `127.0.0.1:33080` và `127.0.0.1:32580`; `ALLOW_DEV_ROOMS=0` tắt room development kể cả loopback. `/api/internal/` bị chặn từ Nginx.
@@ -57,3 +57,7 @@ QA live ngày 11/10/2026 đạt HTTPS/admin/catalog, chặn UI anonymous/interna
 Đã activate release art sau khi kiểm tra SHA-256 delta, backup/restore drill khớp state, build backend/rooms trên Linux và nginx -t đạt. Delta được áp dụng vào bản sao release completion; không sửa thư mục đang phục vụ trong lúc chuẩn bị. Hai services active, health MySQL cùng contentVersion e48dccf3. Các file static cũ giữ trong bản sao release nhưng index/manifest dùng bundle art mới.
 
 QA live đạt API/admin/quyền truy cập, parent UI, signed WebSocket hai client, avatar/hair/emote, save/reload online/offline và errors rỗng. Test art trên HTTPS đạt tám NPC × tám hướng không mirror và đủ 12 bảng desktop/Android giả lập; ảnh ở apps/game-client/temp/art-polish-qa. Các gate biên tập, người làm art, trẻ và thiết bị thật vẫn còn.
+
+## Bỏ splash Cocos — 11/10/2026
+
+Commit `72a3a50` tắt splash trong tools/build-web.cjs: totalTime=0, logo.type=none và bỏ base64 logo. Mỗi lần build Web đều áp dụng cấu hình này. So sánh build cho thấy chỉ public/game/src/settings.json thay đổi. Đã deploy vào release riêng, SHA-256 khớp, giữ release art để rollback; API/rooms dùng runtime cũ cùng contentVersion, không thay DB/secret. Browser local/live xác nhận settings không có logo, splash thời lượng 0, game tải được và errors rỗng.

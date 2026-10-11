@@ -4,7 +4,7 @@ Triển khai riêng dưới `/opt/lang-tri-thuc`, dùng Nginx/Node 24/MariaDB hi
 
 ## Bố trí
 
-- Release đang chạy: `/opt/lang-tri-thuc/releases/0b4a42e-completion-e48dccf3-20261011`, source commit `0b4a42ea3510696e208d03b91ca342d410e09ac2`, contentVersion `e48dccf3`. Bản trước `/opt/lang-tri-thuc/releases/9ff50a2-working-visual-d129e24c-20261010` giữ để rollback. Symlink `/opt/lang-tri-thuc/current`; RELEASE.txt ghi nguồn bản phát hành.
+- Release đang chạy: `/opt/lang-tri-thuc/releases/9b48e24-art-e48dccf3-20261011`, source commit `9b48e248272ad07dbcd0f30184d25c74895494a4`, contentVersion `e48dccf3`. Bản trước `/opt/lang-tri-thuc/releases/0b4a42e-completion-e48dccf3-20261011` giữ để rollback. Symlink `/opt/lang-tri-thuc/current`; RELEASE.txt ghi nguồn bản phát hành.
 - Admin: `https://ltt.vui-hoc.xyz/`; game: `/game/`; API: `/api/`; Colyseus: `/colyseus/`.
 - Hai systemd service `lang-tri-thuc-api`, `lang-tri-thuc-rooms`, user `langtri`.
 - Cổng chỉ bind `127.0.0.1:33080` và `127.0.0.1:32580`; `ALLOW_DEV_ROOMS=0` tắt room development kể cả loopback. `/api/internal/` bị chặn từ Nginx.
@@ -51,3 +51,9 @@ python3 /opt/lang-tri-thuc/releases/0b4a42e-completion-e48dccf3-20261011/deploy/
 Script update chỉ chuẩn bị release mới. Script activate kiểm tra health MySQL/contentVersion và hai services, tự rollback app khi sai; giữ DB/secret. Sau activate chạy verify-api.cjs, verify-web.cjs và test đồng bộ trên hai browser. Chưa thay thế nghiệm thu trẻ/thiết bị thật hoặc soak WAN.
 
 QA live ngày 11/10/2026 đạt HTTPS/admin/catalog, chặn UI anonymous/internal API/room không có vé, parent UI, signed WebSocket hai client, ngoại hình/cử chỉ, lưu tiến trình và reload online/offline. Tranh vẽ desktop được lưu trên MySQL và khôi phục ở browser mobile cùng hồ sơ trong phòng riêng khác; không mở trùng một hồ sơ trong cùng phòng. Browser errors rỗng. Báo cáo local ignored tại `temp/deploy/qa/api-report.json` và `report.json`.
+
+## Deploy art — 11/10/2026
+
+Đã activate release art sau khi kiểm tra SHA-256 delta, backup/restore drill khớp state, build backend/rooms trên Linux và nginx -t đạt. Delta được áp dụng vào bản sao release completion; không sửa thư mục đang phục vụ trong lúc chuẩn bị. Hai services active, health MySQL cùng contentVersion e48dccf3. Các file static cũ giữ trong bản sao release nhưng index/manifest dùng bundle art mới.
+
+QA live đạt API/admin/quyền truy cập, parent UI, signed WebSocket hai client, avatar/hair/emote, save/reload online/offline và errors rỗng. Test art trên HTTPS đạt tám NPC × tám hướng không mirror và đủ 12 bảng desktop/Android giả lập; ảnh ở apps/game-client/temp/art-polish-qa. Các gate biên tập, người làm art, trẻ và thiết bị thật vẫn còn.

@@ -21,3 +21,5 @@ Nền ruộng dùng một contour liền thay các ô đất màu xen kẽ; rạ
 Strict client typecheck và 58 nhóm unit + 3 network tests đạt. Build Cocos thật đạt. Browser visual đạt năm viewport, HUD bounds/non-overlap, quality/reload, fade, interaction và dispose, errors rỗng. Mẫu local AMD/ANGLE khoảng 60 FPS, p95 16.8–17 ms; không thay nghiệm thu điện thoại/Intel thật.
 
 `test:art` kiểm tra cả tám NPC đổi đủ tám khung mà không mirror, 12 bảng desktop/mobile, không tăng label node khi animation, không đổi receipts truyện và bảng nằm trong viewport. Screenshot ở `apps/game-client/temp/art-polish-qa/`, không đưa vào Git. Kết quả NPC/campaign và deploy được ghi trong QA-REPORT sau khi hoàn tất.
+
+Deploy live đợt art ngày 11/10/2026: commit `9b48e24`, release `9b48e24-art-e48dccf3-20261011`. SHA-256 delta khớp, build Linux/Nginx/backup-restore đạt. API/admin/quyền truy cập, phòng riêng hai client, save/reload online/offline và bộ art tám hướng/12 bảng desktop-mobile qua HTTPS đạt; errors rỗng. Giữ bản completion để rollback, không thay DB/secret.

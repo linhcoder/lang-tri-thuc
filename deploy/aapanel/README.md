@@ -4,7 +4,7 @@ Triển khai riêng dưới `/opt/lang-tri-thuc`, dùng Nginx/Node 24/MariaDB hi
 
 ## Bố trí
 
-- Release đang chạy: `/opt/lang-tri-thuc/releases/9ff50a2-working-visual-d129e24c-20261010`, contentVersion `d129e24c`, gồm HEAD và thay đổi visual/modal/rice chưa commit. Bản trước `/opt/lang-tri-thuc/releases/8940ae6-zoom-20261010` giữ để rollback. Symlink `/opt/lang-tri-thuc/current`; file RELEASE.txt ghi nguồn bản phát hành.
+- Release đang chạy: `/opt/lang-tri-thuc/releases/0b4a42e-completion-e48dccf3-20261011`, source commit `0b4a42ea3510696e208d03b91ca342d410e09ac2`, contentVersion `e48dccf3`. Bản trước `/opt/lang-tri-thuc/releases/9ff50a2-working-visual-d129e24c-20261010` giữ để rollback. Symlink `/opt/lang-tri-thuc/current`; RELEASE.txt ghi nguồn bản phát hành.
 - Admin: `https://ltt.vui-hoc.xyz/`; game: `/game/`; API: `/api/`; Colyseus: `/colyseus/`.
 - Hai systemd service `lang-tri-thuc-api`, `lang-tri-thuc-rooms`, user `langtri`.
 - Cổng chỉ bind `127.0.0.1:33080` và `127.0.0.1:32580`; `ALLOW_DEV_ROOMS=0` tắt room development kể cả loopback. `/api/internal/` bị chặn từ Nginx.
@@ -37,15 +37,17 @@ Chạy `node deploy/aapanel/verify-web.cjs` trên máy QA có file local ignored
 
 `node deploy/aapanel/verify-api.cjs` kiểm tra admin/catalog, chặn UI anonymous/internal API, từ chối room development và phòng riêng thiếu vé; logout phiên admin thử ở finally.
 
-## Cập nhật completion (đã đóng gói local)
+## Cập nhật completion — đã triển khai 11/10/2026
 
-Gói `temp/deploy/completion-release.tar.gz` chứa source working tree, public/admin dùng URL staging, public/game build completion-v1. Metadata/SHA-256 ở completion-release.json; contentVersion e48dccf3. Chưa activate: xác thực SSH bằng khóa hiện có bị từ chối ngày 11/10/2026.
+Gói `temp/deploy/completion-release.tar.gz` chứa source working tree, public/admin dùng URL staging, public/game build completion-v1. Metadata/SHA-256 ở completion-release.json; contentVersion e48dccf3. Đã upload và activate qua SSH ngày 11/10/2026; SHA-256 archive khớp local, backend/rooms build trên Linux đạt, hai services active và HTTPS health MySQL trả contentVersion e48dccf3. Backup SQL và restore drill khớp state trước khi chuyển release.
 
-Khi có phiên SSH xác thực, upload archive vào `/opt/lang-tri-thuc/completion-release.tar.gz` và script local `deploy/aapanel/update-release.sh` vào `/opt/lang-tri-thuc/update-release.sh`, rồi chạy:
+Để triển khai một bản cập nhật tương tự, upload archive vào `/opt/lang-tri-thuc/completion-release.tar.gz` và script local `deploy/aapanel/update-release.sh` vào `/opt/lang-tri-thuc/update-release.sh`, rồi chạy:
 
 ```sh
-sh /opt/lang-tri-thuc/update-release.sh working-completion-e48dccf3-20261011 completion-release.tar.gz
-python3 /opt/lang-tri-thuc/releases/working-completion-e48dccf3-20261011/deploy/aapanel/activate-release.py working-completion-e48dccf3-20261011 e48dccf3
+sh /opt/lang-tri-thuc/update-release.sh 0b4a42e-completion-e48dccf3-20261011 completion-release.tar.gz
+python3 /opt/lang-tri-thuc/releases/0b4a42e-completion-e48dccf3-20261011/deploy/aapanel/activate-release.py 0b4a42e-completion-e48dccf3-20261011 e48dccf3
 ```
 
 Script update chỉ chuẩn bị release mới. Script activate kiểm tra health MySQL/contentVersion và hai services, tự rollback app khi sai; giữ DB/secret. Sau activate chạy verify-api.cjs, verify-web.cjs và test đồng bộ trên hai browser. Chưa thay thế nghiệm thu trẻ/thiết bị thật hoặc soak WAN.
+
+QA live ngày 11/10/2026 đạt HTTPS/admin/catalog, chặn UI anonymous/internal API/room không có vé, parent UI, signed WebSocket hai client, ngoại hình/cử chỉ, lưu tiến trình và reload online/offline. Tranh vẽ desktop được lưu trên MySQL và khôi phục ở browser mobile cùng hồ sơ trong phòng riêng khác; không mở trùng một hồ sơ trong cùng phòng. Browser errors rỗng. Báo cáo local ignored tại `temp/deploy/qa/api-report.json` và `report.json`.

@@ -334,3 +334,9 @@ Campaign đạt tám chương/11 board, luyện không đổi truyện, reset th
 
 Preview 8085 cập nhật; stack local đã restart với Web/API/game server cùng e48dccf3, health MySQL và HTTP 200 tại 8085/38080. Gói staging chuẩn bị bằng tools/prepare-release.py, không kèm secret/cache; scripts update/activate giữ DB/secret và có rollback app khi health sai. Các gate biên tập văn hóa/art, thử trẻ, Android/iOS/Intel thật và soak WAN vẫn chưa được nghiệm thu.
 Gói completion đã sẵn sàng nhưng SSH tới staging trả về `Permission denied (publickey,password)` khi kiểm tra xác thực bằng khóa hiện có. Chưa upload/activate bản mới. Cần phiên SSH đã xác thực; không cần xin lại quyền triển khai. Stack MySQL cuối `test:stack` đạt parentFlow/signedRoom/serverProgress, portal/home/offline và ba mức quality, errors rỗng; p95 frame local khoảng 16.8–17.0 ms.
+
+### Deploy completion lên VPS — 11/10/2026
+
+Đã triển khai commit `0b4a42e`, contentVersion `e48dccf3` lên `https://ltt.vui-hoc.xyz`. Archive SHA-256 khớp, build backend/rooms trên Linux đạt; backup/restore drill MySQL khớp state. Hai services active, giữ release trước để rollback và không thay DB/secret.
+
+Kiểm tra lại local: strict client, client unit/network, 7 server tests và 4 API tests đạt; MySQL unit có điều kiện skip. Build API/server/admin đạt. Live API/admin/catalog và kiểm soát truy cập đạt. Browser parent UI, signed WebSocket hai client, avatar/hair/emote, lưu tiến trình/reload và offline fallback đạt. Tranh vẽ desktop lưu trên server và tải lại ở browser mobile cùng hồ sơ trong phòng riêng khác; errors rỗng. Harness staging được cập nhật sang HUD settings/parent và actor scale 0.78 theo giao diện hiện tại. Các gate trẻ/thiết bị thật/soak WAN vẫn còn.

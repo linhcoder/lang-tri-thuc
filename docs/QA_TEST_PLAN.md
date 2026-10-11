@@ -1,5 +1,7 @@
 # QA Test Plan
 
+Gói rà soát trước beta từ source đang ship: chạy `node tools/export-beta-review.cjs`, mở `temp/beta-review/index.html`; dữ liệu đi kèm `review.json`. Có 90 câu hỏi/đáp án/gợi ý/nguồn, tám chương, sáu NPC truyện, 58 asset và chín ca thiết bị thật. Script kiểm cấu trúc/ID/file asset và tính lại chín đáp án toán; không tự xác nhận sư phạm, văn hóa, license hoặc thiết bị. Bản nháp/review trên database cần xuất riêng bằng admin; gói này chỉ đọc repository. Artifact ở temp, có thể tạo lại và không đưa quyết định review vào runtime.
+
 Kết quả kiểm tra mới nhất ở [QA-REPORT.md](../apps/game-client/QA-REPORT.md); [AUDIT_M0.md](AUDIT_M0.md) ghi baseline lịch sử. Checklist bên dưới là kế hoạch, không phải lời khẳng định đã pass toàn bộ.
 
 Chương 1 mới có checklist/save migration ở [MILESTONE_M2.md](MILESTONE_M2.md); chạy `npm run test:m2` trên web server để kiểm trồng năm cây, học đếm và sao duy nhất. `test:web` tiếp tục nghiệm thu demo cũ bằng `?demo=1` cùng multiplayer.

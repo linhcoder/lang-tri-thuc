@@ -1,10 +1,22 @@
 import {Color,Graphics,Label,Node,UITransform} from 'cc';
 import {MiniGameRules} from '../world/MiniGameRules';
-/** Read-only illustration of authoritative rules. Actions remain in the large buttons. */
+/** Illustrated controls; the hub routes both board taps and buttons through the same rules. */
 export class MiniGameView {
     readonly node:Node;private graphics:Graphics;private signature='';private labels:Node[]=[];
     private lastState='';private feedback=0;private lastClock=0;
     constructor(parent:Node,feedback=false){this.feedback=feedback?1:0;this.node=new Node('MiniGameBoard');this.node.layer=parent.layer;parent.addChild(this.node);this.node.addComponent(UITransform).setContentSize(550,70);this.node.setPosition(0,99);this.graphics=this.node.addComponent(Graphics);}
+    actionAt(game:MiniGameRules,x:number,y:number):{type:string;index:number}|undefined{
+        if(game.status!=='running'||Math.abs(y)>33)return;
+        if(game.id==='mg.rice-count'){
+            const index=Math.round(x/86)+2;
+            if(index<0||index>4||Math.abs(x-(index-2)*86)>40)return;
+            if(game.data.planted.length<5&&!game.data.planted.includes(index))return {type:'plant',index};
+            if(game.data.planted.length===5&&game.data.watered.length<5&&!game.data.watered.includes(index))return {type:'water',index};
+        }else if(game.id==='mg.market'){
+            const index=Math.round(x/170)+1;
+            if(index>=0&&index<3&&Math.abs(x-(index-1)*170)<=65&&game.data.cart[index]<game.data.wants[index])return {type:'add',index};
+        }else if((game.id==='mg.tug-of-war'||game.id==='mg.bamboo-dance')&&Math.abs(x)<=240)return {type:'beat',index:0};
+    }
     update(game:MiniGameRules):void{
         const state=game.id+JSON.stringify(game.data),elapsed=Math.max(0,Math.min(.1,game.clock-this.lastClock));this.lastClock=game.clock;
         if(state!==this.lastState){if(this.lastState)this.feedback=this.lastState.startsWith(game.id)?1:0;this.lastState=state;}else this.feedback=Math.max(0,this.feedback-elapsed*3);

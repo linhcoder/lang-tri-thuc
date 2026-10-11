@@ -42,10 +42,29 @@ const credentials=access?{httpCredentials:{username:'staging',password:/^Preview
     assert.equal(result.after,result.before,'Animated boards must reuse label nodes');assert.equal(result.stars,8,'Practice illustration must not award story stars');
     const viewport=page.viewportSize();assert.ok(result.rect.x>=-1&&result.rect.y>=-1&&result.rect.x+result.rect.w<=viewport.width+1&&result.rect.y+result.rect.h<=viewport.height+1,id+' board stays inside viewport');
     await page.screenshot({path:path.join(output,(mobile?'mobile-':'desktop-')+id.slice(3)+'.png')});
+    if(['mg.rice-count','mg.market','mg.tug-of-war','mg.bamboo-dance'].includes(id)){
+     const tap=async(x)=>{
+      const point=await page.evaluate(x=>{const node=b.hub.gameBoard.node,c=cc.game.canvas,r=c.getBoundingClientRect(),camera=b.node.getComponent(cc.Canvas).cameraComponent;const s=camera.worldToScreen(node.getComponent(cc.UITransform).convertToWorldSpaceAR(new cc.Vec3(x,0)));return {x:r.left+s.x/c.width*r.width,y:r.top+(c.height-s.y)/c.height*r.height};},x);
+      if(mobile)await page.touchscreen.tap(point.x,point.y);else await page.mouse.click(point.x,point.y);
+     };
+     if(id==='mg.rice-count'){
+      for(let i=0;i<5;i++)await tap((i-2)*86);
+      assert.equal(await page.evaluate(()=>b.hub.game.data.planted.length),5);
+      await tap(-172);await tap(-172);
+      assert.deepEqual(await page.evaluate(()=>b.hub.game.data.watered),[0],'Repeated tap must not water another plot');
+     }else if(id==='mg.market'){
+      await tap(-170);assert.equal(await page.evaluate(()=>b.hub.game.data.cart[0]),1);
+     }else{
+      // Server games must forward the board action without optimistic rule mutation.
+      await page.evaluate(()=>{window.forwarded=[];window.oldAction=b.hub.onGameAction;b.hub.practice=false;b.hub.onGameAction=(type,index)=>forwarded.push({type,index});});
+      try{await tap(0);assert.deepEqual(await page.evaluate(()=>forwarded),[{type:'beat',index:0}]);assert.equal(await page.evaluate(()=>b.hub.game.data.hits),0);}
+      finally{await page.evaluate(()=>{b.hub.practice=true;b.hub.onGameAction=oldAction;});}
+     }
+    }
    }
    assert.equal(await page.evaluate(()=>JSON.stringify(b.hub.campaign.data.receipts)),storyBefore);
    await page.evaluate(()=>{b.hub.close();b.freeCameraOffset=null;});await page.screenshot({path:path.join(output,(mobile?'mobile':'desktop')+'-village.png')});await context.close();
   }
-  assert.deepEqual(errors,[]);console.log('PASS art polish: 8 NPC viewpoints, 12 boards desktop/mobile, pooled labels, no story rewards, viewport bounds and no browser errors');
+  assert.deepEqual(errors,[]);console.log('PASS art polish: 8 NPC viewpoints, 12 boards desktop/mobile, direct mouse/touch controls, server forwarding, pooled labels, no story rewards, viewport bounds and no browser errors');
  }finally{await browser.close();}
 })().catch(error=>{console.error(error);process.exitCode=1;});

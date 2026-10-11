@@ -1,4 +1,4 @@
-# Phần còn phát triển — 11/10/2026
+# Phần còn phát triển — 12/10/2026
 
 Bản hiện tại là prototype tám chương đã có staging. Tỷ lệ người/cảnh đã sửa; cảnh làng có zoom 60–180% bằng nút, wheel và pinch. Các mục sau chưa có đầy đủ, không tính là đã hoàn thành chỉ vì có tên trong menu hoặc registry.
 
@@ -55,3 +55,5 @@ Chi tiết yêu cầu gốc và giới hạn: [COMPLETION_CHECKLIST](COMPLETION_
 Bản art đã deploy trên staging ngày 11/10/2026, commit `9b48e24`; API/room và browser QA live đạt, giữ release completion để rollback.
 
 Lịch âm runtime và vận hành backup: [LUNAR_CALENDAR_QA](design/LUNAR_CALENDAR_QA.md), [BACKUP_OPERATIONS](BACKUP_OPERATIONS.md). Lịch UTC+7 tính ngày lễ sau 2028; backup tự động giữ 30 ngày, tối thiểu bảy bản và bản verify gần nhất. Backup thủ công cũ không bị dọn.
+
+Đợt 12/10 bổ sung chạm trực tiếp trên bảng cho trồng/tưới lúa, lấy rau ở chợ, kéo co và nhảy sạp. Chuột/touch dùng chung xử lý với nút; phòng online gửi thao tác về server, không tự cập nhật kết quả. Không đổi luật/save/contentVersion. Đã kiểm tra desktop/mobile giả lập, chạm lặp và giữ nguyên sao truyện. Chu kỳ đi NPC nhiều khung mỗi hướng vẫn còn; kiểm tra trên thiết bị thật chưa hoàn tất.

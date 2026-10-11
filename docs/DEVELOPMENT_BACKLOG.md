@@ -59,3 +59,5 @@ Lịch âm runtime và vận hành backup: [LUNAR_CALENDAR_QA](design/LUNAR_CALE
 Đợt 12/10 bổ sung chạm trực tiếp trên bảng cho trồng/tưới lúa, lấy rau ở chợ, kéo co và nhảy sạp. Chuột/touch dùng chung xử lý với nút; phòng online gửi thao tác về server, không tự cập nhật kết quả. Không đổi luật/save/contentVersion. Đã kiểm tra desktop/mobile giả lập, chạm lặp và giữ nguyên sao truyện. Chu kỳ đi NPC nhiều khung mỗi hướng vẫn còn; kiểm tra trên thiết bị thật chưa hoàn tất.
 
 QA vận hành tiếp theo: [WAN_SOAK_QA](WAN_SOAK_QA.md). Đã sửa JSON header dư ở request không có body trong góc phụ huynh, khôi phục xóa hồ sơ/tài khoản và đăng xuất. Backup ngoài VPS/kênh báo lỗi để sau theo lựa chọn người dùng ngày 12/10; ưu tiên QA và sửa lỗi trước.
+
+Animation đợt 12/10 tiếp theo: commit `4fe699c` bổ sung chu kỳ hai khung × tám hướng cho tám NPC, giữ chào/idle/fallback. Chi tiết [NPC_POSES](design/NPC_POSES.md). Test 128 lựa chọn khung, dừng/fallback/dispose và patrol online/offline đạt; art vẫn là candidate, cần duyệt thủ công và RAM thiết bị thật.

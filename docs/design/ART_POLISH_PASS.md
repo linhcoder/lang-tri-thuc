@@ -4,7 +4,7 @@
 
 ## NPC
 
-Atlas mới có 64 khung: tám góc nhìn cho tám NPC, có mặt sau/lưng thật. Nguồn built-in imagegen, prompt và bước làm sạch alpha theo cho phép của người dùng được ghi tại [NPC_POSES.md](NPC_POSES.md). Runtime lấy hướng từ patrol solo hoặc server, dùng khung chào cũ và giữ fallback khi asset không tải được. Chu kỳ chân/nhún vẫn bằng code; chưa phải tám hướng × nhiều khung bước đi.
+Đợt 11/10 có 64 khung: tám góc nhìn cho tám NPC, có mặt sau/lưng thật. Nguồn built-in imagegen, prompt và bước làm sạch alpha theo cho phép của người dùng được ghi tại [NPC_POSES.md](NPC_POSES.md). Runtime lấy hướng từ patrol solo hoặc server, dùng khung chào cũ và giữ fallback khi asset không tải được. Đợt 12/10 thêm 64 khung bước chân, tạo chu kỳ hai khung mỗi hướng khi đi; nghỉ giữ atlas gốc. Gait bốn/tám khung tinh chỉnh và duyệt art vẫn còn.
 
 ## Cảnh làng
 

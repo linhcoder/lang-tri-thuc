@@ -31,6 +31,14 @@ Bản build: `village-expansion-v4`. Ảnh và báo cáo kiểm thử local nằ
 
 ## Staging và localhost
 
+### Tiếp tục ván và chạm đếm cá — 13/10/2026
+
+Build local `expansion-interactive-v5` giữ các cải thiện hình ảnh/điều hướng của `expansion-polish-v2`, thêm checkpoint cho cả bảy hoạt động. Đóng bảng hoặc tải lại trên cùng thiết bị mở lại bước 1/2 còn dở; nút hoạt động ghi Tiếp tục. Checkpoint lưu nhóm tuổi, chỉ tiếp tục khi nhóm tuổi khớp; dữ liệu sai/không rõ hoạt động/bước hoàn thành bị bỏ qua. Hoàn thành xóa checkpoint, giữ huy hiệu; replay không thêm sao truyện. Checkpoint là local theo hồ sơ, không đồng bộ giữa thiết bị như huy hiệu; callback tiến độ online giữ phần local này.
+
+Trong Đếm cá, chạm mỗi con để đánh số thứ tự đã đếm. Chạm lại một con không tăng số; vẫn chọn đáp án số để sang bước tiếp theo. Chọn sai giữ dấu đếm, chọn đúng xóa dấu để đếm nhóm cá mới. Trò không tự cấp huy hiệu chỉ vì đã chạm đủ cá.
+
+Không đổi luật câu hỏi/đáp án, rules 9/contentVersion `547e04f2`; chưa triển khai staging. Kiểm thử logic đạt checkpoint sau reload storage, dữ liệu giả mạo, không cấp huy hiệu/sao khi restore và đếm không trùng ở ba nhóm tuổi. Cocos QA bản v5 đạt reload ván Chăm hoa, đóng/mở bảy hoạt động, chạm cá hai lần không đếm trùng, nhãn số thứ tự là 1 và completion cleanup trên desktop/dọc/ngang; cuối phiên giữ bảy huy hiệu, sao truyện bằng 0, page errors rỗng. Đã xem ảnh số thứ tự cá desktop. Typecheck, 63 nhóm client/4 test vòng đời mạng, build API/rooms đạt. Preview `http://127.0.0.1:8116/`; report/ảnh trong thư mục ignored `apps/game-client/temp/expansion-qa`. Chưa kiểm tra điện thoại thật hoặc đồng bộ checkpoint giữa thiết bị.
+
 ### Tối ưu ba khu — bản local tiếp theo
 
 Build `expansion-polish-v2` bổ sung luống cây và giỏ quả tại Vườn bốn mùa, lau sậy/phao tại Bến sông quê, ô nhảy lò cò/ghế sách tại Sân trường tuổi thơ. Chi tiết dùng Graphics tĩnh theo nhóm, không thêm vòng cập nhật animation hoặc collision. Bản đồ khám phá hiển thị huy hiệu đã hoàn thành/tổng hoạt động theo khu và nút Cùng chơi mở đúng người bạn của khu; từ hội thoại có thể quay lại Chọn khu.

@@ -9,6 +9,19 @@ export const expansionActivities=[
     {id:'school-find',zone:'playground',npc:'be-an',title:'Tìm đồ dùng đi học',intro:'Cùng An tìm sách, bút và cặp trong sân trường.',kind:'find'},
 ] as const;
 export type ExpansionId=typeof expansionActivities[number]['id'];
+export type ExpansionProgress=Partial<Record<ExpansionId,{step:number;age:AgeBand}>>;
+/** Only unfinished, bounded local checkpoints; never restores a completed badge. */
+export function restoreExpansionProgress(value:unknown):ExpansionProgress{
+    const result:ExpansionProgress={};
+    if(!value||typeof value!=='object'||Array.isArray(value))return result;
+    for(const {id} of expansionActivities){
+        const saved=(value as Record<string,unknown>)[id];
+        if(!saved||typeof saved!=='object')continue;
+        const {step,age}=saved as {step:unknown;age:unknown};
+        if((step===1||step===2)&&(age==='3-5'||age==='6-8'||age==='9-11'))result[id]={step,age};
+    }
+    return result;
+}
 export const expansionFriends=[
     {id:'anh-nam',hello:'Anh Nam chào bé! Vườn có hoa và cây đang chờ mình chăm sóc.',avatar:4},
     {id:'chi-mai',hello:'Chị Mai chào bé! Mình cùng khám phá những màu sắc trong vườn nhé.',avatar:5},
@@ -22,8 +35,13 @@ export interface ExpansionRound {prompt:string;choices:string[];answer:number;pi
 /** Untimed, retryable practice. Story stars are never awarded by this module. */
 export class ExpansionGame {
     step=0;feedback='';
+    readonly countedFish=new Set<number>();
     readonly activity:typeof expansionActivities[number];
-    constructor(readonly id:ExpansionId,readonly age:AgeBand){this.activity=expansionActivities.find(a=>a.id===id)!;if(!this.activity)throw Error('Unknown expansion activity');}
+    constructor(readonly id:ExpansionId,readonly age:AgeBand,step=0){this.activity=expansionActivities.find(a=>a.id===id)!;if(!this.activity)throw Error('Unknown expansion activity');if(step===1||step===2)this.step=step;}
+    countFish(index:number):boolean{
+        if(this.ended||this.activity.kind!=='count'||!Number.isInteger(index)||index<0||index>=this.round.count||this.countedFish.has(index))return false;
+        this.countedFish.add(index);return true;
+    }
     get ended():boolean{return this.step>=3;}
     get round():ExpansionRound{
         const i=Math.min(this.step,2),kind=this.activity.kind;
@@ -46,6 +64,6 @@ export class ExpansionGame {
         if(kind==='find')return ['book','pencil','bag'];
         return this.round.choices.map(()=> '');
     }
-    choose(index:number):boolean{if(this.ended||!Number.isInteger(index)||index<0||index>=this.round.choices.length)return false;if(index!==this.round.answer){this.feedback='Mình thử lại nhé! Chạm Gợi ý nếu cần.';return false;}this.step++;this.feedback=this.ended?'Hoàn thành! Cảm ơn bé đã cùng chơi.':'Đúng rồi! Cùng làm bước tiếp theo.';return true;}
+    choose(index:number):boolean{if(this.ended||!Number.isInteger(index)||index<0||index>=this.round.choices.length)return false;if(index!==this.round.answer){this.feedback='Mình thử lại nhé! Chạm Gợi ý nếu cần.';return false;}this.step++;this.countedFish.clear();this.feedback=this.ended?'Hoàn thành! Cảm ơn bé đã cùng chơi.':'Đúng rồi! Cùng làm bước tiếp theo.';return true;}
     hint():void{if(!this.ended)this.feedback='Gợi ý: '+this.round.choices[this.round.answer]+'. Không mất điểm khi dùng gợi ý.';}
 }

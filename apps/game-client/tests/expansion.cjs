@@ -10,3 +10,15 @@ const old=new CampaignEngine();const legacy={...old.data};delete legacy.skin;ass
 assert.equal(old.restore(JSON.stringify({...old.data,avatar:5,hair:2,skin:2,expansion:['school-find','fake']})),true);assert.equal(old.data.avatar,5);assert.equal(old.data.hair,2);assert.equal(old.data.skin,2);assert.deepEqual(old.data.expansion,['school-find']);assert.equal(old.stars,0);
 const merged=mergeActivities(restoreActivities({expansion:['flower-care']}),restoreActivities({expansion:['school-find'],receipts:['reward.star.ch08']}));assert.deepEqual(merged.expansion,['flower-care','school-find']);assert.equal(merged.receipts,undefined);
 console.log('Expansion: 13 reachable zones, river collision, 21 activity runs, safe migration, cosmetics and cumulative cloud badges passed');
+
+const {restoreExpansionProgress}=require(root+'ExpansionActivities.ts'),{CampaignSave}=require(root+'CampaignSave.ts');
+assert.deepEqual(restoreExpansionProgress({'flower-care':{step:1,age:'3-5'},'boat-build':{step:3,age:'6-8'},'fish-count':{step:2,age:'unknown'},fake:{step:1,age:'3-5'}}),{'flower-care':{step:1,age:'3-5'}});
+for(const age of ['3-5','6-8','9-11']){
+ const fish=new ExpansionGame('fish-count',age);assert.equal(fish.countFish(-1),false);assert.equal(fish.countFish(NaN),false);assert.equal(fish.countFish(fish.round.count),false);
+ for(let i=0;i<fish.round.count;i++){assert.equal(fish.countFish(i),true);assert.equal(fish.countFish(i),false);}
+ assert.equal(fish.countedFish.size,fish.round.count);assert.equal(fish.step,0);fish.choose((fish.round.answer+1)%3);assert.equal(fish.countedFish.size,fish.round.count);fish.choose(fish.round.answer);assert.equal(fish.countedFish.size,0);
+}
+const entries=new Map(),storage={getItem:key=>entries.get(key)??null,setItem:(key,value)=>entries.set(key,value)},saved=new CampaignSave(storage);
+saved.engine.data.expansionProgress={'flower-care':{step:2,age:'3-5'}};assert.equal(saved.save(),true);const loaded=new CampaignSave(storage);assert.deepEqual(loaded.engine.data.expansionProgress,saved.engine.data.expansionProgress);assert.equal(loaded.engine.stars,0);assert.deepEqual(loaded.engine.data.expansion,[]);
+assert.equal(new ExpansionGame('flower-care','3-5',99).step,0);assert.equal(new ExpansionGame('flower-care','3-5',2).ended,false);
+console.log('Expansion checkpoints survive storage reload without awarding badges; fish counting rejects duplicates and resets only after correct answers');

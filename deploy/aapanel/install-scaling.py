@@ -6,6 +6,7 @@ def write(path,text,mode=0o600):path.parent.mkdir(parents=True,exist_ok=True);pa
 def main():
  parser=argparse.ArgumentParser();parser.add_argument('stage',choices=['prepare','enable']);stage=parser.parse_args().stage
  if os.geteuid()!=0:raise SystemExit('Run application installer as root')
+ CONFIG.mkdir(exist_ok=True);shutil.chown(CONFIG,user='root',group='langtri');os.chmod(CONFIG,0o711)
  binary=ROOT/'runtime/redis/usr/bin/redis-server';assert binary.is_file()
  redisdir=ROOT/'redis';redisdir.mkdir(exist_ok=True);shutil.chown(redisdir,user='langtri',group='langtri');os.chmod(redisdir,0o700)
  scale=CONFIG/'scale.env'

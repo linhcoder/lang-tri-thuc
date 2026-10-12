@@ -7,6 +7,16 @@ ROOT=pathlib.Path(__file__).resolve().parents[1]
 DEST=ROOT/'temp/deploy/offsite'
 REMOTE='/opt/lang-tri-thuc/backups/automatic/'
 def main():
+    global DEST
+    configfile=ROOT/'temp/deploy/offsite-config.json'
+    if not configfile.is_file():
+        print(json.dumps({'ok':False,'pending':True,'reason':'Offsite configuration not connected'}));return
+    config=json.loads(configfile.read_text(encoding='utf-8'))
+    destination=config.get('destination',{})
+    if config.get('enabled') is not True or destination.get('kind')!='local-encrypted' or not destination.get('directory'):
+        print(json.dumps({'ok':False,'pending':True,'reason':'Offsite destination not connected'}));return
+    DEST=pathlib.Path(destination['directory'])
+    if not DEST.is_absolute():DEST=ROOT/DEST
     DEST.mkdir(parents=True,exist_ok=True)
     keyfile=ROOT/'.cache/offsite-backup.key'
     if not keyfile.exists():

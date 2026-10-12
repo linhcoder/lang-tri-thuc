@@ -1,0 +1,17 @@
+{
+  "enabled": false,
+  "destination": {
+    "kind": "pending",
+    "directory": null
+  },
+  "retentionDays": 30,
+  "minimumCopies": 7,
+  "encryptionKeyFile": ".cache/offsite-backup.key",
+  "sourceCredentialFile": "temp/deploy/ssh-password.txt",
+  "knownHostsFile": ".cache/deploy-known-hosts",
+  "schedule": {
+    "enabled": false,
+    "localTime": "02:15",
+    "timezone": "Asia/Bangkok"
+  }
+}

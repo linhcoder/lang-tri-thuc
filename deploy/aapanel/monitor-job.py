@@ -29,7 +29,10 @@ def main():
     add('restore',restore.get('ok') is True and time.time()-restored<8*86400 and active('lang-tri-thuc-restore-verify.timer') and succeeded('lang-tri-thuc-restore-verify.service'),'Phục hồi thử có checksum/snapshot khớp.' if restore.get('ok') else 'Chưa có phục hồi thử thành công.')
     offsite=read(ROOT/'operations/offsite.json');stamp=offsite.get('completedAt',0)
     ok=offsite.get('ok') is True and isinstance(stamp,(int,float)) and time.time()*1000-stamp<30*3600000
-    add('offsite',ok,'Bản sao mã hóa ngoài VPS đã kiểm tra.' if ok else 'Bản sao ngoài VPS chưa có, đã cũ hoặc job thất bại. Máy nhận cần bật để chạy lịch.')
+    if offsite.get('configured') is False:
+        checks.append({'id':'offsite','status':'unknown','detail':'Backup offsite: ch\u1edd k\u1ebft n\u1ed1i. Ch\u01b0a c\u00f3 \u0111\u00edch \u0111ang ho\u1ea1t \u0111\u1ed9ng.'})
+    else:
+        add('offsite',ok,'Bản sao mã hóa ngoài VPS đã kiểm tra.' if ok else 'Bản sao ngoài VPS chưa có, đã cũ hoặc job thất bại. Máy nhận cần bật để chạy lịch.')
     directory=ROOT/'monitor';directory.mkdir(exist_ok=True);os.chown(directory,0,grp.getgrnam('langtri').gr_gid);os.chmod(directory,0o750)
     output=directory/'status.json';temporary=directory/'status.json.partial'
     temporary.write_text(json.dumps({'checkedAt':round(time.time()*1000),'checks':checks},ensure_ascii=False)+'\n')

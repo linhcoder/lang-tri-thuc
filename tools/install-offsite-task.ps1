@@ -1,5 +1,11 @@
 $ErrorActionPreference = 'Stop'
 $taskWorkspace = Split-Path -Parent $PSScriptRoot
+$taskConfigPath = Join-Path $taskWorkspace 'temp/deploy/offsite-config.json'
+if (-not (Test-Path -LiteralPath $taskConfigPath)) { throw 'Offsite configuration is not connected.' }
+$taskConfig = Get-Content -LiteralPath $taskConfigPath -Raw | ConvertFrom-Json
+if ($taskConfig.enabled -ne $true -or $taskConfig.destination.kind -ne 'local-encrypted' -or -not $taskConfig.destination.directory) {
+    throw 'Connect an encrypted destination before installing the schedule.'
+}
 $taskPython = (Get-Command python).Source
 $taskScript = Join-Path $PSScriptRoot 'offsite-backup.py'
 $taskAction = New-ScheduledTaskAction -Execute $taskPython -Argument ('"' + $taskScript + '"') -WorkingDirectory $taskWorkspace

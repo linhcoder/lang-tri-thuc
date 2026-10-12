@@ -18,26 +18,27 @@ const credentials=access?{httpCredentials:{username:'staging',password:/^Preview
    if(!mobile){
     const directions=await page.evaluate(()=>{
      const original=b.player.position;b.player.position={x:9000,y:9000};b.enabled=false;
-     try{return [...b.npcMotion].map(([node,state])=>{
+     try{return Array.from(b.npcMotion).filter(([node,state])=>!state.body.name.startsWith('ExpansionSprite-')).map(([node,state])=>{
       const frames=b.art.npcDirections[state.row],steps=b.art.npcWalkSteps[state.row];if(!frames||frames.length!==8||!steps||steps.length!==8)return false;
       state.greeting=0;state.near=false;
       for(let direction=0;direction<8;direction++){
        b.npcWalking.set(node,{id:node.name,x:node.position.x,y:node.position.y,moving:true,direction});
        state.time=0;state.gait.phase=0;state.gait.visualPhase=0;
        b.animateNpcs(.016,{x:-node.position.x,y:-node.position.y},1280,720);
-       if(state.body.getComponent(cc.Sprite).spriteFrame!==frames[direction]||state.body.scale.x<0)return false;
+       if(state.body.getComponent(cc.Sprite).spriteFrame!==b.art.npcCycleFrame(state.row,direction,state.gait.cycleFrame)||state.body.scale.x<0)return false;
        state.gait.phase=.75;state.gait.visualPhase=.75;b.animateNpcs(0,{x:-node.position.x,y:-node.position.y},1280,720);
-       if(state.body.getComponent(cc.Sprite).spriteFrame!==steps[direction]||state.body.scale.x<0)return false;
+       if(state.body.getComponent(cc.Sprite).spriteFrame!==b.art.npcCycleFrame(state.row,direction,state.gait.cycleFrame)||state.body.scale.x<0)return false;
+       const cycleFrames=new Set();for(let phase=0;phase<8;phase++){state.gait.phase=state.gait.visualPhase=phase/8;b.animateNpcs(0,{x:-node.position.x,y:-node.position.y},1280,720);cycleFrames.add(state.body.getComponent(cc.Sprite).spriteFrame);}if(cycleFrames.size!==8)return false;
        b.npcWalking.set(node,{id:node.name,x:node.position.x,y:node.position.y,moving:false,direction});
        b.animateNpcs(0,{x:-node.position.x,y:-node.position.y},1280,720);
        if(state.body.getComponent(cc.Sprite).spriteFrame!==frames[direction])return false;
        b.npcWalking.set(node,{id:node.name,x:node.position.x,y:node.position.y,moving:true,direction});
        b.art.npcWalkSteps[state.row]=undefined;
-       try{b.animateNpcs(0,{x:-node.position.x,y:-node.position.y},1280,720);if(state.body.getComponent(cc.Sprite).spriteFrame!==frames[direction])return false;}
+       try{b.animateNpcs(0,{x:-node.position.x,y:-node.position.y},1280,720);if(!state.body.getComponent(cc.Sprite).spriteFrame)return false;}
        finally{b.art.npcWalkSteps[state.row]=steps;}
       }return true;
      });}finally{b.player.position=original;b.enabled=true;}
-    });assert.equal(directions.length,8);assert.ok(directions.every(Boolean),'Eight NPCs must alternate two walking frames in eight viewpoints, stop on idle and retain fallback without mirroring');
+    });assert.equal(directions.length,8);assert.ok(directions.every(Boolean),'Eight NPCs must use cached cycle phases in eight viewpoints, stop on idle and retain fallback without mirroring');
    }
    await page.evaluate(completed=>{b.hub.campaign.data.completed=completed;b.hub.campaign.data.introduced=Array.from({length:8},(_,i)=>'ch0'+(i+1));b.hub.campaign.data.receipts=Array.from({length:8},(_,i)=>'reward.star.ch0'+(i+1));},completedQuestIds);
    const storyBefore=await page.evaluate(()=>JSON.stringify(b.hub.campaign.data.receipts));
@@ -142,6 +143,6 @@ const credentials=access?{httpCredentials:{username:'staging',password:/^Preview
    assert.equal(await page.evaluate(()=>{window.walkFrames=b.art.npcWalkSteps.flat();b.enabled=false;b.root.active=false;b.art.dispose();b.art.dispose();return b.art.npcWalkSteps.length===0&&b.art.npcDirections.length===0&&walkFrames.length===64;}),true);
    await page.waitForTimeout(100);assert.equal(await page.evaluate(()=>walkFrames.every(f=>!f.isValid)),true,'Walking SpriteFrames are released on dispose');await context.close();
   }
-  assert.deepEqual(errors,[]);console.log('PASS art polish: 8 NPCs x 8 directions x 2 walk frames, idle/fallback/dispose, 12 boards desktop/mobile, direct mouse/touch controls, server forwarding, pooled labels, no story rewards, viewport bounds and no browser errors');
+  assert.deepEqual(errors,[]);console.log('PASS art polish: 8 NPCs x 8 directions x 8 cycle frames, idle/fallback/dispose, 12 boards desktop/mobile, direct mouse/touch controls, server forwarding, pooled labels, no story rewards, viewport bounds and no browser errors');
  }finally{await browser.close();}
 })().catch(error=>{console.error(error);process.exitCode=1;});

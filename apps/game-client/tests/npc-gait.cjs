@@ -24,3 +24,5 @@ assert.notEqual(sparse.bob,firstBob,'body animation continues between sparse sna
 for(let i=0;i<120;i++)sparse.update(1/60,1.8,0,false);
 assert.ok(Math.abs(sparse.visualPhase-snapshotPhase)<1e-12,'settling consumes exactly the recorded stride');
 console.log('NPC gait: distance cadence, stop settling, teleport reset, bounded network smoothing, sparse snapshot stride passed');
+
+const cycle=new NpcGait(),seen=new Set();cycle.update(0,0,0,false);for(let i=1;i<240;i++){cycle.update(1/60,i/5,0,true);seen.add(cycle.cycleFrame);}assert.equal(seen.size,8);console.log('Eight distance-driven cycle frames covered');

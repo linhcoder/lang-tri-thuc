@@ -1,6 +1,6 @@
 /** Distance driven visual gait. Never changes the authoritative actor position. */
 export class NpcGait {
-    phase=0;visualPhase=0;weight=0;offsetX=0;offsetY=0;bob=0;sway=0;stretch=1;angle=0;stepFrame=0;
+    phase=0;visualPhase=0;weight=0;offsetX=0;offsetY=0;bob=0;sway=0;stretch=1;angle=0;stepFrame=0;cycleFrame=0;
     private x=0;private y=0;private initialized=false;private pendingStride=0;
     constructor(seed=0){this.phase=this.visualPhase=seed%1;}
     update(dt:number,x:number,y:number,moving:boolean):void {
@@ -29,5 +29,6 @@ export class NpcGait {
         const turn=delta>0?Math.max(-1,Math.min(1,dx/(18*delta))):0;
         this.angle+=(wave*1.5*this.weight-turn*.7*this.weight-this.angle)*blend;
         this.stepFrame=this.visualPhase<.5?0:1;
+        this.cycleFrame=Math.min(7,Math.floor(this.visualPhase*8));
     }
 }

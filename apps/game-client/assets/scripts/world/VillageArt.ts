@@ -97,6 +97,29 @@ export class VillageArt {
         }));this.hairLoads.set(id,task);return task;
     }
     private drawnCharacters=new Map<string,SpriteFrame[]>();
+    /** Eight cached visual phases per authored viewpoint; actor roots stay authoritative. */
+    npcCycleFrame(row:number,direction:number,phaseFrame:number):SpriteFrame|null{
+        const key='npc-cycle:'+row;let frames=this.drawnCharacters.get(key);
+        const base=this.npcDirections[row],step=this.npcWalkSteps[row];
+        if(!frames&&base?.length===8&&typeof document!=='undefined'){
+            const canvas=document.createElement('canvas');canvas.width=384;canvas.height=512;const context=canvas.getContext('2d');
+            if(context){for(let phase=0;phase<8;phase++)for(let d=0;d<8;d++){
+                const wave=Math.sin(phase*Math.PI/4),source=(wave<0&&step?.[d]||base[d]),image=(source.texture as Texture2D)?.image?.data as CanvasImageSource|undefined;if(!image)continue;
+                const r=source.rect,x=d*48,y=phase*64,split=.72,bob=Math.abs(wave)*.7;
+                context.drawImage(image,r.x,r.y,r.width,r.height*split,x,y-bob,48,64*split);
+                for(let side=0;side<2;side++){const sign=side?1:-1;context.drawImage(image,r.x+side*r.width/2,r.y+r.height*split,r.width/2,r.height*(1-split),x+side*24+sign*wave*1.1,y+64*split-bob+sign*wave*.6,24,64*(1-split));}
+            }const texture=new Texture2D();texture.image=new ImageAsset(canvas);this.generatedTextures.push(texture);frames=this.slice(texture,8,8);this.drawnCharacters.set(key,frames);}
+        }
+        return frames?.[phaseFrame*8+direction]??base?.[direction]??null;
+    }
+    npcCharacterFrame(id:number,direction:number,phaseFrame:number,hair=1,skin=1):SpriteFrame{
+        const key=`npc:${id}:${hair}:${skin}`;let frames=this.drawnCharacters.get(key);
+        if(!frames&&typeof document!=='undefined'){
+            const canvas=document.createElement('canvas');canvas.width=384;canvas.height=576;const context=canvas.getContext('2d');
+            if(context){for(let row=0;row<9;row++)for(let d=0;d<8;d++){context.save();context.translate(d*48,row*64);context.scale(.5,.5);paintCharacter(context,id,row?1:0,d,hair,skin,row?(row-1)/8:undefined);context.restore();}const texture=new Texture2D();texture.image=new ImageAsset(canvas);this.generatedTextures.push(texture);frames=this.slice(texture,8,9);this.drawnCharacters.set(key,frames);}
+        }
+        return frames?.[Math.max(0,Math.min(8,phaseFrame))*8+direction]??this.avatarFrame(id,phaseFrame?1:0,direction,hair,skin);
+    }
     avatarFrame(id:number,row:number,direction:number,hair=0,skin=0):SpriteFrame{
         if((id>=4||skin>0||hair===2)&&typeof document!=='undefined'){
             const key=id+':'+hair+':'+skin;let frames=this.drawnCharacters.get(key);

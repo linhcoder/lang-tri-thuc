@@ -12,15 +12,17 @@ import {elderTile,farmerTile,toWorld} from '../../game-client/assets/scripts/wor
 import {portalDestination} from '../../game-client/assets/scripts/world/WorldZones';
 import {contentVersion} from '../../game-client/assets/scripts/world/ContentVersion';
 import {avatarGestures} from '../../game-client/assets/scripts/world/AvatarGestures';
+import {ExpansionGame,ExpansionId,expansionActivities} from '../../game-client/assets/scripts/world/ExpansionActivities';
 interface Member {profileId:string;parentId:string;age:AgeBand;blocked:string[];first:ChapterOneProgress;campaign:CampaignEngine;lastEmote:number;saveQueue:Promise<unknown>}
 export const approvedEmotes=[...avatarGestures.map(g=>g.id),'thanks','your-turn','need-help','bye'] as const;
 export class PrivateFriendRoom extends VillageRoom {
     private secret='';private api='';private code='';private members=new Map<string,Member>();
     private participants=new Set<string>();private game?:MiniGameRules;private gameOwner='';private attemptId='';private gameQuest='';
+    private expansionGroups=new Map<ExpansionId,{game:ExpansionGame;attempt:string;participants:Set<string>}>();
     onCreate(options:any={}):void{
         super.onCreate();this.maxClients=20;this.secret=options.secret;this.api=options.apiUrl;this.code=options.roomCode;
         if(typeof this.secret!=='string'||this.secret.length<32||!/^[A-Z0-9]{8}$/.test(this.code))throw Error('Private room configuration invalid');
-        this.onMessage('ready',client=>{client.send('content-version',contentVersion());this.sendProgress(client);client.send('activities-state',{snapshot:(client.auth as any)?.activities??null});});
+        this.onMessage('ready',client=>{client.send('content-version',contentVersion());this.sendProgress(client);for(const [id,group] of this.expansionGroups)if(group.participants.has(client.sessionId))this.publishExpansion(id);client.send('activities-state',{snapshot:(client.auth as any)?.activities??null});});
         this.onMessage('activities-save',(client,value:unknown)=>{
             const m=this.members.get(client.sessionId),v=value as {id?:unknown;snapshot?:unknown};
             if(!m||typeof v?.id!=='string'||v.id.length>80||!v.snapshot||typeof v.snapshot!=='object')return;
@@ -37,6 +39,28 @@ export class PrivateFriendRoom extends VillageRoom {
         this.onMessage('block',(client,value:unknown)=>{const m=this.members.get(client.sessionId),target=this.members.get((value as any)?.sessionId);if(!m||!target||m===target)return;if(!m.blocked.includes(target.profileId))m.blocked.push(target.profileId);void this.service('/internal/block',{profileId:m.profileId,target:target.profileId}).catch(()=>this.warn(client,'Chưa lưu được chặn. Phiên này vẫn ẩn bạn đã chọn.'));client.send('blocked',{sessionId:(value as any).sessionId});});
         this.onMessage('report',(client,value:unknown)=>{const m=this.members.get(client.sessionId),v=value as any,target=this.members.get(v?.sessionId);if(!m||!target||!['spam','uncomfortable','other'].includes(v?.reason))return;void this.service('/internal/report',{profileId:m.profileId,target:target.profileId,reason:v.reason}).then(()=>client.send('report-sent',{})).catch(()=>this.warn(client,'Chưa gửi được báo cáo. Mời người lớn giúp.'));});
         this.onMessage('story',(client,value:unknown)=>this.story(client,value));
+        this.onMessage('expansion-start',(client,value:unknown)=>{
+            const member=this.members.get(client.sessionId),id=(value as {id?:unknown})?.id;
+            if(!member||!expansionActivities.some(a=>a.id===id))return;
+            const key=id as ExpansionId;if(this.expansionGroups.get(key)?.participants.has(client.sessionId)){this.publishExpansion(key);return;}this.leaveExpansion(client.sessionId);
+            let group=this.expansionGroups.get(key);
+            if(!group||group.game.ended){const checkpoint=(client.auth as any).activities?.expansionProgress?.[key];group={game:new ExpansionGame(key,member.age,checkpoint?.age===member.age?checkpoint.step:0),attempt:randomUUID(),participants:new Set()};this.expansionGroups.set(key,group);}
+            if(group.participants.size>=4){client.send('expansion-feedback',{id:key,message:'Nhóm đã đủ bốn bạn. Bé có thể luyện một mình.'});return;}
+            if(Array.from(group.participants).some(session=>{const peer=this.members.get(session);return peer&&(peer.blocked.includes(member.profileId)||member.blocked.includes(peer.profileId));}))return;
+            group.participants.add(client.sessionId);this.publishExpansion(key);
+        });
+        this.onMessage('expansion-choice',(client,value:unknown)=>{
+            const v=value as {id?:unknown;attempt?:unknown;step?:unknown;index?:unknown},group=this.expansionGroups.get(v?.id as ExpansionId),member=this.members.get(client.sessionId);
+            if(!member||!group||!group.participants.has(client.sessionId)||group.game.ended||v.attempt!==group.attempt||v.step!==group.game.step||!Number.isInteger(v.index))return;
+            if(Array.from(group.participants).some(session=>{const peer=this.members.get(session);return peer&&(peer.blocked.includes(member.profileId)||member.blocked.includes(peer.profileId));})){this.leaveExpansion(client.sessionId);return;}
+            if(!group.game.choose(v.index as number)){client.send('expansion-feedback',{id:group.game.id,message:group.game.feedback});return;}
+            for(const session of group.participants){const peer=this.clients.find(c=>c.sessionId===session),m=this.members.get(session);if(!peer||!m)continue;
+                const patch={profileId:m.profileId,id:group.game.id,step:group.game.ended?0:group.game.step,age:group.game.age,completed:group.game.ended};
+                m.saveQueue=m.saveQueue.then(async()=>{const saved=await this.service('/internal/expansion-progress',patch);(peer.auth as any).activities=saved.snapshot;peer.send('activities-state',{snapshot:saved.snapshot});}).catch(()=>this.warn(peer,'Kết quả nhóm chưa lưu được. Hãy giữ trang mở và thử lại.'));
+            }
+            this.publishExpansion(group.game.id);
+        });
+        this.onMessage('expansion-leave',client=>this.leaveExpansion(client.sessionId));
         this.onMessage('chapter-intro',(client,value:unknown)=>{const m=this.members.get(client.sessionId),index=(value as any)?.index;if(m&&Number.isInteger(index)&&m.campaign.introduce(index))this.persist(client,m);});
         this.onMessage('claim-star',(client,value:unknown)=>{const m=this.members.get(client.sessionId),index=(value as any)?.index;if(m&&Number.isInteger(index)&&m.campaign.claim(index))this.persist(client,m);else this.sendProgress(client);});
         this.onMessage('lesson-answer',(client,value:unknown)=>{
@@ -69,8 +93,8 @@ export class PrivateFriendRoom extends VillageRoom {
     }
     async onLeave(client:Client,code?:number):Promise<void>{
         if(client.sessionId===this.gameOwner&&this.game&&!this.game.ended){this.game.pause();this.publishGame();}
-        if(code!==CloseCode.CONSENTED&&code!==4403&&code!==4008){try{await this.allowReconnection(client,15);this.sendProgress(client);return;}catch{}}
-        this.participants.delete(client.sessionId);this.members.delete(client.sessionId);super.onLeave(client);
+        if(code!==CloseCode.CONSENTED&&code!==4403&&code!==4008){try{await this.allowReconnection(client,15);this.sendProgress(client);for(const [id,group] of this.expansionGroups)if(group.participants.has(client.sessionId))this.publishExpansion(id);return;}catch{}}
+        this.leaveExpansion(client.sessionId);this.participants.delete(client.sessionId);this.members.delete(client.sessionId);super.onLeave(client);
     }
     private story(client:Client,value:unknown):void{
         const m=this.members.get(client.sessionId),v=value as any,p=this.state.players.get(client.sessionId);if(!m||!p||typeof v?.type!=='string')return;
@@ -84,6 +108,14 @@ export class PrivateFriendRoom extends VillageRoom {
         if(accepted){m.campaign.syncChapterOne(m.first.data);this.persist(client,m);}else this.sendProgress(client);
     }
     private sendProgress(client:Client):void{const m=this.members.get(client.sessionId);if(m)client.send('progress-state',{first:m.first.data,campaign:m.campaign.data});}
+    private leaveExpansion(session:string):void{
+        for(const [id,group] of this.expansionGroups)if(group.participants.delete(session)){if(!group.participants.size)this.expansionGroups.delete(id);else this.publishExpansion(id);}
+    }
+    private publishExpansion(id:ExpansionId):void{
+        const group=this.expansionGroups.get(id);if(!group)return;
+        const state={id,age:group.game.age,step:group.game.step,attempt:group.attempt,players:group.participants.size};
+        for(const client of this.clients)if(group.participants.has(client.sessionId))client.send('expansion-state',state);
+    }
     private persist(client:Client,m:Member):void{this.sendProgress(client);const payload={profileId:m.profileId,first:JSON.stringify(m.first.data),campaign:JSON.stringify(m.campaign.data)};m.saveQueue=m.saveQueue.then(()=>this.service('/internal/progress',payload)).catch(()=>{client.send('storage-warning','Kết nối lưu tiến độ chưa sẵn sàng. Mời người lớn giúp.');});}
     private warn(client:Client,text:string):void{if(this.clients.includes(client))client.send('storage-warning',text);}
     private publishGame():void{if(this.game)this.state.gameJson=JSON.stringify({...this.game.save(),paused:this.game.status==='paused'});}

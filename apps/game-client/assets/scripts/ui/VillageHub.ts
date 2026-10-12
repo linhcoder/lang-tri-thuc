@@ -30,6 +30,15 @@ export class VillageHub {
     onChapterIntro?:(index:number)=>void;onClaim?:(index:number)=>void;
     onLessonAnswer?:(data:{questId:string;round:number;index:number})=>void;
     onGameStart?:(questId:string)=>void;onGameAction?:(type:string,index:number)=>void;onGamePause?:(paused:boolean)=>void;
+    onExpansionStart?:(id:ExpansionId)=>void;onExpansionChoice?:(id:ExpansionId,attempt:string,step:number,index:number)=>void;onExpansionLeave?:()=>void;
+    private expansionAttempt='';private expansionPlayers=0;private pendingExpansion?:ExpansionId;
+    applyExpansionState(value:{id:ExpansionId;age:AgeBand;step:number;attempt:string;players:number}):void{
+        if(this.pendingExpansion!==value.id&&this.expansionAttempt!==value.attempt)return;
+        if(this.expansionGame?.id!==value.id||this.expansionGame.step!==value.step){this.expansionGame=new ExpansionGame(value.id,value.age);this.expansionGame.step=value.step;}
+        this.pendingExpansion=undefined;this.expansionAttempt=value.attempt;this.expansionPlayers=value.players;this.mode='expansion-game';this.node.active=true;this.message='';this.render();
+    }
+    applyExpansionFeedback(id:ExpansionId,message:string):void{if(this.expansionGame?.id===id||this.pendingExpansion===id){this.message=message;this.render();}}
+    endExpansionOnline():void{this.pendingExpansion=undefined;this.expansionAttempt='';this.expansionPlayers=0;}
     onActivitySave?:()=>void;
     onPortal?:(id:string)=>void;private usePortal=false;onOnline?:(action:string,id?:string)=>void;onlinePeers?:()=>Array<{id:string;name:string}>;private mapPage=0;private peerIndex=0;readonly node:Node;readonly npcNodes:Node[]=[];
     readonly campaign:CampaignEngine;
@@ -118,7 +127,7 @@ export class VillageHub {
         this.message=message;this.render();
     }
     open(mode:Mode='journal',chapter?:number):void{this.reset();this.game?.pause();if(chapter!==undefined)this.chapterIndex=chapter;this.mode=mode;this.message='';this.node.active=true;if(mode==='gate')this.gateAnswer=12+Math.floor(Math.random()*9);this.render();}
-    close():void{this.cancelDrag();this.stopReading();this.game?.pause();if(!this.practice)this.onGamePause?.(true);if(!this.practice&&this.game&&this.questId)this.campaign.data.resume[this.questId]={kind:'game',data:this.game.save()};this.persist();this.node.active=false;}
+    close():void{if(this.pendingExpansion||this.expansionAttempt)this.onExpansionLeave?.();this.endExpansionOnline();this.cancelDrag();this.stopReading();this.game?.pause();if(!this.practice)this.onGamePause?.(true);if(!this.practice&&this.game&&this.questId)this.campaign.data.resume[this.questId]={kind:'game',data:this.game.save()};this.persist();this.node.active=false;}
     cancel():void{this.pendingNpc=null;this.pendingDetail=null;this.cancelDrag();this.stopReading();}
     beginDrag(point:Point):boolean{
         if(this.node.active&&this.mode==='painting'){const p=this.paintingPoint(point);if(!p)return false;if((this.campaign.data.painting?.length??0)>=maxPaintStrokes)return true;this.clearPainting=false;this.paintStroke={color:this.paintColor,points:[p]};this.drawPainting();return true;}
@@ -250,13 +259,14 @@ export class VillageHub {
         }else if(this.mode==='friend'){
             const friend=expansionFriends.find(f=>f.id===this.selectedFriend)!;
             this.text(this.node,friend.hello,40,128,430,100,23);this.onAvatarPreview?.(this.node,friend.avatar,0,0);this.node.getChildByName('AvatarPreview')?.setPosition(-215,80);
+            if(this.message)this.text(this.node,this.message,40,61,430,27,16);
             const activities=expansionActivities.filter(a=>a.npc===friend.id);
-            activities.forEach((a,i)=>this.button('Expansion-'+a.id,(this.campaign.data.expansionProgress?.[a.id]?.age===this.campaign.data.age?'Tiếp tục • ':this.campaign.data.expansion?.includes(a.id)?'✓ ':'')+a.title,0,5-i*84,550,()=>{const saved=this.campaign.data.expansionProgress?.[a.id];this.expansionGame=new ExpansionGame(a.id,this.campaign.data.age,saved?.age===this.campaign.data.age?saved.step:0);this.mode='expansion-game';this.message='';this.render();}));
+            activities.forEach((a,i)=>{this.button('Expansion-'+a.id,((this.campaign.data.expansionProgress?.[a.id]?.step??0)>0&&this.campaign.data.expansionProgress?.[a.id]?.age===this.campaign.data.age?'Tiếp tục • ':this.campaign.data.expansion?.includes(a.id)?'✓ ':'')+a.title,this.onExpansionStart?-90:0,5-i*84,this.onExpansionStart?350:550,()=>{const saved=this.campaign.data.expansionProgress?.[a.id];this.expansionGame=new ExpansionGame(a.id,this.campaign.data.age,saved?.age===this.campaign.data.age?saved.step:0);this.endExpansionOnline();this.mode='expansion-game';this.message='';this.render();});if(this.onExpansionStart)this.button('Coop-'+a.id,'Cùng phòng',205,5-i*84,180,()=>{this.pendingExpansion=a.id;this.message='Đang mở nhóm…';this.onExpansionStart?.(a.id);this.render();});});
             this.button('BackToZones','Chọn khu',-145,-170,270,()=>{this.mode='expansion';this.message='';this.render();});
             this.button('NextFriend','Bạn tiếp theo',145,-170,270,()=>{this.selectedFriend=expansionFriends[(expansionFriends.indexOf(friend)+1)%expansionFriends.length].id;this.message='';this.render();});
         }else if(this.mode==='expansion-game'){
             const game=this.expansionGame!;
-            const feedback=this.text(this.node,this.message||'Chạm hình hoặc tên để chọn',0,185,540,30,18);feedback.name='ExpansionFeedback';
+            const feedback=this.text(this.node,this.message||(this.expansionAttempt?`Nhóm ${this.expansionPlayers}/4 bạn • Cùng chọn`: 'Chạm hình hoặc tên để chọn'),0,185,540,30,18);feedback.name='ExpansionFeedback';
             this.readingNotice=feedback.getComponent(Label)!;
             this.readingNotice.enableWrapText=false;this.readingNotice.overflow=Label.Overflow.SHRINK;
             for(let i=0;i<3;i++){const dot=this.make(this.node,'ExpansionStep-'+i,16,16);dot.setPosition((i-1)*28,-120);const g=dot.addComponent(Graphics);g.fillColor=i<game.step?new Color(91,139,75):new Color(210,196,158);g.circle(0,0,7);g.fill();}
@@ -270,8 +280,8 @@ export class VillageHub {
                     this.buttons.push({node:fish,width:70,action:()=>{if(game.countFish(i)){this.message='';this.render();}}});
                 }
             }
-            if(game.ended){this.text(this.node,'Đã lưu huy hiệu hoạt động. Bé có thể chơi lại bất cứ lúc nào.',0,-55,540,100,23);this.button('ExpansionFinish','Chơi cùng bạn tiếp',0,-160,430,()=>{this.mode='friend';this.message='';this.render();});}
-            else{game.round.choices.forEach((choice,i)=>{const card=this.button('ExpansionChoice-'+i,choice,(i-(game.round.choices.length-1)/2)*(game.round.choices.length===2?245:185),-75,game.round.choices.length===2?235:175,()=>{const changed=game.choose(i);if(changed){const progress=this.campaign.data.expansionProgress??={};if(game.ended)delete progress[game.id];else progress[game.id]={step:game.step,age:game.age};}if(game.ended){const completed=this.campaign.data.expansion??=[];if(!completed.includes(game.id))completed.push(game.id);}if(changed)this.persist();this.message=game.feedback;this.render();});const picture=game.choicePictures[i];if(picture){const icon=this.make(card,'ChoicePicture',100,100);icon.setPosition(-card.getComponent(UITransform)!.width/2+32,0);const scale=picture==='hull'?.35:.45;icon.setScale(scale,scale,1);paintExpansionSymbol(icon.addComponent(Graphics),picture,1,false);const label=card.getChildByName('Text')!;label.setPosition(22,0);label.getComponent(UITransform)!.setContentSize(card.getComponent(UITransform)!.width-68,68);}});this.button('ExpansionHint','Gợi ý',0,-165,270,()=>{game.hint();this.message=game.feedback;this.render();});}
+            if(game.ended){this.text(this.node,this.expansionAttempt&&!this.campaign.data.expansion?.includes(game.id)?'Đã xong ba bước. Đang lưu huy hiệu…':'Đã lưu huy hiệu hoạt động. Bé có thể chơi lại bất cứ lúc nào.',0,-55,540,100,23);this.button('ExpansionFinish','Chơi cùng bạn tiếp',0,-160,430,()=>{if(this.expansionAttempt)this.onExpansionLeave?.();this.endExpansionOnline();this.mode='friend';this.message='';this.render();});}
+            else{game.round.choices.forEach((choice,i)=>{const card=this.button('ExpansionChoice-'+i,choice,(i-(game.round.choices.length-1)/2)*(game.round.choices.length===2?245:185),-75,game.round.choices.length===2?235:175,()=>{if(this.expansionAttempt){this.onExpansionChoice?.(game.id,this.expansionAttempt,game.step,i);return;}const changed=game.choose(i);if(changed){const progress=this.campaign.data.expansionProgress??={};progress[game.id]={step:game.ended?0:game.step,age:game.age,updated:Date.now()};}if(game.ended){const completed=this.campaign.data.expansion??=[];if(!completed.includes(game.id))completed.push(game.id);}if(changed)this.persist();this.message=game.feedback;this.render();});const picture=game.choicePictures[i];if(picture){const icon=this.make(card,'ChoicePicture',100,100);icon.setPosition(-card.getComponent(UITransform)!.width/2+32,0);const scale=picture==='hull'?.35:.45;icon.setScale(scale,scale,1);paintExpansionSymbol(icon.addComponent(Graphics),picture,1,false);const label=card.getChildByName('Text')!;label.setPosition(22,0);label.getComponent(UITransform)!.setContentSize(card.getComponent(UITransform)!.width-68,68);}});this.button('ExpansionHint','Gợi ý',0,-165,270,()=>{game.hint();this.message=game.feedback;this.render();});}
         }else if(this.mode==='skin'){
             skinNames.forEach((name,i)=>{const n=this.button('Skin-'+i,name+(this.campaign.data.skin===i?' ✓':''),0,120-i*100,560,()=>{this.campaign.data.skin=i;this.persist();this.message='Đã chọn '+name.toLowerCase()+'.';this.render();});this.onAvatarPreview?.(n,this.campaign.data.avatar,this.campaign.data.hair,i);});
             this.button('BackToAvatar','Chọn nhân vật',0,-180,350,()=>{this.mode='avatar';this.render();});

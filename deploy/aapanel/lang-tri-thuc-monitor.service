@@ -1,0 +1,12 @@
+[Unit]
+Description=Lang Tri Thuc operational status
+After=network.target
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/python3 /opt/lang-tri-thuc/operations/monitor-job.py
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/lang-tri-thuc/monitor
+UMask=0027

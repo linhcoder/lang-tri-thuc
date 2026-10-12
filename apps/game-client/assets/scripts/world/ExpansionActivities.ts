@@ -9,7 +9,7 @@ export const expansionActivities=[
     {id:'school-find',zone:'playground',npc:'be-an',title:'Tìm đồ dùng đi học',intro:'Cùng An tìm sách, bút và cặp trong sân trường.',kind:'find'},
 ] as const;
 export type ExpansionId=typeof expansionActivities[number]['id'];
-export type ExpansionProgress=Partial<Record<ExpansionId,{step:number;age:AgeBand}>>;
+export type ExpansionProgress=Partial<Record<ExpansionId,{step:number;age:AgeBand;updated?:number}>>;
 /** Only unfinished, bounded local checkpoints; never restores a completed badge. */
 export function restoreExpansionProgress(value:unknown):ExpansionProgress{
     const result:ExpansionProgress={};
@@ -18,7 +18,7 @@ export function restoreExpansionProgress(value:unknown):ExpansionProgress{
         const saved=(value as Record<string,unknown>)[id];
         if(!saved||typeof saved!=='object')continue;
         const {step,age}=saved as {step:unknown;age:unknown};
-        if((step===1||step===2)&&(age==='3-5'||age==='6-8'||age==='9-11'))result[id]={step,age};
+        if((step===0||step===1||step===2)&&(age==='3-5'||age==='6-8'||age==='9-11')){const timestamp=(saved as {updated?:unknown}).updated;result[id]={step,age,updated:typeof timestamp==='number'&&Number.isSafeInteger(timestamp)&&timestamp>=0&&timestamp<=Date.now()+300000?timestamp:0};}
     }
     return result;
 }

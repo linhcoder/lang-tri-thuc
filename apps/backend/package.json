@@ -12,6 +12,7 @@
   "dependencies": {
     "@fastify/cors": "11.3.1",
     "fastify": "5.12.5",
+    "ioredis": "5.11.1",
     "mysql2": "^3.24.5"
   },
   "devDependencies": {

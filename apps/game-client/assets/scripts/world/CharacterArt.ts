@@ -2,9 +2,9 @@
 export const avatarNames=['Bé trai • áo đỏ','Bé trai • áo xanh','Bé gái • áo hồng','Bé gái • áo vàng','Bé trai • áo lá','Bé gái • áo tím'];
 export const skinNames=['Da sáng','Da ấm','Da nâu'];
 const skins=['#f4cba1','#dca478','#98613f'],clothes=['#d95851','#528eca','#e783a2','#eabf49','#6c9d59','#a58ac3'];
-export function paintCharacter(c:CanvasRenderingContext2D,id:number,row:number,direction:number,hair=0,skin=0):void{
+export function paintCharacter(c:CanvasRenderingContext2D,id:number,row:number,direction:number,hair=0,skin=0,phase?:number):void{
     const female=id===2||id===3||id===5,back=direction===1||direction===2||direction===3,side=direction===0||direction===4;
-    const stride=row===0?0:row===1?5:-5,bob=row===0?0:2;
+    const stride=phase===undefined?(row===0?0:row===1?5:-5):Math.sin(phase*Math.PI*2)*5,bob=phase===undefined?(row===0?0:2):(1-Math.cos(phase*Math.PI*4));
     c.save();c.translate(48,112-bob);c.lineCap='round';c.lineJoin='round';
     const ellipse=(x:number,y:number,rx:number,ry:number,color:string)=>{c.fillStyle=color;c.beginPath();c.ellipse(x,y,rx,ry,0,0,Math.PI*2);c.fill();};
     ellipse(0,0,21,5,'rgba(38,62,39,.18)');

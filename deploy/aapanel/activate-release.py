@@ -13,12 +13,16 @@ assert (release / 'public/admin/index.html').is_file()
 (release / 'RELEASE.txt').write_text(f'{name}; contentVersion {expected}; working-tree source included\n')
 (base / 'backups' / 'previous-completion-release.txt').write_text(str(previous) + '\n')
 
+services=['lang-tri-thuc-api','lang-tri-thuc-rooms']
+if pathlib.Path('/etc/systemd/system/lang-tri-thuc-api-b.service').is_file():services.append('lang-tri-thuc-api-b')
+if pathlib.Path('/etc/systemd/system/lang-tri-thuc-rooms-b.service').is_file():services.append('lang-tri-thuc-rooms-b')
+
 def activate(target):
     link = base / 'current.completion-next'
     assert not link.exists() and not link.is_symlink()
     link.symlink_to(target)
     os.replace(link, base / 'current')
-    subprocess.run(['systemctl', 'restart', 'lang-tri-thuc-api', 'lang-tri-thuc-rooms'], check=True)
+    subprocess.run(['systemctl', 'restart', *services], check=True)
 
 try:
     activate(release)
@@ -26,7 +30,7 @@ try:
         try:
             health = json.load(urllib.request.urlopen('http://127.0.0.1:33080/health', timeout=3))
             if health.get('ok') and health.get('storage') == 'mysql' and health.get('contentVersion') == expected:
-                subprocess.run(['systemctl', 'is-active', '--quiet', 'lang-tri-thuc-api', 'lang-tri-thuc-rooms'], check=True)
+                subprocess.run(['systemctl', 'is-active', '--quiet', *services], check=True)
                 print('RELEASE_ACTIVE ' + expected)
                 break
         except Exception:

@@ -19,7 +19,7 @@ for(const id of ['flower-care','fruit-colors','boat-build','fish-count','float-s
  }
  await p.evaluate(()=>v.hub.open('friend'));await tap('Expansion-'+id);assert.equal(await p.evaluate(()=>v.hub.expansionGame.step),1);
  for(let step=1;step<3;step++){await tap('ExpansionChoice-'+await p.evaluate(()=>v.hub.expansionGame.round.answer));}
- assert.equal(await p.evaluate(()=>v.hub.expansionGame.ended),true);assert.equal(await p.evaluate(id=>v.hub.campaign.data.expansionProgress[id],id),undefined);
+ assert.equal(await p.evaluate(()=>v.hub.expansionGame.ended),true);assert.equal(await p.evaluate(id=>v.hub.campaign.data.expansionProgress[id].step,id),0);
  await p.screenshot({path:path.join(output,`${id}-${age}.png`)});await tap('ExpansionFinish');
 }
 assert.equal(await p.evaluate(()=>v.hub.campaign.data.expansion.length),7);assert.equal(await p.evaluate(()=>v.hub.campaign.stars),0);

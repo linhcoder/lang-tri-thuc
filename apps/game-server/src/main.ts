@@ -10,9 +10,13 @@ import { VillageRoom } from './VillageRoom.js';
 import { pathToFileURL } from 'node:url';
 import {realpathSync} from 'node:fs';
 import {PrivateFriendRoom,MiniGameRoom} from './PrivateFriendRoom.js';
+import {RedisPresence} from '@colyseus/redis-presence';
+import {RedisDriver} from '@colyseus/redis-driver';
 
-export async function startServer(port=Number(process.env.PORT||2567),host=process.env.HOST||'127.0.0.1',options:{roomSecret?:string;apiUrl?:string}={}):Promise<Server> {
-    const server=new Server({transport:new WebSocketTransport({maxPayload:8192,pingInterval:5000,pingMaxRetries:3}),greet:false});
+export async function startServer(port=Number(process.env.PORT||2567),host=process.env.HOST||'127.0.0.1',options:{roomSecret?:string;apiUrl?:string;redisUrl?:string;publicAddress?:string}={}):Promise<Server> {
+    const redis=options.redisUrl||process.env.REDIS_URL,address=options.publicAddress||process.env.PUBLIC_ADDRESS;
+    if(redis&&(!/^rediss?:\/\//.test(redis)||!address))throw Error('Redis rooms require a valid Redis URL and unique PUBLIC_ADDRESS');
+    const server=new Server({transport:new WebSocketTransport({maxPayload:8192,pingInterval:5000,pingMaxRetries:3}),greet:false,...(redis?{presence:new RedisPresence(redis),driver:new RedisDriver(redis),publicAddress:address}:{})});
     if((host==='127.0.0.1'&&process.env.ALLOW_DEV_ROOMS!=='0')||process.env.ALLOW_DEV_ROOMS==='1')server.define('village',VillageRoom);
     const secret=options.roomSecret||process.env.ROOM_SECRET;if(secret){if(secret.length<32)throw Error('ROOM_SECRET too short');const config={secret,apiUrl:options.apiUrl||process.env.API_URL||'http://127.0.0.1:3000'};server.define('private-friend',PrivateFriendRoom,config).filterBy(['roomCode']);server.define('mini-game',MiniGameRoom,config).filterBy(['roomCode']);}
     await server.listen(port,host);return server;

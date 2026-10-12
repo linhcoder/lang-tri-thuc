@@ -11,8 +11,15 @@
   },
   "dependencies": {
     "@colyseus/core": "0.18.9",
+    "@colyseus/redis-driver": "0.18.1",
+    "@colyseus/redis-presence": "0.18.1",
     "@colyseus/schema": "5.0.36",
     "@colyseus/ws-transport": "0.18.4"
   },
-  "devDependencies": { "@types/node": "^24.0.0", "tsx": "^4.20.0", "typescript": "^5.9.0", "@colyseus/sdk": "0.18.5" }
+  "devDependencies": {
+    "@colyseus/sdk": "0.18.5",
+    "@types/node": "^24.0.0",
+    "tsx": "^4.20.0",
+    "typescript": "^5.9.0"
+  }
 }

@@ -149,8 +149,8 @@ export class VillageBootstrap extends Component {
             const sprite=state.sprite,poses=this.art.npcPoses[state.row],directions=this.art.npcDirections[state.row],steps=this.art.npcWalkSteps[state.row];
             const directional=!!directions&&(moving||greeting===0);
             const walkingFrames=moving&&steps&&state.gait.stepFrame===1?steps:directions;
-            if(sprite&&state.body.name.startsWith('ExpansionSprite-'))sprite.spriteFrame=this.art.avatarFrame(Number(state.body.name.slice(16)),moving?1+state.gait.stepFrame:0,walk?.direction??6,1,node.name==='chu-hai'?2:1);
-            else if(sprite)sprite.spriteFrame=directional?walkingFrames[walk?.direction??6]:poses&&(moving||greeting>0)?poses[moving?state.gait.stepFrame:2]:state.idle;
+            if(sprite&&state.body.name.startsWith('ExpansionSprite-'))sprite.spriteFrame=this.art.npcCharacterFrame(Number(state.body.name.slice(16)),walk?.direction??6,moving?1+state.gait.cycleFrame:0,1,node.name==='chu-hai'?2:1);
+            else if(sprite)sprite.spriteFrame=directional?(moving?this.art.npcCycleFrame(state.row,walk?.direction??6,state.gait.cycleFrame):walkingFrames[walk?.direction??6]):poses&&(moving||greeting>0)?poses[moving?state.gait.stepFrame:2]:state.idle;
             state.transform.setContentSize(directional?state.height*directions[0].rect.width/directions[0].rect.height:state.width,state.height);
             state.body.setPosition(state.gait.offsetX+state.gait.sway,state.baseY+state.gait.offsetY+state.gait.bob+Math.sin(state.time*1.8)*.65*(1-state.gait.weight)+greeting*3);
             state.body.setScale(state.scale*(directional?1:facing),state.scale*(state.gait.stretch+Math.sin(state.time*1.8)*.004*(1-state.gait.weight)),1);
@@ -286,6 +286,7 @@ export class VillageBootstrap extends Component {
                             hub.onChapterIntro=index=>this.network.intent('chapter-intro',{index});hub.onClaim=index=>this.network.intent('claim-star',{index});
                             hub.onLessonAnswer=v=>this.network.intent('lesson-answer',v);hub.onGameStart=questId=>this.network.intent('start-game',{questId});
                             hub.onPortal=id=>{this.network.intent('portal',{id});};hub.onlinePeers=()=>Array.from(this.network.players.entries()).map(([id,p])=>({id,name:p.name}));hub.onOnline=(action,id)=>{if(action==='emote')this.network.emote(id!);else if(action==='block')this.network.block(id!);else if(action==='report')this.network.report(id!,'uncomfortable');else if(action==='offline')this.network.offline();};
+                            hub.onExpansionStart=id=>this.network.intent('expansion-start',{id});hub.onExpansionChoice=(id,attempt,step,index)=>this.network.intent('expansion-choice',{id,attempt,step,index});hub.onExpansionLeave=()=>this.network.intent('expansion-leave',{});this.network.onExpansion=v=>hub.applyExpansionState(v);this.network.onExpansionFeedback=(id,message)=>hub.applyExpansionFeedback(id,message);
                             hub.onGameAction=(type,index)=>this.network.intent('game-action',{type,index});hub.onGamePause=paused=>this.network.intent('pause-game',{paused});
                         }
                         void this.network.connect(endpoint.href,this.privateJoin);
@@ -299,7 +300,7 @@ export class VillageBootstrap extends Component {
         if(sys.isBrowser){try{saveSoloSession(window.sessionStorage,this.profileScope.slice(1));}catch{}}
         const hub=this.hub,first=this.chapterSave;if(!hub||!first)return;
         first.progress.onIntent=undefined;hub.onChapterIntro=undefined;hub.onClaim=undefined;hub.onLessonAnswer=undefined;
-        hub.onGameStart=undefined;hub.onGameAction=undefined;hub.onGamePause=undefined;
+        hub.onGameStart=undefined;hub.onGameAction=undefined;hub.onGamePause=undefined;hub.onExpansionStart=undefined;hub.onExpansionChoice=undefined;hub.onExpansionLeave=undefined;hub.endExpansionOnline();
         hub.onPortal=id=>{const p=portalDestination(this.player.position,id);if(p){this.resetInput();this.player.position=p;}};
     }
     private saveLearning():void{

@@ -1,5 +1,11 @@
 # Phần còn phát triển — 12/10/2026
 
+## Trạng thái mới nhất — 13/10/2026
+
+Các tối ưu ba khu đã lên staging `785f4e7e`, có checkpoint giữa thiết bị, chơi chung bốn người, chặn bạn trong nhóm, tám pha bước NPC, hai API/phòng dùng Redis và cảnh báo quản trị. Chi tiết nghiệm thu tại [BETA_TECHNICAL_QA](BETA_TECHNICAL_QA.md). Các mô tả "local", "chơi cá nhân" và "offsite để sau" trong lịch sử phía dưới thuộc đợt trước.
+
+Offsite hiện có mẫu cấu hình nhưng chờ đích kết nối theo lựa chọn người dùng; không bật lịch. Phần cần người tham gia vẫn là trẻ/phụ huynh, thiết bị thật, duyệt 90 câu hỏi/63 vòng mở rộng và quyền của 64 tài nguyên hình. Không thay các gate này bằng kiểm thử tự động.
+
 Bản hiện tại là prototype tám chương đã có staging. Tỷ lệ người/cảnh đã sửa; cảnh làng có zoom 60–180% bằng nút, wheel và pinch. Các mục sau chưa có đầy đủ, không tính là đã hoàn thành chỉ vì có tên trong menu hoặc registry.
 
 Đợt 11/10: năm ô trồng Chương 1 chuyển sang ruộng phải cạnh Bác Nông Dân, dùng chung tọa độ client/server. Ruộng có nền đất/rạ và lúa chín dày hơn, giữ lúa ở chất lượng Low; chừa khu trồng cây non. Save theo chỉ số ô giữ nguyên tiến độ. Khi triển khai cần cập nhật cả client và game server vì hash nội dung thay đổi.

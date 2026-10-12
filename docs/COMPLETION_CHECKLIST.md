@@ -1,5 +1,11 @@
 # Đối chiếu hoàn thiện — 12/10/2026
 
+## Trạng thái mới nhất — 13/10/2026
+
+Staging đã cập nhật rules 10 / `785f4e7e`: ba khu mở rộng, chơi chung tối đa bốn người, checkpoint giữa thiết bị, NPC tám pha bước, hai API/phòng với Redis và monitor quản trị. Các mục lịch sử bên dưới giữ nguyên để đối chiếu. Kết quả và giới hạn ở [BETA_TECHNICAL_QA](BETA_TECHNICAL_QA.md).
+
+Offsite chờ kết nối theo lựa chọn người dùng; lịch sao chép thử đã tắt. Chơi thử trẻ/Android/iOS thật, duyệt giáo dục/Vietnamese và quyền art vẫn cần người phụ trách. Không tự ghi các mục này là hoàn tất hoặc phát hành public beta.
+
 Đối chiếu master prompt với mã, build và kiểm thử thực tế. Đây là prototype chạy được, chưa phải nghiệm thu phát hành beta. Người dùng đã cho phép làm liên tục, commit và push; các yêu cầu chờ từng milestone trong tài liệu gốc là lịch sử.
 
 Staging aaPanel hiện đã triển khai và nghiệm thu kỹ thuật: [runbook](../deploy/aapanel/README.md). Gate VPS/domain/TLS/WebSocket/backup-restore đã thực hiện; còn nội dung, trẻ có giám sát và thiết bị thật trước public beta.

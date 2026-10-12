@@ -41,6 +41,8 @@ Không đổi luật câu hỏi/đáp án, rules 9/contentVersion `547e04f2`; ch
 
 ### Tối ưu ba khu — bản local tiếp theo
 
+Cập nhật 13/10: các tối ưu bên dưới đã nằm trong staging `beta-ready-v6`, rules 10 / `785f4e7e`. Có chơi chung bốn người và đồng bộ checkpoint từng hoạt động qua MySQL; xem [BETA_TECHNICAL_QA](../BETA_TECHNICAL_QA.md). Các số liệu/rules 9 bên dưới thuộc đợt trước.
+
 Build `expansion-polish-v2` bổ sung luống cây và giỏ quả tại Vườn bốn mùa, lau sậy/phao tại Bến sông quê, ô nhảy lò cò/ghế sách tại Sân trường tuổi thơ. Chi tiết dùng Graphics tĩnh theo nhóm, không thêm vòng cập nhật animation hoặc collision. Bản đồ khám phá hiển thị huy hiệu đã hoàn thành/tổng hoạt động theo khu và nút Cùng chơi mở đúng người bạn của khu; từ hội thoại có thể quay lại Chọn khu.
 
 Lựa chọn của sáu hoạt động có hình bên cạnh chữ; đếm cá vẫn dùng lựa chọn số. Tên hoạt động giữ cố định khi chọn sai hoặc xin gợi ý; phản hồi có dòng riêng và ba chấm tiến độ. Quả bóng có đường bóng, viên đá trong thẻ không dùng mặt nước của tranh mô phỏng. Kích thước hình được giới hạn để không tràn thẻ.

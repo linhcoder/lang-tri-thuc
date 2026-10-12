@@ -1,5 +1,7 @@
 # Chuẩn bị chơi thử — 12/10/2026
 
+Cập nhật 13/10: bản mục tiêu mới là `beta-ready-v6`, rules 10 / `785f4e7e`. QA ba khu, chơi chung, đồng bộ giữa thiết bị, vận hành và các lượt chạy dài nằm tại [BETA_TECHNICAL_QA](BETA_TECHNICAL_QA.md). Các số liệu/rules bên dưới là lịch sử. Chưa có kết quả Android/iOS thật hoặc chơi thử với trẻ.
+
 Đã thêm góp ý chơi thử cho phụ huynh và hàng đợi phản hồi của quản trị. Giữ game v5/rules 8/contentVersion `8f4c4bbd`. Hướng dẫn thao tác và chạy lại kiểm tra: [PLAYTEST_GUIDE](PLAYTEST_GUIDE.md).
 
 ## Render thực 15 phút

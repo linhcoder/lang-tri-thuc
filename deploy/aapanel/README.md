@@ -80,6 +80,10 @@ Commit `72a3a50` tắt splash trong tools/build-web.cjs: totalTime=0, logo.type=
 
 ## Lịch âm và vận hành tự động — 11/10/2026
 
+Cập nhật vận hành 13/10: xem [BETA_TECHNICAL_QA](../../docs/BETA_TECHNICAL_QA.md). Release `29b35d8-beta-ready-785f4e7e-20261013` đang chạy Cocos v6/rules 10. Hai API 33080/33081, hai rooms 32580/32581 và Redis loopback 36379. Redis runtime riêng nằm trong `/opt/lang-tri-thuc/runtime/redis`; dùng gói Redis/liblzf từ kho hệ điều hành có chữ ký, giải nén vào thư mục ứng dụng, không cài đè Redis của site khác. Installer yêu cầu runtime này trước khi chạy `install-scaling.py prepare`/`enable`.
+
+Các instance dùng environment file riêng để systemd không ghi đè port bằng cấu hình chung. API nội bộ qua Nginx loopback 33082. Trước rollback cần đảm bảo bản cũ hiểu Redis/publicAddress và schema hiện tại; release giữ để rollback app, không tự coi cấu hình scale đã rollback. Muốn về một instance phải phục hồi Nginx extension đã lưu, tắt B, bỏ drop-in scale của A, kiểm tra Nginx/health và restart A; không xóa database hoặc secret. Offsite chỉ chờ kết nối, lịch Windows thử đã tắt.
+
 Đã deploy commit 3d986c8: Web tính Tết/Trung thu bằng lịch âm UTC+7, khoảng 1900–2199. Timer backup bật: mỗi ngày 02:00 giờ Việt Nam; restore drill Chủ nhật 02:30. Hai service đầu chạy thành công trong sandbox systemd, Result=success/ExecMainStatus=0; SQL/JSON root-only, giữ 30 ngày/tối thiểu bảy bản và bản verify gần nhất. Backup thủ công cũ được giữ. Code vận hành ở /opt/lang-tri-thuc/operations độc lập symlink game. Chi tiết [BACKUP_OPERATIONS](../../docs/BACKUP_OPERATIONS.md).
 
 QA live calendar đạt midnight/range/ngày tương lai, API/admin/quyền truy cập và signed WebSocket hai client, save/reload online/offline đạt; errors rỗng. Đã restore dump snapshot khi live QA thay đổi tài khoản, dữ liệu dump vẫn khớp. Bản sao offsite, thông báo lỗi ra kênh bên ngoài và soak WAN dài chưa được nghiệm thu.

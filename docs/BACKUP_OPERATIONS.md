@@ -1,5 +1,15 @@
 # Backup tự động và phục hồi thử — 11/10/2026
 
+## Cập nhật 13/10/2026
+
+Backup ngày/restore tuần trên VPS vẫn hoạt động. Monitor chạy mỗi phút; quản trị viên xem **Hệ thống và API** để nhận cảnh báo backup cũ quá 26 giờ, restore quá tám ngày, service lỗi, API/MySQL/phòng/Redis ngừng hoạt động. Không gửi thông báo ra email hoặc chat khi chưa có kênh kết nối.
+
+Theo lựa chọn mới của người dùng, offsite chỉ chuẩn bị cấu hình và **chờ kết nối**. Lịch `LangTriThucOffsiteBackup` đã tắt. Mẫu [offsite.config.example.json](../deploy/aapanel/offsite.config.example.json) mặc định `enabled=false`; cấu hình thật đặt trong `temp/deploy/offsite-config.json` ignored. Script không sao chép hoặc kết nối SSH nếu đích chưa được bật. Bản thử mã hóa trước đó và khóa riêng được giữ, không ghi nhận là đích vận hành.
+
+Khi có đích, cấu hình loại lưu trữ và thông tin truy cập bằng file riêng, kiểm tra checksum, mã hóa/giải mã, phục hồi DB thử, rồi mới bật lịch. Adapter hiện có hỗ trợ `local-encrypted`; S3/SFTP khác cần adapter phù hợp sau khi biết đích. Với máy Windows, lịch chỉ chạy khi tài khoản nhận đã đăng nhập và máy có mạng. Khóa giải mã phải được bảo quản riêng; mất khóa thì không phục hồi bản mã hóa được. Chưa nghiệm thu một nhà cung cấp offsite hoặc kênh cảnh báo bên ngoài.
+
+Chi tiết triển khai/kiểm tra tại [BETA_TECHNICAL_QA](BETA_TECHNICAL_QA.md).
+
 Job của ứng dụng dùng systemd timer riêng, không thay cron/timer của aaPanel hay các site khác:
 
 - Backup mỗi ngày lúc 02:00, giờ Việt Nam (UTC+7).

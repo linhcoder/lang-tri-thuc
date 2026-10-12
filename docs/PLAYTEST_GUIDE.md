@@ -10,7 +10,7 @@ Thử 10–15 phút mỗi lần, có người lớn bên cạnh. Để bé tự 
 
 ## Buổi chơi thử 10–15 phút
 
-Dùng staging `https://ltt.vui-hoc.xyz/`, mở game từ vé của hồ sơ thử do phụ huynh tạo. Thông tin truy cập preview nằm trong file local ignored `temp/deploy/access.txt`; không đưa mật khẩu vào phiếu hoặc góp ý. Bản mục tiêu: `village-expansion-v4`, rules 9, contentVersion `547e04f2`. Có thể dùng trang phụ huynh để xem kết quả và gửi góp ý sau buổi chơi.
+Dùng staging `https://ltt.vui-hoc.xyz/`, mở game từ vé của hồ sơ thử do phụ huynh tạo. Thông tin truy cập preview nằm trong file local ignored `temp/deploy/access.txt`; không đưa mật khẩu vào phiếu hoặc góp ý. Bản mục tiêu: `beta-ready-v6`, rules 10, contentVersion `785f4e7e`. Có thể dùng trang phụ huynh để xem kết quả và gửi góp ý sau buổi chơi. Kết quả kỹ thuật tại [BETA_TECHNICAL_QA](BETA_TECHNICAL_QA.md).
 
 Mỗi buổi dùng một mã quan sát tự đặt, không ghi tên, ngày sinh, trường học hoặc ảnh của trẻ. Phụ huynh ở cạnh và có thể dừng bất cứ lúc nào. Không yêu cầu bé hoàn thành cả tám chương trong một buổi.
 

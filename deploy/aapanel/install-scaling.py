@@ -11,7 +11,7 @@ def main():
  scale=CONFIG/'scale.env'
  if not scale.exists():
   password=secrets.token_urlsafe(36);write(scale,'REDIS_URL=redis://:'+password+'@127.0.0.1:36379/0\n')
-  conf=CONFIG/'redis.conf';write(conf,'bind 127.0.0.1\nport 36379\nprotected-mode yes\nrequirepass '+password+'\nsave ""\nappendonly no\nmaxmemory 256mb\nmaxmemory-policy noeviction\ndir /opt/lang-tri-thuc/redis\n');shutil.chown(conf,user='root',group='langtri');os.chmod(conf,0o640)
+  conf=CONFIG/'redis.conf';write(conf,'bind 127.0.0.1\nport 36379\nprotected-mode yes\nrequirepass '+password+'\nsave ""\nappendonly yes\nappendfsync everysec\nmaxmemory 256mb\nmaxmemory-policy noeviction\ndir /opt/lang-tri-thuc/redis\n');shutil.chown(conf,user='root',group='langtri');os.chmod(conf,0o640)
  unit='''[Unit]
 Description=Lang Tri Thuc isolated Redis presence
 After=network.target
@@ -26,15 +26,24 @@ PrivateTmp=true
 ProtectSystem=strict
 ProtectHome=true
 ReadWritePaths=/opt/lang-tri-thuc/redis
+UMask=0077
 [Install]
 WantedBy=multi-user.target
 '''
  write(pathlib.Path('/etc/systemd/system/lang-tri-thuc-redis.service'),unit,0o644);run(['systemctl','daemon-reload']);run(['systemctl','enable','--now','lang-tri-thuc-redis']);run(['systemctl','is-active','--quiet','lang-tri-thuc-redis'])
  if stage=='prepare':print('Application Redis ready; live rooms unchanged');return
+ # EnvironmentFile values override Environment= in systemd. Use final per-instance
+ # files for ports instead of relying on unit directive order.
+ common=scale.read_text()
+ if 'API_URL=' not in common:write(scale,common.rstrip()+'\nAPI_URL=http://127.0.0.1:33082\n')
+ write(CONFIG/'rooms-b.env','PORT=32581\nPUBLIC_ADDRESS=ltt.vui-hoc.xyz/colyseus/b\n')
+ write(CONFIG/'api-b.env','API_PORT=33081\nINSTANCE_ID=b\nTRUST_LOOPBACK_PROXY=1\n')
  roomunit=(SOURCE/'lang-tri-thuc-rooms.service').read_text().replace('Description=Lang Tri Thuc private multiplayer rooms','Description=Lang Tri Thuc second room instance').replace('After=network.target lang-tri-thuc-api.service','After=network.target lang-tri-thuc-api.service lang-tri-thuc-redis.service').replace('EnvironmentFile=/etc/lang-tri-thuc/rooms.env','EnvironmentFile=/etc/lang-tri-thuc/rooms.env\nEnvironmentFile=/etc/lang-tri-thuc/scale.env\nEnvironment=PORT=32581\nEnvironment=API_URL=http://127.0.0.1:33082\nEnvironment=PUBLIC_ADDRESS=ltt.vui-hoc.xyz/colyseus/b')
+ roomunit=roomunit.replace('EnvironmentFile=/etc/lang-tri-thuc/scale.env','EnvironmentFile=/etc/lang-tri-thuc/scale.env\nEnvironmentFile=/etc/lang-tri-thuc/rooms-b.env')
  write(pathlib.Path('/etc/systemd/system/lang-tri-thuc-rooms-b.service'),roomunit,0o644)
  write(pathlib.Path('/etc/systemd/system/lang-tri-thuc-rooms.service.d/scaling.conf'),'[Unit]\nAfter=lang-tri-thuc-redis.service\n[Service]\nEnvironmentFile=/etc/lang-tri-thuc/scale.env\nEnvironment=API_URL=http://127.0.0.1:33082\nEnvironment=PUBLIC_ADDRESS=ltt.vui-hoc.xyz/colyseus/a\n',0o644)
  apiunit=(SOURCE/'lang-tri-thuc-api.service').read_text().replace('Description=Lang Tri Thuc parent API','Description=Lang Tri Thuc second API instance').replace('After=network.target mariadb.service','After=network.target mariadb.service lang-tri-thuc-redis.service').replace('EnvironmentFile=/etc/lang-tri-thuc/api.env','EnvironmentFile=/etc/lang-tri-thuc/api.env\nEnvironmentFile=/etc/lang-tri-thuc/scale.env\nEnvironment=API_PORT=33081\nEnvironment=INSTANCE_ID=b\nEnvironment=TRUST_LOOPBACK_PROXY=1')
+ apiunit=apiunit.replace('EnvironmentFile=/etc/lang-tri-thuc/scale.env','EnvironmentFile=/etc/lang-tri-thuc/scale.env\nEnvironmentFile=/etc/lang-tri-thuc/api-b.env')
  write(pathlib.Path('/etc/systemd/system/lang-tri-thuc-api-b.service'),apiunit,0o644)
  write(pathlib.Path('/etc/systemd/system/lang-tri-thuc-api.service.d/scaling.conf'),'[Unit]\nAfter=lang-tri-thuc-redis.service\n[Service]\nEnvironmentFile=/etc/lang-tri-thuc/scale.env\nEnvironment=INSTANCE_ID=a\nEnvironment=TRUST_LOOPBACK_PROXY=1\n',0o644)
  target=pathlib.Path('/www/server/panel/vhost/nginx/extension/ltt.vui-hoc.xyz/lang-tri-thuc.conf');before=target.read_text();backup=ROOT/'operations/nginx-before-scaling.conf'

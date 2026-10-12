@@ -20,6 +20,7 @@ try{
   console.log('Prepared '+slots.length+'/'+clients+' signed MySQL clients');
  }
  const roomIds=new Set(slots.map(s=>s.room.roomId));assert.equal(roomIds.size,clients/5);report.processes=Array.from(new Set(slots.map(s=>s.room.connection?.url?.split('/').slice(3,5).join('/')).filter(Boolean)));
+ assert.equal(report.processes.length,2,'Rooms must use both Redis-coordinated processes');report.apiInstances=[];for(let i=0;i<8;i++){const h=await req('/health');if(!report.apiInstances.includes(h.instance))report.apiInstances.push(h.instance);}assert.deepEqual(report.apiInstances.sort(),['a','b']);
  const began=performance.now();let nextProbe=0,nextSave=0,nextReconnect=60,nextLog=0,tick=0;
  while(performance.now()-began<seconds*1000){if(interrupted)throw Error('Interrupted');const elapsed=(performance.now()-began)/1000;
   for(const slot of slots)slot.room.send('move',{x:Math.sin(tick*.08)*8,y:-640,direction:tick%8,moving:true,seq:slot.seq++});tick++;

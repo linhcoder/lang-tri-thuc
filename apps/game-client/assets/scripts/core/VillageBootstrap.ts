@@ -1,10 +1,13 @@
 import { _decorator, Color, Component, director, EventKeyboard, EventTouch, game, Game, Graphics, input, Input, JsonAsset, resources, Label, Layers, Node, Sprite, SpriteFrame, sys, UITransform, Vec3, view } from 'cc';
+import {expansionFriends} from '../world/ExpansionActivities';
+import {createExpansionScenery} from '../ui/ExpansionScenery';
 import { cameraOffset, inputAxis, Point, SIZE, terrain, tileAt, toWorld, VillageMap, storyNpcs, villageDetails, villageObjects,environmentGuides } from '../world/VillageModel';
 import {referenceCameraFocus} from '../world/ReferenceCamera';
 import { AvatarGesture, AvatarGestureState, PlayerController, PlayerVisual } from '../player/PlayerController';
 import { FarmerNPC } from '../npc/FarmerNPC';
 import {CameraZoom} from '../player/CameraZoom';
 import {NpcPatrol,PatrolPose} from '../world/NpcPatrol';
+import {NpcGait} from '../world/NpcGait';
 import {activitySnapshot,restoreActivities,mergeActivities} from '../world/ActivitySnapshot';
 import {isAvatarGesture} from '../world/AvatarGestures';
 import { VillageArt } from '../world/VillageArt';
@@ -53,7 +56,9 @@ function animateGesture(state:AvatarGestureState,sprite:Sprite,scarf:Graphics,g:
     state.step(dt,moving);const jump=state.jump;
     const seated=state.kind==='sit',sway=state.kind==='wave'?Math.sin(state.elapsed*15)*4:state.kind==='sad'?-4:0;
     sprite.node.setPosition(0,(seated?-13:-7)+jump);scarf.node.setPosition(0,(seated?-6:0)+jump);sprite.node.setScale(1,seated?.76:1,1);scarf.node.setScale(1,seated?.76:1,1);sprite.node.angle=scarf.node.angle=sway;g.clear();
-    if(state.kind==='hello'||state.kind==='wave'){
+    if(state.kind==='thanks'){g.fillColor=new Color(243,157,153);g.circle(-7,92,8);g.circle(7,92,8);g.moveTo(-15,91);g.lineTo(0,73);g.lineTo(15,91);g.close();g.fill();}
+    else if(state.kind==='point'){g.strokeColor=new Color(251,213,107);g.lineWidth=5;g.moveTo(23,65);g.lineTo(57,65);g.lineTo(48,74);g.moveTo(57,65);g.lineTo(48,56);g.stroke();}
+    else if(state.kind==='hello'||state.kind==='wave'){
         const x=32+Math.sin(state.elapsed*18)*(state.kind==='wave'?11:5),y=68+Math.cos(state.elapsed*18)*3;
         g.fillColor=new Color(250,207,163);g.roundRect(x-6,y-7,12,14,4);g.fill();
         for(let i=0;i<4;i++){g.roundRect(x-6+i*3,y+3,2.5,9,1);g.fill();}
@@ -114,36 +119,42 @@ export class VillageBootstrap extends Component {
     private network=new VillageNetwork();
     private remoteActors=new Map<string,{node:Node;sprite:Sprite;accessory:Graphics;gesture:AvatarGestureState;gestureGraphic:Graphics}>();
     private npcHitHeight=85;
-    private npcMotion=new Map<Node,{body:Node;time:number;near:boolean;greeting:number;baseY:number;scale:number;row:number;width:number;height:number;idle:SpriteFrame|null}>();
-    private npcPatrol=new NpcPatrol();private npcWalking=new Map<Node,PatrolPose>();
+    private npcMotion=new Map<Node,{body:Node;sprite:Sprite|null;transform:UITransform;gait:NpcGait;time:number;near:boolean;greeting:number;baseY:number;scale:number;row:number;width:number;height:number;idle:SpriteFrame|null}>();
+    private npcPatrol=new NpcPatrol();private npcWalking=new Map<Node,PatrolPose>();private npcCollisionPositions:Point[]=[];
     private updateNpcPatrol(dt:number):void{
         if(!this.hub||!this.assetsReady)return;const online=!!this.network.room&&this.network.npcs.size===this.hub.npcNodes.length;
         if(!online)this.npcPatrol.step(dt,[this.player.position]);
-        for(const node of this.hub.npcNodes){const p=online?this.network.npcs.get(node.name):this.npcPatrol.poses.get(node.name);if(!p)continue;const t=online?Math.min(1,dt*16):1;node.setPosition(node.position.x+(p.x-node.position.x)*t,node.position.y+(p.y-node.position.y)*t);this.npcWalking.set(node,p);}
-        this.map.npcPositions=this.hub.npcNodes.map(n=>({x:n.position.x,y:n.position.y}));
+        for(const node of this.hub.npcNodes){const p=online?this.network.npcs.get(node.name):this.npcPatrol.poses.get(node.name);if(!p)continue;node.setPosition(p.x,p.y);this.npcWalking.set(node,p);}
+        const positions=this.npcCollisionPositions,nodes=this.hub.npcNodes;
+        while(positions.length<nodes.length)positions.push({x:0,y:0});positions.length=nodes.length;
+        for(let i=0;i<nodes.length;i++){positions[i].x=nodes[i].position.x;positions[i].y=nodes[i].position.y;}
+        this.map.npcPositions=positions;
     }
     private registerNpcMotion(node:Node,body:Node):void{
         const row=['ElderSprite','FarmerSprite','CoTamSprite','MarketLadySprite','FriendsSprite','TeacherSprite','PotterSprite','FestivalSprite'].indexOf(body.name);
         const transform=body.getComponent(UITransform)!;
-        this.npcMotion.set(node,{body,time:this.npcMotion.size*.73,near:false,greeting:0,baseY:body.position.y,scale:body.scale.x,row,width:transform.width,height:transform.height,idle:body.getComponent(Sprite)?.spriteFrame??null});
+        this.npcMotion.set(node,{body,sprite:body.getComponent(Sprite),transform,gait:new NpcGait(this.npcMotion.size*.17),time:this.npcMotion.size*.73,near:false,greeting:0,baseY:body.position.y,scale:body.scale.x,row,width:transform.width,height:transform.height,idle:body.getComponent(Sprite)?.spriteFrame??null});
     }
     private animateNpcs(dt:number,camera:Point,width:number,height:number):void{
         for(const [node,state] of this.npcMotion){
             if(!node.isValid||!state.body.isValid){this.npcMotion.delete(node);continue;}
-            if(Math.abs(node.position.x+camera.x)>width/2+150||Math.abs(node.position.y+camera.y)>height/2+150)continue;
-            const near=Math.hypot(node.position.x-this.player.position.x,node.position.y-this.player.position.y)<110;
+            const walk=this.npcWalking.get(node),moving=walk?.moving===true;
+            state.gait.update(dt,node.position.x,node.position.y,moving);
+            const near=Math.hypot(node.position.x-this.player.position.x,node.position.y-this.player.position.y)<(state.near?130:100);
             if(near&&!state.near&&!this.modalActive)state.greeting=1.4;
             state.near=near;state.time+=Math.min(dt,.1);state.greeting=Math.max(0,state.greeting-Math.min(dt,.1));
             const greeting=state.greeting>0?Math.sin((1.4-state.greeting)*Math.PI/1.4):0;
-            const walk=this.npcWalking.get(node),moving=walk?.moving===true,facing=walk&&[3,4,5].includes(walk.direction)?-1:1;
-            const sprite=state.body.getComponent(Sprite),poses=this.art.npcPoses[state.row],directions=this.art.npcDirections[state.row],steps=this.art.npcWalkSteps[state.row];
+            if(Math.abs(node.position.x+camera.x)>width/2+150||Math.abs(node.position.y+camera.y)>height/2+150)continue;
+            const facing=walk&&(walk.direction===3||walk.direction===4||walk.direction===5)?-1:1;
+            const sprite=state.sprite,poses=this.art.npcPoses[state.row],directions=this.art.npcDirections[state.row],steps=this.art.npcWalkSteps[state.row];
             const directional=!!directions&&(moving||greeting===0);
-            const walkingFrames=moving&&steps&&Math.floor(state.time*4)%2===1?steps:directions;
-            if(sprite)sprite.spriteFrame=directional?walkingFrames[walk?.direction??6]:poses&&(moving||greeting>0)?poses[moving?Math.floor(state.time*6)%2:2]:state.idle;
-            state.body.getComponent(UITransform)!.setContentSize(directional?state.height*directions[0].rect.width/directions[0].rect.height:state.width,state.height);
-            state.body.setPosition(0,state.baseY+(moving?Math.abs(Math.sin(state.time*9))*2:Math.sin(state.time*1.8)*.65)+greeting*3);
-            state.body.setScale(state.scale*(directional?1:facing),state.scale*(1+Math.sin(state.time*1.8)*.006),1);
-            state.body.angle=(moving?Math.sin(state.time*9)*2:0)+greeting*Math.sin((1.4-state.greeting)*9)*3;
+            const walkingFrames=moving&&steps&&state.gait.stepFrame===1?steps:directions;
+            if(sprite&&state.body.name.startsWith('ExpansionSprite-'))sprite.spriteFrame=this.art.avatarFrame(Number(state.body.name.slice(16)),moving?1+state.gait.stepFrame:0,walk?.direction??6,1,node.name==='chu-hai'?2:1);
+            else if(sprite)sprite.spriteFrame=directional?walkingFrames[walk?.direction??6]:poses&&(moving||greeting>0)?poses[moving?state.gait.stepFrame:2]:state.idle;
+            state.transform.setContentSize(directional?state.height*directions[0].rect.width/directions[0].rect.height:state.width,state.height);
+            state.body.setPosition(state.gait.offsetX+state.gait.sway,state.baseY+state.gait.offsetY+state.gait.bob+Math.sin(state.time*1.8)*.65*(1-state.gait.weight)+greeting*3);
+            state.body.setScale(state.scale*(directional?1:facing),state.scale*(state.gait.stretch+Math.sin(state.time*1.8)*.004*(1-state.gait.weight)),1);
+            state.body.angle=state.gait.angle+greeting*Math.sin((1.4-state.greeting)*9)*3;
         }
     }
     private assetsReady=false;private sceneryNodes:Node[]=[];private npcDecorated=new Set<string>();private loadingLabel?:Label;private loadingPanel?:Node;
@@ -224,7 +235,7 @@ export class VillageBootstrap extends Component {
             for(const child of [...this.player.node.children])if(child!==this.arrow)child.destroy();
             const body=ui(this.player.node,'ActorBody');body.setScale(actorScale,actorScale,1);this.playerVisual=undefined;this.childSprite=this.art.sprite(body,'ChildSprite',this.art.child[6],90,110).getComponent(Sprite)!;this.accessoryGraphic=ui(body,'Scarf').addComponent(Graphics);this.gestureGraphic=ui(body,'Gesture').addComponent(Graphics);
             this.childSprite.node.setPosition(0,-7);
-            if(this.hub){this.hub.onGesture=id=>{if(this.networkStarted&&this.network.privateMode&&!this.network.offlineMode){this.network.emote(id);}else this.gesture.start(id);};this.network.onEmote=(sessionId,id)=>{if(!isAvatarGesture(id))return;const state=sessionId===this.network.room?.sessionId?this.gesture:this.remoteActors.get(sessionId)?.gesture;state?.start(id as AvatarGesture);};this.hub.onAvatarPreview=(parent,id,hair=this.hub?.campaign.data.hair??0)=>{const n=this.art.sprite(parent,'AvatarPreview',this.art.avatarFrame(id,0,6,hair),55,70);n.setPosition(-100,-35);void Promise.all([this.art.ensureAvatar(id),hair===1?this.art.ensureHair(id):Promise.resolve()]).then(()=>{if(n.isValid)n.getComponent(Sprite)!.spriteFrame=this.art.avatarFrame(id,0,6,hair);});};this.hub.applyServerProgress();}
+            if(this.hub){this.hub.onGesture=id=>{if(this.networkStarted&&this.network.privateMode&&!this.network.offlineMode){this.network.emote(id);}else this.gesture.start(id);};this.network.onEmote=(sessionId,id)=>{if(!isAvatarGesture(id))return;const state=sessionId===this.network.room?.sessionId?this.gesture:this.remoteActors.get(sessionId)?.gesture;state?.start(id as AvatarGesture);};this.hub.onAvatarPreview=(parent,id,hair=this.hub?.campaign.data.hair??0,skin=this.hub?.campaign.data.skin??0)=>{const n=this.art.sprite(parent,'AvatarPreview',this.art.avatarFrame(id,0,6,hair,skin),55,70);n.setPosition(-100,-35);void Promise.all([this.art.ensureAvatar(id),hair===1?this.art.ensureHair(id):Promise.resolve()]).then(()=>{if(n.isValid)n.getComponent(Sprite)!.spriteFrame=this.art.avatarFrame(id,0,6,hair,skin);});};this.hub.applyServerProgress();}
             this.farmer.node.getComponent(Graphics)!.clear();const farmerFrame=this.art.environment[6],farmerSprite=this.art.sprite(this.farmer.node,'FarmerSprite',farmerFrame,145*farmerFrame.rect.width/farmerFrame.rect.height,145);farmerSprite.setPosition(0,-5);farmerSprite.setScale(actorScale,actorScale,1);
             this.farmer.node.getChildByName('FarmerName')!.setPosition(0,104);this.npcHitHeight=110;
             this.registerNpcMotion(this.farmer.node,farmerSprite);
@@ -247,6 +258,8 @@ export class VillageBootstrap extends Component {
                 const ring=ui(node,'HarvestRing').addComponent(Graphics);ring.strokeColor=new Color(255,255,180);ring.lineWidth=3;ring.ellipse(0,2,23,12);ring.stroke();
                 label(node,'Thu hoạch',100,25,16).setPosition(0,80);node.active=this.learning.data.collected.indexOf(i)<0;this.bundleNodes.push(node);
             }
+            createExpansionScenery(this.actors,this.world);
+            for(const friend of expansionFriends){const node=this.hub?.npcNodes.find(n=>n.name===friend.id);if(!node)continue;node.getComponent(Graphics)!.clear();const height=friend.id.startsWith('be-')?100:130,body=this.art.sprite(node,'ExpansionSprite-'+friend.avatar,this.art.avatarFrame(friend.avatar,0,6,1,friend.id==='chu-hai'?2:1),height*.75,height);body.setScale(actorScale,actorScale,1);this.registerNpcMotion(node,body);}
             this.nameplates=new VillageNameplates(this.world,this.actors);
             if(this.hub){this.hud=new VillageHUD(this.root,mode=>this.hub?.open(mode),()=>this.interactNearest(),id=>{this.resetInput();this.player.cancel();this.hub?.onGesture?.(id);},()=>{this.desktopJoystick=!this.desktopJoystick;this.releaseStick();},()=>this.navigateQuest());this.header.active=false;this.networkBadge!.node.active=false;this.status.node.active=false;}
             this.assetsReady=true;if(this.loadingPanel)this.loadingPanel.active=false;
@@ -266,8 +279,9 @@ export class VillageBootstrap extends Component {
                                 else hub.campaign.data.activitiesDirty=true;
                                 activityJson=JSON.stringify(activitySnapshot(hub.campaign.data));hub.save.save();if(!value.id){hub.refreshActivities();uploadActivities();}
                             };
-                            this.network.onProgress=value=>{const cosmetics={activitiesDirty:hub.campaign.data.activitiesDirty,quality:hub.campaign.data.quality,sound:hub.campaign.data.sound,avatar:hub.campaign.data.avatar,accessory:hub.campaign.data.accessory,hair:hub.campaign.data.hair,practice:hub.campaign.data.practice,practiceResume:hub.campaign.data.practiceResume,explored:hub.campaign.data.explored,care:hub.campaign.data.care,painting:hub.campaign.data.painting,holidayProgress:hub.campaign.data.holidayProgress,festivalProgress:hub.campaign.data.festivalProgress,home:hub.campaign.data.home};if(!value||!first.progress.restore(JSON.stringify(value.first))||!hub.campaign.restore(JSON.stringify(value.campaign)))return;Object.assign(hub.campaign.data,cosmetics);first.save();this.chapter?.refreshWorld();hub.save.save();hub.applyServerProgress();};
+                            this.network.onProgress=value=>{const cosmetics={activitiesDirty:hub.campaign.data.activitiesDirty,quality:hub.campaign.data.quality,sound:hub.campaign.data.sound,avatar:hub.campaign.data.avatar,accessory:hub.campaign.data.accessory,hair:hub.campaign.data.hair,skin:hub.campaign.data.skin,expansion:hub.campaign.data.expansion,practice:hub.campaign.data.practice,practiceResume:hub.campaign.data.practiceResume,explored:hub.campaign.data.explored,care:hub.campaign.data.care,painting:hub.campaign.data.painting,holidayProgress:hub.campaign.data.holidayProgress,festivalProgress:hub.campaign.data.festivalProgress,home:hub.campaign.data.home};if(!value||!first.progress.restore(JSON.stringify(value.first))||!hub.campaign.restore(JSON.stringify(value.campaign)))return;Object.assign(hub.campaign.data,cosmetics);first.save();this.chapter?.refreshWorld();hub.save.save();hub.applyServerProgress();};
                             this.network.onGame=state=>hub.applyServerGame(state);
+                            this.network.onGameFeedback=(id,message)=>hub.applyGameFeedback(id,message);
                             first.progress.onIntent=v=>this.network.intent('story',v);
                             hub.onChapterIntro=index=>this.network.intent('chapter-intro',{index});hub.onClaim=index=>this.network.intent('claim-star',{index});
                             hub.onLessonAnswer=v=>this.network.intent('lesson-answer',v);hub.onGameStart=questId=>this.network.intent('start-game',{questId});
@@ -281,6 +295,7 @@ export class VillageBootstrap extends Component {
         }catch(error){if(this.loadingPanel)this.loadingPanel.active=false;this.statusRemaining=10;this.status.string='Chưa tải được hình. Nhờ người lớn mở lại giúp bé nhé!';console.warn('Village art:',error);}
     }
     private enableSolo():void{
+        this.network.onGameFeedback=undefined;
         if(sys.isBrowser){try{saveSoloSession(window.sessionStorage,this.profileScope.slice(1));}catch{}}
         const hub=this.hub,first=this.chapterSave;if(!hub||!first)return;
         first.progress.onIntent=undefined;hub.onChapterIntro=undefined;hub.onClaim=undefined;hub.onLessonAnswer=undefined;
@@ -354,7 +369,19 @@ export class VillageBootstrap extends Component {
             this.status.node.getComponent(UITransform)!.setContentSize(statusWidth, 80);
             this.joystick.setScale(uiScale, uiScale, 1); this.joystick.setPosition(-size.width / 2 + 95 * uiScale, -size.height / 2 + 95 * uiScale);
             const scale = Math.min(uiScale, (size.width - 24 * uiScale) / 620,(size.height-24*uiScale)/560); this.dialog.setScale(scale, scale, 1);
-            this.hub?.node.setScale(scale,scale,1);
+        }
+        // A puzzle can open without a viewport resize. Fit its responsive board immediately.
+        if(this.hub){
+            const uiScale=sys.isMobile?Math.max(1,1/pixelScale):1;
+            const cssWidth=game.canvas?.clientWidth||size.width,cssHeight=game.canvas?.clientHeight||size.height;
+            const cssScale=Math.max(size.width/cssWidth,size.height/cssHeight);
+            const compactViewport=cssWidth<700||cssHeight<500;
+            this.hub.configurePuzzleLayout(size.width>size.height);
+            const hubSize=this.hub.node.getComponent(UITransform)!;
+            const scale=this.hub.largePuzzle
+                ?Math.min((size.width-16*cssScale)/hubSize.width,(size.height-16*cssScale)/hubSize.height)
+                :Math.min(compactViewport?Infinity:uiScale,(size.width-24*cssScale)/620,(size.height-24*cssScale)/560);
+            if(this.hub.node.scale.x!==scale)this.hub.node.setScale(scale,scale,1);
         }
         for(const button of [this.questButton,this.journalButton,this.parentButton])if(button)button.active=!this.modalActive;
         this.zoomButtons.forEach(button=>button.active=!this.modalActive&&!this.loadingPanel?.active);
@@ -368,7 +395,7 @@ export class VillageBootstrap extends Component {
         this.player.step(dt);
         this.chapter?.step();
         this.hub?.step(dt);
-        if(this.hud&&this.hub){const scale=sys.isMobile?Math.max(1,1/pixelScale):1;this.hud.resize(size.width,size.height,scale);const data=this.hub.campaign.data;const chapterIndex=chapters.findIndex(c=>!data.receipts.includes('reward.star.'+c.id)),currentChapter=chapters[chapterIndex<0?chapters.length-1:chapterIndex];this.hud.step({stars:this.hub.campaign.stars,completed:data.completed.length,total:chapters.reduce((sum,c)=>sum+c.quests.length,0),practice:data.practice.length,objective:this.objective,chapterTitle:`Ch\u01b0\u01a1ng ${chapterIndex<0?8:chapterIndex+1} - ${currentChapter.title}`,quests:currentChapter.quests.map(q=>({title:q.title,done:data.completed.includes(q.id)})),avatar:this.art.avatarFrame(data.avatar,0,6,data.hair),player:this.player.position},!this.modalActive&&!this.loadingPanel?.active);
+        if(this.hud&&this.hub){const scale=sys.isMobile?Math.max(1,1/pixelScale):1;this.hud.resize(size.width,size.height,scale);const data=this.hub.campaign.data;const chapterIndex=chapters.findIndex(c=>!data.receipts.includes('reward.star.'+c.id)),currentChapter=chapters[chapterIndex<0?chapters.length-1:chapterIndex];this.hud.step({stars:this.hub.campaign.stars,completed:data.completed.length,total:chapters.reduce((sum,c)=>sum+c.quests.length,0),practice:data.practice.length,objective:this.objective,chapterTitle:`Ch\u01b0\u01a1ng ${chapterIndex<0?8:chapterIndex+1} - ${currentChapter.title}`,quests:currentChapter.quests.map(q=>({title:q.title,done:data.completed.includes(q.id)})),avatar:this.art.avatarFrame(data.avatar,0,6,data.hair,data.skin),player:this.player.position},!this.modalActive&&!this.loadingPanel?.active);
             this.header.active=false;this.networkBadge!.node.active=false;this.status.node.active=this.statusRemaining>0&&!this.modalActive;
             if(this.status.node.active){const portraitNotice=size.width/scale<600;this.status.node.setPosition(portraitNotice?-size.width/2+105*scale:((size.width/scale<900||size.height/scale<600)?50*scale:0),-size.height/2+(portraitNotice?210:115)*scale);this.status.node.getComponent(UITransform)!.setContentSize(portraitNotice?180:320,48);this.status.fontSize=14;this.status.lineHeight=20;}
             this.hud.skinControls();
@@ -393,9 +420,9 @@ export class VillageBootstrap extends Component {
         if(this.hud&&this.hub){const people=[{id:'farmer',position:this.farmer.node.position,friend:false},...(this.chapter?[{id:'elder',position:this.chapter.elder.position,friend:false}]:[]),...this.hub.npcNodes.map(n=>({id:n.name,position:n.position,friend:false})),...Array.from(this.network.players,([id,p])=>({id:'friend-'+id,position:p,friend:true}))];this.hud.updateMapPeople(people);}
         if(this.hub&&this.qualityStyle!==this.hub.campaign.data.quality){this.qualityStyle=this.hub.campaign.data.quality;const pipeline=director.root?.pipeline;if(pipeline)pipeline.shadingScale=this.qualityStyle==='low'?0.75:this.qualityStyle==='medium'?0.9:1;}
         this.playerVisual?.step(dt,this.player.moving,this.player.direction);
-        if(this.hub)void this.art.ensureAvatar(this.hub.campaign.data.avatar);if(this.hub?.campaign.data.hair===1)void this.art.ensureHair(this.hub.campaign.data.avatar);if(this.childSprite){this.spriteTime+=dt;const row=this.player.moving?1+(Math.floor(this.spriteTime*8)%2):0;this.childSprite.spriteFrame=this.art.avatarFrame(this.hub?.campaign.data.avatar??0,row,this.player.direction,this.hub?.campaign.data.hair??0);if(this.accessoryGraphic)drawAccessory(this.accessoryGraphic,this.hub?.campaign.data.accessory??0,this.player.direction,row);if(this.accessoryGraphic&&this.gestureGraphic)animateGesture(this.gesture,this.childSprite,this.accessoryGraphic,this.gestureGraphic,dt,this.player.moving);}
+        if(this.hub)void this.art.ensureAvatar(this.hub.campaign.data.avatar);if(this.hub?.campaign.data.hair===1)void this.art.ensureHair(this.hub.campaign.data.avatar);if(this.childSprite){this.spriteTime+=dt;const row=this.player.moving?1+(Math.floor(this.spriteTime*8)%2):0;this.childSprite.spriteFrame=this.art.avatarFrame(this.hub?.campaign.data.avatar??0,row,this.player.direction,this.hub?.campaign.data.hair??0,this.hub?.campaign.data.skin??0);if(this.accessoryGraphic)drawAccessory(this.accessoryGraphic,this.hub?.campaign.data.accessory??0,this.player.direction,row);if(this.accessoryGraphic&&this.gestureGraphic)animateGesture(this.gesture,this.childSprite,this.accessoryGraphic,this.gestureGraphic,dt,this.player.moving);}
         if(this.networkStarted){
-            this.network.update(dt,{...this.player.position,direction:this.player.direction,moving:this.player.moving,name:'',avatar:this.hub?.campaign.data.avatar??0,accessory:this.hub?.campaign.data.accessory??0,hair:this.hub?.campaign.data.hair??0});
+            this.network.update(dt,{...this.player.position,direction:this.player.direction,moving:this.player.moving,name:'',avatar:this.hub?.campaign.data.avatar??0,accessory:this.hub?.campaign.data.accessory??0,hair:this.hub?.campaign.data.hair??0,skin:this.hub?.campaign.data.skin??0});
             if(this.network.correction){this.player.cancel();this.player.position=this.network.correction;this.network.correction=null;this.pendingBundle=null;this.pendingNpc=false;this.chapter?.cancel();}
             this.updateRemoteActors(dt);
             const badge=this.network.visibleMessage||(this.network.room?`Làng online • ${this.network.players.size+1} bạn`:this.network.status);
@@ -410,7 +437,7 @@ export class VillageBootstrap extends Component {
         const cameraWidth = size.width / this.worldScale, cameraHeight = size.height / this.worldScale;
         // Reserve the top HUD area: put the player below center so nearby NPC heads stay visible.
         const hudScale=sys.isMobile?Math.max(1,1/pixelScale):1;
-        const focus=referenceCameraFocus(this.player.position,cameraWidth,cameraHeight,sys.isMobile||size.width<900||size.height<600,(sys.isMobile?160:45)*hudScale/this.worldScale);
+        const focus=referenceCameraFocus(this.player.position,cameraWidth,cameraHeight,sys.isMobile||size.width<900||size.height<600||tileAt(this.player.position).x>=36||tileAt(this.player.position).y>=36,(sys.isMobile?160:45)*hudScale/this.worldScale);
         if(this.player.moving)this.freeCameraOffset=undefined;
         const camera = cameraOffset(this.freeCameraOffset?{x:-this.freeCameraOffset.x,y:-this.freeCameraOffset.y}:focus, cameraWidth, cameraHeight); this.world.setPosition(camera.x * this.worldScale, camera.y * this.worldScale);
         this.animateNpcs(dt,camera,cameraWidth,cameraHeight);
@@ -457,7 +484,7 @@ export class VillageBootstrap extends Component {
         this.network.players.forEach((p,id)=>{void this.art.ensureAvatar(p.avatar??0);if(p.hair===1)void this.art.ensureHair(p.avatar??0);let actor=this.remoteActors.get(id);
             if(!actor){const node=ui(this.actors,`Online-${id}`);node.setPosition(p.x,p.y);const body=ui(node,'ActorBody');body.setScale(actorScale,actorScale,1);const sprite=this.art.sprite(body,'OnlineSprite',this.art.avatarFrame(p.avatar??0,0,6),90,110).getComponent(Sprite)!;const name=label(node,p.name,160,30,18);name.getComponent(Label)!.color=new Color(50,105,160);name.setPosition(0,85);const accessory=ui(body,'Scarf').addComponent(Graphics);const gestureGraphic=ui(body,'Gesture').addComponent(Graphics);actor={node,sprite,accessory,gesture:new AvatarGestureState(),gestureGraphic};this.remoteActors.set(id,actor);}
             const t=Math.min(1,dt*12);actor.node.setPosition(actor.node.position.x+(p.x-actor.node.position.x)*t,actor.node.position.y+(p.y-actor.node.position.y)*t);
-            actor.sprite.spriteFrame=this.art.avatarFrame(p.avatar??0,p.moving?1+(Math.floor(this.spriteTime*8)%2):0,p.direction,p.hair??0);drawAccessory(actor.accessory,p.accessory??0,p.direction,p.moving?1+(Math.floor(this.spriteTime*8)%2):0);animateGesture(actor.gesture,actor.sprite,actor.accessory,actor.gestureGraphic,dt,p.moving);
+            actor.sprite.spriteFrame=this.art.avatarFrame(p.avatar??0,p.moving?1+(Math.floor(this.spriteTime*8)%2):0,p.direction,p.hair??0,p.skin??0);drawAccessory(actor.accessory,p.accessory??0,p.direction,p.moving?1+(Math.floor(this.spriteTime*8)%2):0);animateGesture(actor.gesture,actor.sprite,actor.accessory,actor.gestureGraphic,dt,p.moving);
         });
     }
     private local(p: Point, node = this.root): Vec3 { return node.getComponent(UITransform)!.convertToNodeSpaceAR(new Vec3(p.x, p.y, 0)); }

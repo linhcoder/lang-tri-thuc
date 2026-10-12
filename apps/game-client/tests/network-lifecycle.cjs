@@ -17,3 +17,11 @@ test('three failed private joins enable explicit solo fallback without further r
  const network=new VillageNetwork();let fallback=0;sdk(network,()=>Promise.reject(Error('Fixture unavailable')));network.onOffline=()=>fallback++;
  for(let i=0;i<3;i++)await network.connect('fixture',options);assert.equal(fallback,1);assert.equal(network.offlineMode,true);assert.equal(network.retry,0);assert.equal(network.canSend,false);
 });
+test('game rejection feedback validates payload and ignores unready or stale rooms',async()=>{
+ const network=new VillageNetwork(),r=room(),received=[];sdk(network,()=>Promise.resolve(r));network.onGameFeedback=(id,message)=>received.push({id,message});await network.connect('fixture',options);
+ const feedback={id:'mg.fishing',message:'Try again'};r.handlers['game-feedback'](feedback);assert.deepEqual(received,[]);
+ r.handlers['content-version'](contentVersion());
+ for(const invalid of [null,{}, {...feedback,id:'mg.fake'},{...feedback,message:42},{...feedback,message:' '.repeat(10)},{...feedback,message:'x'.repeat(201)}])r.handlers['game-feedback'](invalid);
+ assert.deepEqual(received,[]);r.handlers['game-feedback'](feedback);assert.deepEqual(received,[feedback]);
+ network.offline();r.handlers['game-feedback'](feedback);assert.equal(received.length,1);
+});

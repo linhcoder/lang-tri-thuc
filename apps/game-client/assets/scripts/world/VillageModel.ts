@@ -1,10 +1,10 @@
 export interface Point { x: number; y: number }
 export type Terrain = 'grass' | 'road' | 'rice' | 'pond' | 'courtyard';
-export const SIZE = 40;
+export const SIZE = 48;
 export const farmerTile:Readonly<Point>={x:27,y:22};
 export const elderTile:Readonly<Point>={x:17,y:19};
 export const ricePlantingPlots:ReadonlyArray<Point>=[{x:26,y:18},{x:28,y:18},{x:30,y:18},{x:28,y:20},{x:32,y:17}];
-export const zoneSpawns={gate:{x:20,y:25},courtyard:{x:21,y:16},school:{x:4,y:29},farm:{x:29,y:21},market:{x:25,y:31},craft:{x:6,y:28},pond:{x:16,y:28},home:{x:29,y:15},banyan:{x:16,y:21},festival:{x:32,y:28}};
+export const zoneSpawns={gate:{x:20,y:25},courtyard:{x:21,y:16},school:{x:4,y:29},farm:{x:29,y:21},market:{x:25,y:31},craft:{x:6,y:28},pond:{x:16,y:28},home:{x:29,y:15},banyan:{x:16,y:21},festival:{x:32,y:28},seasons:{x:40,y:16},riverside:{x:20,y:40},playground:{x:40,y:33}};
 export interface NpcSpawn {id:string;name:string;x:number;y:number;chapter:number;color:[number,number,number]}
 export const storyNpcs:NpcSpawn[]=[
     {id:'ti-na',name:'Tí và Na',x:22,y:13,chapter:1,color:[230,129,80]},
@@ -13,6 +13,13 @@ export const storyNpcs:NpcSpawn[]=[
     {id:'nghe-nhan-gom',name:'Nghệ Nhân Gốm',x:7,y:28,chapter:4,color:[173,129,82]},
     {id:'co-tam',name:'Cô Tấm',x:27,y:15,chapter:5,color:[98,171,132]},
     {id:'chi-hang-cuoi',name:'Chị Hằng • Chú Cuội',x:33,y:28,chapter:6,color:[141,135,213]},
+    {id:'anh-nam',name:'Anh Nam',x:39,y:14,chapter:-1,color:[108,158,83]},
+    {id:'chi-mai',name:'Chị Mai',x:42,y:17,chapter:-1,color:[165,135,193]},
+    {id:'chu-hai',name:'Chú Hải',x:21,y:40,chapter:-1,color:[84,145,192]},
+    {id:'co-lan-song',name:'Cô Lan',x:22,y:42,chapter:-1,color:[220,158,82]},
+    {id:'be-minh',name:'Bé Minh',x:39,y:32,chapter:-1,color:[108,158,83]},
+    {id:'be-an',name:'Bé An',x:42,y:34,chapter:-1,color:[165,135,193]},
+
 ];
 export const villageObjects = [
     {id:'dinh',frame:0,x:19,y:13,width:350,height:210,radius:1},
@@ -52,6 +59,9 @@ export function toWorld(p: Point): Point { return { x: (p.x - p.y) * 32, y: -(p.
 export function toGrid(p: Point): Point { return { x: p.x / 64 - p.y / 32, y: -p.x / 64 - p.y / 32 }; }
 export function tileAt(p: Point): Point { const g = toGrid(p); return { x: Math.round(g.x), y: Math.round(g.y) }; }
 export function terrain(x: number, y: number): Terrain {
+    if (x >= 12 && x <= 19 && y >= 39 && y <= 44) return 'pond';
+    if (x >= 38 && x <= 44 && y >= 31 && y <= 36) return 'courtyard';
+    if (y === 16 && x >= 34 || x === 40 && y >= 16 && y <= 33 || y === 36 && x >= 20 && x <= 40 || x === 20 && y >= 30 && y <= 40) return 'road';
     if (x >= 1 && x <= 5 && y >= 20 && y <= 26) return 'pond';
     if (x >= 11 && x <= 15 && y >= 24 && y <= 30 || x >= 5 && x <= 11 && y >= 24 && y <= 26) return 'pond';
     if (x >= 5 && x <= 13 && y >= 6 && y <= 14) return 'rice';
@@ -134,5 +144,5 @@ export function inputAxis(keys: ReadonlySet<number>): Point {
 export function direction8(p: Point): number { return (Math.round(Math.atan2(p.y, p.x) / (Math.PI / 4)) + 8) % 8; }
 export function cameraOffset(p: Point, width: number, height: number): Point {
     const clamp = (v: number, min: number, max: number) => min > max ? (min + max) / 2 : Math.max(min, Math.min(max, v));
-    return { x: -clamp(p.x, -1280 + width / 2, 1280 - width / 2), y: -clamp(p.y, -1280 + height / 2, -height / 2) };
+    return { x: -clamp(p.x, -SIZE*32 + width / 2, SIZE*32 - width / 2), y: -clamp(p.y, -SIZE*32 + height / 2, -height / 2) };
 }

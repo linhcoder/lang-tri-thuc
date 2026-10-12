@@ -13,4 +13,4 @@ const server=http.createServer((req,res)=>{
         fs.createReadStream(file).pipe(res);
     });
 });
-server.listen(port,host,()=>console.log(`Game web: http://${host}:${port}/?server=http://${host}:2567`));
+server.listen(port,host,()=>console.log(`Game web: http://${host}:${port}/?server=${process.env.VITE_SERVER_URL||`http://${host}:2567`}`));

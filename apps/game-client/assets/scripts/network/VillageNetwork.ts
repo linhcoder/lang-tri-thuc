@@ -3,15 +3,17 @@ import { resources, TextAsset } from 'cc';
 import {avatarGestures} from '../world/AvatarGestures';
 import { Point } from '../world/VillageModel';
 import { MiniGameRules } from '../world/MiniGameRules';
+import {miniGameIds} from '../world/CampaignContent';
 import {contentVersion} from '../world/ContentVersion';
 import {PatrolPose} from '../world/NpcPatrol';
-export interface NetworkPlayer extends Point {direction:number;moving:boolean;name:string;avatar?:number;accessory?:number;hair?:number}
+export interface NetworkPlayer extends Point {direction:number;moving:boolean;name:string;avatar?:number;accessory?:number;hair?:number;skin?:number}
 export class VillageNetwork {
     room:Room<any>|null=null;status='Chơi một mình';players=new Map<string,NetworkPlayer>();
     npcs=new Map<string,PatrolPose>();
     private disposed=false;private elapsed=0;private seq=0;private retry=0;private endpoint='';private paused=false;private contentReady=false;
     correction:Point|null=null;
     onProgress?:(value:any)=>void;onGame?:(game:MiniGameRules)=>void;
+    onGameFeedback?:(id:string,message:string)=>void;
     onActivities?:(value:any)=>void;
     onEmote?:(sessionId:string,id:string)=>void;
     onOffline?:()=>void;
@@ -33,7 +35,7 @@ export class VillageNetwork {
             if(this.disposed||!this.wantOnline){await room.leave();return;}this.room=room;this.paused=false;this.retry=0;this.status='Đã vào làng online';
             const snapshot=()=>{
                 if(this.room!==room)return;
-                this.players.clear();room.state.players?.forEach((p:NetworkPlayer,id:string)=>{if(id!==room.sessionId&&!this.blocked.has(id))this.players.set(id,{x:p.x,y:p.y,direction:p.direction,moving:p.moving,name:p.name,avatar:p.avatar??0,accessory:p.accessory??0,hair:p.hair??0});});
+                this.players.clear();room.state.players?.forEach((p:NetworkPlayer,id:string)=>{if(id!==room.sessionId&&!this.blocked.has(id))this.players.set(id,{x:p.x,y:p.y,direction:p.direction,moving:p.moving,name:p.name,avatar:p.avatar??0,accessory:p.accessory??0,hair:p.hair??0,skin:p.skin??0});});
                 this.npcs.clear();room.state.npcs?.forEach((p:PatrolPose,id:string)=>{if([p.x,p.y,p.direction].every(Number.isFinite))this.npcs.set(id,{id,x:p.x,y:p.y,direction:p.direction,moving:p.moving});});
                 if(this.privateMode&&room.state.gameJson&&this.gameSnapshot!==room.state.gameJson){this.gameSnapshot=room.state.gameJson;try{const raw=JSON.parse(this.gameSnapshot),game=MiniGameRules.restore(raw);if(raw.paused)game.pause();this.onGame?.(game);}catch{this.status='Chưa đọc được trạng thái trò chơi online';}}
             };
@@ -43,6 +45,7 @@ export class VillageNetwork {
                 room.onMessage('content-version',version=>{if(this.room!==room)return;if(version===contentVersion())this.contentReady=true;else{this.offline();this.lastMessage='Nội dung khác phiên bản. Mời người lớn tải lại game trước khi vào phòng.';this.status='Cần cập nhật game';}});
                 room.onMessage('progress-state',v=>{if(this.room===room)this.onProgress?.(v);});room.onMessage('storage-warning',v=>{this.lastMessage=String(v).slice(0,150);});
                 room.onMessage('activities-state',v=>{if(this.room===room)this.onActivities?.(v);});
+                room.onMessage('game-feedback',v=>{if(this.room===room&&this.contentReady&&v&&typeof v.id==='string'&&(miniGameIds as readonly string[]).includes(v.id)&&typeof v.message==='string'&&v.message.trim().length>0&&v.message.length<=200)this.onGameFeedback?.(v.id,v.message);});
                 room.onMessage('emote',v=>{const labels:Record<string,string>={...Object.fromEntries(avatarGestures.map(g=>[g.id,g.message])),happy:'M\u00ecnh vui qu\u00e1!',hello:'Chào bạn!',thanks:'Cảm ơn!', 'your-turn':'Đến lượt bạn!', 'need-help':'Mình cần giúp',bye:'Tạm biệt!'};if(this.room===room&&v&&typeof v.sessionId==='string'&&labels[v.id]&&!this.blocked.has(v.sessionId)){this.onEmote?.(v.sessionId,v.id);this.lastMessage=(this.players.get(v.sessionId)?.name??'Bạn')+': '+labels[v.id];}});
                 room.onMessage('blocked',v=>{if(typeof v.sessionId==='string'){this.blocked.add(v.sessionId);this.players.delete(v.sessionId);}});room.onMessage('report-sent',()=>{this.lastMessage='Đã gửi báo cáo tới người lớn phụ trách.';});room.send('ready');
             }
@@ -63,7 +66,7 @@ export class VillageNetwork {
         if(this.disposed)return;this.messageTime=Math.max(0,this.messageTime-dt);
         if(!this.room){if(this.retry>0){this.retry-=dt;if(this.retry<=0)void this.connect(this.endpoint);}return;}
         if(!this.canSend)return;
-        this.elapsed+=dt;if(this.elapsed>=0.05||this.pending.length){this.elapsed=0;try{this.room.send('move',{x:p.x,y:p.y,direction:p.direction,moving:p.moving,avatar:p.avatar??0,accessory:p.accessory??0,hair:p.hair??0,seq:this.seq++});for(const event of this.pending.splice(0))this.room.send(event.type,event.data);}catch{this.paused=true;this.status='Kết nối đang gián đoạn';}}
+        this.elapsed+=dt;if(this.elapsed>=0.05||this.pending.length){this.elapsed=0;try{this.room.send('move',{x:p.x,y:p.y,direction:p.direction,moving:p.moving,avatar:p.avatar??0,accessory:p.accessory??0,hair:p.hair??0,skin:p.skin??0,seq:this.seq++});for(const event of this.pending.splice(0))this.room.send(event.type,event.data);}catch{this.paused=true;this.status='Kết nối đang gián đoạn';}}
     }
     intent(type:string,data:unknown):boolean{if(!this.privateMode||!this.canSend||this.pending.length>=8)return false;this.pending.push({type,data});return true;}
     emote(id:string):boolean{return this.intent('emote',{id});}

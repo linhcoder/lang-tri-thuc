@@ -53,12 +53,12 @@ test('traditional festival save retains only known bounded steps without grantin
     const engine=new CampaignEngine();assert.ok(engine.restore(JSON.stringify({...engine.data,holidayProgress:{tet:3}})));assert.equal(engine.stars,0);assert.equal(engine.data.holidayProgress.tet,3);assert.ok(traditionalFestivals.every(h=>miniGameIds.includes(h.game)&&h.choices.length===2));
 });
 
-test('six short NPC lanes protect mission plots/portals and patrol pauses near players',()=>{
-    const {NpcPatrol}=load(path.join(scripts,'world/NpcPatrol.ts')),routes=m.npcPatrolRoutes(),patrol=new NpcPatrol();assert.equal(routes.length,6);assert.ok(routes.every(r=>r.points.length>=2&&r.points.length<=3));
+test('twelve short NPC lanes protect mission plots/portals and patrol pauses near players',()=>{
+    const {NpcPatrol}=load(path.join(scripts,'world/NpcPatrol.ts')),routes=m.npcPatrolRoutes(),patrol=new NpcPatrol();assert.equal(routes.length,12);assert.ok(routes.every(r=>r.points.length>=2&&r.points.length<=3));
     const ids=new Set();for(const route of routes)for(const [i,p] of route.points.entries()){assert.ok(!ids.has(p.x+':'+p.y));ids.add(p.x+':'+p.y);assert.equal(map.walkable(p.x,p.y),i>0);assert.equal(map.walkableForNpc(p.x,p.y,route.id),true);if(i)assert.equal(Math.abs(p.x-route.points[i-1].x)+Math.abs(p.y-route.points[i-1].y),1);}
     const movingMap=new m.VillageMap(),lane=routes[0].points;movingMap.npcPositions=[m.toWorld(lane[1])];assert.equal(movingMap.walkable(lane[0].x,lane[0].y),true);assert.equal(movingMap.canStand(m.toWorld(lane[1])),false);assert.equal(movingMap.walkable(lane[2].x,lane[2].y),true);
     for(const p of [...plantingPlots,...Object.values(m.zoneSpawns)])assert.ok(map.walkable(p.x,p.y));
-    const initial=Array.from(patrol.poses.values(),p=>({x:p.x,y:p.y})),moved=new Set();for(let i=0;i<200;i++){patrol.step(.05,[]);Array.from(patrol.poses.values()).forEach((p,j)=>{if(Math.hypot(p.x-initial[j].x,p.y-initial[j].y)>1)moved.add(p.id);});}assert.equal(moved.size,6);
+    const initial=Array.from(patrol.poses.values(),p=>({x:p.x,y:p.y})),moved=new Set();for(let i=0;i<200;i++){patrol.step(.05,[]);Array.from(patrol.poses.values()).forEach((p,j)=>{if(Math.hypot(p.x-initial[j].x,p.y-initial[j].y)>1)moved.add(p.id);});}assert.equal(moved.size,12);
     const npc=patrol.poses.get('ti-na'),held={x:npc.x,y:npc.y};for(let i=0;i<40;i++)patrol.step(.05,[held]);assert.equal(npc.moving,false);assert.equal(npc.x,held.x);assert.equal(npc.y,held.y);
     for(let i=0;i<1000;i++){patrol.step(.05,[]);for(const [id,p] of patrol.poses){const tile=m.tileAt(p);assert.ok(routes.find(r=>r.id===id).points.some(t=>t.x===tile.x&&t.y===tile.y));}}
     const raw={x:npc.x,y:npc.y};patrol.step(NaN,[]);assert.equal(npc.x,raw.x);assert.equal(npc.y,raw.y);
@@ -110,7 +110,7 @@ test('1600 tile round-trips and fractional coordinates', () => {
 });
 test('all terrain categories and blocked pond/NPC/bounds', () => {
     const types = new Set(); for(let y=0;y<40;y++) for(let x=0;x<40;x++) types.add(m.terrain(x,y)); assert.equal(types.size,5);
-    for (const p of [{x:2,y:21},map.npc,{x:-1,y:2},{x:40,y:2}]) assert.equal(map.walkable(p.x,p.y),false);
+    for (const p of [{x:2,y:21},map.npc,{x:-1,y:2},{x:m.SIZE,y:2}]) assert.equal(map.walkable(p.x,p.y),false);
 });
 function bfs(start,goal) {
     const queue=[{...start,d:0}], seen=new Set([`${start.x},${start.y}`]);
@@ -127,6 +127,11 @@ test('A* shortest paths match independent BFS for 60 routes', () => {
     const sealed = new m.VillageMap(); sealed.walkable=(x,y)=> (x===0&&y===0)||(x===2&&y===2); assert.deepEqual(sealed.path({x:0,y:0},{x:2,y:2}),[]);
 });
 function player(start) { const p=new PlayerController(); p.map=map; p.node={setPosition(){}}; p.position=m.toWorld(start); return p; }
+test('walking to a map marker replans around a newly occupied NPC tile and manual input cancels the goal',()=>{
+ const p=player({x:20,y:23});p.map=new m.VillageMap();assert.equal(p.goTo({x:26,y:23}),true);p.map.npcPositions=[m.toWorld({x:22,y:23})];
+ for(let i=0;i<1200&&p.hasPath;i++){p.step(1/60);assert.ok(p.map.canStand(p.position));}assert.equal(p.hasPath,false);assert.ok(Math.hypot(p.position.x-m.toWorld({x:26,y:23}).x,p.position.y-m.toWorld({x:26,y:23}).y)<.01);
+ assert.equal(p.goTo({x:20,y:23}),true);p.axis={x:1,y:0};p.step(1/60);assert.equal(p.hasPath,false);
+});
 test('controller follows route around pond with collision at every step', () => {
     const p=player({x:0,y:21}); assert.equal(p.goTo({x:6,y:23}),true);
     for(let i=0;i<3000;i++) { p.step(1/60); assert.ok(map.canStand(p.position)); }
@@ -147,7 +152,7 @@ test('keyboard aliases, opposite keys, diagonal normalization and 8 directions',
     for(let i=0;i<8;i++) assert.equal(m.direction8({x:Math.cos(i*Math.PI/4),y:Math.sin(i*Math.PI/4)}),i);
 });
 test('camera rectangular limits and oversized viewport',()=> {
-    assert.deepEqual(m.cameraOffset({x:9000,y:-9000},1280,720),{x:-640,y:920});
+    assert.deepEqual(m.cameraOffset({x:9000,y:-9000},1280,720),{x:-896,y:1176});
     const p=m.cameraOffset({x:0,y:0},4000,2000); assert.ok(Number.isFinite(p.x)&&Number.isFinite(p.y));
 });
 test('touch ownership, drag filtering, cancel and keyboard dialogue reset',()=> {
@@ -315,13 +320,68 @@ test('twelve distinct minigames complete solo, validate actions and restore dete
         else if(id==='mg.market'){for(let i=0;i<3;i++)for(let n=0;n<g.data.wants[i];n++)g.action('add',i);assert.equal(g.action('pay',0),false);g.action('pay',2);}
         else if(id==='mg.star-lantern'){for(let i=0;i<5;i++){g.action('part',i);assert.equal(g.action('place',(i+1)%5),false);g.action('place',i);}}
         else if(id==='mg.banh-chung'){for(let i=0;i<6;i++)g.action('layer',i);}
-        else if(id==='mg.dong-ho'){for(const index of puzzleScramble(17).reverse){if(g.ended)break;g.action('tile',index);}}
+        else if(id==='mg.dong-ho'){for(const index of g.data.tray){g.action('part',index);g.action('place',index);}}
         else if(id==='mg.fishing'){for(let step=0;step<300&&!g.ended;step++){g.advance(.1);for(let i=0;i<3;i++)if(g.data.caught<0&&!g.data.observed.includes(i)&&Math.abs(g.fishX(i))<70){g.action('fish',i);g.action('color',i);}}}
         else if(id==='mg.secret-letters'){while(!g.ended)g.action('letter',g.data.grid.indexOf(g.data.word[g.data.step]));}
         else if(id==='mg.animal-care'){for(const i of [1,0,2])g.action('care',i);}
         else if(id==='mg.village-maze'){for(const next of mazePath(0)){const offset=next-g.data.cursor;g.action('move',[-5,1,5,-1].indexOf(offset));}}
         assert.equal(g.ended,true,id);verifyGame(g);assert.equal(g.action('plant',0),false);
     }
+});
+test('minigames remain playable and replayable beyond one active hour',()=>{
+    const longGame=id=>MiniGameRules.restore({...new MiniGameRules(id).save(),clock:3599.95});
+    const fish=longGame('mg.fishing'),before=fish.fishX(0);fish.advance(10);
+    assert.ok(fish.clock>3600&&fish.clock<3600.06);assert.notEqual(fish.fishX(0),before);
+    for(let step=0;step<300&&!fish.ended;step++){fish.advance(.1);for(let i=0;i<3;i++)if(fish.data.caught<0&&!fish.data.observed.includes(i)&&Math.abs(fish.fishX(i))<70){assert.ok(fish.action('fish',i));assert.ok(fish.action('color',i));}}
+    assert.ok(fish.ended);assert.equal(fish.data.observed.length,3);verifyGame(fish);
+    for(const id of ['mg.tug-of-war','mg.bamboo-dance']){
+        const game=longGame(id);game.pause();game.advance(.1);assert.equal(game.clock,3599.95);game.resume();
+        for(let step=0;step<150&&!game.ended;step++){game.advance(.1);if(game.rhythmOpen&&game.action('beat',0)&&!game.ended)assert.equal(game.action('beat',0),false);}
+        assert.ok(game.clock>3600,id);assert.equal(game.data.hits,6,id);assert.ok(game.ended,id);verifyGame(game);
+    }
+});
+test('minigame clocks reject unsafe numbers and keep action traces bounded',()=>{
+    const game=new MiniGameRules('mg.tug-of-war'),save=game.save();
+    for(const clock of [NaN,Infinity,-Infinity,-1,Number.MAX_VALUE,Number.MAX_SAFE_INTEGER])assert.throws(()=>MiniGameRules.restore({...save,clock}));
+    for(const at of [NaN,Infinity,Number.MAX_VALUE])assert.throws(()=>MiniGameRules.restore({...save,clock:3601,actions:[{type:'beat',index:0,at}]}));
+    assert.throws(()=>MiniGameRules.restore({...save,actions:Array(2001).fill({type:'beat',index:0,at:0})}));
+    for(const dt of [NaN,Infinity,-1,0])game.advance(dt);assert.equal(game.clock,0);
+    game.clock=Number.MAX_VALUE;game.advance(.1);assert.equal(game.clock,Number.MAX_VALUE);
+    game.clock=3601;game.advance(Number.MIN_VALUE);assert.equal(game.clock,3601);
+});
+test('picture matching uses age-sized pieces and validates replay, wrong slots and duplicate placements',()=>{
+    for(const [age,count,rows,cols] of [['3-5',4,2,2],['6-8',6,2,3],['9-11',9,3,3]]){
+        const game=new MiniGameRules('mg.dong-ho',age,17);
+        assert.equal(game.data.pictureMode,'matching');assert.equal(game.data.tray.length,count);
+        assert.equal(game.data.pictureRows,rows);assert.equal(game.data.pictureCols,cols);
+        assert.deepEqual([...game.data.tray].sort((a,b)=>a-b),Array.from({length:count},(_,i)=>i));
+        assert.deepEqual(game.data.tray,new MiniGameRules('mg.dong-ho',age,17).data.tray);
+        assert.equal(game.action('tile',0),false);assert.equal(game.action('place',0),false);
+        assert.equal(game.action('part',-1),false);assert.equal(game.action('part',count),false);
+        game.action('part',0);assert.equal(game.action('place',1),false);assert.equal(game.data.selected,0);
+        game.action('place',0);assert.equal(game.action('part',0),false);assert.equal(game.action('place',0),false);
+        let restored=MiniGameRules.restore(game.save());assert.equal(restored.save().variant,'picture-match-v1');assert.deepEqual(restored.data,game.data);
+        for(const piece of game.data.tray.filter(i=>i!==0)){restored.action('part',piece);restored=MiniGameRules.restore(restored.save());restored.action('place',piece);}
+        assert.equal(restored.ended,true);assert.equal(MiniGameRules.restore(restored.save()).ended,true);
+        assert.equal(restored.action('place',0),false);assert.equal(new MiniGameRules('mg.dong-ho',age).data.placed.length,0);
+        assert.throws(()=>MiniGameRules.restore({...game.save(),variant:'unknown'}));
+        assert.throws(()=>MiniGameRules.restore({...game.save(),actions:[{type:'place',index:0,at:0}]}));
+    }
+    assert.throws(()=>MiniGameRules.restore({...new MiniGameRules('mg.market').save(),variant:'picture-match-v1'}));
+});
+test('legacy sliding saves validate their trace before migration and keep completed results',()=>{
+    const legacy={version:1,id:'mg.dong-ho',age:'3-5',seed:17,clock:0,actions:[]};
+    const path=puzzleScramble(17).reverse;
+    const partial={...legacy,actions:[{type:'tile',index:path[0],at:0}]};
+    const migrated=MiniGameRules.restore(partial);assert.equal(migrated.data.pictureMode,'matching');assert.deepEqual(migrated.data.placed,[]);
+    assert.equal(migrated.save().variant,'picture-match-v1');assert.deepEqual(migrated.save().actions,[]);assert.ok(migrated.feedback);
+    assert.throws(()=>MiniGameRules.restore({...legacy,actions:[{type:'part',index:0,at:0}]}));
+    assert.throws(()=>MiniGameRules.restore({...legacy,actions:[{type:'tile',index:99,at:0}]}));
+    const tiles=puzzleScramble(17).tiles;const actions=[];
+    for(const index of path){const blank=tiles.indexOf(8);[tiles[index],tiles[blank]]=[tiles[blank],tiles[index]];actions.push({type:'tile',index,at:0});if(tiles.every((n,i)=>n===i))break;}
+    const completed=MiniGameRules.restore({...legacy,actions});assert.equal(completed.ended,true);assert.equal(completed.save().variant,undefined);
+    assert.equal(MiniGameRules.restore(completed.save()).ended,true);
+    assert.throws(()=>MiniGameRules.restore({...legacy,actions:[...actions,{type:'tile',index:0,at:0}]}));
 });
 test('pause freezes time, invalid saved actions cannot forge results, NPC tiles remain reachable',()=>{
     const g=new MiniGameRules('mg.tug-of-war');g.pause();g.advance(10);assert.equal(g.clock,0);assert.equal(g.action('beat',0),false);g.resume();g.advance(.1);assert.ok(g.clock>0);
@@ -435,7 +495,7 @@ test('lesson packs validate atomically, reject draft release and keep original q
  assert.equal(applyLessonPack({version:1,lessons:[]}),true);
 });
 test('hair and practice save migration reject forged types while retaining unique game badges',()=>{
- for(const hair of [undefined,null,-1,2,'1',true]){const e=new CampaignEngine();assert.equal(e.restore(JSON.stringify({...e.data,hair,practice:['fake','mg.market','mg.market']})),true);assert.equal(e.data.hair,0);assert.deepEqual(e.data.practice,['mg.market']);}
+ for(const hair of [undefined,null,-1,3,'1',true]){const e=new CampaignEngine();assert.equal(e.restore(JSON.stringify({...e.data,hair,practice:['fake','mg.market','mg.market']})),true);assert.equal(e.data.hair,0);assert.deepEqual(e.data.practice,['mg.market']);}
  const e=new CampaignEngine();e.restore(JSON.stringify({...e.data,hair:1}));assert.equal(e.data.hair,1);
 });
 test('NPC packs keep graph IDs, validate reachable spawns and roll back the entire invalid pack',()=>{

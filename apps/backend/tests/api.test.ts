@@ -36,7 +36,7 @@ test('lesson administration validates answers, protects roles, resets review and
         let exported=(await req('GET','/admin/content-export',undefined,token)).json();assert.equal(exported.lessons[0].reviewRecord.status,'approved');
         assert.equal((await req('PUT',url,{...body,question:{...row.question,prompt:'New fixture prompt'}},token)).statusCode,200);
         exported=(await req('GET','/admin/content-export',undefined,token)).json();assert.equal(exported.lessons[0].reviewRecord.status,'draft');assert.equal(exported.lessons[0].question.prompt,'New fixture prompt');
-        const catalog=(await req('GET','/admin/catalog',undefined,token)).json();assert.equal(catalog.games.length,12);assert.equal(catalog.zones.length,10);assert.equal(catalog.npcs.length,6);
+        const catalog=(await req('GET','/admin/catalog',undefined,token)).json();assert.equal(catalog.games.length,12);assert.equal(catalog.zones.length,13);assert.equal(catalog.npcs.length,12);
         assert.equal(catalog.assets.length,24);
         const npc=catalog.npcs[0],npcUrl='/admin/catalog/npc/'+npc.id;
         assert.equal((await req('PUT',npcUrl,{value:{...npc,x:2,y:21},note:body.note},token)).statusCode,400);

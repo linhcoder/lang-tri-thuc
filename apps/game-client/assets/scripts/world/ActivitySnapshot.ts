@@ -1,5 +1,5 @@
 import {CampaignData,CampaignEngine} from './CampaignEngine';
-const keys=['practice','practiceResume','explored','care','painting','holidayProgress','festivalProgress'] as const;
+const keys=['practice','practiceResume','explored','care','painting','holidayProgress','festivalProgress','expansion'] as const;
 export type ActivitySnapshot=Pick<CampaignData,typeof keys[number]>;
 export function activitySnapshot(data:CampaignData):ActivitySnapshot{return Object.fromEntries(keys.map(key=>[key,data[key]])) as ActivitySnapshot;}
 export function restoreActivities(raw:unknown):ActivitySnapshot{
@@ -11,6 +11,7 @@ export function restoreActivities(raw:unknown):ActivitySnapshot{
 /** Completion is cumulative; drawings and checkpoints follow the last uploaded snapshot. */
 export function mergeActivities(remote:ActivitySnapshot,local:ActivitySnapshot):ActivitySnapshot{
     const result=restoreActivities(local);
+    result.expansion=Array.from(new Set([...(remote.expansion??[]),...(result.expansion??[])]));
     result.practice=Array.from(new Set([...remote.practice,...result.practice]));
     result.explored=Array.from(new Set([...(remote.explored??[]),...(result.explored??[])]));
     result.care={...remote.care,...result.care};

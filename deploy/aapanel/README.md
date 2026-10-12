@@ -4,7 +4,7 @@ Triển khai riêng dưới `/opt/lang-tri-thuc`, dùng Nginx/Node 24/MariaDB hi
 
 ## Bố trí
 
-- Release đang chạy: `/opt/lang-tri-thuc/releases/3d986c8-lunar-ops-e48dccf3-20261011`, source commit `3d986c8`, contentVersion `e48dccf3`. Bản trước `/opt/lang-tri-thuc/releases/72a3a50-no-logo-e48dccf3-20261011` giữ để rollback. Symlink `/opt/lang-tri-thuc/current`; RELEASE.txt ghi nguồn bản phát hành.
+- Release đang chạy: `/opt/lang-tri-thuc/releases/68f79b9-worktree-minigame-6f44a0a8-20261012`, source baseline `68f79b9` kèm working tree chưa commit, contentVersion `6f44a0a8` (rules 7). Bản trước `/opt/lang-tri-thuc/releases/4fe699c-npc-walk-e48dccf3-20261012` giữ để rollback. Symlink `/opt/lang-tri-thuc/current`; RELEASE.txt ghi nguồn bản phát hành.
 - Admin: `https://ltt.vui-hoc.xyz/`; game: `/game/`; API: `/api/`; Colyseus: `/colyseus/`.
 - Hai systemd service `lang-tri-thuc-api`, `lang-tri-thuc-rooms`, user `langtri`.
 - Cổng chỉ bind `127.0.0.1:33080` và `127.0.0.1:32580`; `ALLOW_DEV_ROOMS=0` tắt room development kể cả loopback. `/api/internal/` bị chặn từ Nginx.
@@ -13,6 +13,18 @@ Triển khai riêng dưới `/opt/lang-tri-thuc`, dùng Nginx/Node 24/MariaDB hi
 - aaPanel giữ cấu hình chính/certificate và đường dẫn `/.well-known/` cũ; extension riêng `.../vhost/nginx/extension/ltt.vui-hoc.xyz/lang-tri-thuc.conf`.
 
 ## Build và cập nhật
+
+Bản mini game ngày 12/10 đã triển khai: build `minigame-complete-v3`, rules 7 / contentVersion `6f44a0a8`. Baseline HTTPS/API trước deploy trả `e48dccf3`; sau activate trả `6f44a0a8`, MySQL và hai services active. SHA-256 archive local/remote khớp, backup/restore drill khớp state, API/rooms build Linux và nginx -t đạt. Giữ release NPC trước để rollback.
+
+Đóng gói tên riêng để giữ archive các bản trước:
+
+```powershell
+python tools/prepare-release.py --build minigame-complete-v3 --archive minigame-6f44a0a8-20261012.tar.gz
+```
+
+Metadata/SHA-256 ở `temp/deploy/minigame-6f44a0a8-20261012.json`. Gói chứa source working tree (bao gồm thay đổi chưa commit), Web đã build và admin dùng URL staging. Release mới cần cập nhật cả API/rooms/Web vì rules đã đổi; giữ DB và secrets hiện có.
+
+QA live: `verify-api.cjs` đạt quyền truy cập/admin/catalog; `verify-web.cjs` đạt parent UI, hai client signed WebSocket/avatar/hair/emote, MySQL save/reload và offline. `test:art` trên HTTPS đạt 12 bảng desktop/mobile giả lập và điều khiển trực tiếp. `verify-minigames.cjs` dùng tài khoản tạm, tiến độ chương 1 thật và bài học chương 2 hợp lệ để kiểm tra phản hồi từ chối riêng cho người thao tác, trace/progress giữ nguyên, thao tác đúng lưu và khôi phục sau reload. Các tài khoản QA được xóa ở finally; browser errors rỗng. Ca di chuyển đầu timeout do tab không ở trước; QA bổ sung `bringToFront()` và chạy lại đạt, không thay mã runtime. Báo cáo ở `temp/deploy/qa/`.
 
 `prepare.py` dành cho lần triển khai đầu và cố ý từ chối database đã có. Nó sao lưu site trước khi tạo DB, sinh secret riêng và không in mật khẩu. Không chạy lại để reset tài khoản. Node path trong unit/install hiện khớp bản aaPanel đã kiểm tra, cần cập nhật nếu aaPanel gỡ Node đó.
 
@@ -53,6 +65,8 @@ Script update chỉ chuẩn bị release mới. Script activate kiểm tra healt
 QA live ngày 11/10/2026 đạt HTTPS/admin/catalog, chặn UI anonymous/internal API/room không có vé, parent UI, signed WebSocket hai client, ngoại hình/cử chỉ, lưu tiến trình và reload online/offline. Tranh vẽ desktop được lưu trên MySQL và khôi phục ở browser mobile cùng hồ sơ trong phòng riêng khác; không mở trùng một hồ sơ trong cùng phòng. Browser errors rỗng. Báo cáo local ignored tại `temp/deploy/qa/api-report.json` và `report.json`.
 
 ## Deploy art — 11/10/2026
+
+Đợt ghép tranh ngày 12/10 dùng overlay được tạo bằng `tools/prepare-release-delta.py`. Script `update-overlay.sh BASE RELEASE ARCHIVE SHA256` yêu cầu base đúng release hiện chạy, kiểm tra SHA, sao chép sang thư mục mới rồi build API/rooms; không activate trong bước chuẩn bị. Dùng `activate-release.py RELEASE CONTENT_VERSION` sau khi chuẩn bị đạt. Giữ release trước để rollback; backup/restore drill trước mỗi lần cập nhật.
 
 Đã activate release art sau khi kiểm tra SHA-256 delta, backup/restore drill khớp state, build backend/rooms trên Linux và nginx -t đạt. Delta được áp dụng vào bản sao release completion; không sửa thư mục đang phục vụ trong lúc chuẩn bị. Hai services active, health MySQL cùng contentVersion e48dccf3. Các file static cũ giữ trong bản sao release nhưng index/manifest dùng bundle art mới.
 

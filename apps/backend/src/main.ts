@@ -1,4 +1,4 @@
-import Fastify,{FastifyRequest} from 'fastify';
+import Fastify,{FastifyRequest,FastifyError} from 'fastify';
 import cors from '@fastify/cors';
 import {randomBytes,randomUUID,createHmac,timingSafeEqual} from 'node:crypto';
 import {pathToFileURL} from 'node:url';
@@ -38,6 +38,47 @@ export async function createApi(options:ApiOptions={}){
     const roomSecret=options.roomSecret||process.env.ROOM_SECRET;if(!roomSecret||roomSecret.length<32)throw Error('ROOM_SECRET must have at least 32 characters');
     try{await store.transaction(()=>{});}catch(error){await store.close();throw error;}
     const app=Fastify({bodyLimit:65536,logger:false});await app.register(cors,{origin:options.origin||(process.env.ALLOWED_ORIGINS?.split(',')??['http://127.0.0.1:5173','http://localhost:5173','http://127.0.0.1:8080']),methods:['GET','POST','PUT','DELETE'],allowedHeaders:['Content-Type','Authorization']});
+    const apiPaths:Record<string,Record<string,unknown>>={};
+    app.addHook('onRoute',route=>{
+        if(route.url.startsWith('/internal/'))return;
+        const path=route.url.replace(/:([^/]+)/g,'{$1}');
+        for(const method of Array.isArray(route.method)?route.method:[route.method]){
+            if(method==='HEAD')continue;
+            const publicRoute=['/health','/ready'].includes(route.url)||method==='POST'&&['/parents','/sessions'].includes(route.url);
+            const operation:Record<string,unknown>={summary:method+' '+route.url,tags:[route.url.startsWith('/admin/')?'Quản trị':'Phụ huynh'],security:publicRoute?[]:[{bearerAuth:[]}],responses:{'200':{description:'Thành công'},'400':{description:'Dữ liệu không hợp lệ'},'401':{description:'Cần đăng nhập'},'403':{description:'Không có quyền'},'404':{description:'Không tìm thấy'},'409':{description:'Xung đột dữ liệu'},'429':{description:'Thử lại sau'}}};
+            if(method==='POST'&&['/profiles','/parents','/feedback'].includes(route.url)){const responses=operation.responses as Record<string,unknown>;delete responses['200'];responses['201']={description:'Đã tạo'};}
+            if(route.schema?.body)operation.requestBody={required:true,content:{'application/json':{schema:route.schema.body}}};
+            const params=[...route.url.matchAll(/:([^/]+)/g)].map(m=>({name:m[1],in:'path',required:true,schema:{type:'string'}}));if(params.length)operation.parameters=params;
+            (apiPaths[path]??={})[method.toLowerCase()]=operation;
+        }
+    });
+    const errors:Record<string,[string,string]>={
+        'Invalid credentials':['INVALID_CREDENTIALS','Bí danh hoặc mật khẩu chưa đúng.'],
+        'Unauthorized':['UNAUTHORIZED','Phiên đăng nhập hết hạn hoặc bạn chưa có quyền truy cập.'],
+        'Alias unavailable':['ALIAS_UNAVAILABLE','Bí danh đã được sử dụng. Hãy chọn bí danh khác.'],
+        'Profile limit':['PROFILE_LIMIT','Mỗi tài khoản có tối đa 8 hồ sơ.'],
+        'Not found':['NOT_FOUND','Không tìm thấy dữ liệu hoặc bạn không có quyền truy cập.'],
+        'Revision conflict':['REVISION_CONFLICT','Tiến độ đã thay đổi. Tải lại dữ liệu trước khi lưu.'],
+        'Review before approval':['REVIEW_REQUIRED','Cần kiểm tra nội dung trước khi duyệt.'],
+        'Invitation expired':['INVITATION_EXPIRED','Mã mời đã hết hạn. Nhờ chủ phòng gửi mã mới.'],
+        'Room unavailable':['ROOM_UNAVAILABLE','Phòng đã đóng hoặc khóa. Nhờ chủ phòng kiểm tra lại.'],
+        'Room access denied':['ROOM_ACCESS_DENIED','Chưa có quyền vào phòng hoặc phòng đã hết hạn.'],
+        'Invalid profile label':['INVALID_PROFILE_LABEL','Nhập tên hồ sơ từ 1 đến 40 ký tự.'],
+        'Feedback too short':['INVALID_FEEDBACK','Mô tả góp ý ít nhất 12 ký tự.'],
+        'Feedback rate limit':['RATE_LIMITED','Bạn đã gửi nhiều góp ý liên tiếp. Đợi một phút rồi gửi tiếp.'],
+        'Feedback limit':['FEEDBACK_LIMIT','Đã đạt giới hạn góp ý. Rút lại các góp ý không còn cần thiết trước khi gửi mới.'],
+        'Invalid progress':['INVALID_PROGRESS','Bản lưu tiến độ không hợp lệ. Tải lại tiến độ trước khi lưu.'],
+        'Invalid lesson':['INVALID_LESSON','Kiểm tra câu hỏi, lựa chọn và đáp án. Mã bài học phải giữ nguyên.'],
+        'Unknown lesson':['NOT_FOUND','Không tìm thấy bài học. Tải lại danh sách.'],
+        'Invalid chapter text':['INVALID_CHAPTER','Kiểm tra nội dung chương và mã nhiệm vụ trước khi lưu.'],
+        'Invalid or unreachable NPC spawn':['INVALID_NPC_POSITION','Vị trí NPC nằm ngoài khu hợp lệ hoặc không có đường đi tới.'],
+        'Unknown NPC':['NOT_FOUND','Không tìm thấy nhân vật. Tải lại danh sách.'],
+        'Invalid asset metadata':['INVALID_ASSET','Nhập tên tài nguyên, nguồn và quyền sử dụng hợp lệ.'],
+        'Unknown catalog record':['NOT_FOUND','Không tìm thấy mục danh mục. Tải lại danh sách.'],
+        'Unknown catalog type':['INVALID_CATALOG_TYPE','Loại danh mục chưa được hỗ trợ.'],
+        'Too many requests':['RATE_LIMITED','Bạn thao tác quá nhanh. Hãy đợi một phút rồi thử lại.']
+    };
+    app.setErrorHandler<FastifyError>((error,req,reply)=>{const status=error.statusCode??(reply.statusCode>=400?reply.statusCode:500),known=errors[error.message],code=error.validation?'VALIDATION_ERROR':known?.[0]??(status>=500?'SERVER_ERROR':'REQUEST_FAILED');reply.code(status).send({statusCode:status,code,message:error.validation?'Kiểm tra các trường nhập và độ dài nội dung.':known?.[1]??(status>=500?'Máy chủ chưa xử lý được. Hãy thử lại sau.':error.message),requestId:req.id,...(error.validation?{fields:error.validation.map(v=>v.instancePath||v.params.missingProperty||'body')}: {})});});
     const rates=new Map<string,{count:number;time:number}>();
     app.addHook('preHandler',async(req,reply)=>{const signature=req.headers['x-service-signature'];if(req.url.startsWith('/internal/')&&typeof signature==='string'){const expected=createHmac('sha256',roomSecret).update(JSON.stringify(req.body)).digest('hex'),a=Buffer.from(signature),b=Buffer.from(expected);if(a.length===b.length&&timingSafeEqual(a,b))return;}const now=Date.now(),key=req.ip,r=rates.get(key);if(!r||now-r.time>60000)rates.set(key,{count:1,time:now});else if(++r.count>120){reply.code(429);throw Error('Too many requests');}if(rates.size>2000)for(const [id,r] of rates)if(now-r.time>60000)rates.delete(id);});
     app.addHook('onClose',async()=>store.close());
@@ -47,6 +88,22 @@ export async function createApi(options:ApiOptions={}){
     });
     const owned=(d:BackendData,parentId:string,id:string)=>{const p=d.profiles[id];if(!p||p.parentId!==parentId)throw Object.assign(Error('Not found'),{statusCode:404});return p;};
     app.get('/health',async()=>({ok:true,storage:store.kind??'custom',prototype:true,contentVersion:contentVersion()}));
+    app.get('/ready',async()=>{await store.transaction(()=>{});return {ok:true,storage:store.kind??'custom',contentVersion:contentVersion()};});
+    app.get('/me',async req=>{const p=await auth(req);return {id:p.id,alias:p.alias,role:p.role};});
+    app.get('/feedback',async req=>{const p=await auth(req);return store.transaction(d=>d.feedback.filter(f=>f.parentId===p.id).slice().reverse());});
+    app.get('/feedback/options',async req=>{await auth(req);return {games:miniGameRegistry.map(({id,title})=>({id,title}))};});
+    app.post<{Body:{category:'bug'|'difficulty'|'idea';gameId:string;message:string}}>('/feedback',{schema:{body:object({category:{type:'string',enum:['bug','difficulty','idea']},gameId:{type:'string',enum:['',...miniGameRegistry.map(g=>g.id)]},message:{type:'string',minLength:12,maxLength:1000}})}},async(req,reply)=>{const p=await auth(req);const result=await store.transaction(d=>{const message=req.body.message.trim();if(message.length<12)throw Object.assign(Error('Feedback too short'),{statusCode:400});if(d.feedback.filter(f=>f.parentId===p.id&&f.created>Date.now()-60000).length>=3)throw Object.assign(Error('Feedback rate limit'),{statusCode:429});if(d.feedback.filter(f=>f.parentId===p.id).length>=100||d.feedback.length>=10000)throw Object.assign(Error('Feedback limit'),{statusCode:409});const f={id:randomUUID(),parentId:p.id,...req.body,message,created:Date.now(),status:'open' as const,note:''};d.feedback.push(f);return f;});return reply.code(201).send(result);});
+    app.delete<{Params:{id:string}}>('/feedback/:id',async req=>{const p=await auth(req);return store.transaction(d=>{const index=d.feedback.findIndex(f=>f.id===req.params.id&&f.parentId===p.id);if(index<0)throw Object.assign(Error('Not found'),{statusCode:404});d.feedback.splice(index,1);return {ok:true};});});
+    app.get('/admin/feedback',async req=>{await auth(req,true);return store.transaction(d=>d.feedback.slice().reverse());});
+    app.put<{Params:{id:string};Body:{status:'open'|'planned'|'resolved';note:string}}>('/admin/feedback/:id',{schema:{body:object({status:{type:'string',enum:['open','planned','resolved']},note:{type:'string',maxLength:500}})}},async req=>{const p=await auth(req,true);return store.transaction(d=>{const f=d.feedback.find(f=>f.id===req.params.id);if(!f)throw Object.assign(Error('Not found'),{statusCode:404});f.status=req.body.status;f.note=req.body.note.trim();d.audit.push({actor:p.id,action:'feedback.'+f.status,entity:f.id,created:Date.now()});return f;});});
+    app.get('/rooms',async req=>{const p=await auth(req);return store.transaction(d=>Object.entries(d.rooms).filter(([,r])=>r.allowedParents.includes(p.id)&&r.expires>Date.now()).map(([code,r])=>({code,owner:r.ownerId===p.id,locked:r.locked,expires:r.expires,parentCount:r.allowedParents.length})));});
+    app.get('/admin/overview',async req=>{await auth(req,true);return store.transaction(d=>{
+        const keys=[...chapters.map(c=>c.id),...shippedLessons().map(r=>'lesson:'+r.key),...npcCatalog().map(r=>'npc:'+r.id),...assetCatalog().map(r=>'asset:'+r.id)];
+        const review={draft:0,reviewed:0,approved:0};for(const key of keys)review[d.review[key]?.status??'draft']++;
+        return {contentVersion:contentVersion(),storage:store.kind??'custom',parents:Object.values(d.parents).filter(p=>p.role==='parent').length,profiles:Object.keys(d.profiles).length,activeRooms:Object.values(d.rooms).filter(r=>r.expires>Date.now()).length,openReports:d.reports.filter(r=>r.status==='open').length,openFeedback:d.feedback.filter(f=>f.status!=='resolved').length,review,chapters:chapters.length,lessons:shippedLessons().length,npcs:npcCatalog().length,assets:assetCatalog().length,recentAudit:d.audit.slice(-8).reverse()};
+    });});
+    app.get('/admin/api-docs',async req=>{await auth(req,true);return {openapi:'3.0.3',info:{title:'Làng Tri Thức API',version:'1.1.0',description:'API phụ huynh và quản trị. Dùng đường dẫn tương đối từ API_URL; endpoint internal chỉ dành cho game server.'},servers:[{url:'/api'}],components:{securitySchemes:{bearerAuth:{type:'http',scheme:'bearer'}}},paths:apiPaths};});
+    app.put<{Params:{id:string};Body:{label:string}}>('/profiles/:id',{schema:{body:object({label:{type:'string',minLength:1,maxLength:40}})}},async req=>{const p=await auth(req);return store.transaction(d=>{const profile=owned(d,p.id,req.params.id),label=req.body.label.trim();if(!label)throw Object.assign(Error('Invalid profile label'),{statusCode:400});profile.label=label;return profile;});});
     app.post<{Body:{alias:string;password:string}}>('/parents',{schema:{body:object({alias:{type:'string',minLength:3,maxLength:40,pattern:'^[a-zA-Z0-9_-]+$'},password:{type:'string',minLength:12,maxLength:128}})}},async(req,reply)=>{
         const parent=await store.transaction(d=>{if(req.body.alias.toLowerCase()==='admin'||Object.values(d.parents).some(p=>p.alias===req.body.alias))throw Object.assign(Error('Alias unavailable'),{statusCode:409});const id=randomUUID(),p={id,alias:req.body.alias,passwordHash:passwordHash(req.body.password),role:'parent' as const};d.parents[id]=p;return {id,alias:p.alias};});return reply.code(201).send(parent);
     });
@@ -62,8 +119,8 @@ export async function createApi(options:ApiOptions={}){
         // Local progress is a backup, not an authoritative online reward claim.
         const result={...existing,revision:existing.revision+1,data:engine.data,receipts:existing.receipts};d.progress[req.params.id]=result;return result;});});
     app.delete<{Params:{id:string}}>('/profiles/:id',async req=>{const p=await auth(req);return store.transaction(d=>{owned(d,p.id,req.params.id);delete d.profiles[req.params.id];delete d.progress[req.params.id];d.results=d.results.filter(id=>!id.startsWith(req.params.id+':'));for(const profile of Object.values(d.profiles))profile.blocked=profile.blocked.filter(id=>id!==req.params.id);d.reports=d.reports.filter(r=>r.reporter!==req.params.id&&r.target!==req.params.id);return {ok:true};});});
-    app.get('/export',async req=>{const p=await auth(req);return store.transaction(d=>{const profiles=Object.values(d.profiles).filter(c=>c.parentId===p.id);return {parent:{id:p.id,alias:p.alias},profiles,progress:Object.fromEntries(profiles.map(c=>[c.id,d.progress[c.id]??null]))};});});
-    app.delete('/parents/me',async req=>{const p=await auth(req);return store.transaction(d=>{const ids=Object.values(d.profiles).filter(c=>c.parentId===p.id).map(c=>c.id);for(const id of ids){delete d.profiles[id];delete d.progress[id];}d.reports=d.reports.filter(r=>!ids.includes(r.reporter)&&!ids.includes(r.target));d.results=d.results.filter(result=>!ids.some(id=>result.startsWith(id+':')));for(const child of Object.values(d.profiles))child.blocked=child.blocked.filter(id=>!ids.includes(id));for(const [code,room] of Object.entries(d.rooms)){room.allowedParents=room.allowedParents.filter(id=>id!==p.id);if(room.ownerId===p.id){delete d.rooms[code];for(const [key,invite] of Object.entries(d.invitations))if(invite.roomCode===code)delete d.invitations[key];}}for(const [k,s] of Object.entries(d.sessions))if(s.parentId===p.id)delete d.sessions[k];delete d.parents[p.id];return {ok:true};});});
+    app.get('/export',async req=>{const p=await auth(req);return store.transaction(d=>{const profiles=Object.values(d.profiles).filter(c=>c.parentId===p.id);return {parent:{id:p.id,alias:p.alias},profiles,feedback:d.feedback.filter(f=>f.parentId===p.id),progress:Object.fromEntries(profiles.map(c=>[c.id,d.progress[c.id]??null]))};});});
+    app.delete('/parents/me',async req=>{const p=await auth(req);return store.transaction(d=>{const ids=Object.values(d.profiles).filter(c=>c.parentId===p.id).map(c=>c.id);for(const id of ids){delete d.profiles[id];delete d.progress[id];}d.reports=d.reports.filter(r=>!ids.includes(r.reporter)&&!ids.includes(r.target));d.feedback=d.feedback.filter(f=>f.parentId!==p.id);d.results=d.results.filter(result=>!ids.some(id=>result.startsWith(id+':')));for(const child of Object.values(d.profiles))child.blocked=child.blocked.filter(id=>!ids.includes(id));for(const [code,room] of Object.entries(d.rooms)){room.allowedParents=room.allowedParents.filter(id=>id!==p.id);if(room.ownerId===p.id){delete d.rooms[code];for(const [key,invite] of Object.entries(d.invitations))if(invite.roomCode===code)delete d.invitations[key];}}for(const [k,s] of Object.entries(d.sessions))if(s.parentId===p.id)delete d.sessions[k];delete d.parents[p.id];return {ok:true};});});
     app.post<{Body:{profileId:string;roomCode?:string;invitation?:string}}>('/invites',{schema:{body:object({profileId:str,roomCode:{type:'string',pattern:'^[A-Z0-9]{8}$'},invitation:{type:'string',minLength:20,maxLength:100}},['profileId'])}},async req=>{const p=await auth(req);return store.transaction(d=>{
         const profile=owned(d,p.id,req.body.profileId);let roomCode=req.body.roomCode,friendInvitation:string|undefined;
         if(req.body.invitation){const invite=d.invitations[digest(req.body.invitation)];if(!invite||invite.expires<Date.now()||invite.remaining<=0)throw Object.assign(Error('Invitation expired'),{statusCode:403});roomCode=invite.roomCode;const room=d.rooms[roomCode];if(!room||room.locked)throw Object.assign(Error('Room unavailable'),{statusCode:403});if(!room.allowedParents.includes(p.id)){room.allowedParents.push(p.id);invite.remaining--;}}

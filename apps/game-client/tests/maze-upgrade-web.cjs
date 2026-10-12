@@ -1,0 +1,30 @@
+const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),{chromium}=require('playwright');
+const target=process.env.GAME_WEB_URL||'http://127.0.0.1:8100/';
+const access=process.env.GAME_HTTP_AUTH_FILE?fs.readFileSync(process.env.GAME_HTTP_AUTH_FILE,'utf8'):'';
+const credentials=access?{httpCredentials:{username:'staging',password:/^Preview password: (.+)$/m.exec(access)?.[1],origin:new URL(target).origin}}:{};
+const output=path.resolve(__dirname,'../temp/maze-upgrade-qa');fs.mkdirSync(output,{recursive:true});
+(async()=>{const browser=await chromium.launch({executablePath:require('../../../tools/browser-path.cjs')(),headless:true,args:['--enable-webgl','--use-angle=d3d11']});const errors=[];
+const completed=[...fs.readFileSync(path.resolve(__dirname,'../assets/scripts/world/CampaignContent.ts'),'utf8').matchAll(/quest\('([^']+)'/g)].map(x=>x[1]);
+try{for(const mode of ['desktop','mobile','landscape']){const mobile=mode!=='desktop';
+ const context=await browser.newContext({...credentials,viewport:mode==='landscape'?{width:844,height:390}:mobile?{width:390,height:844}:{width:1280,height:720},isMobile:mobile,hasTouch:mobile}),page=await context.newPage();page.on('pageerror',e=>errors.push(String(e)));
+ await context.addInitScript(()=>{localStorage.setItem('lang-tri-thuc.chapter-one.v2',JSON.stringify({version:2,introSeen:true,greeted:true,accepted:true,planted:[0,1,2,3,4],countRound:3,rewardReceipts:['reward.star.ch01'],replayRound:null,legacyDemoBadge:false}));});
+ await page.goto(target);await page.waitForFunction(()=>!!window.System);await page.evaluate(async()=>window.cc=await System.import('cc'));
+ await page.waitForFunction(()=>cc.director.getScene()?.getChildByName('Canvas')?.getComponent('VillageBootstrap')?.assetsReady,undefined,{timeout:90000});
+ await page.evaluate(completed=>{window.b=cc.director.getScene().getChildByName('Canvas').getComponent('VillageBootstrap');b.chapter.close();const h=b.hub;h.campaign.data.completed=completed;h.campaign.data.introduced=Array.from({length:8},(_,i)=>'ch0'+(i+1));h.campaign.data.receipts=Array.from({length:8},(_,i)=>'reward.star.ch0'+(i+1));h.open('activities');for(let i=0;i<3&&!h.buttons.some(x=>x.node.name==='Practice-mg.village-maze');i++)h.buttons.find(x=>x.node.name==='ActivityPage')?.action();h.buttons.find(x=>x.node.name==='Practice-mg.village-maze').action();h.persist();},completed);
+ const bounds=await page.evaluate(()=>{const board=b.hub.gameBoard.node,t=board.getComponent(cc.UITransform),c=cc.game.canvas,r=c.getBoundingClientRect(),camera=b.node.getComponent(cc.Canvas).cameraComponent;
+  const points=[[-t.width/2,-t.height/2],[t.width/2,t.height/2]].map(([x,y])=>camera.worldToScreen(t.convertToWorldSpaceAR(new cc.Vec3(x,y))));return {x:r.left+points[0].x/c.width*r.width,y:r.top+(c.height-points[1].y)/c.height*r.height,w:(points[1].x-points[0].x)/c.width*r.width,h:(points[1].y-points[0].y)/c.height*r.height};});
+ const viewport=page.viewportSize();assert.ok(bounds.x>=0&&bounds.y>=0&&bounds.x+bounds.w<=viewport.width+1&&bounds.y+bounds.h<=viewport.height+1,'Entire enlarged maze fits viewport');
+ const tap=async(cell)=>{const p=await page.evaluate(cell=>{const board=b.hub.gameBoard.node,c=cc.game.canvas,r=c.getBoundingClientRect(),s=b.node.getComponent(cc.Canvas).cameraComponent.worldToScreen(board.getComponent(cc.UITransform).convertToWorldSpaceAR(new cc.Vec3((cell%5-2)*50,(2-Math.floor(cell/5))*46)));return {x:r.left+s.x/c.width*r.width,y:r.top+(c.height-s.y)/c.height*r.height};},cell);if(mobile)await page.touchscreen.tap(p.x,p.y);else await page.mouse.click(p.x,p.y);};
+ await tap(5);await tap(24);assert.equal(await page.evaluate(()=>b.hub.game.data.cursor),0,'Wall and remote cells cannot move player');
+ assert.deepEqual(await page.evaluate(()=>[NaN,Infinity,-Infinity].map(x=>b.hub.gameBoard.actionAt(b.hub.game,x,0)??null)),[null,null,null]);
+ await page.evaluate(()=>b.hub.game.pause());await tap(1);assert.equal(await page.evaluate(()=>b.hub.game.data.cursor),0,'Paused maze ignores taps');await page.evaluate(()=>b.hub.game.resume());
+ await page.evaluate(()=>{window.forwarded=[];window.oldAction=b.hub.onGameAction;b.hub.practice=false;b.hub.onGameAction=(type,index)=>forwarded.push({type,index});});
+ await tap(1);assert.deepEqual(await page.evaluate(()=>forwarded),[{type:'move',index:1}]);assert.equal(await page.evaluate(()=>b.hub.game.data.cursor),0,'Network tap waits for server');await page.evaluate(()=>{b.hub.practice=true;b.hub.onGameAction=oldAction;});
+ await page.screenshot({path:path.join(output,mode+'-maze.png')});
+ for(const cell of [1,6]){await tap(cell);assert.equal(await page.evaluate(()=>b.hub.game.data.cursor),cell);}
+ await page.reload();await page.waitForFunction(()=>!!window.System);await page.evaluate(async()=>window.cc=await System.import('cc'));await page.waitForFunction(()=>cc.director.getScene()?.getChildByName('Canvas')?.getComponent('VillageBootstrap')?.assetsReady,undefined,{timeout:90000});
+ await page.evaluate(()=>{window.b=cc.director.getScene().getChildByName('Canvas').getComponent('VillageBootstrap');b.chapter.close();const h=b.hub;h.open('activities');for(let i=0;i<3&&!h.buttons.some(x=>x.node.name==='Practice-mg.village-maze');i++)h.buttons.find(x=>x.node.name==='ActivityPage')?.action();h.buttons.find(x=>x.node.name==='Practice-mg.village-maze').action();});
+ assert.equal(await page.evaluate(()=>b.hub.game.data.cursor),6,'Reload resumes maze position');assert.equal(await page.evaluate(()=>b.hub.campaign.stars),8,'Practice preserves story receipts');
+ for(const cell of [11,12,13,18,19,24]){await tap(cell);assert.equal(await page.evaluate(()=>b.hub.game.data.cursor),cell,'Reachable tile tap advances one step');}
+ assert.equal(await page.evaluate(()=>b.hub.game.ended),true);await context.close();
+}assert.deepEqual(errors,[]);console.log('Maze upgrade: desktop/mobile bounds, wall/remote/paused/nonfinite guards, server forwarding and complete tap path passed.');}finally{await browser.close();}})().catch(e=>{console.error(e);process.exitCode=1;});

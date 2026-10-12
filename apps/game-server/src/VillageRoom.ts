@@ -3,17 +3,18 @@ import { schema, t } from '@colyseus/schema';
 import { Point, toWorld, VillageMap } from '../../game-client/assets/scripts/world/VillageModel.js';
 import {NpcPatrol} from '../../game-client/assets/scripts/world/NpcPatrol.js';
 
-export class PlayerState extends schema({x:t.number().default(0),y:t.number().default(-640),direction:t.uint8().default(6),moving:t.boolean().default(false),name:t.string().default(''),avatar:t.uint8().default(0),accessory:t.uint8().default(0),hair:t.uint8().default(0)}) {}
+export class PlayerState extends schema({x:t.number().default(0),y:t.number().default(-640),direction:t.uint8().default(6),moving:t.boolean().default(false),name:t.string().default(''),avatar:t.uint8().default(0),accessory:t.uint8().default(0),hair:t.uint8().default(0),skin:t.uint8().default(0)}) {}
 export class NpcState extends schema({x:t.number().default(0),y:t.number().default(0),direction:t.uint8().default(6),moving:t.boolean().default(false)}) {}
 export class VillageState extends schema({players:t.map(PlayerState),npcs:t.map(NpcState),gameJson:t.string().default(''),gameQuest:t.string().default('')}) {}
-export interface MovePacket extends Point { direction:number; moving:boolean; seq:number; avatar?:number; accessory?:number; hair?:number }
+export interface MovePacket extends Point { direction:number; moving:boolean; seq:number; avatar?:number; accessory?:number; hair?:number; skin?:number }
 export function validMove(map:VillageMap, from:Point, packet:unknown, budget:number): packet is MovePacket {
     if (!packet || typeof packet !== 'object') return false;
     const p = packet as MovePacket;
     if (![p.x,p.y,p.direction,p.seq].every(Number.isFinite) || !Number.isInteger(p.direction) || p.direction<0 || p.direction>7 || !Number.isSafeInteger(p.seq) || p.seq<0 || typeof p.moving!=='boolean') return false;
-    if(p.hair!==undefined&&p.hair!==0&&p.hair!==1)return false;
+    if(p.hair!==undefined&&(!Number.isInteger(p.hair)||p.hair<0||p.hair>2))return false;
     if(p.accessory!==undefined&&(!Number.isInteger(p.accessory)||p.accessory<0||p.accessory>3))return false;
-    if(p.avatar!==undefined&&(!Number.isInteger(p.avatar)||p.avatar<0||p.avatar>3))return false;
+    if(p.avatar!==undefined&&(!Number.isInteger(p.avatar)||p.avatar<0||p.avatar>5))return false;
+    if(p.skin!==undefined&&(!Number.isInteger(p.skin)||p.skin<0||p.skin>2))return false;
     const distance=Math.hypot(p.x-from.x,p.y-from.y);
     if(distance>budget+0.01 || !map.canStand(p))return false;
     const steps=Math.max(1,Math.ceil(distance/2));
@@ -38,6 +39,7 @@ export class VillageRoom extends Room<{state:VillageState}> {
             if(p.avatar!==undefined)player.avatar=p.avatar;
             if(p.accessory!==undefined)player.accessory=p.accessory;
             if(p.hair!==undefined)player.hair=p.hair;
+            if(p.skin!==undefined)player.skin=p.skin;
         });
     }
     onJoin(client:Client):void {

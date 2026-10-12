@@ -1,5 +1,6 @@
 import { Node, UITransform, Sprite, SpriteFrame, Texture2D, Rect, resources, ImageAsset } from 'cc';
-import { terrain,toWorld,villageDetails } from './VillageModel';
+import {paintCharacter} from './CharacterArt';
+import { terrain,toWorld,villageDetails,SIZE } from './VillageModel';
 import { paintGround,paintMeadow } from './GroundPaths';
 import {paintWaterAndShadows} from './WaterGround';
 import {assetResourceKey,sceneryAssets} from './VisualAssets';
@@ -95,7 +96,14 @@ export class VillageArt {
             else if(error)console.warn('Hair asset unavailable; keeping original hairstyle');resolve();
         }));this.hairLoads.set(id,task);return task;
     }
-    avatarFrame(id:number,row:number,direction:number,hair=0):SpriteFrame{return (hair===1&&this.hairVariants[id]||this.avatarVariants[id]||this.child)[row*8+direction];}
+    private drawnCharacters=new Map<string,SpriteFrame[]>();
+    avatarFrame(id:number,row:number,direction:number,hair=0,skin=0):SpriteFrame{
+        if((id>=4||skin>0||hair===2)&&typeof document!=='undefined'){
+            const key=id+':'+hair+':'+skin;let frames=this.drawnCharacters.get(key);
+            if(!frames){const canvas=document.createElement('canvas');canvas.width=384;canvas.height=192;const c=canvas.getContext('2d');if(c){for(let r=0;r<3;r++)for(let d=0;d<8;d++){c.save();c.translate(d*48,r*64);c.scale(.5,.5);paintCharacter(c,id,r,d,hair,skin);c.restore();}const image=new ImageAsset(canvas),texture=new Texture2D();texture.image=image;this.generatedTextures.push(texture);frames=this.slice(texture,8,3);this.drawnCharacters.set(key,frames);}}
+            if(frames)return frames[row*8+direction];
+        }
+        return (hair===1&&this.hairVariants[id]||this.avatarVariants[id]||this.child)[row*8+direction];}
     sprite(parent:Node,name:string,frame:SpriteFrame,width:number,height:number):Node {
         const node=new Node(name);node.layer=parent.layer;parent.addChild(node);
         const transform=node.addComponent(UITransform);transform.setContentSize(width,height);transform.setAnchorPoint(0.5,0);
@@ -106,7 +114,7 @@ export class VillageArt {
     private bakeTerrain():void {
         if(typeof document==='undefined'||!this.tiles?.image)return;
 
-        const chunks:Array<{x:number;y:number}>=[];for(let y=0;y<40;y+=8)for(let x=0;x<40;x+=8)chunks.push({x,y});
+        const chunks:Array<{x:number;y:number}>=[];for(let y=0;y<SIZE;y+=8)for(let x=0;x<SIZE;x+=8)chunks.push({x,y});
         // Both atlas pages stay below 2048px. Each cell includes a one-pixel painted sampling border.
         for(let start=0;start<chunks.length;start+=21){
             const page=chunks.slice(start,start+21),cols=page.length===4?2:3;
@@ -132,5 +140,5 @@ export class VillageArt {
         const image=new ImageAsset(canvas),texture=new Texture2D();texture.image=image;this.generatedTextures.push(texture);const frame=new SpriteFrame();frame.texture=texture;frame.rect=new Rect(0,0,canvas.width,canvas.height);this.environment.push(frame);
         const node=this.sprite(parent,'MeadowOutskirts',frame,6144,2880);node.getComponent(UITransform)!.setAnchorPoint(.5,.5);node.setPosition(0,-720);node.setSiblingIndex(0);return node;
     }
-    dispose():void{this.disposed=true;for(const frame of [...Array.from(this.objectFrames.values()),...this.npcPoses.flat(),...this.npcDirections.flat(),...this.npcWalkSteps.flat(),...this.scenery,...this.child,...this.details,...this.environment,...Object.values(this.decorations),...Object.values(this.avatarVariants).flat(),...Object.values(this.hairVariants).flat()])frame?.destroy();for(const texture of this.generatedTextures){const image=texture.image;texture.destroy();image?.destroy();}this.objectFrames.clear();this.objectLoads.clear();this.environmentLoads.clear();this.environmentLoaded.clear();this.sceneryLoad=undefined;this.terrainFrames.clear();this.scenery=[];this.npcPoses=[];this.npcDirections=[];this.npcWalkSteps=[];this.child=[];this.details=[];this.environment=[];this.decorations={};this.avatarVariants={};this.hairVariants={};this.hairLoads.clear();this.avatarLoads.clear();this.decorationLoads.clear();this.generatedTextures=[];}
+    dispose():void{this.disposed=true;for(const frame of [...Array.from(this.objectFrames.values()),...Array.from(this.drawnCharacters.values()).flat(),...this.npcPoses.flat(),...this.npcDirections.flat(),...this.npcWalkSteps.flat(),...this.scenery,...this.child,...this.details,...this.environment,...Object.values(this.decorations),...Object.values(this.avatarVariants).flat(),...Object.values(this.hairVariants).flat()])frame?.destroy();for(const texture of this.generatedTextures){const image=texture.image;texture.destroy();image?.destroy();}this.drawnCharacters.clear();this.objectFrames.clear();this.objectLoads.clear();this.environmentLoads.clear();this.environmentLoaded.clear();this.sceneryLoad=undefined;this.terrainFrames.clear();this.scenery=[];this.npcPoses=[];this.npcDirections=[];this.npcWalkSteps=[];this.child=[];this.details=[];this.environment=[];this.decorations={};this.avatarVariants={};this.hairVariants={};this.hairLoads.clear();this.avatarLoads.clear();this.decorationLoads.clear();this.generatedTextures=[];}
 }

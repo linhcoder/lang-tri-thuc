@@ -382,3 +382,35 @@ Live API/admin/quyền truy cập, phòng riêng hai client/avatar/emote, MySQL 
 01:17:43–02:17:56 UTC+7, release NPC `4fe699c` giữ nguyên. Bốn SDK client chạy 3.600 giây, nhận đủ 13.684/13.684 probe, p95 265 ms/max 476 ms. 59 reconnect giữ session/roster/progress, phục hồi 2.500–2.896 ms gồm một giây mô phỏng ngắt. Không correction/warning/error; intro và luyện lúa đọc lại MySQL đúng, không receipt thưởng, QA account đã xóa.
 
 API/rooms active và PID không đổi, NRestarts=0 trong 11 snapshot và cuối phiên; MemoryCurrent trước/sau khoảng API 46,3/49,5 MiB, rooms 44,6/53,8 MiB. Backup tự động đúng timer 02:00:02–02:00:03, Result=success/ExecMainStatus=0; timers vẫn active. Bằng chứng/giới hạn tại [WAN_SOAK_QA](../../docs/WAN_SOAK_QA.md). SDK soak không thay QA render browser dài, tải lớn, điện thoại thật hoặc duyệt nội dung/art. Đợt này chỉ QA/tài liệu; game tiếp tục dùng release NPC.
+
+### Chạm cá và thẻ nguyên liệu bánh chưng — 12/10/2026
+
+Build local `minigame-touch-v2` bổ sung hit-test cá theo vị trí đang bơi, chọn cá gần điểm chạm nhất khi vùng chạm giao nhau. Rule vẫn chặn cá ngoài vùng giữa, cá đã quan sát hoặc khi đang hỏi màu. Cá được chọn hiện lớn ở giữa; hướng dẫn dùng prompt theo bước. Bánh chưng có sáu thẻ nguyên liệu theo cùng thứ tự với nút lựa chọn, hình/màu, tên và dấu đã xếp; chọn sai không mất tiến độ. Nút lớn vẫn dùng được. Không thay đổi luật, trace/save hoặc contentVersion; online gửi cùng action tới server, không cập nhật kết quả trước acknowledgement.
+
+Strict client typecheck, 58 nhóm client và 3 network tests đạt. Cocos build thật đạt. `test:art` kiểm tra 12 bảng ở desktop/mobile giả lập, mouse/touch mới, sai lớp/đủ sáu lớp, cá ngoài vùng giữa, quan sát màu/thả, không bắt lại lúc hỏi màu, forwarding layer/fish không tự đổi tiến độ, pooled labels/viewport/receipts và hồi quy NPC; page errors rỗng. Đã xem ảnh `mobile-banh-chung.png` và `mobile-fish-observation.png` trong `apps/game-client/temp/art-polish-qa`. Ca cá giữ clock bằng cách tạm thay advance trong fixture để đầu vào vẫn hoạt động; không thay source runtime. Preview local 8099, chưa deploy staging; chưa nghiệm thu điện thoại thật.
+
+### Tích hợp nhiều AI: chữ, ô dân, chăm sóc và phản hồi online — 12/10/2026
+
+Build `minigame-complete-v3`, rules 7 / contentVersion `6f44a0a8`. Mini game chữ có thẻ chạm và tiến độ; Ô ăn quan chạm hàng ô dân của bé, bỏ ô trống và hàng NPC. Giữ nút lớn thay thế trên mobile. Chăm sóc đổi đúng hình gà/chó/con vật lạ theo từng bước. Header giữ tên game, phản hồi riêng có màu và co chữ. Server phản hồi thao tác sai riêng cho người gửi; network kiểm tra ID/nội dung/room hiện tại/handshake; hub bỏ phản hồi sai game hoặc khi đang luyện/đã đóng.
+
+Sửa clock bị clamp ở một giờ: cá tiếp tục bơi, kéo co/nhảy sạp tiếp tục đổi nhịp, save/restore giữ trace v1. Timestamp phải hữu hạn, không âm, còn đủ độ chính xác để cộng bước 0,1 giây; trace vẫn tối đa 2.000 hành động. Regression mô phỏng bắt đầu 3.599,95 giây, vượt mốc, hoàn thành và replay ba trò; không phải soak browser thực tế một giờ.
+
+Strict client và 60 nhóm logic + 4 network tests đạt. Build Cocos, API và game server đạt. Bảy server integration tests đạt, bao gồm rejection chỉ tới initiator/không đổi trace hoặc database, phòng bốn client × ba tuổi × 11 trò truyện/reconnect và tải local 10/16/20. `test:art` đạt 12 bảng desktop/mobile, thẻ chữ ba nhóm tuổi, sai/đúng và checkpoint sau reload, forwarding ô dân, phản hồi server giữ title/actions, ba bước chăm, các điều khiển đợt trước và NPC/dispose; errors rỗng. Fixture reload có đủ quest/intro/receipt theo graph, không chỉ gán số sao; assertion UI chờ engine hoàn tất thay node. Đã xem ảnh mobile chữ/chó/ô dân trong `temp/art-polish-qa` của client. Preview local 8100; chưa deploy staging, chưa QA điện thoại thật.
+
+Hồi quy `test:campaign` trên cùng build đạt đủ tám chương/11 bảng truyện, reload giữ sao, luyện không đổi truyện và xóa thất bại do quota giữ tiến độ; errors rỗng.
+
+### Triển khai mini game và QA live — 12/10/2026
+
+Release `68f79b9-worktree-minigame-6f44a0a8-20261012` đã activate trên aaPanel; source baseline `68f79b9` với thay đổi working tree chưa commit. Archive SHA-256 `87c46bb9012ef61e0f49409ddb91000673547d4929f87c538b9fa3eca8ff3c92` khớp remote. Backup `/opt/lang-tri-thuc/backups/database-20261012T061507Z.sql` restore vào DB thử khớp state, DB thử được dọn. API/rooms build Linux đạt, nginx -t đạt; health MySQL/rules 7/contentVersion `6f44a0a8`, hai services active. Release NPC trước giữ để rollback.
+
+Live `verify-api.cjs` đạt admin/catalog/quyền truy cập; `verify-web.cjs` đạt parent UI, signed room hai client/avatar/hair/emote, lưu MySQL/reload online/offline. `test:art` trên HTTPS đạt 12 bảng desktop/mobile giả lập, thẻ chữ/ô dân/cá/nguyên liệu, NPC/dispose và bounds, errors rỗng. `verify-minigames.cjs` tiến qua chương 1 bằng controller và intent hợp lệ, làm bài học chương 2 rồi kiểm tra phản hồi sai riêng cho người gửi, title ổn định, trace và progress không đổi, thao tác đúng lưu và reload giữ action. Peer thứ hai là observer chưa unlock; privacy giữa các participant đã có integration local. Tài khoản QA xóa ở finally. Ca di chuyển đầu timeout; QA thêm bringToFront để game được cập nhật ở tab foreground rồi chạy lại đạt, không sửa runtime. Đây chưa phải QA thiết bị thật hay soak render browser dài.
+
+### Ghép từng miếng, mê cung và NPC — 12/10/2026
+
+Đã triển khai build `piece-maze-npc-v5`, rules 8 / `8f4c4bbd`, release `68f79b9-piece-maze-gait-8f4c4bbd-20261012-v5`. Ghép 4/6/9 miếng bằng chạm/kéo thả vào hình mẫu, modal lớn dọc/ngang và giữ tranh đầy đủ khi xong. V5 sửa tiêu đề mất sau render bằng cách tách node cũ khỏi parent trước khi destroy; regression mới xác nhận thất bại trên v4. Mê cung chạm ô hợp lệ; NPC dùng bước theo quãng đường và nội suy nhịp mạng. Chi tiết luật, migration/checkpoint và kiểm tra tại [PICTURE_MATCH_QA](../../docs/design/PICTURE_MATCH_QA.md).
+
+Overlay SHA `6a143b2fdfcaffe8e6a8c97f89b38bc566c9d6c732e0e13445e4b84290858856` khớp remote, backup `/opt/lang-tri-thuc/backups/database-20261012T081334Z.sql` phục hồi thử khớp state. API/rooms build Linux và nginx -t đạt; services/timers active. API/admin/quyền truy cập, phòng riêng hai client/save/reload/offline, signed minigame validation và mê cung qua HTTPS đã qua trên rules 8. Hồi quy `test:art` 12 bảng trên v5 đạt.
+
+`test:puzzle` local v5 đạt ba tuổi × ba viewport, checkpoint/reload, chọn sai, mouse/touch và kéo thả, hình hoàn chỉnh/nút nhận tiến độ. Kiểm tra tiêu đề active/position/font/height sau mỗi thao tác và pixel chữ trong nền xanh đạt. Đã xem ảnh completed-3-5-390: tranh liền, tiêu đề/feedback/nút rõ, không chồng nhau. Strict typecheck và diff whitespace đạt.
+
+Cùng bộ `test:puzzle` chạy qua HTTPS trên release v5 đã đạt đủ ba tuổi × ba viewport, bao gồm regression tiêu đề sau thao tác và màn hoàn thành; browser errors rỗng. Kiểm tra cuối xác nhận symlink release v5, API/rooms/timers active và health `8f4c4bbd`.

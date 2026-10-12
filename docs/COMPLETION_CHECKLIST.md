@@ -15,7 +15,7 @@ Tỷ lệ nhân vật bản local hiện là 78%; zoom cảnh 60–180% có whee
 | Avatar | 4 trang phục trai/gái, 2 kiểu tóc mỗi avatar, 4 lựa chọn khăn, idle/walk 8 hướng; hello/happy online/offline | Biểu cảm bằng code; không có sheet cử chỉ riêng |
 | NPC data | ID, spawn, tên, chương, tương tác/hội thoại; editor 6 NPC truyện; tuyến ngắn sinh từ spawn hợp lệ, bấm/tương tác tới vị trí hiện tại | Ông Đồ/Bác Nông Dân giữ vị trí chương 1; chưa editor tuyến tùy ý, lịch xuất hiện tùy chọn hoặc NPC AI |
 | Giáo dục | 90 câu cấu hình: 3 nhóm tuổi × 10 kỹ năng × 3 lượt; nhân/chia/toán lời văn, ghép vần, địa lý có nguồn; hint, đọc thoại | Chưa có xác nhận chuyên gia; giọng thật phụ thuộc trình duyệt/hệ điều hành |
-| Mini game | 12 luật riêng, hình minh họa theo state, chơi solo, pause/resume truyện, trace validation; kéo thả đèn + click thay thế; góc vẽ tự do sáu màu có undo/lưu local | Bản mô phỏng giáo dục, chưa đạt mức art/animation thương mại; ghép tranh vẫn dùng ô trượt, câu cá quan sát/thả. Góc vẽ là hoạt động riêng, xuất PNG 1080 × 500 và đồng bộ theo hồ sơ phòng riêng; chưa đồng biên tập tranh cùng lúc |
+| Mini game | 12 luật riêng, hình minh họa theo state, chơi solo, pause/resume truyện, trace validation; kéo thả đèn + click thay thế; ghép 4/6/9 miếng bằng chạm hoặc kéo thả trong modal lớn; mê cung chạm ô kề và nút hướng; góc vẽ tự do sáu màu có undo/lưu local | Bản mô phỏng giáo dục, chưa đạt mức art/animation thương mại; câu cá quan sát/thả. Góc vẽ là hoạt động riêng, xuất PNG 1080 × 500 và đồng bộ theo hồ sơ phòng riêng; chưa đồng biên tập tranh cùng lúc |
 | Quest / thưởng | Main quest, receipt sao, sổ khám phá, nhà/trang trí; checkpoint luyện local, huy hiệu theo bốn mùa/năm và hai chuỗi Tết/Trung thu quanh năm | Đồng bộ hoạt động/checkpoint theo hồ sơ phòng riêng và nhận diện lễ 2026–2028 đã có. Module âm/dương 1900–2199 đã tích hợp runtime và có fixtures/QA riêng; còn nội dung lễ khác và art đã duyệt |
 | Multiplayer | Colyseus, phòng riêng vé phụ huynh, room minigame, authoritative action/reward, rate limit, block/report, reconnect/solo; bốn client × 11 trò chính × ba nhóm tuổi, reconnect giữa mỗi ván đạt | Bench local 20 client và soak WAN một giờ/bốn client/59 reconnect đạt; còn tải lớn/multi-instance, phiên browser dài và nghiệm thu thiết bị thật. Ô ăn quan là luyện solo tùy chọn |
 | Backend | Fastify, tài khoản/hồ sơ/tiến độ, ownership, revision, MySQL transaction, xuất/xóa | MySQL theo quyết định hiện tại; snapshot JSON single-row, chưa schema chuẩn hóa/Redis đa instance |
@@ -42,9 +42,11 @@ npm.cmd run server:build
 
 ## Gate ngoài môi trường local
 
+Bản nâng cấp `minigame-complete-v3` ngày 12/10 bổ sung thẻ chữ/ô dân có thể chạm, phản hồi online riêng và sửa clock sau một giờ. Rules 7 / contentVersion `6f44a0a8` đã triển khai đồng bộ Web/API/game server lên staging; backup/restore drill và QA API/phòng riêng/mini game/lưu/reload đạt. Xem [backlog](DEVELOPMENT_BACKLOG.md) và [QA](../apps/game-client/QA-REPORT.md).
+
 1. Biên tập từng câu/thoại/luật/văn hóa và nguồn/license của toàn bộ art; không duyệt tự động hàng loạt.
 2. Thử trẻ 3–5, 6–8, 9–11 có phụ huynh giám sát; ghi nhận khả năng đọc, thao tác, thời lượng và độ khó.
 3. QA Intel HD/UHD, Android/iOS thật: portrait/landscape, touch, giọng Việt, tải lạnh, RAM, FPS, mất mạng, phiên dài.
-4. VPS aaPanel/domain/HTTPS/WS/backup-restore đã đạt. Đã có backup ngày/restore drill tuần và retention tự động riêng; còn soak WAN dài, offsite và báo lỗi chủ động trước beta; Docker là lựa chọn khác chưa được kiểm thử.
+4. VPS aaPanel/domain/HTTPS/WS/backup-restore đã đạt. Backup ngày/restore drill tuần và retention tự động riêng đã có; soak WAN một giờ/bốn SDK client/59 reconnect đạt ngày 12/10. Còn phiên render browser dài và tải production lớn. Offsite và báo lỗi chủ động để sau theo lựa chọn người dùng ngày 12/10; Docker là lựa chọn khác chưa được kiểm thử.
 
-Đợt lịch/vận hành: lịch lễ đã tính âm/dương qua module UTC+7, kiểm chứng tại [LUNAR_CALENDAR_QA](design/LUNAR_CALENDAR_QA.md). Backup ngày, phục hồi thử tuần và retention riêng xem [BACKUP_OPERATIONS](BACKUP_OPERATIONS.md). Nghiệm thu trẻ/thiết bị thật, soak WAN dài và duyệt nội dung/art vẫn còn.
+Đợt lịch/vận hành: lịch lễ đã tính âm/dương qua module UTC+7, kiểm chứng tại [LUNAR_CALENDAR_QA](design/LUNAR_CALENDAR_QA.md). Backup ngày, phục hồi thử tuần và retention riêng xem [BACKUP_OPERATIONS](BACKUP_OPERATIONS.md); soak WAN một giờ xem [WAN_SOAK_QA](WAN_SOAK_QA.md). Nghiệm thu trẻ/thiết bị thật, phiên render browser dài, tải production lớn và duyệt nội dung/art vẫn còn.

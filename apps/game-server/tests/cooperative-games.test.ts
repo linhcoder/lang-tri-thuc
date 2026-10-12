@@ -7,7 +7,7 @@ import {startServer} from '../src/main';
 import {chapters} from '../../game-client/assets/scripts/world/CampaignContent';
 import {CampaignEngine} from '../../game-client/assets/scripts/world/CampaignEngine';
 import {ChapterOneProgress} from '../../game-client/assets/scripts/world/ChapterOneProgress';
-import {MiniGameRules,puzzleScramble,mazePath} from '../../game-client/assets/scripts/world/MiniGameRules';
+import {MiniGameRules,mazePath} from '../../game-client/assets/scripts/world/MiniGameRules';
 const wait=(ms:number)=>new Promise(r=>setTimeout(r,ms));
 async function until(fn:()=>boolean|Promise<boolean>){for(let i=0;i<400;i++){if(await fn())return;await wait(25);}throw Error('Cooperative synchronization timeout');}
 test('four authenticated players complete all story games at three ages including mid-game reconnect',{timeout:240000},async()=>{
@@ -35,7 +35,7 @@ test('four authenticated players complete all story games at three ages includin
     case 'mg.tug-of-war':case 'mg.bamboo-dance':for(let i=0;i<6;i++){await until(()=>{const g=game();return g.rhythmOpen&&Math.floor(g.clock/(g.id==='mg.tug-of-war'?1:1.5))!==g.data.lastBeat;});await action('beat',0);}break;
     case 'mg.market':for(let i=0;i<3;i++)for(let j=0;j<game().data.wants[i];j++)await action('add',i);await action('pay',2);break;
     case 'mg.secret-letters':for(const letter of game().data.word)await action('letter',game().data.grid.indexOf(letter));break;
-    case 'mg.dong-ho':for(const tile of puzzleScramble(game().seed).reverse){if(game().ended)break;await action('tile',tile);}break;
+    case 'mg.dong-ho':for(const piece of game().data.tray){await action('part',piece);await action('place',piece);}break;
     case 'mg.rice-count':for(let i=0;i<5;i++)await action('plant',i);for(let i=0;i<5;i++)await action('water',i);await action('answer',5);break;
     case 'mg.fishing':for(let i=0;i<3;i++){await until(()=>Math.abs(game().fishX(i))<50);await action('fish',i);await action('color',i);}break;
     case 'mg.animal-care':for(const step of [1,0,2])await action('care',step);break;

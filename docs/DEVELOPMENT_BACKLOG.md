@@ -61,3 +61,33 @@ Lịch âm runtime và vận hành backup: [LUNAR_CALENDAR_QA](design/LUNAR_CALE
 QA vận hành tiếp theo: [WAN_SOAK_QA](WAN_SOAK_QA.md). Đã sửa JSON header dư ở request không có body trong góc phụ huynh, khôi phục xóa hồ sơ/tài khoản và đăng xuất. Backup ngoài VPS/kênh báo lỗi để sau theo lựa chọn người dùng ngày 12/10; ưu tiên QA và sửa lỗi trước.
 
 Animation đợt 12/10 tiếp theo: commit `4fe699c` bổ sung chu kỳ hai khung × tám hướng cho tám NPC, giữ chào/idle/fallback. Chi tiết [NPC_POSES](design/NPC_POSES.md). Test 128 lựa chọn khung, dừng/fallback/dispose và patrol online/offline đạt; art vẫn là candidate, cần duyệt thủ công và RAM thiết bị thật.
+
+Đợt mini game local tiếp theo: build `minigame-touch-v2` thêm chạm cá đang bơi và thẻ sáu nguyên liệu bánh chưng. Cá được chọn hiện lớn ở giữa để quan sát màu; hướng dẫn đổi theo bước. Thẻ nguyên liệu có hình, tên và dấu hoàn thành, giữ nút lớn thay thế. Cùng đường xử lý chuột/touch và server authoritative; không đổi luật/save/contentVersion. Preview tại `http://127.0.0.1:8099/`; chưa triển khai staging. Các trò còn lại và nghiệm thu điện thoại thật tiếp tục nằm trong backlog.
+
+Đợt nhiều AI tiếp theo: build local `minigame-complete-v3` thêm chạm thẻ chữ và ô dân Ô ăn quan, tiến độ chữ/ô có thể chơi, hình gà/chó/con vật lạ theo đúng bước chăm sóc. Tên trò chơi giữ cố định, phản hồi đúng/sai có dòng riêng. Online gửi phản hồi từ chối riêng cho người thao tác, giữ nguyên trace và thưởng. Sửa lỗi clock dừng ở 3.600 giây khiến cá và trò nhịp không hoàn thành; giữ save v1 và giới hạn 2.000 hành động, kiểm tra timestamp hữu hạn/đủ độ chính xác. Rules **7**, contentVersion **`6f44a0a8`**: cần build/triển khai Web, API và game server cùng phiên bản; staging vẫn chạy bản trước. Preview mới `http://127.0.0.1:8100/` thay cho preview 8099 của đợt trước. Chưa nghiệm thu thiết bị thật hoặc phiên browser dài.
+
+Đã triển khai bản này lên staging ngày 12/10: release `68f79b9-worktree-minigame-6f44a0a8-20261012`, source baseline `68f79b9` cùng working tree. Web/API/rooms cùng phiên bản; SHA archive khớp, backup/restore drill và build Linux đạt, services/timers active. QA live API, hai client, save/reload/offline, 12 bảng desktop/mobile và phản hồi mini game online/tiến độ hợp lệ đạt, errors rỗng. Giữ release `4fe699c-npc-walk-e48dccf3-20261012` để rollback. Gate còn lại vẫn là duyệt nội dung/art, trẻ/thiết bị thật, phiên render dài và tải lớn.
+
+### Ghép từng miếng, mê cung và bước chân NPC — 12/10/2026
+
+Theo phản hồi của người dùng, ghép tranh chuyển sang đặt từng miếng vào hình mẫu: 4 miếng cho 3–5 tuổi, 6 cho 6–8 và 9 cho 9–11. Chạm hoặc kéo thả, chọn sai giữ tiến độ; không cần đọc số hay giải ô trượt. Modal riêng lớn, bố cục dọc/ngang, hình mẫu mờ và khay mảnh. Checkpoint mới có variant `picture-match-v1`; ván ô trượt cũ được kiểm chứng trước khi chuyển sang ván mới, ván đã hoàn thành giữ kết quả. Rules 8, contentVersion `8f4c4bbd`.
+
+Mê cung chạm ô kề hợp lệ, tường rõ, đích và vị trí bé có hình; nút hướng vẫn dùng được. Modal thường fit kích thước CSS của điện thoại. NPC có nhịp chân theo quãng đường, chuyển trọng tâm và nội suy nhịp giữa snapshot mạng; root giữ vị trí authoritative. Dùng lại hai frame đi mỗi hướng, chưa phải atlas nhiều frame mới.
+
+Bản cuối `piece-maze-npc-v5` còn giữ bức tranh đầy đủ khi ghép xong, lời chúc và nút Hoàn thành; sửa nhãn cũ pending destroy khiến tiêu đề mất sau thao tác. Đã activate release `68f79b9-piece-maze-gait-8f4c4bbd-20261012-v5` trên staging: Web/API/rooms cùng `8f4c4bbd`, services và timers active. SHA overlay `6a143b2fdfcaffe8e6a8c97f89b38bc566c9d6c732e0e13445e4b84290858856`; backup/restore drill `/opt/lang-tri-thuc/backups/database-20261012T081334Z.sql` đạt. Giữ release mini game rules 7 để rollback. Chi tiết kiểm tra tại [PICTURE_MATCH_QA](design/PICTURE_MATCH_QA.md).
+
+### Backend dễ dùng hơn — 12/10/2026
+
+Theo yêu cầu nâng cả ba phần, đã thêm tổng quan quản trị, tìm kiếm không dấu/lọc trạng thái, form kiểm duyệt, bố cục responsive và phản hồi tải/lỗi. Phụ huynh đổi tên hồ sơ, xem sao truyện riêng với kết quả mini game, tạo/dùng lại/tham gia phòng, xem phòng còn hạn/khóa, sao chép mã mời, vé gắn hồ sơ và chặn vé hết hạn; phiên giữ trong tab sau reload. API thêm readiness, kiểm tra phiên, overview, room list và tài liệu OpenAPI; có code/requestId/thông báo tiếng Việt, doctor local và hướng dẫn.
+
+Đã deploy release `68f79b9-backend-usability-8f4c4bbd-20261012` cùng game v5/rules 8; local stack MySQL cũng đang chạy. QA API/MySQL/server/UI và kiểm tra backend qua HTTPS đạt; nội dung thật không dùng làm fixture biên tập. Xem [BACKEND_GUIDE](BACKEND_GUIDE.md) và [BACKEND_QA](BACKEND_QA.md). Các gate trẻ/thiết bị thật/render dài/tải lớn còn như trước.
+
+### Chuẩn bị chơi thử và kiểm tra dài hơn — 12/10/2026
+
+Đã có Góp ý chơi thử cho phụ huynh và hàng đợi xử lý của quản trị; có trạng thái/ghi chú, quyền riêng của tài khoản, export/rút lại/account delete, validation và audit. Local/web cùng release `68f79b9-playtest-feedback-8f4c4bbd-20261012`, rules 8. QA live góp ý và API đạt, fixture/tài khoản QA đã dọn.
+
+Render Cocos thực 902 giây/174 chu kỳ desktop-dọc-ngang đạt, node và JS heap sau GC ổn định trong phiên. Benchmark local 50 client/10 phòng trong 300 giây đạt đủ 2.950 probe, bốn reconnect, không correction/warning/error. Đây chưa phải nghiệm thu điện thoại thật, nhiều giờ hoặc tải MySQL/VPS/multi-instance. Xem [PLAYTEST_GUIDE](PLAYTEST_GUIDE.md) và [PLAYTEST_QA](PLAYTEST_QA.md). Backup offsite/cảnh báo tự động vẫn để sau theo lựa chọn trước.
+
+### Mở rộng bản đồ và nhân vật — 12/10/2026
+
+Đã thêm Vườn bốn mùa, Bến sông quê, Sân trường tuổi thơ: 48×48 ô, 13 khu, sáu NPC nam/nữ và bảy hoạt động luyện tập không cộng sao truyện. Có sáu mẫu nhân vật, ba tóc, ba màu da, biểu cảm Cảm ơn/Chỉ hướng; phòng riêng đồng bộ ngoại hình và lưu huy hiệu khi đổi client. Tám chương cũ cùng kiểm thử client/server/API và Cocos desktop/dọc/ngang đạt. Xem [VILLAGE_EXPANSION](design/VILLAGE_EXPANSION.md). Hoạt động mới luyện tập cá nhân; chơi thử trẻ/thiết bị thật vẫn cần người tổ chức.

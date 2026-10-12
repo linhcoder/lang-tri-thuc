@@ -25,19 +25,27 @@ export class PlayerController extends Component {
     moving = false;
     speed = 150;
     private route: Point[] = [];
-    get hasPath(): boolean { return this.route.length > 0; }
-    cancel(): void { this.route = []; this.axis = { x: 0, y: 0 }; this.moving = false; }
+    private goal?:Point;private retryDelay=0;private replans=0;
+    get hasPath(): boolean { return this.route.length > 0 || !!this.goal; }
+    cancel(): void { this.route = [];this.goal=undefined;this.retryDelay=0; this.axis = { x: 0, y: 0 }; this.moving = false; }
     goTo(goal: Point): boolean {
         if (!this.map.walkable(goal.x, goal.y)) return false;
         const start = tileAt(this.position), path = this.map.path(start, goal);
         if (!path.length && (start.x !== goal.x || start.y !== goal.y)) return false;
         // First recenter in the current tile so path segments never cut blocked corners.
-        this.route = [toWorld(start), ...path.map(toWorld)]; return true;
+        this.route = [toWorld(start), ...path.map(toWorld)];this.goal={...goal};this.retryDelay=0;this.replans=0; return true;
     }
     step(dt: number): void {
         this.moving = false;
         const manual = Math.hypot(this.axis.x, this.axis.y) > 0.05;
-        if (manual) this.route = [];
+        if (manual) {this.route = [];this.goal=undefined;}
+        if(!manual&&!this.route.length&&this.goal){
+            this.retryDelay-=Math.max(0,Math.min(dt,.1));
+            if(this.retryDelay<=0){
+                if(++this.replans>8)this.goal=undefined;
+                else{const start=tileAt(this.position),path=this.map.path(start,this.goal);if(path.length||start.x===this.goal.x&&start.y===this.goal.y)this.route=[toWorld(start),...path.map(toWorld)];this.retryDelay=.25;}
+            }
+        }
         const strength = manual ? Math.min(1, Math.hypot(this.axis.x, this.axis.y)) : 1;
         let remaining = this.speed * Math.max(0, Math.min(dt, 0.1)) * strength;
         while (remaining > 0) {
@@ -45,11 +53,11 @@ export class PlayerController extends Component {
             if (!manual && !target) break;
             const delta = manual ? this.axis : { x: target.x - this.position.x, y: target.y - this.position.y };
             const distance = Math.hypot(delta.x, delta.y);
-            if (distance < 0.01) { this.route.shift(); continue; }
+            if (distance < 0.01) { this.route.shift();if(!this.route.length)this.goal=undefined; continue; }
             const step = Math.min(remaining, 2, manual ? Infinity : distance);
             let next = { x: this.position.x + delta.x / distance * step, y: this.position.y + delta.y / distance * step };
             if (!this.map.canStand(next)) {
-                if (!manual) { this.route = []; break; }
+                if (!manual) { this.route = [];this.retryDelay=.25; break; }
                 // Slide along isometric edges when diagonal/manual movement reaches a wall.
                 const basis = [{ x: 2 / Math.sqrt(5), y: -1 / Math.sqrt(5) }, { x: -2 / Math.sqrt(5), y: -1 / Math.sqrt(5) }];
                 const options = basis.map(v => { const projection = (delta.x * v.x + delta.y * v.y) / distance; return { x: this.position.x + v.x * projection * step, y: this.position.y + v.y * projection * step, amount: Math.abs(projection) }; }).sort((a,b) => b.amount-a.amount);

@@ -1,6 +1,9 @@
 import { Point, VillageMap, toWorld,zoneSpawns } from './VillageModel';
 export interface WorldZone {id:string;name:string;spawn:Point;chapter:number|null}
 export const worldZones:WorldZone[]=[
+    {id:'seasons',name:'Vườn bốn mùa',spawn:zoneSpawns.seasons,chapter:null},
+    {id:'riverside',name:'Bến sông quê',spawn:zoneSpawns.riverside,chapter:null},
+    {id:'playground',name:'Sân trường tuổi thơ',spawn:zoneSpawns.playground,chapter:null},
     {id:'gate',name:'Cổng làng',spawn:zoneSpawns.gate,chapter:null},
     {id:'courtyard',name:'Sân đình',spawn:zoneSpawns.courtyard,chapter:1},
     {id:'school',name:'Trường học',spawn:zoneSpawns.school,chapter:3},

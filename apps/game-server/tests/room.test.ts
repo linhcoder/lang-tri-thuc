@@ -16,10 +16,10 @@ test('movement rejects malformed packets, teleport and paths across pond',()=>{
     for(const packet of [null,{...spawn,x:NaN},{...spawn,x:999,direction:0,moving:true,seq:1},{...spawn,direction:99,moving:true,seq:1}])assert.equal(validMove(map,spawn,packet,20),false);
     assert.equal(validMove(map,toWorld({x:0,y:24}),{...toWorld({x:6,y:24}),direction:0,moving:true,seq:1},500),false);
     assert.equal(validMove(map,toWorld({x:0,y:23}),{...toWorld({x:6,y:23}),direction:0,moving:true,seq:1},500),true);
-    for(const avatar of [-1,4,1.5,null,'2',NaN])assert.equal(validMove(map,spawn,{...spawn,direction:0,moving:false,seq:1,avatar},20),false);
-    for(const hair of [-1,2,1.5,null,'1',true,NaN])assert.equal(validMove(map,spawn,{...spawn,direction:0,moving:false,seq:1,hair},20),false);
+    for(const avatar of [-1,6,1.5,null,'2',NaN])assert.equal(validMove(map,spawn,{...spawn,direction:0,moving:false,seq:1,avatar},20),false);
+    for(const hair of [-1,3,1.5,null,'1',true,NaN])assert.equal(validMove(map,spawn,{...spawn,direction:0,moving:false,seq:1,hair},20),false);
     for(const accessory of [-1,4,1.5,null,'2',NaN])assert.equal(validMove(map,spawn,{...spawn,direction:0,moving:false,seq:1,accessory},20),false);
-    for(const avatar of [0,1,2,3])assert.equal(validMove(map,spawn,{...spawn,direction:0,moving:false,seq:1,avatar},20),true);
+    for(const avatar of [0,1,2,3,4,5])assert.equal(validMove(map,spawn,{...spawn,direction:0,moving:false,seq:1,avatar},20),true);
 });
 test('two clients join, synchronize validated movement and clean up on leave',async()=>{
     const port=26571,server=await startServer(port);let a:any,b:any;
@@ -28,15 +28,15 @@ test('two clients join, synchronize validated movement and clean up on leave',as
         const client=new Client(`http://127.0.0.1:${port}`);a=await client.joinOrCreate<VillageState>('village');b=await client.joinOrCreate<VillageState>('village');
         a.onMessage('correction',()=>{});b.onMessage('correction',()=>{});
         await until(()=>a.state.players.size===2&&b.state.players.size===2);
-        await until(()=>a.state.npcs.size===6&&b.state.npcs.size===6);
+        await until(()=>a.state.npcs.size===12&&b.state.npcs.size===12);
         const npcStart=a.state.npcs.get('ti-na')!.x;await until(()=>Math.abs(a.state.npcs.get('ti-na')!.x-npcStart)>1);
         await until(()=>Math.abs(a.state.npcs.get('ti-na')!.x-b.state.npcs.get('ti-na')!.x)<2);
         assert.equal(a.state.npcs.get('ti-na')!.moving,true);
-        a.send('move',{x:10,y:-640,direction:0,moving:true,seq:1,avatar:2,accessory:3,hair:1});
-        await until(()=>b.state.players.get(a.sessionId)?.x===10&&b.state.players.get(a.sessionId)?.avatar===2&&b.state.players.get(a.sessionId)?.accessory===3&&b.state.players.get(a.sessionId)?.hair===1);
-        a.send('move',{x:10,y:-640,direction:0,moving:false,seq:2,avatar:99});await new Promise(r=>setTimeout(r,100));assert.equal(b.state.players.get(a.sessionId)?.avatar,2);
+        a.send('move',{x:10,y:-640,direction:0,moving:true,seq:1,avatar:5,accessory:3,hair:2,skin:2});
+        await until(()=>b.state.players.get(a.sessionId)?.x===10&&b.state.players.get(a.sessionId)?.avatar===5&&b.state.players.get(a.sessionId)?.accessory===3&&b.state.players.get(a.sessionId)?.hair===2&&b.state.players.get(a.sessionId)?.skin===2);
+        a.send('move',{x:10,y:-640,direction:0,moving:false,seq:2,avatar:99});await new Promise(r=>setTimeout(r,100));assert.equal(b.state.players.get(a.sessionId)?.avatar,5);
         a.send('move',{x:10,y:-640,direction:0,moving:false,seq:3,avatar:3});await until(()=>b.state.players.get(a.sessionId)?.avatar===3);
-        a.send('move',{x:10,y:-640,direction:1,moving:false,seq:4});await until(()=>b.state.players.get(a.sessionId)?.direction===1);assert.equal(b.state.players.get(a.sessionId)?.avatar,3);assert.equal(b.state.players.get(a.sessionId)?.accessory,3);assert.equal(b.state.players.get(a.sessionId)?.hair,1);
+        a.send('move',{x:10,y:-640,direction:1,moving:false,seq:4});await until(()=>b.state.players.get(a.sessionId)?.direction===1);assert.equal(b.state.players.get(a.sessionId)?.avatar,3);assert.equal(b.state.players.get(a.sessionId)?.accessory,3);assert.equal(b.state.players.get(a.sessionId)?.hair,2);
         a.send('move',{x:900,y:-640,direction:0,moving:true,seq:5});await new Promise(r=>setTimeout(r,100));assert.equal(b.state.players.get(a.sessionId)?.x,10);
         await a.leave();await until(()=>b.state.players.size===1);
     }finally{if(b)await b.leave();await server.gracefullyShutdown(false);}

@@ -1,5 +1,7 @@
 /** Shared presentation vocabulary; IDs are also validated by the room server. */
 export const avatarGestures=[
+    {id:'thanks',title:'Cảm ơn',icon:'♡',message:'Cảm ơn bạn!'},
+    {id:'point',title:'Chỉ hướng',icon:'➜',message:'Mình cùng xem ở đây nhé!'},
     {id:'hello',title:'Chào',icon:'☺',message:'Chào bạn!'},
     {id:'happy',title:'Vui mừng',icon:'☆',message:'Mình vui quá!'},
     {id:'wave',title:'Vẫy tay',icon:'✋',message:'Mình vẫy tay chào bạn!'},

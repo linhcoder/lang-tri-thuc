@@ -12,6 +12,7 @@ export interface BackendData {
     rooms:Record<string,{ownerId:string;allowedParents:string[];expires:number;locked:boolean}>;
     invitations:Record<string,{roomCode:string;expires:number;remaining:number}>;
     reports:Array<{id:string;reporter:string;target:string;reason:string;created:number;status:'open'|'resolved'}>;
+    feedback:Array<{id:string;parentId:string;category:'bug'|'difficulty'|'idea';gameId:string;message:string;created:number;status:'open'|'planned'|'resolved';note:string}>;
     review:Record<string,{status:'draft'|'reviewed'|'approved';reviewer:string;note:string;updated:number}>;
     content:Record<string,{title:string;intro:string;ending:string;questTitles:Record<string,string>}>;
     npcs:Record<string,{id:string;name:string;x:number;y:number}>;assets:Record<string,{title:string;source:string;license:string}>;
@@ -19,7 +20,7 @@ export interface BackendData {
     audit:Array<{actor:string;action:string;entity:string;created:number}>;
     results:string[];
 }
-const fresh=():BackendData=>({parents:{},profiles:{},sessions:{},progress:{},rooms:{},invitations:{},reports:[],review:{},audit:[],results:[],content:{},lessons:{},npcs:{},assets:{}});
+const fresh=():BackendData=>({parents:{},profiles:{},sessions:{},progress:{},rooms:{},invitations:{},reports:[],feedback:[],review:{},audit:[],results:[],content:{},lessons:{},npcs:{},assets:{}});
 export interface Repository {readonly kind?:string;transaction<T>(operation:(data:BackendData)=>T|Promise<T>):Promise<T>;close():Promise<void>}
 export class SqliteRepository implements Repository {
     readonly kind='sqlite-local';

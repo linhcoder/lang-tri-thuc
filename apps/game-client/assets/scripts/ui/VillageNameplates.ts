@@ -14,7 +14,7 @@ export class VillageNameplates {
     }
     step(player:Point,modal:boolean,bounds?:{left:number;right:number;bottom:number;top:number}):void{
         this.node.active=!modal;this.node.setSiblingIndex(this.node.parent!.children.length-1);
-        const occupied:Array<{x:number;y:number;width:number}>=[...this.actors.children,...(this.actors.parent?.children??[])].filter(n=>n.active&&n.name.startsWith('Scenery-sign-')).map(n=>({x:n.position.x,y:n.position.y+34,width:n.getComponent(UITransform)!.width}));
+        const occupied:Array<{x:number;y:number;width:number}>=[...this.actors.children,...(this.actors.parent?.children??[])].filter(n=>n.active&&(n.name.startsWith('Scenery-sign-')||n.name.startsWith('Expansion-Sign-'))).map(n=>({x:n.position.x,y:n.position.y+(n.name.startsWith('Expansion-')?65:34),width:n.getComponent(UITransform)!.width}));
         this.plates.sort((a,b)=>Math.hypot(a.actor.position.x-player.x,a.actor.position.y-player.y)-Math.hypot(b.actor.position.x-player.x,b.actor.position.y-player.y));
         for(const p of this.plates){const body=p.actor.children.find(n=>n.getComponent(Sprite)?.spriteFrame),head=body?body.position.y+body.getComponent(UITransform)!.height*body.scale.y:79,x=p.actor.position.x,y=p.actor.position.y+head+17;p.node.active=false;p.bubble.active=false;
             if(!p.actor.active||Math.hypot(x-player.x,p.actor.position.y-player.y)>(sys.isMobile?260:600)||bounds&&(x<bounds.left||x>bounds.right||p.actor.position.y<bounds.bottom||p.actor.position.y>bounds.top))continue;

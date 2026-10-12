@@ -27,3 +27,11 @@ Release `68f79b9-playtest-feedback-8f4c4bbd-20261012`, source baseline `68f79b9`
 `verify-feedback.cjs` qua HTTPS đạt parent submit/MySQL durable, admin chỉ cập nhật góp ý tạo bởi QA, parent nhận ghi chú, export/rút lại/mobile bounds; errors rỗng. Tài khoản QA được xóa trong finally; không sửa nội dung game hoặc góp ý người thật. `verify-api.cjs` đạt login/catalog/quyền truy cập/phòng vé trên cùng phiên bản. Report ignored tại `temp/deploy/qa/feedback`.
 
 Gate còn lại là trẻ có giám sát, điện thoại thật, duyệt nội dung/quyền art, phiên nhiều giờ và benchmark production. Đợt này không tự đánh dấu nội dung là approved, không tạo NPC AI hoặc mở game công khai.
+
+## Chuẩn bị lượt Android và rà lại sau commit — 12/10/2026
+
+Source các đợt nâng cấp/mở rộng được commit tại `1de349a`. Health staging kiểm tra lại trả `ok=true`, MySQL và contentVersion `547e04f2`; không triển khai app mới trong lượt chuẩn bị này. Hai tài khoản expansion QA còn tồn đã được xác minh alias/role, xóa bằng API của chính fixture, kiểm tra phiên/đăng nhập cũ trả 401 và audit database không còn alias expansion. Audit dùng tài khoản database ứng dụng, không đọc cấu hình MySQL root aaPanel; report ignored `temp/deploy/qa/expansion-cleanup.json`.
+
+Chạy lại `test:feedback-ui` và `test:backend-ui` đạt trên API/SQLite fixture riêng. Preview đầu thiếu VITE_API_URL nên ca góp ý timeout; cấu hình lại URL local 33000 rồi chạy lại đạt. `test:expansion-ui` trên build local mặc định đạt bảy hoạt động và reload ở desktop 1280×720, touch dọc 390×844, ngang 844×390 cho ba nhóm tuổi. Đã xem ảnh phụ huynh mobile và bảng chăm hoa dọc. Các kiểm tra này dùng browser giả lập; không ghi là Android thật.
+
+Doctor ban đầu thấy build/config có đủ nhưng stack local đầy đủ không chạy. Preview UI/game chỉ được bật riêng cho lượt QA, không khởi động hay thay dữ liệu MySQL local. Hướng dẫn đã thêm lịch 10–15 phút, phiếu quan sát và checklist Android theo lựa chọn của người dùng. Phần chơi thử với phụ huynh/bé chưa có kết quả; ưu tiên nhận và xử lý góp ý từ lượt Android tiếp theo.

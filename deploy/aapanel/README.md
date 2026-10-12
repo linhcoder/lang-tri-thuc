@@ -4,7 +4,7 @@ Triển khai riêng dưới `/opt/lang-tri-thuc`, dùng Nginx/Node 24/MariaDB hi
 
 ## Bố trí
 
-- Release đang chạy: `/opt/lang-tri-thuc/releases/68f79b9-worktree-minigame-6f44a0a8-20261012`, source baseline `68f79b9` kèm working tree chưa commit, contentVersion `6f44a0a8` (rules 7). Bản trước `/opt/lang-tri-thuc/releases/4fe699c-npc-walk-e48dccf3-20261012` giữ để rollback. Symlink `/opt/lang-tri-thuc/current`; RELEASE.txt ghi nguồn bản phát hành.
+- Release đã kích hoạt gần nhất: `/opt/lang-tri-thuc/releases/68f79b9-village-expansion-547e04f2-20261012`, build `village-expansion-v4`, contentVersion `547e04f2` (rules 9). Source được commit thành `1de349a` sau triển khai; tên release vẫn giữ baseline `68f79b9` và working tree tại thời điểm đóng gói. Bản trước `68f79b9-playtest-feedback-8f4c4bbd-20261012` giữ để rollback. Symlink `/opt/lang-tri-thuc/current`; RELEASE.txt ghi nguồn bản phát hành. Health HTTPS kiểm tra ngày 12/10 vẫn trả MySQL/`547e04f2`; chi tiết [VILLAGE_EXPANSION](../../docs/design/VILLAGE_EXPANSION.md).
 - Admin: `https://ltt.vui-hoc.xyz/`; game: `/game/`; API: `/api/`; Colyseus: `/colyseus/`.
 - Hai systemd service `lang-tri-thuc-api`, `lang-tri-thuc-rooms`, user `langtri`.
 - Cổng chỉ bind `127.0.0.1:33080` và `127.0.0.1:32580`; `ALLOW_DEV_ROOMS=0` tắt room development kể cả loopback. `/api/internal/` bị chặn từ Nginx.
@@ -13,6 +13,8 @@ Triển khai riêng dưới `/opt/lang-tri-thuc`, dùng Nginx/Node 24/MariaDB hi
 - aaPanel giữ cấu hình chính/certificate và đường dẫn `/.well-known/` cũ; extension riêng `.../vhost/nginx/extension/ltt.vui-hoc.xyz/lang-tri-thuc.conf`.
 
 ## Build và cập nhật
+
+Trạng thái hiện tại theo mục Bố trí phía trên. Các đợt mini game/art/completion dưới đây là lịch sử triển khai, không phải bản đang chạy. Sau mỗi lần cập nhật cần ghi release/build/contentVersion mới tại mục Bố trí và giữ bản đã kiểm tra để rollback.
 
 Bản mini game ngày 12/10 đã triển khai: build `minigame-complete-v3`, rules 7 / contentVersion `6f44a0a8`. Baseline HTTPS/API trước deploy trả `e48dccf3`; sau activate trả `6f44a0a8`, MySQL và hai services active. SHA-256 archive local/remote khớp, backup/restore drill khớp state, API/rooms build Linux và nginx -t đạt. Giữ release NPC trước để rollback.
 

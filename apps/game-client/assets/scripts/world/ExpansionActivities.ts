@@ -35,6 +35,17 @@ export class ExpansionGame {
         if(kind==='match')return {prompt:'Tìm đồ vật giống hình mẫu.',choices:['Quyển sách','Chiếc bút','Quả bóng'],answer:i,picture:['book','pencil','ball'][i],count:1};
         return {prompt:['Tìm quyển sách để đọc.','Tìm chiếc bút để viết.','Tìm chiếc cặp để mang sách.'][i],choices:['Quyển sách','Chiếc bút','Chiếc cặp'],answer:i,picture:['book','pencil','bag'][i],count:1};
     }
+    /** Pictures follow visible choices, so children can choose without reading. */
+    get choicePictures():string[]{
+        const kind=this.activity.kind,i=Math.min(this.step,2);
+        if(kind==='care')return [['seed','stone','pencil'],['water','book','ball'],['water','broken','foot']][i];
+        if(kind==='boat')return ['hull','mast','sail'];
+        if(kind==='float')return ['floating','sinking'];
+        if(kind==='color')return ['red','yellow','green'];
+        if(kind==='match')return ['book','pencil','ball'];
+        if(kind==='find')return ['book','pencil','bag'];
+        return this.round.choices.map(()=> '');
+    }
     choose(index:number):boolean{if(this.ended||!Number.isInteger(index)||index<0||index>=this.round.choices.length)return false;if(index!==this.round.answer){this.feedback='Mình thử lại nhé! Chạm Gợi ý nếu cần.';return false;}this.step++;this.feedback=this.ended?'Hoàn thành! Cảm ơn bé đã cùng chơi.':'Đúng rồi! Cùng làm bước tiếp theo.';return true;}
     hint():void{if(!this.ended)this.feedback='Gợi ý: '+this.round.choices[this.round.answer]+'. Không mất điểm khi dùng gợi ý.';}
 }

@@ -31,6 +31,16 @@ Bản build: `village-expansion-v4`. Ảnh và báo cáo kiểm thử local nằ
 
 ## Staging và localhost
 
+### Tối ưu ba khu — bản local tiếp theo
+
+Build `expansion-polish-v2` bổ sung luống cây và giỏ quả tại Vườn bốn mùa, lau sậy/phao tại Bến sông quê, ô nhảy lò cò/ghế sách tại Sân trường tuổi thơ. Chi tiết dùng Graphics tĩnh theo nhóm, không thêm vòng cập nhật animation hoặc collision. Bản đồ khám phá hiển thị huy hiệu đã hoàn thành/tổng hoạt động theo khu và nút Cùng chơi mở đúng người bạn của khu; từ hội thoại có thể quay lại Chọn khu.
+
+Lựa chọn của sáu hoạt động có hình bên cạnh chữ; đếm cá vẫn dùng lựa chọn số. Tên hoạt động giữ cố định khi chọn sai hoặc xin gợi ý; phản hồi có dòng riêng và ba chấm tiến độ. Quả bóng có đường bóng, viên đá trong thẻ không dùng mặt nước của tranh mô phỏng. Kích thước hình được giới hạn để không tràn thẻ.
+
+Luật ba bước, đáp án, phần thưởng và save không đổi; vẫn rules 9/contentVersion `547e04f2`. Bản này là preview local, chưa triển khai staging; đường dẫn staging và release bên dưới ghi lần phát hành trước.
+
+QA bản cuối đạt typecheck, 63 nhóm client/4 test mạng, 21 lượt logic hoạt động và Cocos desktop 1280×720/touch dọc 390×844/ngang 844×390. Test đi qua nút Cùng chơi/Chọn khu, kiểm tra hình trên lựa chọn và tên Chăm hoa giữ nguyên sau chọn sai/gợi ý, hoàn thành bảy hoạt động, tới ba khu, reload giữ huy hiệu/ngoại hình và không tăng sao truyện; page errors rỗng. Đã xem ảnh lựa chọn lắp thuyền desktop và đồ dùng đi học dọc. Preview `http://127.0.0.1:8116/`; ảnh/report ignored ở `apps/game-client/temp/expansion-qa`. Chưa coi đây là kết quả chơi thử Android thật.
+
 Đã kích hoạt `68f79b9-village-expansion-547e04f2-20261012` tại https://ltt.vui-hoc.xyz/. API/rooms active, MySQL health cùng phiên bản `547e04f2`. Local game mặc định và stack phụ huynh 35173 cũng đã cập nhật `village-expansion-v4`.
 
 Overlay 405.657 byte / 80 file, SHA-256 `db15a0d67487e5b77280a3f032a3bceee07df769ac7d182f4297023076b83fd8`. Backup `/opt/lang-tri-thuc/backups/database-20261012T132257Z.sql` đã restore vào DB tạm và khớp trạng thái; release `68f79b9-playtest-feedback-8f4c4bbd-20261012` giữ để rollback.

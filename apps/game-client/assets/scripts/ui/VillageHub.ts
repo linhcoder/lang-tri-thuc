@@ -226,7 +226,7 @@ export class VillageHub {
         // now so name lookups below cannot style a stale, inactive title or notice.
         for(const n of [...this.node.children]){n.active=false;n.removeFromParent();n.destroy();}this.buttons=[];this.gameBoard=undefined;this.indicator=undefined;this.lastRhythm=null;
         const titles:Record<Mode,string>={expansion:'BA KHU VUI CHƠI MỚI',friend:storyNpcs.find(n=>n.id===this.selectedFriend)?.name??'BẠN MỚI','expansion-game':this.expansionGame?.activity.title??'CÙNG CHƠI',skin:'CHỌN MÀU DA',holidays:'SỔ NGÀY LỄ',holiday:'CÙNG VUI NGÀY LỄ',care:'CHĂM GÓC LÀNG',painting:'GÓC VẼ CỦA BÉ',collection:'SỔ KHÁM PHÁ VÀ NGÀY HỘI',explore:'KHÁM PHÁ LÀNG',gestures:'BI\u1ec2U C\u1ea2M',menu:'SỔ TAY CỦA BÉ',achievements:'THÀNH TÍCH CỦA BÉ',settings:'CÀI ĐẶT',activities:'HOẠT ĐỘNG MỞ RỘNG',hair:'CH\u1eccN KI\u1ec2U T\u00d3C',accessory:'KHĂN QUÀNG CỦA BÉ',home:'NHÀ CỦA BÉ',online:'BẠN BÈ • PHÒNG RIÊNG',journal:'SỔ LÀNG • TÁM CHƯƠNG',chapter:chapters[this.chapterIndex].title.toUpperCase(),lesson:'BÀI HỌC',game:this.game?gameNames[this.game.id]:'TRÒ CHƠI',gate:'GÓC PHỤ HUYNH',parent:'PHỤ HUYNH • BẢN THỬ',age:'MỨC HỌC',quality:'HÌNH ẢNH',avatar:'CHỌN NHÂN VẬT',inventory:'SAO VÀ BỘ SƯU TẬP',map:'BẢN ĐỒ LÀNG',reset:'XÁC NHẬN XÓA SỔ',help:'HƯỚNG DẪN TRÒ CHƠI'};
-        const heading=['chapter','activities','collection','explore','care','painting','holidays','holiday','game'].includes(this.mode)?titles[this.mode]:this.message||titles[this.mode];
+        const heading=['chapter','activities','collection','explore','care','painting','holidays','holiday','game','friend','expansion-game'].includes(this.mode)?titles[this.mode]:this.message||titles[this.mode];
         const title=this.text(this.node,heading,0,this.mode==='game'?238:225,590,this.mode==='game'?32:65,this.mode==='game'?24:this.message&&heading===this.message?20:26);
         this.readingNotice=title.getComponent(Label)!;
         if(this.mode==='game'&&this.game){
@@ -241,20 +241,28 @@ export class VillageHub {
         if(this.mode==='chapter'){paintModalButton(close,'Continue');close.getChildByName('Text')!.getComponent(Label)!.color=modalButtonColor('Continue');}
         if(this.mode==='expansion'){
             this.text(this.node,'Cùng gặp sáu người bạn mới • Chơi không giới hạn thời gian',0,165,550,44,20);
-            this.grid(worldZones.filter(z=>['seasons','riverside','playground'].includes(z.id)).map(z=>({id:'Visit-'+z.id,label:z.name,action:()=>{this.close();if(this.player.goTo(z.spawn))this.destination(z.spawn);}})),1);
+            worldZones.filter(z=>['seasons','riverside','playground'].includes(z.id)).forEach((z,i)=>{
+                const activities=expansionActivities.filter(a=>a.zone===z.id),done=activities.filter(a=>this.campaign.data.expansion?.includes(a.id)).length,y=105-i*92;
+                this.button('Visit-'+z.id,`${z.name} • ${done}/${activities.length}`, -85,y,370,()=>{this.close();if(this.player.goTo(z.spawn))this.destination(z.spawn);});
+                this.button('ZoneFriends-'+z.id,'Cùng chơi',205,y,180,()=>{this.selectedFriend=activities[0].npc;this.mode='friend';this.message='';this.render();});
+            });
             this.button('ExpansionFriends','Gặp các bạn mới',0,-165,400,()=>{this.mode='friend';this.render();});
         }else if(this.mode==='friend'){
             const friend=expansionFriends.find(f=>f.id===this.selectedFriend)!;
             this.text(this.node,friend.hello,40,128,430,100,23);this.onAvatarPreview?.(this.node,friend.avatar,0,0);this.node.getChildByName('AvatarPreview')?.setPosition(-215,80);
             const activities=expansionActivities.filter(a=>a.npc===friend.id);
             activities.forEach((a,i)=>this.button('Expansion-'+a.id,(this.campaign.data.expansion?.includes(a.id)?'✓ ':'')+a.title,0,5-i*84,550,()=>{this.expansionGame=new ExpansionGame(a.id,this.campaign.data.age);this.mode='expansion-game';this.message='';this.render();}));
-            this.button('NextFriend','Bạn tiếp theo',0,-170,380,()=>{this.selectedFriend=expansionFriends[(expansionFriends.indexOf(friend)+1)%expansionFriends.length].id;this.message='';this.render();});
+            this.button('BackToZones','Chọn khu',-145,-170,270,()=>{this.mode='expansion';this.message='';this.render();});
+            this.button('NextFriend','Bạn tiếp theo',145,-170,270,()=>{this.selectedFriend=expansionFriends[(expansionFriends.indexOf(friend)+1)%expansionFriends.length].id;this.message='';this.render();});
         }else if(this.mode==='expansion-game'){
             const game=this.expansionGame!;
-            this.text(this.node,game.ended?'Hoàn thành cả ba bước!':`Bước ${game.step+1}/3 • ${game.round.prompt}`,0,160,550,65,24);
-            const art=this.make(this.node,'ExpansionPicture',460,116);art.setPosition(0,55);paintExpansionSymbol(art.addComponent(Graphics),game.round.picture,game.round.count);
+            const feedback=this.text(this.node,this.message||'Chạm hình hoặc tên để chọn',0,185,540,30,18);feedback.name='ExpansionFeedback';
+            this.readingNotice=feedback.getComponent(Label)!;
+            for(let i=0;i<3;i++){const dot=this.make(this.node,'ExpansionStep-'+i,16,16);dot.setPosition((i-1)*28,-120);const g=dot.addComponent(Graphics);g.fillColor=i<game.step?new Color(91,139,75):new Color(210,196,158);g.circle(0,0,7);g.fill();}
+            this.text(this.node,game.ended?'Hoàn thành cả ba bước!':`Bước ${game.step+1}/3 • ${game.round.prompt}`,0,133,550,60,23);
+            const art=this.make(this.node,'ExpansionPicture',460,116);art.setPosition(0,40);paintExpansionSymbol(art.addComponent(Graphics),game.round.picture,game.round.count);
             if(game.ended){this.text(this.node,'Đã lưu huy hiệu hoạt động. Bé có thể chơi lại bất cứ lúc nào.',0,-55,540,100,23);this.button('ExpansionFinish','Chơi cùng bạn tiếp',0,-160,430,()=>{this.mode='friend';this.message='';this.render();});}
-            else{game.round.choices.forEach((choice,i)=>this.button('ExpansionChoice-'+i,choice,(i-(game.round.choices.length-1)/2)*(game.round.choices.length===2?245:185),-75,game.round.choices.length===2?235:175,()=>{game.choose(i);if(game.ended){const completed=this.campaign.data.expansion??=[];if(!completed.includes(game.id))completed.push(game.id);this.persist();}this.message=game.feedback;this.render();}));this.button('ExpansionHint','Gợi ý',0,-165,270,()=>{game.hint();this.message=game.feedback;this.render();});}
+            else{game.round.choices.forEach((choice,i)=>{const card=this.button('ExpansionChoice-'+i,choice,(i-(game.round.choices.length-1)/2)*(game.round.choices.length===2?245:185),-75,game.round.choices.length===2?235:175,()=>{game.choose(i);if(game.ended){const completed=this.campaign.data.expansion??=[];if(!completed.includes(game.id))completed.push(game.id);this.persist();}this.message=game.feedback;this.render();});const picture=game.choicePictures[i];if(picture){const icon=this.make(card,'ChoicePicture',100,100);icon.setPosition(-card.getComponent(UITransform)!.width/2+32,0);const scale=picture==='hull'?.35:.45;icon.setScale(scale,scale,1);paintExpansionSymbol(icon.addComponent(Graphics),picture,1,false);const label=card.getChildByName('Text')!;label.setPosition(22,0);label.getComponent(UITransform)!.setContentSize(card.getComponent(UITransform)!.width-68,68);}});this.button('ExpansionHint','Gợi ý',0,-165,270,()=>{game.hint();this.message=game.feedback;this.render();});}
         }else if(this.mode==='skin'){
             skinNames.forEach((name,i)=>{const n=this.button('Skin-'+i,name+(this.campaign.data.skin===i?' ✓':''),0,120-i*100,560,()=>{this.campaign.data.skin=i;this.persist();this.message='Đã chọn '+name.toLowerCase()+'.';this.render();});this.onAvatarPreview?.(n,this.campaign.data.avatar,this.campaign.data.hair,i);});
             this.button('BackToAvatar','Chọn nhân vật',0,-180,350,()=>{this.mode='avatar';this.render();});

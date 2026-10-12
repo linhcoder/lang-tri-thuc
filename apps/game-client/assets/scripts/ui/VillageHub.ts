@@ -37,7 +37,7 @@ export class VillageHub {
         if(this.expansionGame?.id!==value.id||this.expansionGame.step!==value.step){this.expansionGame=new ExpansionGame(value.id,value.age);this.expansionGame.step=value.step;}
         this.pendingExpansion=undefined;this.expansionAttempt=value.attempt;this.expansionPlayers=value.players;this.mode='expansion-game';this.node.active=true;this.message='';this.render();
     }
-    applyExpansionFeedback(id:ExpansionId,message:string):void{if(this.expansionGame?.id===id||this.pendingExpansion===id){this.message=message;this.render();}}
+    applyExpansionFeedback(id:ExpansionId,message:string,cancelled=false):void{if(this.pendingExpansion===id||this.expansionAttempt&&this.expansionGame?.id===id){if(cancelled){this.endExpansionOnline();this.mode='friend';}this.message=message;this.render();}}
     endExpansionOnline():void{this.pendingExpansion=undefined;this.expansionAttempt='';this.expansionPlayers=0;}
     onActivitySave?:()=>void;
     onPortal?:(id:string)=>void;private usePortal=false;onOnline?:(action:string,id?:string)=>void;onlinePeers?:()=>Array<{id:string;name:string}>;private mapPage=0;private peerIndex=0;readonly node:Node;readonly npcNodes:Node[]=[];

@@ -17,7 +17,7 @@ export class VillageNetwork {
     onProgress?:(value:any)=>void;onGame?:(game:MiniGameRules)=>void;
     onGameFeedback?:(id:string,message:string)=>void;
     onExpansion?:(value:{id:ExpansionId;age:AgeBand;step:number;attempt:string;players:number})=>void;
-    onExpansionFeedback?:(id:ExpansionId,message:string)=>void;
+    onExpansionFeedback?:(id:ExpansionId,message:string,cancelled:boolean)=>void;
     onActivities?:(value:any)=>void;
     onEmote?:(sessionId:string,id:string)=>void;
     onOffline?:()=>void;
@@ -50,7 +50,7 @@ export class VillageNetwork {
                 room.onMessage('progress-state',v=>{if(this.room===room)this.onProgress?.(v);});room.onMessage('storage-warning',v=>{this.lastMessage=String(v).slice(0,150);});
                 room.onMessage('activities-state',v=>{if(this.room===room)this.onActivities?.(v);});
                 room.onMessage('expansion-state',v=>{if(this.room===room&&this.contentReady&&v&&expansionActivities.some(a=>a.id===v.id)&&['3-5','6-8','9-11'].includes(v.age)&&Number.isInteger(v.step)&&v.step>=0&&v.step<=3&&typeof v.attempt==='string'&&v.attempt.length<=80&&Number.isInteger(v.players)&&v.players>=1&&v.players<=4)this.onExpansion?.(v);});
-                room.onMessage('expansion-feedback',v=>{if(this.room===room&&this.contentReady&&v&&expansionActivities.some(a=>a.id===v.id)&&typeof v.message==='string'&&v.message.length<=200)this.onExpansionFeedback?.(v.id,v.message);});
+                room.onMessage('expansion-feedback',v=>{if(this.room===room&&this.contentReady&&v&&expansionActivities.some(a=>a.id===v.id)&&typeof v.message==='string'&&v.message.length<=200)this.onExpansionFeedback?.(v.id,v.message,v.cancelled===true);});
                 room.onMessage('game-feedback',v=>{if(this.room===room&&this.contentReady&&v&&typeof v.id==='string'&&(miniGameIds as readonly string[]).includes(v.id)&&typeof v.message==='string'&&v.message.trim().length>0&&v.message.length<=200)this.onGameFeedback?.(v.id,v.message);});
                 room.onMessage('emote',v=>{const labels:Record<string,string>={...Object.fromEntries(avatarGestures.map(g=>[g.id,g.message])),happy:'M\u00ecnh vui qu\u00e1!',hello:'Chào bạn!',thanks:'Cảm ơn!', 'your-turn':'Đến lượt bạn!', 'need-help':'Mình cần giúp',bye:'Tạm biệt!'};if(this.room===room&&v&&typeof v.sessionId==='string'&&labels[v.id]&&!this.blocked.has(v.sessionId)){this.onEmote?.(v.sessionId,v.id);this.lastMessage=(this.players.get(v.sessionId)?.name??'Bạn')+': '+labels[v.id];}});
                 room.onMessage('blocked',v=>{if(typeof v.sessionId==='string'){this.blocked.add(v.sessionId);this.players.delete(v.sessionId);}});room.onMessage('report-sent',()=>{this.lastMessage='Đã gửi báo cáo tới người lớn phụ trách.';});room.send('ready');

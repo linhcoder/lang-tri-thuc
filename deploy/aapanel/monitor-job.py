@@ -13,8 +13,11 @@ def main():
     checks=[]
     def add(name,ok,detail):checks.append({'id':name,'status':'ok' if ok else 'warning','detail':detail})
     try:
-        with urllib.request.urlopen('http://127.0.0.1:33080/ready',timeout=5) as response:health=json.load(response)
-        add('api',health.get('ok') is True and active('lang-tri-thuc-api-b'),'API/MySQL readiness: '+str(health.get('ok') is True))
+        ready=[]
+        for port in [33080,33081]:
+            with urllib.request.urlopen('http://127.0.0.1:'+str(port)+'/ready',timeout=5) as response:health=json.load(response)
+            ready.append(health.get('ok') is True and health.get('storage')=='mysql')
+        add('api',all(ready) and active('lang-tri-thuc-api') and active('lang-tri-thuc-api-b'),'API/MySQL readiness: '+str(sum(ready))+'/2')
     except Exception:add('api',False,'API hoặc cơ sở dữ liệu chưa sẵn sàng.')
     rooms=active('lang-tri-thuc-rooms') and active('lang-tri-thuc-rooms-b')
     add('rooms',rooms,'Hai instance phòng chơi đang chạy.' if rooms else 'Có instance phòng chơi ngừng hoạt động.')

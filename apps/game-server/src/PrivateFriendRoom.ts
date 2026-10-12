@@ -4,7 +4,7 @@ import {VillageRoom} from './VillageRoom';
 import {verifyTicket} from '../../backend/src/Auth';
 import {ChapterOneProgress,plantingPlots} from '../../game-client/assets/scripts/world/ChapterOneProgress';
 import {CampaignEngine} from '../../game-client/assets/scripts/world/CampaignEngine';
-import {restoreActivities} from '../../game-client/assets/scripts/world/ActivitySnapshot';
+import {ActivitySnapshot,restoreActivities} from '../../game-client/assets/scripts/world/ActivitySnapshot';
 import {EducationEngine,lessonQuestions,riceQuestions} from '../../game-client/assets/scripts/world/EducationEngine';
 import {chapters,AgeBand,miniGameIds} from '../../game-client/assets/scripts/world/CampaignContent';
 import {MiniGameRules} from '../../game-client/assets/scripts/world/MiniGameRules';
@@ -13,7 +13,7 @@ import {portalDestination} from '../../game-client/assets/scripts/world/WorldZon
 import {contentVersion} from '../../game-client/assets/scripts/world/ContentVersion';
 import {avatarGestures} from '../../game-client/assets/scripts/world/AvatarGestures';
 import {ExpansionGame,ExpansionId,expansionActivities} from '../../game-client/assets/scripts/world/ExpansionActivities';
-interface Member {profileId:string;parentId:string;age:AgeBand;blocked:string[];first:ChapterOneProgress;campaign:CampaignEngine;lastEmote:number;cancelledExpansion?:ExpansionId;saveQueue:Promise<unknown>}
+interface Member {profileId:string;parentId:string;age:AgeBand;blocked:string[];first:ChapterOneProgress;campaign:CampaignEngine;lastEmote:number;activities:ActivitySnapshot|null;cancelledExpansion?:ExpansionId;saveQueue:Promise<unknown>}
 export const approvedEmotes=[...avatarGestures.map(g=>g.id),'thanks','your-turn','need-help','bye'] as const;
 export class PrivateFriendRoom extends VillageRoom {
     private secret='';private api='';private code='';private members=new Map<string,Member>();
@@ -22,13 +22,13 @@ export class PrivateFriendRoom extends VillageRoom {
     onCreate(options:any={}):void{
         super.onCreate();this.maxClients=20;this.secret=options.secret;this.api=options.apiUrl;this.code=options.roomCode;
         if(typeof this.secret!=='string'||this.secret.length<32||!/^[A-Z0-9]{8}$/.test(this.code))throw Error('Private room configuration invalid');
-        this.onMessage('ready',client=>{client.send('content-version',contentVersion());this.sendProgress(client);this.sendExpansionCancellation(client);for(const [id,group] of this.expansionGroups)if(group.participants.has(client.sessionId))this.publishExpansion(id);client.send('activities-state',{snapshot:(client.auth as any)?.activities??null});});
+        this.onMessage('ready',client=>{client.send('content-version',contentVersion());this.sendProgress(client);this.sendExpansionCancellation(client);for(const [id,group] of this.expansionGroups)if(group.participants.has(client.sessionId))this.publishExpansion(id);client.send('activities-state',{snapshot:this.members.get(client.sessionId)?.activities??null});});
         this.onMessage('activities-save',(client,value:unknown)=>{
             const m=this.members.get(client.sessionId),v=value as {id?:unknown;snapshot?:unknown};
             if(!m||typeof v?.id!=='string'||v.id.length>80||!v.snapshot||typeof v.snapshot!=='object')return;
             const raw=JSON.stringify(v.snapshot);if(raw.length>240000)return;
             const snapshot=JSON.stringify(restoreActivities(v.snapshot));
-            m.saveQueue=m.saveQueue.then(async()=>{const saved=await this.service('/internal/activities',{profileId:m.profileId,snapshot});(client.auth as any).activities=saved.snapshot;client.send('activities-state',{id:v.id,snapshot:saved.snapshot});}).catch(()=>this.warn(client,'Hoạt động chưa đồng bộ được. Bản lưu trên máy vẫn còn.'));
+            m.saveQueue=m.saveQueue.then(async()=>{const saved=await this.service('/internal/activities',{profileId:m.profileId,snapshot});m.activities=saved.snapshot;(client.auth as any).activities=saved.snapshot;client.send('activities-state',{id:v.id,snapshot:saved.snapshot});}).catch(()=>this.warn(client,'Hoạt động chưa đồng bộ được. Bản lưu trên máy vẫn còn.'));
         });
         this.onMessage('portal',(client,value:unknown)=>{const p=this.state.players.get(client.sessionId),id=(value as any)?.id;if(!p||typeof id!=='string')return;const target=portalDestination(p,id);if(target)this.relocate(client,target);});
         this.onMessage('probe',(client,value:unknown)=>{if(typeof value==='number'&&Number.isFinite(value))client.send('probe',value);});
@@ -44,7 +44,7 @@ export class PrivateFriendRoom extends VillageRoom {
             if(!member||!expansionActivities.some(a=>a.id===id))return;
             const key=id as ExpansionId;if(this.expansionGroups.get(key)?.participants.has(client.sessionId)){this.publishExpansion(key);return;}this.leaveExpansion(client.sessionId);
             let group=this.expansionGroups.get(key);
-            if(!group||group.game.ended){const checkpoint=(client.auth as any).activities?.expansionProgress?.[key];group={game:new ExpansionGame(key,member.age,checkpoint?.age===member.age?checkpoint.step:0),attempt:randomUUID(),participants:new Set()};this.expansionGroups.set(key,group);}
+            if(!group||group.game.ended){const checkpoint=member.activities?.expansionProgress?.[key];group={game:new ExpansionGame(key,member.age,checkpoint?.age===member.age?checkpoint.step:0),attempt:randomUUID(),participants:new Set()};this.expansionGroups.set(key,group);}
             if(group.participants.size>=4){client.send('expansion-feedback',{id:key,message:'Nhóm đã đủ bốn bạn. Bé có thể luyện một mình.'});return;}
             if(Array.from(group.participants).some(session=>{const peer=this.members.get(session);return peer&&(peer.blocked.includes(member.profileId)||member.blocked.includes(peer.profileId));})){client.send('expansion-feedback',{id:key,message:'Không thể vào nhóm này. Bé có thể luyện một mình hoặc chọn nhóm khác.'});return;}
             group.participants.add(client.sessionId);this.publishExpansion(key);
@@ -54,9 +54,9 @@ export class PrivateFriendRoom extends VillageRoom {
             if(!member||!group||!group.participants.has(client.sessionId)||group.game.ended||v.attempt!==group.attempt||v.step!==group.game.step||!Number.isInteger(v.index))return;
             if(Array.from(group.participants).some(session=>{const peer=this.members.get(session);return peer&&(peer.blocked.includes(member.profileId)||member.blocked.includes(peer.profileId));})){this.leaveExpansion(client.sessionId);return;}
             if(!group.game.choose(v.index as number)){client.send('expansion-feedback',{id:group.game.id,message:group.game.feedback});return;}
-            for(const session of group.participants){const peer=this.clients.find(c=>c.sessionId===session),m=this.members.get(session);if(!peer||!m)continue;
+            for(const session of group.participants){const m=this.members.get(session);if(!m)continue;
                 const patch={profileId:m.profileId,id:group.game.id,step:group.game.ended?0:group.game.step,age:group.game.age,completed:group.game.ended};
-                m.saveQueue=m.saveQueue.then(async()=>{const saved=await this.service('/internal/expansion-progress',patch);(peer.auth as any).activities=saved.snapshot;peer.send('activities-state',{snapshot:saved.snapshot});}).catch(()=>this.warn(peer,'Kết quả nhóm chưa lưu được. Hãy giữ trang mở và thử lại.'));
+                m.saveQueue=m.saveQueue.then(async()=>{const saved=await this.service('/internal/expansion-progress',patch);m.activities=saved.snapshot;const peer=this.clients.find(c=>c.sessionId===session);if(peer){(peer.auth as any).activities=saved.snapshot;peer.send('activities-state',{snapshot:saved.snapshot});}}).catch(()=>{const peer=this.clients.find(c=>c.sessionId===session);if(peer)this.warn(peer,'Kết quả nhóm chưa lưu được. Hãy giữ trang mở và thử lại.');});
             }
             this.publishExpansion(group.game.id);
         });
@@ -89,7 +89,7 @@ export class PrivateFriendRoom extends VillageRoom {
     }
     onJoin(client:Client):void{
         super.onJoin(client);const p=client.auth as any,first=new ChapterOneProgress(),campaign=new CampaignEngine();if(p.trusted){first.restore(JSON.stringify(p.trusted.chapterOne));campaign.restore(JSON.stringify(p.trusted.campaign));}campaign.data.age=p.age;campaign.syncChapterOne(first.data);
-        this.members.set(client.sessionId,{profileId:p.id,parentId:p.parentId,age:p.age,blocked:p.blocked,first,campaign,lastEmote:0,saveQueue:Promise.resolve()});
+        this.members.set(client.sessionId,{profileId:p.id,parentId:p.parentId,age:p.age,blocked:p.blocked,first,campaign,lastEmote:0,activities:p.activities?restoreActivities(p.activities):null,saveQueue:Promise.resolve()});
     }
     async onLeave(client:Client,code?:number):Promise<void>{
         if(client.sessionId===this.gameOwner&&this.game&&!this.game.ended){this.game.pause();this.publishGame();}

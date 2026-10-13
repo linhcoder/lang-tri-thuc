@@ -3,8 +3,8 @@ import {DialoguePresentation} from './DialoguePresentation';
 import {ExpansionGame,ExpansionId,expansionActivities,expansionFriends} from '../world/ExpansionActivities';
 import {avatarNames,skinNames} from '../world/CharacterArt';
 import {paintExpansionSymbol} from './ExpansionArt';
-import {paintModalFrame,paintModalButton,modalButtonColor} from './ModalTheme';
-import { Color, Graphics, HorizontalTextAlignment, Label, Node, UITransform, Vec3, sys } from 'cc';
+import {paintModalFrame,paintModalHeader,paintModalButton,modalButtonColor,markModalAnswer} from './ModalTheme';
+import { Color, Graphics, HorizontalTextAlignment, Label, Node, UITransform, Vec3, sys, Sprite } from 'cc';
 import { CampaignSave } from '../world/CampaignSave';
 import { ChapterOneSave } from '../world/ChapterOneSave';
 import { AgeBand, chapters, miniGameIds, MiniGameId, storyNpcs,seasonalActivities } from '../world/CampaignContent';
@@ -91,7 +91,7 @@ export class VillageHub {
         this.syncFirst();
     }
     private make(parent:Node,name:string,width:number,height:number):Node{const n=new Node(name);n.layer=parent.layer;parent.addChild(n);n.addComponent(UITransform).setContentSize(width,height);return n;}
-    private text(parent:Node,value:string,x:number,y:number,width=560,height=75,size=24):Node{if(parent===this.node)this.spokenParts.push(value);const n=this.make(parent,'Text',width,height);n.setPosition(x,y);const l=n.addComponent(Label);l.string=value;l.fontSize=size;l.lineHeight=size+8;l.enableWrapText=true;l.overflow=Label.Overflow.CLAMP;l.color=parent===this.node&&y>=210?new Color(255,245,211):new Color(70,63,40);if(parent===this.node&&y>=210)n.getComponent(UITransform)!.setContentSize(Math.min(width,536),height);if(parent===this.node&&height>=150&&['chapter','friend'].includes(this.mode))this.presentation.bind(l,value);return n;}
+    private text(parent:Node,value:string,x:number,y:number,width=560,height=75,size=24):Node{if(parent===this.node)this.spokenParts.push(value);const n=this.make(parent,'Text',width,height);n.setPosition(x,y);const l=n.addComponent(Label);l.string=value;l.fontSize=size;l.lineHeight=size+8;l.enableWrapText=true;l.overflow=Label.Overflow.CLAMP;l.color=parent===this.node&&y>=210?new Color(80,59,35):new Color(70,63,40);if(parent===this.node&&y>=210)n.getComponent(UITransform)!.setContentSize(Math.min(width,536),height);if(parent===this.node&&height>=150&&['chapter','friend'].includes(this.mode))this.presentation.bind(l,value);return n;}
     private button(id:string,label:string,x:number,y:number,width:number,action:()=>void):Node{const n=this.make(this.node,id,width,76);n.setPosition(x,y);paintModalButton(n,id);const caption=this.text(n,label,0,0,width-20,70,21);caption.getComponent(Label)!.color=modalButtonColor(id);caption.getComponent(Label)!.overflow=Label.Overflow.SHRINK;this.buttons.push({node:n,width,action});return n;}
     private grid(items:Array<{id:string;label:string;action:()=>void}>,columns=2):void{const width=columns===1?560:columns===2?280:165;items.forEach((b,i)=>this.button(b.id,b.label,(i%columns-(columns-1)/2)*(width+12),120-Math.floor(i/columns)*92,width,b.action));}
     private chapterTasks():void{
@@ -215,7 +215,7 @@ export class VillageHub {
     }
     private paintPuzzleFrame():void{
         const size=this.puzzlePanelSize;if(!size){this.node.getComponent(UITransform)!.setContentSize(620,560);paintModalFrame(this.node);return;}
-        this.node.getComponent(UITransform)!.setContentSize(size.width,size.height);const g=this.node.getComponent(Graphics)!;g.clear();g.fillColor=new Color(157,187,141);g.roundRect(-size.width/2,-size.height/2,size.width,size.height,28);g.fill();g.fillColor=new Color(255,246,218);g.roundRect(-size.width/2+7,-size.height/2+7,size.width-14,size.height-14,23);g.fill();g.fillColor=new Color(62,107,72);g.roundRect(-size.width/2+20,size.height/2-(size.height===1400?135:110),size.width-40,size.height===1400?115:88,18);g.fill();
+        this.node.getComponent(UITransform)!.setContentSize(size.width,size.height);paintModalFrame(this.node);
     }
     private finishQuest():void{if(this.practice){if(this.holidayRun&&this.game?.ended){const holiday=traditionalFestivals.find(h=>h.id===this.holidayRun);if(holiday&&this.game.id===holiday.game&&(this.campaign.data.holidayProgress?.[holiday.id]??0)>=2){(this.campaign.data.holidayProgress??={})[holiday.id]=3;if(!this.campaign.data.practice.includes(this.game.id))this.campaign.data.practice.push(this.game.id);this.selectedHoliday=holiday.id;this.persist();this.game=undefined;this.holidayRun=null;this.mode='holiday';this.message='';this.render();return;}}if(this.festivalOnly&&this.game?.ended){const season=seasonalActivities(),progress=this.campaign.data.festivalProgress??={},games=progress[season.key]??=[];if(season.games.includes(this.game.id)&&!games.includes(this.game.id))games.push(this.game.id);}if(this.game?.ended&&!this.campaign.data.practice.includes(this.game.id))this.campaign.data.practice.push(this.game.id);this.persist();this.game=undefined;this.mode='activities';this.message='Đã luyện xong! Sao cốt truyện được giữ nguyên.';this.render();return;}this.campaign.complete(this.questId);this.persist();this.mode='chapter';this.lesson=undefined;this.game=undefined;this.message='Hoàn thành việc này! Không mất điểm khi dùng gợi ý.';this.render();}
     private startQuest(id:string):void{this.practice=false;
@@ -248,7 +248,7 @@ export class VillageHub {
             this.persist();this.message='';this.render();
         },()=>this.close(),()=>{if(this.expansionAttempt)this.onExpansionLeave?.();this.endExpansionOnline();this.mode='friend';this.message='';this.render();},()=>!this.campaign.data.sound,()=>{this.campaign.data.sound=!this.campaign.data.sound;this.persist();});
         for(const n of [...this.node.children])if(n!==this.flowerView.node){n.active=false;n.removeFromParent();n.destroy();}
-        this.buttons=[];this.node.getComponent(Graphics)!.clear();this.flowerView.layout(this.puzzleWide,this.flowerCompact);
+        this.buttons=[];const skin=this.node.getComponent(Sprite);if(skin)skin.enabled=false;this.node.getComponent(Graphics)!.clear();this.flowerView.layout(this.puzzleWide,this.flowerCompact);
         const size=this.flowerView.size;this.node.getComponent(UITransform)!.setContentSize(size.width,size.height);
         this.flowerView.show(game,this.message);
     }
@@ -270,7 +270,7 @@ export class VillageHub {
             const caption=feedback==='Đúng bước rồi! Cháu tiếp tục nhé.'?'✓ Đúng bước rồi! Tiếp tục nhé.':feedback==='Mình thử lại nhé. Có thể xem gợi ý, không mất điểm.'?'Thử lại nhé • Gợi ý không mất điểm.':feedback||'Chạm lựa chọn bên dưới để cùng chơi';
             const notice=this.text(this.node,caption,0,207,530,26,18);notice.name='GameFeedback';
             this.readingNotice=notice.getComponent(Label)!;this.readingNotice.lineHeight=22;this.readingNotice.enableWrapText=false;this.readingNotice.overflow=Label.Overflow.SHRINK;
-            this.readingNotice.color=feedback.startsWith('Mình thử lại')?new Color(255,222,158):new Color(232,247,214);
+            this.readingNotice.color=feedback.startsWith('Mình thử lại')?new Color(140,70,30):new Color(48,100,46);
         }
         const close=this.button('HubClose',this.mode==='chapter'?'Về làng':'Đóng',this.mode==='chapter'?145:0,-235,this.mode==='chapter'?260:155,()=>this.close());
         if(this.mode==='chapter'){paintModalButton(close,'Continue');close.getChildByName('Text')!.getComponent(Label)!.color=modalButtonColor('Continue');}
@@ -307,7 +307,7 @@ export class VillageHub {
                 }
             }
             if(game.ended){this.text(this.node,this.expansionAttempt&&!this.campaign.data.expansion?.includes(game.id)?'Đã xong ba bước. Đang lưu huy hiệu…':'Đã lưu huy hiệu hoạt động. Bé có thể chơi lại bất cứ lúc nào.',0,-55,540,100,23);this.button('ExpansionFinish','Chơi cùng bạn tiếp',0,-160,430,()=>{if(this.expansionAttempt)this.onExpansionLeave?.();this.endExpansionOnline();this.mode='friend';this.message='';this.render();});}
-            else{game.round.choices.forEach((choice,i)=>{const card=this.button('ExpansionChoice-'+i,choice,(i-(game.round.choices.length-1)/2)*(game.round.choices.length===2?245:185),-75,game.round.choices.length===2?235:175,()=>{if(this.expansionAttempt){this.onExpansionChoice?.(game.id,this.expansionAttempt,game.step,i);return;}const changed=game.choose(i);if(changed){const progress=this.campaign.data.expansionProgress??={};progress[game.id]={step:game.ended?0:game.step,age:game.age,updated:Date.now()};}if(game.ended){const completed=this.campaign.data.expansion??=[];if(!completed.includes(game.id))completed.push(game.id);}if(changed)this.persist();this.message=game.feedback;this.render();});const picture=game.choicePictures[i];if(picture){const icon=this.make(card,'ChoicePicture',100,100);icon.setPosition(-card.getComponent(UITransform)!.width/2+32,0);const scale=picture==='hull'?.35:.45;icon.setScale(scale,scale,1);paintExpansionSymbol(icon.addComponent(Graphics),picture,1,false);const label=card.getChildByName('Text')!;label.setPosition(22,0);label.getComponent(UITransform)!.setContentSize(card.getComponent(UITransform)!.width-68,68);}});this.button('ExpansionHint','Gợi ý',0,-165,270,()=>{game.hint();this.message=game.feedback;this.render();});}
+            else{game.round.choices.forEach((choice,i)=>{const card=this.button('ExpansionChoice-'+i,choice,(i-(game.round.choices.length-1)/2)*(game.round.choices.length===2?245:185),-75,game.round.choices.length===2?235:175,()=>{if(this.expansionAttempt){this.onExpansionChoice?.(game.id,this.expansionAttempt,game.step,i);return;}const changed=game.choose(i);if(changed){const progress=this.campaign.data.expansionProgress??={};progress[game.id]={step:game.ended?0:game.step,age:game.age,updated:Date.now()};}if(game.ended){const completed=this.campaign.data.expansion??=[];if(!completed.includes(game.id))completed.push(game.id);}if(changed)this.persist();this.message=game.feedback;this.render();if(!changed)markModalAnswer(this.node.getChildByName('ExpansionChoice-'+i)??undefined,false);});const picture=game.choicePictures[i];if(picture){const icon=this.make(card,'ChoicePicture',100,100);icon.setPosition(-card.getComponent(UITransform)!.width/2+32,0);const scale=picture==='hull'?.35:.45;icon.setScale(scale,scale,1);paintExpansionSymbol(icon.addComponent(Graphics),picture,1,false);const label=card.getChildByName('Text')!;label.setPosition(22,0);label.getComponent(UITransform)!.setContentSize(card.getComponent(UITransform)!.width-68,68);}});this.button('ExpansionHint','Gợi ý',0,-165,270,()=>{game.hint();this.message=game.feedback;this.render();});}
         }else if(this.mode==='skin'){
             skinNames.forEach((name,i)=>{const n=this.button('Skin-'+i,name+(this.campaign.data.skin===i?' ✓':''),0,120-i*100,560,()=>{this.campaign.data.skin=i;this.persist();this.message='Đã chọn '+name.toLowerCase()+'.';this.render();});this.onAvatarPreview?.(n,this.campaign.data.avatar,this.campaign.data.hair,i);});
             this.button('BackToAvatar','Chọn nhân vật',0,-180,350,()=>{this.mode='avatar';this.render();});
@@ -359,7 +359,7 @@ export class VillageHub {
             const q=this.lesson.question;if(!q){this.finishQuest();return;}
             this.text(this.node,q.prompt+(q.illustration?'\n'+q.illustration:''),0,145,550,105,24);
             this.spokenParts.push(...q.choices.map((choice,i)=>`Lựa chọn ${i+1}: ${choice}`));
-            q.choices.forEach((s,i)=>this.button('LessonAnswer-'+i,s,0,40-i*92,550,()=>{const round=this.lesson!.round;if(this.lesson!.answer(i)){this.onLessonAnswer?.({questId:this.questId,round,index:i});this.campaign.data.resume[this.questId]={kind:'lesson',data:this.lesson!.round};this.persist();if(this.lesson!.complete){this.finishQuest();return;}this.message='Đúng rồi!';}else this.message=q.hint;this.render();}));
+            q.choices.forEach((s,i)=>this.button('LessonAnswer-'+i,s,0,40-i*92,550,()=>{const round=this.lesson!.round;if(this.lesson!.answer(i)){this.onLessonAnswer?.({questId:this.questId,round,index:i});this.campaign.data.resume[this.questId]={kind:'lesson',data:this.lesson!.round};this.persist();if(this.lesson!.complete){this.finishQuest();return;}this.message='Đúng rồi!';}else this.message=q.hint;this.render();if(this.lesson?.round===round)markModalAnswer(this.node.getChildByName('LessonAnswer-'+i)??undefined,false);}));
             this.button('LessonHint','Gợi ý',215,-235,140,()=>{this.message=q.hint;this.render();});
         }else if(this.mode==='game'&&this.game){
             if(this.practice||!this.onGameAction)this.game.resume();const game=this.game;
@@ -475,6 +475,7 @@ export class VillageHub {
             for(const button of this.buttons){if(['HubClose','GamePause','GameHelp'].includes(button.node.name)){button.node.setPosition(button.node.name==='HubClose'?0:button.node.name==='GamePause'?(portrait?-230:-340):(portrait?230:340),footer);button.node.getComponent(UITransform)!.setContentSize(button.width,portrait?90:60);paintModalButton(button.node,button.node.name);button.node.getChildByName('Text')!.getComponent(UITransform)!.setContentSize(button.width-16,portrait?84:56);}}
             const finish=this.buttons.find(b=>b.node.name==='GameFinish'||b.node.name==='ServerGameResume');if(finish){if(finish.node.name==='GameFinish'){finish.node.setPosition(portrait?0:265,portrait?-520:-110);finish.node.getComponent(UITransform)!.setContentSize(finish.width,portrait?90:76);paintModalButton(finish.node,'Continue');finish.node.getChildByName('Text')!.getComponent(UITransform)!.setContentSize(finish.width-20,portrait?84:70);finish.node.getChildByName('Text')!.getComponent(Label)!.color=modalButtonColor('Continue');}else finish.node.setPosition(0,-100);}
         }
+        paintModalHeader(this.node,this.largePuzzle?(this.puzzleWide?285:630):this.mode==='game'?238:225);
         if(['chapter','lesson','help','explore','care','holidays','holiday'].includes(this.mode))this.readingButton=this.button('HubRead',this.mode==='chapter'?'Nghe hướng dẫn':'Nghe',this.mode==='chapter'?-145:-215,-235,this.mode==='chapter'?260:180,()=>this.read()).children[0].getComponent(Label)!;
     }
 }

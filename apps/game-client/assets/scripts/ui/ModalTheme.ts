@@ -1,24 +1,55 @@
-import {Color,Graphics,Node,UITransform} from 'cc';
-
+import {Color,Graphics,Node,UITransform,Sprite,SpriteFrame,Texture2D,Rect,Size,Vec2,Vec3,resources,tween,Tween,isValid} from 'cc';
+import {flowerCareAtlasRects} from './FlowerCareAtlasRects';
 const ink=new Color(80,59,35),cream=new Color(255,245,212);
-/** Static paper and wood skin; draw on creation, never in the frame loop. */
-export function paintModalFrame(node:Node):void{
-    const g=node.getComponent(Graphics)??node.addComponent(Graphics);g.clear();
-    g.fillColor=new Color(76,48,27);g.roundRect(-310,-280,620,560,24);g.fill();
-    g.fillColor=new Color(198,149,68);g.roundRect(-306,-276,612,552,21);g.fill();
-    g.fillColor=new Color(255,246,218);g.roundRect(-300,-270,600,540,17);g.fill();
-    g.strokeColor=new Color(226,197,139);g.lineWidth=2;g.roundRect(-292,-262,584,524,12);g.stroke();
-    g.fillColor=new Color(60,91,59);g.roundRect(-280,192,560,66,12);g.fill();
-    g.strokeColor=new Color(217,176,91);g.lineWidth=2;g.roundRect(-277,195,554,60,10);g.stroke();
-    // Small corner leaves and a quiet footer divider keep learning content clear.
-    g.fillColor=new Color(208,164,77);for(const x of [-285,285])for(const y of [-248,174]){g.ellipse(x,y,5,10);g.fill();g.ellipse(x+(x<0?8:-8),y+4,8,4);g.fill();}
-    g.strokeColor=new Color(222,194,139);g.lineWidth=1;g.moveTo(-275,-190);g.lineTo(275,-190);g.stroke();
+const primaryIds=new Set(['Continue','Campaign','GameFinish','ExpansionFinish','ClaimStar','ChapterIntro','NextChapter','HolidayContinue','HolidayPlay','GameResume','ServerGameResume']);
+const frames=new Map<number,SpriteFrame>(),pending=new Map<Sprite,number>();
+let texture:Texture2D|undefined,loading=false;
+const buttons=new Set<Node>();let pressed:Node|undefined,pressedCaption:Node|undefined;
+function frame(art:number):SpriteFrame{
+ let f=frames.get(art);if(f)return f;
+ const [x,y,w,h]=flowerCareAtlasRects[art];f=new SpriteFrame();f.texture=texture!;f.rect=new Rect(x,y,w,h);f.originalSize=new Size(w,h);f.offset=new Vec2();
+ f.insetLeft=f.insetRight=art===1||art===3?90:art===2?80:65;f.insetTop=f.insetBottom=art===0?65:art===2?60:45;frames.set(art,f);return f;
 }
-export function modalButtonColor(id:string):Color{return id==='Continue'||id==='Campaign'?cream:ink;}
-export function paintModalButton(node:Node,id:string):void{
-    const t=node.getComponent(UITransform)!,w=t.width,h=t.height,g=node.getComponent(Graphics)??node.addComponent(Graphics),primary=id==='Continue'||id==='Campaign',answer=id.startsWith('Answer-')||id.startsWith('LessonAnswer-');
-    g.clear();g.fillColor=new Color(103,72,36);g.roundRect(-w/2,-h/2,w,h,13);g.fill();
-    g.fillColor=new Color(202,157,77);g.roundRect(-w/2+2,-h/2+2,w-4,h-4,11);g.fill();
-    g.fillColor=primary?new Color(66,110,65):answer?new Color(255,221,137):new Color(252,239,199);g.roundRect(-w/2+5,-h/2+5,w-10,h-10,9);g.fill();
-    g.strokeColor=primary?new Color(145,179,102):new Color(232,205,145);g.lineWidth=1;g.roundRect(-w/2+8,-h/2+8,w-16,h-16,7);g.stroke();
+function skin(node:Node,art:number):Sprite{
+ const sprite=node.getComponent(Sprite)??node.addComponent(Sprite);sprite.sizeMode=Sprite.SizeMode.CUSTOM;sprite.type=Sprite.Type.SLICED;
+ if(texture)sprite.spriteFrame=frame(art);
+ else{pending.set(sprite,art);if(!loading){loading=true;resources.load('village/flower-care-v1/atlas/texture',Texture2D,(error,asset)=>{
+  loading=false;if(error||!asset)return;texture=asset;
+  for(const [s,id] of pending)if(isValid(s)&&isValid(s.node))s.spriteFrame=frame(id);pending.clear();
+ });}}
+ return sprite;
+}
+/** Shared atlas skin; Graphics remains available for game-specific boards. */
+export function paintModalFrame(node:Node):void{const s=skin(node,0);s.enabled=true;s.color=Color.WHITE;(node.getComponent(Graphics)??node.addComponent(Graphics)).clear();}
+export function paintModalHeader(node:Node,y?:number):void{
+ const t=node.getComponent(UITransform)!;
+ const header=new Node('ModalWoodTitle');header.layer=node.layer;node.addChild(header);header.setSiblingIndex(0);
+ header.addComponent(UITransform).setContentSize(t.width-80,64);header.setPosition(0,y??t.height/2-55);skin(header,1);
+}
+export function modalButtonColor(id:string):Color{return primaryIds.has(id)?cream:ink;}
+export function paintModalButton(node:Node,id:string):void{for(const old of buttons)if(!isValid(old))buttons.delete(old);skin(node,primaryIds.has(id)?3:2).color=Color.WHITE;(node.getComponent(Graphics)??node.addComponent(Graphics)).clear();buttons.add(node);}
+/** Apply feedback only to the current answer; never mark a choice in the next round. */
+export function markModalAnswer(node:Node|undefined,correct:boolean):void{
+ if(!node||!isValid(node))return;const sprite=node.getComponent(Sprite);if(!sprite)return;
+ Tween.stopAllByTarget(sprite);sprite.color=correct?new Color(181,235,173):new Color(255,190,179);
+ tween(sprite).to(.25,{color:Color.WHITE}).start();
+}
+/** Tint artwork without moving hit boxes or drag coordinates. */
+export function beginModalPress(root:Node,point:{x:number;y:number}):void{
+ endModalPress();
+ for(const node of buttons){
+  if(!isValid(node)){buttons.delete(node);continue;}
+  if(!node.activeInHierarchy||!node.isChildOf(root))continue;
+  const t=node.getComponent(UITransform)!,p=t.convertToNodeSpaceAR(new Vec3(point.x,point.y,0));
+  if(Math.abs(p.x)>t.width/2||Math.abs(p.y)>t.height/2)continue;
+  const sprite=node.getComponent(Sprite);if(sprite){Tween.stopAllByTarget(sprite);sprite.color=new Color(226,239,190);}
+  pressedCaption=node.getChildByName('Text')??undefined;
+  if(pressedCaption){Tween.stopAllByTarget(pressedCaption);tween(pressedCaption).to(.08,{scale:new Vec3(.94,.94,1)}).start();}
+  pressed=node;return;
+ }
+}
+export function endModalPress():void{
+ if(pressed&&isValid(pressed)){const sprite=pressed.getComponent(Sprite);if(sprite){Tween.stopAllByTarget(sprite);tween(sprite).to(.18,{color:Color.WHITE}).start();}}
+ if(pressedCaption&&isValid(pressedCaption)){Tween.stopAllByTarget(pressedCaption);tween(pressedCaption).to(.18,{scale:new Vec3(1,1,1)}).start();}
+ pressed=pressedCaption=undefined;
 }

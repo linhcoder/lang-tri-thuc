@@ -1,4 +1,4 @@
-import {paintModalFrame,paintModalButton,modalButtonColor} from './ModalTheme';
+import {paintModalFrame,paintModalHeader,paintModalButton,modalButtonColor} from './ModalTheme';
 import { Node, UITransform, Graphics, Color, Label, Vec3 } from 'cc';
 import { LearningProgress, sowSeeds } from '../world/LearningProgress';
 import { Point } from '../world/VillageModel';
@@ -21,7 +21,7 @@ export class LearningPanel {
     }
     private text(value:string,x:number,y:number,width=560,height=65,size=26):Node{
         const n=new Node('Text');n.layer=this.node.layer;this.node.addChild(n);n.setPosition(x,y);n.addComponent(UITransform).setContentSize(width,height);
-        const l=n.addComponent(Label);l.string=value;l.fontSize=size;l.lineHeight=size+8;l.color=y>=210?new Color(255,245,211):new Color(70,63,40);l.overflow=Label.Overflow.CLAMP;l.enableWrapText=true;return n;
+        const l=n.addComponent(Label);l.string=value;l.fontSize=size;l.lineHeight=size+8;l.color=y>=210?new Color(80,59,35):new Color(70,63,40);l.overflow=Label.Overflow.CLAMP;l.enableWrapText=true;return n;
     }
     private button(value:string,x:number,y:number,width:number,action:()=>void,height=62):void{
         const n=new Node('ButtonBackground');n.layer=this.node.layer;this.node.addChild(n);n.setPosition(x,y);n.addComponent(UITransform).setContentSize(width,height);
@@ -46,6 +46,7 @@ export class LearningPanel {
             this.text('★ ★ ★\nGiỏi lắm! Cháu đã thu hoạch lúa, đếm hạt gạo và biết rải hạt từng ô.\nCháu nhận huy hiệu “Người bạn của làng”.',0,50,550,280,28);
             this.button('Chơi bài học lần nữa',0,-130,360,()=>{this.progress.data.countWins=0;this.progress.data.sowWins=0;this.progress.data.stage='count';this.feedback='';this.changed();this.render();});
         }
+        paintModalHeader(this.node);
     }
     private countLesson():void{
         const round=this.progress.data.countWins, expected=this.addition?[5,7,9][round]:[3,5,4][round];

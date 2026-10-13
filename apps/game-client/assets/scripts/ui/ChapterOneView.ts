@@ -1,5 +1,5 @@
 import {DialoguePresentation} from './DialoguePresentation';
-import {paintModalFrame,paintModalButton,modalButtonColor} from './ModalTheme';
+import {paintModalFrame,paintModalHeader,paintModalButton,modalButtonColor,markModalAnswer} from './ModalTheme';
 import { chapters } from '../world/CampaignContent';
 import { SpeechReader } from './SpeechReader';
 import { Color, Graphics, Label, Node, UITransform, Vec3, Sprite, SpriteFrame } from 'cc';
@@ -44,7 +44,7 @@ export class ChapterOneView {
     }
     private make(parent:Node,name:string,width:number,height:number):Node{const n=new Node(name);n.layer=parent.layer;parent.addChild(n);n.addComponent(UITransform).setContentSize(width,height);return n;}
     private text(parent:Node,value:string,x:number,y:number,width=550,height=70,size=26):Node{
-        const n=this.make(parent,'Text',width,height);n.setPosition(x,y);const l=n.addComponent(Label);l.string=value;l.fontSize=size;l.lineHeight=size+8;l.enableWrapText=true;l.overflow=Label.Overflow.SHRINK;l.color=parent===this.node&&y>=210?new Color(255,245,211):new Color(70,63,40);if(parent===this.node&&y>=210)n.getComponent(UITransform)!.setContentSize(Math.min(width,536),height);return n;
+        const n=this.make(parent,'Text',width,height);n.setPosition(x,y);const l=n.addComponent(Label);l.string=value;l.fontSize=size;l.lineHeight=size+8;l.enableWrapText=true;l.overflow=Label.Overflow.SHRINK;l.color=parent===this.node&&y>=210?new Color(80,59,35):new Color(70,63,40);if(parent===this.node&&y>=210)n.getComponent(UITransform)!.setContentSize(Math.min(width,536),height);return n;
     }
     private button(id:string,value:string,x:number,y:number,width:number,action:()=>void):void{
         const n=this.make(this.node,id,width,76);n.setPosition(x,y);paintModalButton(n,id);
@@ -141,7 +141,7 @@ export class ChapterOneView {
                 const n=this.make(this.node,'CountingPlants',1,1),g=n.addComponent(Graphics);g.strokeColor=new Color(48,131,56);g.lineWidth=6;
                 for(let i=0;i<q.count;i++){const x=(i-(q.count-1)/2)*65;if(this.riceFrame)this.riceSprite(n,'CountingRice-'+i,x,44,42,62);else{g.moveTo(x,20);g.lineTo(x,65);g.lineTo(x-15,42);g.moveTo(x,58);g.lineTo(x+15,38);}}if(!this.riceFrame)g.stroke();
                 for(let i=0;i<q.choices.length;i++){const answer=q.choices[i];this.button(`Answer-${answer}`,String(answer),(i-1)*165,-88,130,()=>{
-                    this.feedback=this.lesson.answer(answer)?'Đúng rồi! Mình cùng xem câu tiếp theo.':'Chưa đúng. Cháu chạm “Gợi ý” để đếm từng cây nhé.';this.changed();this.render();
+                    const correct=this.lesson.answer(answer);this.feedback=correct?'Đúng rồi! Mình cùng xem câu tiếp theo.':'Chưa đúng. Cháu chạm “Gợi ý” để đếm từng cây nhé.';this.changed();this.render();if(!correct)markModalAnswer(this.node.getChildByName('Answer-'+answer)??undefined,false);
                 });}
                 this.button('Hint','Gợi ý',0,0,155,()=>{this.feedback=Array.from({length:q.count},(_,i)=>String(i+1)).join(' → ')+`. Có ${q.count} cây.`;this.render();});
             }else{body='Cháu đã luyện đếm xong. Sao và tiến độ Chương 1 vẫn được giữ nguyên!';actionText='Xong';action=()=>{this.progress.endReplay();this.changed();this.close();};}
@@ -153,7 +153,7 @@ export class ChapterOneView {
         if(dialogueText)this.presentation.bind(dialogueText.getComponent(Label)!,body);
         if(action)this.button('Continue',actionText,this.speaker==='elder'&&stage==='complete'&&this.onCampaignRequested?-145:0,-100,this.speaker==='elder'&&stage==='complete'&&this.onCampaignRequested?270:380,action);
         if(this.speaker==='elder'&&stage==='complete'&&this.onCampaignRequested)this.button('Campaign','Chương tiếp',145,-100,270,()=>{this.close();this.onCampaignRequested?.();});
-        this.text(this.node,this.feedback,0,-166,575,52,18);
+        this.text(this.node,this.feedback,0,-166,575,52,18);paintModalHeader(this.node);
     }
     dispose():void{this.presentation.dispose();this.stopReading();}
 }

@@ -17,6 +17,9 @@ function load(file) {
     return module.exports;
 }
 const scripts = path.resolve(__dirname, '../assets/scripts');
+// Algorithm-only panel mocks do not construct native render nodes; the shared
+// atlas header and pointer feedback are exercised in modal-theme-web.cjs.
+load(path.join(scripts,'ui/ModalTheme.ts')).paintModalHeader=()=>{};
 const m = load(path.join(scripts, 'world/VillageModel.ts'));
 const { PlayerController } = load(path.join(scripts, 'player/PlayerController.ts'));
 const { VillageBootstrap } = load(path.join(scripts, 'core/VillageBootstrap.ts'));

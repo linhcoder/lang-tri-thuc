@@ -41,6 +41,7 @@
     "test:holidays": "node apps/game-client/tests/holidays-web.cjs",
     "assets:manifest": "node tools/export-visual-assets.cjs",
     "test:game-ui": "node apps/game-client/tests/ui-optimization-web.cjs",
+    "test:landmarks": "node apps/game-client/tests/landmark-web.cjs",
     "test:game-ui-regression": "node apps/game-client/tests/ui-regressions.cjs",
     "profile:game-ui": "node apps/game-client/tests/ui-profile.cjs",
     "test:cms": "node apps/admin/tests/cms-web.cjs",

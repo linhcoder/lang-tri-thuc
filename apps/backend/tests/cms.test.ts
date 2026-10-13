@@ -4,6 +4,20 @@ import {createApi} from '../src/main';
 import {SqliteRepository} from '../src/Store';
 import {cmsErrors,cmsAssets,CmsNpc,validCmsManifest} from '../../game-client/assets/scripts/world/CmsContent';
 import {loadCms} from '../../game-client/assets/scripts/world/CmsLoader';
+import {contentVersion} from '../../game-client/assets/scripts/world/ContentVersion';
+
+test('known navigation upgrade preserves published NPCs, immutable history and unpublished drafts',async()=>{
+ const store=new SqliteRepository(),app=await createApi({store,roomSecret:'navigation-upgrade-secret-32-characters'});
+ const npc:CmsNpc={id:'cms-storyteller',name:'Storyteller',assetId:cmsAssets()[0].id,x:23,y:27,enabled:true,entry:'hello',questId:'q.ch01.greet',dialogue:[{id:'hello',text:'Hello village',choices:[]}]};assert.deepEqual(cmsErrors([npc]),[]);
+ const old={schema:1 as const,baseVersion:'785f4e7e',version:'a'.repeat(64),npcs:[npc]};
+ try{await store.transaction(d=>{d.cms={revision:5,status:'draft',note:'Unpublished edit',npcs:[{...npc,name:'Draft name'}],active:old.version,releases:[{id:old.version,created:1,note:'Approved original',manifest:old}]};});
+  const response=await app.inject({method:'GET',url:'/content/staging'});assert.equal(response.statusCode,200);const upgraded=response.json();assert.equal(upgraded.baseVersion,contentVersion());assert.equal(validCmsManifest(upgraded),true);assert.deepEqual(upgraded.npcs,[npc]);assert.notEqual(upgraded.version,old.version);
+  await store.transaction(d=>{assert.equal(d.cms!.revision,6);assert.equal(d.cms!.status,'draft');assert.equal(d.cms!.npcs[0].name,'Draft name');assert.deepEqual(d.cms!.releases[0].manifest,old);assert.equal(d.cms!.releases.length,2);assert.equal(d.audit.filter(a=>a.action==='cms.navigation.upgrade').length,1);});
+  assert.deepEqual((await app.inject({method:'GET',url:'/content/staging'})).json(),upgraded);await store.transaction(d=>assert.equal(d.cms!.revision,6));
+  await store.transaction(d=>{d.cms!.releases[0].manifest.baseVersion='unknown1';d.cms!.active=old.version;});assert.equal((await app.inject({method:'GET',url:'/content/staging'})).json().baseVersion,'unknown1');
+  await store.transaction(d=>{const m=d.cms!.releases[0].manifest;m.baseVersion='785f4e7e';m.npcs[0].x=18;m.npcs[0].y=11;});assert.equal((await app.inject({method:'GET',url:'/content/staging'})).json().version,old.version);await store.transaction(d=>{assert.equal(d.cms!.revision,6);assert.equal(d.cms!.releases.length,2);});
+ }finally{await app.close();}
+});
 
 test('CMS isolates drafts, validates references, rejects stale writes, publishes snapshots and rolls back',async()=>{
  const app=await createApi({store:new SqliteRepository(),roomSecret:'cms-test-secret-32-characters-long',adminPassword:'CmsAdminPassword123!'});

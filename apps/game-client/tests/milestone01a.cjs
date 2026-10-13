@@ -533,7 +533,13 @@ test('asset registry covers ten groups and every local source exists with usable
 });
 test('compatibility hash follows mission plots/navigation and ignores cosmetic dimensions',()=>{
  const {contentVersion}=load(path.join(scripts,'world/ContentVersion.ts')),original=contentVersion(),solid=m.villageSolids[0],radius=solid.radius,width=m.villageObjects[0].width,plotX=plantingPlots[0].x;
- try{solid.radius=0;assert.notEqual(contentVersion(),original);solid.radius=radius;m.villageObjects[0].width+=10;assert.equal(contentVersion(),original);plantingPlots[0].x+=1;assert.notEqual(contentVersion(),original);}finally{solid.radius=radius;m.villageObjects[0].width=width;plantingPlots[0].x=plotX;}
+ try{solid.radius=4;assert.notEqual(contentVersion(),original);solid.radius=radius;m.villageObjects[0].width+=10;assert.equal(contentVersion(),original);plantingPlots[0].x+=1;assert.notEqual(contentVersion(),original);}finally{solid.radius=radius;m.villageObjects[0].width=width;plantingPlots[0].x=plotX;}
+});
+
+test('landmark ground footprints stop wall/stall traversal while missions and CMS approaches remain reachable',()=>{
+ const map=new m.VillageMap();for(const tile of [{x:18,y:11},{x:21,y:31},{x:40,y:30},{x:42,y:20}]){assert.equal(map.walkable(tile.x,tile.y),false);assert.equal(map.canStand(m.toWorld(tile)),false);assert.equal(map.path({x:20,y:20},tile).length,0);}
+ for(const tile of [...plantingPlots,...Object.values(m.zoneSpawns),{x:23,y:27}]){assert.equal(map.walkable(tile.x,tile.y),true);assert.ok(map.path({x:20,y:20},tile).length>0);}
+ for(const footprint of m.landmarkFootprints){const base=m.toWorld(footprint);assert.equal(map.canStand({x:base.x,y:base.y+footprint.lift}),false);}
 });
 
 

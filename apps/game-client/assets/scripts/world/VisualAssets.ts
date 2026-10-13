@@ -74,7 +74,7 @@ export function sceneryPlacements():SceneryPlacement[]{
         if(plantingPlots.some(p=>{const plot=toWorld(p);return Math.abs(plot.x-base.x)<76&&base.y<plot.y+62&&base.y+68>plot.y-22;}))continue;
         placements.push({id:`golden-rice-${x}-${y}`,cell:8,x,y,width:86,height:68,essential:true});
     }
-    for(const [id,title,x,y] of [['banyan','Cây Đa Tri Thức',12.5,18.5],['courtyard','Sân Đình',19,12],['well','Giếng Làng',16,23],['market','Chợ Quê',21.5,26.5],['home','Nhà Của Bé',27,9.5],['rice','Ruộng Lúa',34,24]] as const)placements.push({id:'sign-'+id,cell:9,x,y,width:100,height:id==='banyan'?78:48,essential:true});
+    for(const [id,title,x,y] of [['banyan','Cây Đa Tri Thức',12.5,18.5],['courtyard','Sân Đình',19,12],['well','Giếng Làng',16,23],['market','Chợ Quê',21.5,26.5],['home','Nhà Của Bé',27,9.5],['rice','Ruộng Lúa',28,21]] as const)placements.push({id:'sign-'+id,cell:9,x,y,width:100,height:id==='banyan'?78:48,essential:true});
     for(const item of placements)if(item.cell===0){item.width=Math.max(item.width,95);item.height=Math.min(item.height,45);}
     return placements.filter(item=>{
         if(![0,1,6,8].includes(item.cell))return true;

@@ -8,6 +8,8 @@ Quản trị viên mở Phản hồi chơi thử, tìm/lọc, bấm Xử lý ph�
 
 ## Gợi ý quan sát với bé
 
+Bản staging hiện tại sau sửa công trình là `landmarks-6704cd2-20261013`, contentVersion `818a32e3`; ghi nhận tại [LANDMARK_FIXES](design/LANDMARK_FIXES.md). Các mốc beta/UI dưới đây là lịch sử, không phải hash hiện tại. Tải lại game trước khi quan sát va chạm và vị trí vườn/biển tên.
+
 Giao diện gameplay mới ngày 13/10/2026 đang ở staging `game-ui-53f16ef-20261013`, luật game vẫn `785f4e7e`. Tải lại game để nhận bản mới. Menu mở sổ tay/nhiệm vụ; profile mở thành tích; nút cảm xúc mở sáu biểu cảm; nút cạnh minimap thu gọn bản đồ. Chạm phần chữ hội thoại để hiện ngay; trên PC bấm vào game trước khi dùng WASD/E, Space hiện chữ, Enter tiếp tục và ESC đóng. Kết quả kiểm thử và ảnh trước/sau tại [GAME_UI_OPTIMIZATION_RESULT](GAME_UI_OPTIMIZATION_RESULT.md). Xác nhận playtest của đợt beta trước vẫn được giữ; số đo Android vật lý và safe area trên thiết bị có tai thỏ chưa được xác minh trong đợt UI này.
 
 Thử 10–15 phút mỗi lần, có người lớn bên cạnh. Để bé tự chọn/chạm trước khi hướng dẫn; ghi lại bước phải nhờ giúp. Chú ý miếng tranh có dễ nhận ra, nút có dễ chạm, chữ/giọng có dễ hiểu và bé có muốn chơi lại. Không coi kết quả kiểm thử tự động là nghiệm thu độ khó với trẻ.

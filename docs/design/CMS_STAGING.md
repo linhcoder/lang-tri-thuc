@@ -2,6 +2,8 @@
 
 Đợt 13/10/2026 triển khai luồng ưu tiên người dùng đã chọn: **asset có sẵn → NPC mới → đặt trên bản đồ → hội thoại / nhiệm vụ liên kết → kiểm duyệt → xuất bản staging → Cocos**. Đây là lớp NPC bổ sung; các phân hệ nâng cao trong master prompt tiếp tục theo giai đoạn, không được coi là đã hoàn thành toàn bộ.
 
+Bản sửa va chạm/bố trí ngày 13/10/2026 chuyển navigation sang `818a32e3`; snapshot staging hiện tại `500f4374bb2c…` giữ nguyên NPC/hội thoại từ `578f129d038e…`, có baseVersion mới. Migration chỉ áp dụng bản đã xuất bản hợp lệ từ `785f4e7e`, giữ lịch sử và bản nháp; chi tiết tại [LANDMARK_FIXES](LANDMARK_FIXES.md). Tải lại game sau cập nhật và làm mới workspace CMS nếu đang mở revision cũ.
+
 ## Sử dụng
 
 1. Đăng nhập admin, mở **CMS / Xuất bản → Nhân vật mới → Thêm NPC mới**.

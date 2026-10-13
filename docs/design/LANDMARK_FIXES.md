@@ -31,4 +31,6 @@ Preflight live xác nhận NPC đã xuất bản vẫn hợp lệ trên navigati
 
 ## Staging
 
-Kết quả triển khai được bổ sung sau health check và smoke game live. Thông tin admin local đã bị từ chối trong đợt trước; không đổi mật khẩu để xử lý công trình.
+Commit mã `6704cd2`; staging `landmarks-6704cd2-20261013` đã kích hoạt qua overlay SHA-256 và health check MySQL, contentVersion `818a32e3`. Smoke live desktop/mobile kiểm tra tọa độ garden/sign, alpha chợ/đình, path từ chối đi vào công trình, tracker tránh biển khu và NPC CMS/nhiệm vụ liên kết. Không có page error.
+
+Snapshot staging sau migration `500f4374bb2c…` có toàn bộ NPC giống hệt snapshot trước `578f129d038e…`; đọc lại không tạo thêm phiên bản. Ảnh/report live ở `apps/game-client/temp/landmark-live/`. Người chơi cần tải lại game để nhận navigation mới. Thông tin admin local đã bị từ chối trong đợt trước; không đổi mật khẩu để xử lý công trình.

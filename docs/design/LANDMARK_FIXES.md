@@ -6,7 +6,7 @@
 - Chợ/đình bị alpha 92 khi NPC phía sau bị bao chữ nhật ảnh nhận nhầm là đang bị che. Công trình đình, nhà và chợ giữ alpha 255; cây/tán lá vẫn dùng cơ chế làm mờ đang có.
 - Vườn bốn mùa cũ ở (40,11), quá xa biển (43,22). Đưa ảnh về (42,20), rộng 280 đơn vị; collider đặt cùng vị trí. Điểm đến trên bản đồ chuyển về (43,22), cạnh biển và lối vào. Kiểm tra phần ảnh vườn không lấn các sprite ô trồng lúa Chương 1.
 - Biển ruộng lúa cũ (34,24) chiếu lên mái trường (40,30). Chuyển về (28,21), bờ ruộng cạnh bác nông dân; nằm ngoài ảnh trường và vườn.
-- Tracker tạm ẩn khi che biển ba khu mở rộng, để trên mobile vẫn thấy biển và người chơi tại lối vào; giữ cơ chế tránh che ô trồng lúa.
+- Tracker tạm ẩn khi nhân vật đứng gần biển ba khu mở rộng và bảng che biển, để trên mobile vẫn thấy biển và người chơi tại lối vào; giữ cơ chế tránh che ô trồng lúa. Chế độ xem toàn làng vẫn giữ tracker nếu nhân vật ở xa biển.
 
 Không sửa PNG, UUID hoặc scene, không đổi nhiệm vụ/phần thưởng/save. Nhân vật vẫn đi được phía sau mái/tán cây ở nơi mặt đất cho phép, nhưng không đi vào footprint tường/quầy.
 

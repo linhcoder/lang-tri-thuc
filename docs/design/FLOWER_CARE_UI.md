@@ -27,10 +27,10 @@ Nút Âm bật/tắt dùng `campaign.data.sound` và save hiện có. `UiClickSo
 ## Responsive và tái sử dụng
 
 - PC/tablet: panel 960 × 650, ba thẻ nằm ngang.
-- Điện thoại ngang thấp: 960 × 450, giảm khoảng trống nhưng giữ thẻ và nút lớn.
+- Điện thoại ngang thấp: 840 × 450, giảm khoảng trống nhưng giữ thẻ và nút lớn.
 - Điện thoại dọc: 620 × 1010, ba thẻ xếp dọc, hình bên trái và nhãn bên phải.
 
-`VillageBootstrap` scale theo kích thước thực của panel và vùng nhìn. Label có wrap và SHRINK, không tạo node chữ mới khi chọn hoặc chuyển bước. Panel được tạo một lần và tái sử dụng khi mở lại; chỉ cập nhật nội dung, màu và SpriteFrame. Kiểm thử xác minh một texture dùng chung, số node gốc không tăng và vùng chạm ≥44 CSS px ở bốn viewport đã kiểm tra.
+`VillageBootstrap` scale theo kích thước thực của panel và vùng nhìn. Label có wrap và SHRINK, không tạo node chữ mới khi chọn hoặc chuyển bước. Panel được tạo một lần và tái sử dụng khi mở lại; chỉ cập nhật nội dung, màu và SpriteFrame. Kiểm thử xác minh một texture dùng chung, số node gốc không tăng, vùng chạm ≥44 CSS px và các vùng tương tác không chồng nhau. Nút đóng góc trên, gợi ý và âm thanh trên bố cục dọc có kích thước 90 × 90 để dùng được cả màn hình 320 px.
 
 ## Kiểm thử
 
@@ -38,6 +38,7 @@ Nút Âm bật/tắt dùng `campaign.data.sound` và save hiện có. `UiClickSo
 npm.cmd run check:client
 npm.cmd run test:client
 npm.cmd run test:expansion
+npm.cmd run api:build
 $env:GAME_BUILD_NAME='flower-care-v1'
 npm.cmd run web:build
 npm.cmd run test:flower-care
@@ -47,7 +48,7 @@ npm.cmd run test:expansion-coop
 npm.cmd run test:expansion-ui
 ```
 
-Đã qua TypeScript strict, Cocos Creator 3.8.8 build, 64 nhóm client + 4 kiểm thử network, 21 lượt luật hoạt động, API 13 pass/1 MySQL integration skip và server 10 pass. Kiểm tra native bằng Playwright ở 1440×900, 1024×768, 844×390 và 390×844: mouse/touch, chọn sai/thử lại/gợi ý, chặn Tiếp tục, chuyển ba bước, đóng/mở, reload checkpoint, âm tắt được lưu và một huy hiệu. Kiểm tra hồi quy cả bảy hoạt động ở ba nhóm tuổi, cùng phòng hai người desktop/mobile và checkpoint trên phiên thiết bị mới đều qua.
+Đã qua TypeScript strict, Cocos Creator 3.8.8 build, 64 nhóm client + 4 kiểm thử network, 21 lượt luật hoạt động, API 13 pass/1 MySQL integration skip và server 10 pass. Kiểm tra native bằng Playwright ở 1440×900, 1024×768, 844×390, 390×844, 320×568 và 568×320: mouse/touch, chọn sai/thử lại/gợi ý, chặn Tiếp tục, chuyển ba bước, cả hai nút đóng/mở lại, reload checkpoint, âm tắt được lưu và một huy hiệu. Kiểm tra hồi quy cả bảy hoạt động ở ba nhóm tuổi, cùng phòng hai người desktop/mobile và checkpoint trên phiên thiết bị mới đều qua.
 
 Báo cáo và ảnh tự động ở `apps/game-client/temp/flower-care-qa/` (ignore). Draw calls ghi trong report là tổng toàn cảnh làng, không phải riêng panel; không dùng số này để khẳng định đã tối ưu toàn bộ game. Chưa kiểm tra bằng thiết bị Android vật lý hoặc build native Android/iOS. Cần xác minh âm thanh qua loa và thao tác trên thiết bị thật trước khi gọi đó là QA thiết bị hoàn tất.
 

@@ -388,7 +388,7 @@ export class VillageBootstrap extends Component {
             const cssScale=Math.max(size.width/cssWidth,size.height/cssHeight);
             const compactViewport=cssWidth<700||cssHeight<500;
             this.hub.configurePuzzleLayout(size.width>size.height);
-            this.hub.configureFlowerLayout?.(cssWidth/cssHeight>1.8);
+            this.hub.configureFlowerLayout?.(cssWidth/cssHeight>1.8||cssWidth>cssHeight&&cssHeight<400);
             const hubSize=this.hub.node.getComponent(UITransform)!;
             const scale=this.hub.largePuzzle||this.hub.flowerCareActive
                 ?Math.min((size.width-16*cssScale)/hubSize.width,(size.height-16*cssScale)/hubSize.height)

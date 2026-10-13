@@ -4,7 +4,7 @@ import {AssetPreview} from './AssetPreview';
 import {paintGround,paintMeadow} from '../../game-client/assets/scripts/world/GroundPaths';
 import {paintWaterAndShadows} from '../../game-client/assets/scripts/world/WaterGround';
 import {ArtAsset,cropArt,loadArt} from './AssetPreview';
-type Npc={id:string;name:string;x:number;y:number};
+type Npc={id:string;name:string;x:number;y:number;assetId?:string};
 type Scene={size:number;assets:ArtAsset[];tiles:{x:number;y:number;terrain:string;walkable:boolean}[];reserved:{x:number;y:number}[];objects:any[];details:any[];scenery:any[];fixedNpcs:any[]};
 const project=(x:number,y:number)=>({x:(x-y)*32,y:(x+y)*16});
 export default function NpcScene({scene,npcs,api,token,save,onDirty}:{scene:Scene;npcs:Npc[];api:string;token:string;save:(row:Npc,note:string)=>Promise<void>;onDirty:(dirty:boolean)=>void}){
@@ -15,8 +15,8 @@ const [selected,setSelected]=useState(npcs[0]?.id??''),[draft,setDraft]=useState
 const original=npcs.find(n=>n.id===selected),dirty=!!original&&(draft.x!==original.x||draft.y!==original.y||draft.name!==original.name||!!note);
 useEffect(()=>{onDirty(dirty);},[dirty]);
 const art=(id:string)=>scene.assets.find(asset=>asset.id===id),scale=.32*zoom,offset={x:550+pan.x,y:100+pan.y};
-const npcAsset=(id:string)=>art('character.'+id);
-useEffect(()=>{let active=true;const needed=new Set([...scene.objects.map(o=>o.id),...scene.details.map(o=>o.id),...scene.scenery.map(o=>o.cell<8?'scenery.'+['flowers','shrub','stones','market','fence','shade-tree','grass-tuft','lantern'][o.cell]:o.cell===8?'scenery.golden-rice':'scenery.wood-sign'),...npcs.map(n=>'character.'+n.id),...scene.fixedNpcs.map(n=>n.id),'expansion.garden','expansion.riverside','expansion.school','ground.meadow-texture']);for(const asset of scene.assets.filter(a=>needed.has(a.id)))void loadArt(api,token,asset).then(({image})=>{if(active){images.current.set(asset.id,image);setPaint(v=>v+1);}}).catch(()=>{if(active)setMessage('Một số ảnh chưa tải được. Vẫn có thể xem tọa độ và thử tải lại trang.');});return()=>{active=false;};},[scene,api,token]);
+const npcAsset=(id:string)=>art(npcs.find(n=>n.id===id)?.assetId??'character.'+id);
+useEffect(()=>{let active=true;const needed=new Set([...scene.objects.map(o=>o.id),...scene.details.map(o=>o.id),...scene.scenery.map(o=>o.cell<8?'scenery.'+['flowers','shrub','stones','market','fence','shade-tree','grass-tuft','lantern'][o.cell]:o.cell===8?'scenery.golden-rice':'scenery.wood-sign'),...npcs.map(n=>n.assetId??'character.'+n.id),...scene.fixedNpcs.map(n=>n.id),'expansion.garden','expansion.riverside','expansion.school','ground.meadow-texture']);for(const asset of scene.assets.filter(a=>needed.has(a.id)))void loadArt(api,token,asset).then(({image})=>{if(active){images.current.set(asset.id,image);setPaint(v=>v+1);}}).catch(()=>{if(active)setMessage('Một số ảnh chưa tải được. Vẫn có thể xem tọa độ và thử tải lại trang.');});return()=>{active=false;};},[scene,api,token]);
 function pick(id:string){if(id===selected)return true;if(dirty&&!window.confirm('Bỏ thay đổi NPC chưa lưu?'))return false;const npc=npcs.find(n=>n.id===id);if(!npc)return false;setSelected(id);setDraft({...npc});setNote('');setMessage('');return true;}
 const reason=()=>{if(!draft||![draft.x,draft.y].every(v=>Number.isInteger(v)&&v>0&&v<scene.size-1))return 'Chọn ô nguyên trong phạm vi 1–46.';if(!scene.tiles[draft.y*scene.size+draft.x]?.walkable||scene.reserved.some(p=>p.x===draft.x&&p.y===draft.y))return 'Ô này có nước, vật cản hoặc điểm nhiệm vụ.';if(npcs.some(n=>n.id!==selected&&n.x===draft.x&&n.y===draft.y))return 'Ô này đã có NPC khác.';return '';};
 const invalid=reason();

@@ -1,5 +1,7 @@
 # Làng Tri Thức
 
+**CMS staging:** Mở **CMS / Xuất bản** để tạo NPC từ ảnh có sẵn, đặt trên bản đồ, gán hội thoại và nhiệm vụ hiện có, xem bản nháp trong Cocos, duyệt/xuất bản staging và rollback. NPC bổ sung tải qua manifest khi mở game, không cần build lại khi chỉ sửa nội dung này. [Hướng dẫn và phạm vi](docs/design/CMS_STAGING.md).
+
 Trong bản preview hiện tại, cây đa và Ông Đồ nằm phía trên bên trái; đình ở phía trên bên phải, chợ ở tiền cảnh và bác nông dân đứng cạnh trâu ở bờ ruộng. Ao mở rộng vào khung cảnh với cầu tre có thể đi qua và giếng bên bờ. Nhà bé nằm phía trên ruộng, có lối đi trống tới cửa nhà. Các điểm đến trên bản đồ dùng cùng bố cục này. HUD dùng bảng tối trong suốt, biểu tượng không có khung dày và nút zoom nằm trong bản đồ nhỏ trên desktop.
 
 **Preview bố cục theo ảnh thiết kế:** chân dung, checklist theo tiến độ thật, sổ chương dưới bản đồ và bong bóng thoại có thể chạm để tới NPC. Thanh biểu cảm có Chào, Vui mừng, Vẫy tay, Ngồi, Khóc và Nhảy; màn hình nhỏ mở qua **Menu → Biểu cảm**. Di chuyển tự dừng biểu cảm và trả nhân vật về tư thế thường. Nút **Di chuyển** trên desktop bật/tắt joystick dùng được bằng chuột; điện thoại vẫn có joystick cảm ứng. Bản đồ nhỏ dùng hình công trình thật, bờ ao có nước chuyển màu, lá sen và đường bờ mềm hơn. Cây đa lớn hơn, nhà bé và Cô Tấm ở phía phải. Các công trình tải muộn dùng renderer riêng để hiển thị đúng. Bộ art hiện tại vẫn chưa giống hoàn toàn ảnh tham chiếu.

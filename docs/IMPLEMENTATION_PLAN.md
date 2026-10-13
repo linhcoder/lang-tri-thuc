@@ -1,3 +1,11 @@
+## CMS staging ? 13/10/2026
+
+User-authorized scope: upgrade the CMS; first deliver Asset ? new NPC ? visual placement ? dialogue/linked existing quest ? review ? staging publish ? real Cocos runtime. Reuse React/Fastify/MySQL/session RBAC. Preserve Cocos UUIDs and existing campaign, collision and multiplayer compatibility.
+
+Implementation: an additive non-blocking NPC content manifest, transactional immutable releases, optimistic revision checks, role-protected drafts, approved staging publishing and rollback; game validates schema/base version and caches the last valid staging manifest. Preview drafts are authenticated and never enter the published cache. Asset picker uses bundled character images; arbitrary upload, world object transforms, custom quest rewards and production hot publishing remain later phases.
+
+Risks: public dynamic content must not alter authoritative rewards/navigation; reused assets must resolve from the Cocos build; stale admin writes must fail; failed manifest loads must retain playable built-in game. Acceptance: isolated API tests for roles/revisions/review/rollback, browser CMS creation/placement, Cocos build and an actual game node at matching isometric coordinates, dialogue and task link; staging deployment read-only smoke.
+
 # Implementation Plan
 ## Phạm vi hiện hành — 10/10/2026
 

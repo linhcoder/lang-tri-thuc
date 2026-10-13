@@ -1,3 +1,4 @@
+import {registerCms} from './Cms';
 import {expansionActivities,ExpansionId} from '../../game-client/assets/scripts/world/ExpansionActivities';
 import {SharedRateLimiter} from './RateLimiter';
 import {operationalStatus} from './Operations';
@@ -51,7 +52,7 @@ export async function createApi(options:ApiOptions={}){
         const path=route.url.replace(/:([^/]+)/g,'{$1}');
         for(const method of Array.isArray(route.method)?route.method:[route.method]){
             if(method==='HEAD')continue;
-            const publicRoute=['/health','/ready'].includes(route.url)||method==='POST'&&['/parents','/sessions'].includes(route.url);
+            const publicRoute=['/health','/ready','/content/staging'].includes(route.url)||method==='POST'&&['/parents','/sessions'].includes(route.url);
             const operation:Record<string,unknown>={summary:method+' '+route.url,tags:[route.url.startsWith('/admin/')?'Quản trị':'Phụ huynh'],security:publicRoute?[]:[{bearerAuth:[]}],responses:{'200':{description:'Thành công'},'400':{description:'Dữ liệu không hợp lệ'},'401':{description:'Cần đăng nhập'},'403':{description:'Không có quyền'},'404':{description:'Không tìm thấy'},'409':{description:'Xung đột dữ liệu'},'429':{description:'Thử lại sau'}}};
             if(method==='POST'&&['/profiles','/parents','/feedback','/admin/accounts','/admin/accounts/:id/students'].includes(route.url)){const responses=operation.responses as Record<string,unknown>;delete responses['200'];responses['201']={description:'Đã tạo'};}
             if(route.schema?.body)operation.requestBody={required:true,content:{'application/json':{schema:route.schema.body}}};
@@ -83,6 +84,14 @@ export async function createApi(options:ApiOptions={}){
         'Invalid asset metadata':['INVALID_ASSET','Nhập tên tài nguyên, nguồn và quyền sử dụng hợp lệ.'],
         'Unknown catalog record':['NOT_FOUND','Không tìm thấy mục danh mục. Tải lại danh sách.'],
         'Unknown catalog type':['INVALID_CATALOG_TYPE','Loại danh mục chưa được hỗ trợ.'],
+        'CMS revision conflict; reload before saving':['CMS_CONFLICT','Bản nháp đã được sửa ở phiên khác. Tải lại CMS trước khi lưu.'],
+        'CMS note must contain 12–500 characters':['CMS_NOTE','Ghi chú CMS cần từ 12 đến 500 ký tự.'],
+        'Invalid review status':['CMS_REVIEW','Trạng thái kiểm duyệt không hợp lệ.'],
+        'Approve before publishing':['CMS_APPROVAL','Cần kiểm tra và duyệt bản nháp trước khi xuất bản.'],
+        'Base version changed':['CMS_BASE_VERSION','Phiên bản game nền đã đổi. Tải lại CMS và kiểm tra bản nháp.'],
+        'Release limit reached':['CMS_RELEASE_LIMIT','Đã đạt giới hạn 50 phiên bản. Cần lưu trữ lịch sử trước khi mở rộng.'],
+        'Release not found':['CMS_RELEASE_NOT_FOUND','Không tìm thấy phiên bản phát hành.'],
+        'Release incompatible with game':['CMS_RELEASE_INCOMPATIBLE','Phiên bản này không tương thích với game đang chạy.'],
         'Too many requests':['RATE_LIMITED','Bạn thao tác quá nhanh. Hãy đợi một phút rồi thử lại.']
     };
     app.setErrorHandler<FastifyError>((error,req,reply)=>{const status=error.statusCode??(reply.statusCode>=400?reply.statusCode:500),known=errors[error.message],code=error.validation?'VALIDATION_ERROR':known?.[0]??(status>=500?'SERVER_ERROR':'REQUEST_FAILED');reply.code(status).send({statusCode:status,code,message:error.validation?'Kiểm tra các trường nhập và độ dài nội dung.':known?.[1]??(status>=500?'Máy chủ chưa xử lý được. Hãy thử lại sau.':error.message),requestId:req.id,...(error.validation?{fields:error.validation.map(v=>v.instancePath||v.params.missingProperty||'body')}: {})});});
@@ -152,7 +161,7 @@ export async function createApi(options:ApiOptions={}){
         });
     });
     app.put<{Params:{id:string};Body:{label:string;age:'3-5'|'6-8'|'9-11'}}>('/admin/students/:id',{schema:{body:object({label:{type:'string',minLength:1,maxLength:40},age})}},async req=>{const admin=await auth(req,true);return store.transaction(d=>{const child=d.profiles[req.params.id];if(!child)throw Object.assign(Error('Not found'),{statusCode:404});const label=req.body.label.trim();if(!label)throw Object.assign(Error('Invalid profile label'),{statusCode:400});child.label=label;child.age=req.body.age;d.audit.push({actor:admin.id,action:'profile.admin-edit',entity:child.id,created:Date.now()});return {id:child.id,label:child.label,age:child.age};});});
-    app.get('/admin/scene',async req=>{await auth(req,true);const map=new VillageMap();return {size:SIZE,assets:visualAssets.filter(a=>a.path.endsWith('.png')&&a.path.startsWith('assets/resources/')),tiles:Array.from({length:SIZE*SIZE},(_,i)=>({x:i%SIZE,y:Math.floor(i/SIZE),terrain:terrain(i%SIZE,Math.floor(i/SIZE)),walkable:map.walkableForNpc(i%SIZE,Math.floor(i/SIZE),'*')})),reserved:[elderTile,farmerTile,...plantingPlots,...worldZones.map(z=>z.spawn)],objects:villageObjects,details:villageDetails,scenery:sceneryPlacements(),fixedNpcs:[{id:'character.elder',...elderTile,width:65,height:100},{id:'character.farmer',...farmerTile,width:90,height:100}]};});
+    app.get('/admin/scene',async req=>{await auth(req,true);const map=new VillageMap();return {size:SIZE,assets:visualAssets.filter(a=>a.path.endsWith('.png')&&a.path.startsWith('assets/resources/')),tiles:Array.from({length:SIZE*SIZE},(_,i)=>({x:i%SIZE,y:Math.floor(i/SIZE),terrain:terrain(i%SIZE,Math.floor(i/SIZE)),walkable:map.walkableForNpc(i%SIZE,Math.floor(i/SIZE),'*')})),reserved:[elderTile,farmerTile,...plantingPlots,...worldZones.map(z=>z.spawn)],storyNpcs,objects:villageObjects,details:villageDetails,scenery:sceneryPlacements(),fixedNpcs:[{id:'character.elder',...elderTile,width:65,height:100},{id:'character.farmer',...farmerTile,width:90,height:100}]};});
     app.get<{Params:{id:string}}>('/admin/asset-preview/:id',async(req,reply)=>{await auth(req,true);const id=req.params.id,asset=visualAssets.find(a=>a.id===id),legacy=assetCatalog().find(a=>a.id===id);const path=asset?.path??(legacy?'assets/resources/'+legacy.path:'');if(!path.startsWith('assets/resources/')||!path.endsWith('.png'))throw Object.assign(Error('Not found'),{statusCode:404});try{return reply.type('image/png').header('Cache-Control','private, max-age=300').send(await readFile(new URL('../../game-client/'+path,import.meta.url)));}catch{throw Object.assign(Error('Not found'),{statusCode:404});}});
     app.get('/admin/lessons',async req=>{await auth(req,true);return store.transaction(d=>shippedLessons().map(row=>({...row,question:d.lessons[row.key]??row.question,reviewRecord:d.review['lesson:'+row.key]??{status:'draft',reviewer:'',note:''}})));});
     app.put<{Params:{kind:string;id:string};Body:{value:any;note:string}}>('/admin/catalog/:kind/:id',{schema:{body:object({value:{type:'object'},note:{type:'string',minLength:12,maxLength:500}})}},async req=>{
@@ -196,6 +205,7 @@ export async function createApi(options:ApiOptions={}){
     app.post<{Body:{profileId:string;target:string;reason:string}}>('/internal/report',{schema:{body:object({profileId:str,target:str,reason:{type:'string',enum:['spam','uncomfortable','other']}})}},async req=>{await service(req);return store.transaction(d=>{if(!d.profiles[req.body.profileId])throw Object.assign(Error('Unknown profile'),{statusCode:404});if(d.reports.filter(r=>r.reporter===req.body.profileId&&Date.now()-r.created<60000).length>=5)throw Object.assign(Error('Report rate limit'),{statusCode:429});const report={id:randomUUID(),reporter:req.body.profileId,target:req.body.target,reason:req.body.reason,created:Date.now(),status:'open' as const};d.reports.push(report);return {ok:true};});});
     app.post<{Body:{profileId:string;target:string}}>('/internal/block',{schema:{body:object({profileId:str,target:str})}},async req=>{await service(req);return store.transaction(d=>{const p=d.profiles[req.body.profileId];if(!p)throw Object.assign(Error('Not found'),{statusCode:404});if(!p.blocked.includes(req.body.target)&&p.blocked.length<100)p.blocked.push(req.body.target);return {ok:true};});});
     app.post<{Body:{profileId:string;gameId:string;attemptId:string}}>('/internal/result',{schema:{body:object({profileId:str,gameId:str,attemptId:str})}},async req=>{await service(req);return store.transaction(d=>{if(!d.profiles[req.body.profileId])throw Object.assign(Error('Not found'),{statusCode:404});const id=req.body.profileId+':'+req.body.attemptId;if(d.results.includes(id))return {ok:true,duplicate:true};d.results.push(id);const p=d.progress[req.body.profileId]??{revision:0,data:null,receipts:[]};p.receipts.push('game.'+req.body.gameId+'.'+req.body.attemptId);p.revision++;d.progress[req.body.profileId]=p;return {ok:true};});});
+    registerCms(app,store,auth);
     return app;
 }
 if(process.argv[1]&&import.meta.url===pathToFileURL(realpathSync(process.argv[1])).href){createApi({adminPassword:process.env.ADMIN_BOOTSTRAP_PASSWORD}).then(app=>app.listen({host:process.env.HOST||'127.0.0.1',port:Number(process.env.API_PORT||3000)})).then(address=>console.log('Parent API: '+address)).catch(e=>{console.error(e.message);process.exitCode=1;});}

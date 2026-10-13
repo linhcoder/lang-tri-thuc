@@ -1,3 +1,4 @@
+import {CmsActors} from '../ui/CmsActors';
 import { _decorator, Color, Component, director, EventKeyboard, EventTouch, game, Game, Graphics, input, Input, JsonAsset, resources, Label, Layers, Node, Sprite, SpriteFrame, sys, UITransform, Vec3, view } from 'cc';
 import {CountrysideLife} from '../world/CountrysideLife';
 import {expansionFriends} from '../world/ExpansionActivities';
@@ -159,6 +160,7 @@ export class VillageBootstrap extends Component {
             state.body.angle=state.gait.angle+greeting*Math.sin((1.4-state.greeting)*9)*3;
         }
     }
+    private cms?:CmsActors;
     private assetsReady=false;private sceneryNodes:Node[]=[];private npcDecorated=new Set<string>();private loadingLabel?:Label;private loadingPanel?:Node;
     private sceneryPending=false;private sceneryReady=false;private optionalScenery=new Set<Node>();
     private nameplates?:VillageNameplates;
@@ -172,7 +174,7 @@ export class VillageBootstrap extends Component {
     private questButton?:Node;
     private journalButton?:Node;private parentButton?:Node;
     private privateJoin?:{roomCode:string;ticket:string};private profileScope='';private hub?:VillageHub;private homeStyle=-1;private starCount=-1;private treeLights?:Graphics;private qualityStyle='';
-    private get modalActive():boolean{return this.dialog.active||!!this.hub?.node.active;}
+    private get modalActive():boolean{return !!this.cms?.dialog.active||this.dialog.active||!!this.hub?.node.active;}
     private get objective():string{return this.hub?.objective??this.chapterSave?.progress.description??this.learning.description;}
     onLoad(): void {
         this.demo=sys.isBrowser&&new URLSearchParams(window.location.search).get('demo')==='1';
@@ -228,7 +230,7 @@ export class VillageBootstrap extends Component {
     }
     private async loadArt():Promise<void>{
         try{
-            await this.art.load();if(!this.isValid)return;const pack=await new Promise<JsonAsset>((resolve,reject)=>resources.load('chapter-pack',JsonAsset,(error,asset)=>error?reject(error):resolve(asset)));if(!applyChapterText(pack.json))console.warn('Invalid chapter text pack: using built-in content');const lessons=await new Promise<JsonAsset>((resolve,reject)=>resources.load('lesson-pack',JsonAsset,(error,asset)=>error?reject(error):resolve(asset)));if(!applyLessonPack(lessons.json))console.warn('Invalid lesson pack: using built-in questions');const npcPack=await new Promise<JsonAsset>((resolve,reject)=>resources.load('npc-pack',JsonAsset,(error,asset)=>error?reject(error):resolve(asset)));if(!applyNpcPack(npcPack.json))console.warn('Invalid NPC pack: keeping default spawns');if(this.hub)this.hub.npcNodes.forEach((node,i)=>{const npc=storyNpcs[i],p=toWorld(npc);node.setPosition(p.x,p.y);const text=node.getChildByName('Text')?.getComponent(Label);if(text)text.string=npc.name;});this.chapter?.setRiceFrame(this.art.decorations.seedling);this.chapter?.refreshContent();
+            await this.art.load();if(!this.isValid)return;this.cms=new CmsActors(this.root,this.actors,this.art,this.player,id=>{const index=chapters.findIndex(c=>c.quests.some(q=>q.id===id));if(index>=0)this.hub?.open('chapter',index);});void this.cms.load();const pack=await new Promise<JsonAsset>((resolve,reject)=>resources.load('chapter-pack',JsonAsset,(error,asset)=>error?reject(error):resolve(asset)));if(!applyChapterText(pack.json))console.warn('Invalid chapter text pack: using built-in content');const lessons=await new Promise<JsonAsset>((resolve,reject)=>resources.load('lesson-pack',JsonAsset,(error,asset)=>error?reject(error):resolve(asset)));if(!applyLessonPack(lessons.json))console.warn('Invalid lesson pack: using built-in questions');const npcPack=await new Promise<JsonAsset>((resolve,reject)=>resources.load('npc-pack',JsonAsset,(error,asset)=>error?reject(error):resolve(asset)));if(!applyNpcPack(npcPack.json))console.warn('Invalid NPC pack: keeping default spawns');if(this.hub)this.hub.npcNodes.forEach((node,i)=>{const npc=storyNpcs[i],p=toWorld(npc);node.setPosition(p.x,p.y);const text=node.getChildByName('Text')?.getComponent(Label);if(text)text.string=npc.name;});this.chapter?.setRiceFrame(this.art.decorations.seedling);this.chapter?.refreshContent();
             for(let cy=0;cy<SIZE;cy+=8)for(let cx=0;cx<SIZE;cx+=8){const node=this.art.terrainChunk(this.world,cx,cy);if(node){
                 const old=this.terrainChunks.find(chunk=>chunk.node.name===`Terrain-${cx}-${cy}`);if(old){old.node.active=false;old.node.destroy();old.node=node;}
                 node.setSiblingIndex(0);
@@ -347,6 +349,7 @@ export class VillageBootstrap extends Component {
         return n;
     }
     update(dt: number): void {
+        this.cms?.step();
         if(this.assetsReady)this.countryside.step(dt,[this.player.position,...this.npcCollisionPositions],this.hub?.campaign.data.sound===true);
         const size = this.node.getComponent(UITransform)!;
         const pixelScale = view.getScaleX() / view.getDevicePixelRatio();
@@ -493,6 +496,7 @@ export class VillageBootstrap extends Component {
     }
     private local(p: Point, node = this.root): Vec3 { return node.getComponent(UITransform)!.convertToNodeSpaceAR(new Vec3(p.x, p.y, 0)); }
     private select(p: Point): void {
+        if(this.cms?.dialog.active){this.cms.handle(p);return;}
         if(this.hub?.node.active){this.hub.handle(p);return;}
         if (this.dialog.active) {
             if(this.chapter){this.chapter.handle(p);return;}
@@ -510,6 +514,7 @@ export class VillageBootstrap extends Component {
         this.selectWorld(this.local(p,this.world));
     }
     private selectWorld(world:Point):void{
+        if(this.cms?.select(world)){this.chapter?.cancel();this.hub?.cancel();this.pendingNpc=false;this.pendingBundle=null;return;}
         world=this.nameplates?.target(world)??world;
         const npc = this.farmer.node.position,minHalfWidth=22/(this.worldScale*view.getScaleX()/view.getDevicePixelRatio());
         const hubTarget=this.hub?.select(world,minHalfWidth);if(hubTarget){if(hubTarget==='accepted'){this.chapter?.cancel();this.pendingNpc=false;this.pendingBundle=null;}return;}
@@ -545,7 +550,7 @@ export class VillageBootstrap extends Component {
     private zoomControl(p:Point):Node|undefined{return this.zoomButtons.find(n=>{if(!n.activeInHierarchy)return false;const point=this.local(p,n),t=n.getComponent(UITransform)!;return Math.abs(point.x)<=t.width/2&&Math.abs(point.y)<=t.height/2;});}
     private isHudControl(p:Point):boolean{return !!this.hud?.hit(p)||!!this.zoomControl(p)||[this.questButton,this.journalButton,this.parentButton].some(n=>{if(!n?.active)return false;const point=this.local(p,n),size=n.getComponent(UITransform)!;return Math.abs(point.x)<=size.width/2&&Math.abs(point.y)<=size.height/2;});}
     private navigateQuest():void{if(this.chapter?.navigateObjective()){this.keys.clear();this.releaseStick();this.pendingNpc=false;this.pendingBundle=null;}}
-    private interactNearest():void{const details=environmentGuides.map(g=>this.actors.getChildByName('Detail-'+g.id)).filter((n):n is Node=>!!n),targets=[this.farmer.node,...(this.chapter?[this.chapter.elder]:[]),...(this.hub?.npcNodes??[]),...details].sort((a,b)=>Math.hypot(a.position.x-this.player.position.x,a.position.y-this.player.position.y)-Math.hypot(b.position.x-this.player.position.x,b.position.y-this.player.position.y));const n=targets[0];if(n&&Math.hypot(n.position.x-this.player.position.x,n.position.y-this.player.position.y)<100)this.selectWorld({x:n.position.x,y:n.position.y+(n.name.startsWith('Detail-')?20:60)});else this.chapter?.navigateObjective();}
+    private interactNearest():void{const details=environmentGuides.map(g=>this.actors.getChildByName('Detail-'+g.id)).filter((n):n is Node=>!!n),targets=[...(this.cms?.nodes??[]),this.farmer.node,...(this.chapter?[this.chapter.elder]:[]),...(this.hub?.npcNodes??[]),...details].sort((a,b)=>Math.hypot(a.position.x-this.player.position.x,a.position.y-this.player.position.y)-Math.hypot(b.position.x-this.player.position.x,b.position.y-this.player.position.y));const n=targets[0];if(n&&Math.hypot(n.position.x-this.player.position.x,n.position.y-this.player.position.y)<100)this.selectWorld({x:n.position.x,y:n.position.y+(n.name.startsWith('Detail-')?20:60)});else this.chapter?.navigateObjective();}
     private changeZoom(value:number):void{this.zoom.set(value);this.zoomSaveDelay=0.3;}
     private handleWheel=(event:WheelEvent):void=>{if(event.ctrlKey||this.modalActive||this.loadingPanel?.active||this.pinchIds||event.target!==game.canvas)return;event.preventDefault();this.changeZoom(this.zoom.wheel(event.deltaY));};
     private keyDown(e: EventKeyboard): void {if(this.loadingPanel?.active)return;
@@ -607,5 +612,5 @@ export class VillageBootstrap extends Component {
         game.off(Game.EVENT_HIDE, this.resetInput, this);
         if (sys.isBrowser){window.removeEventListener('blur', this.handleBlur);window.removeEventListener('resize',this.handleResize);window.removeEventListener('wheel',this.handleWheel,true);}
     }
-    onDestroy(): void {this.countryside.dispose();this.hud?.dispose();this.hub?.dispose();this.chapter?.dispose();this.network.dispose();this.art.dispose(); if (this.root) this.root.destroy();}
+    onDestroy(): void {this.cms?.dispose();this.countryside.dispose();this.hud?.dispose();this.hub?.dispose();this.chapter?.dispose();this.network.dispose();this.art.dispose(); if (this.root) this.root.destroy();}
 }

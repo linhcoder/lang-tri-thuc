@@ -52,6 +52,12 @@ npm.cmd run test:expansion-ui
 
 Báo cáo và ảnh tự động ở `apps/game-client/temp/flower-care-qa/` (ignore). Draw calls ghi trong report là tổng toàn cảnh làng, không phải riêng panel; không dùng số này để khẳng định đã tối ưu toàn bộ game. Chưa kiểm tra bằng thiết bị Android vật lý hoặc build native Android/iOS. Cần xác minh âm thanh qua loa và thao tác trên thiết bị thật trước khi gọi đó là QA thiết bị hoàn tất.
 
+## Staging đã xác minh
+
+Ngày 2026-10-13, release `flower-care-70c5cba-20261013` hoạt động tại `https://ltt.vui-hoc.xyz/game/`. Commit UI/asset `7b45bc7`, bổ sung vùng chạm `70c5cba`. Overlay được kiểm SHA, build API/server trước khi kích hoạt, health check/rollback theo runbook hiện có. MySQL health đạt và snapshot CMS giữ nguyên `500f4374bb2c86639d1f48f29ae8a09ade5d6e5e42302fbafe72e778076ee7bc`.
+
+Kiểm tra trực tiếp staging bằng browser context mới đã qua cả sáu viewport, bao gồm vùng chạm ≥44 px, không chồng vùng tương tác, chọn sai/thử lại/gợi ý, Tiếp tục, cả hai nút đóng, mute, reload checkpoint và một huy hiệu. Báo cáo/ảnh ở `apps/game-client/temp/flower-care-live/` (ignore). Có thể hard refresh game rồi mở Vườn bốn mùa → Anh Nam → Chăm hoa để xem bản mới.
+
 ## File thay đổi
 
 `FlowerCareView.ts`, `FlowerCareAtlasRects.ts`, `FlowerCareContent.ts` và `.meta`; atlas PNG/folder `.meta`; `VillageHub.ts`, `VillageBootstrap.ts`, `UiClickSound.ts`, `ExpansionActivities.ts`, `VisualAssets.ts`; `flower-care-web.cjs`, `expansion-web.cjs`, `expansion-coop-web.cjs`, `expansion.cjs`; `package.json`, `docs/design/asset-manifest.json` và tài liệu này.

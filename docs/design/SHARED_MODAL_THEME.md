@@ -43,4 +43,6 @@ Các suite campaign, expansion, ghép tranh và chơi chung dùng `GAME_WEB_URL`
 
 Đã qua TypeScript strict, build Creator 3.8.8, 64 nhóm kiểm tra logic và 4 bài network lifecycle. UI native đã qua 12 modal luyện tập/10 nhóm hội thoại-menu ở 4 viewport; phản hồi chọn sai được kiểm tra thêm trên PC và điện thoại dọc. Chăm hoa qua 7 viewport. Cả 7 hoạt động mở rộng qua chơi riêng/chơi chung và khôi phục checkpoint. Ghép tranh 4/6/9 mảnh qua chuột/touch, thả sai, lưu/tải lại và gửi thao tác server ở 3 viewport. Suite campaign kiểm tra nhiệm vụ chương 2–8, hoàn thành mini game, phần thưởng, chơi lại và bảo toàn dữ liệu khi reset thất bại.
 
-Staging: chờ cập nhật bản đã kiểm thử. Kiểm thử điện thoại dùng trình duyệt mô phỏng touch; chưa kiểm tra thiết bị Android vật lý trong lượt này.
+Staging đã cập nhật release `shared-modals-601caae-20261013` tại `https://ltt.vui-hoc.xyz/game/`. Kiểm tra trực tiếp bản đang phục vụ đã qua 12 modal luyện tập và 10 nhóm hội thoại/menu ở 1920×925 (DPR 2) và 390×844, gồm nhấn/nhả, đáp án sai/thử lại, đóng/mở và checkpoint. Health check đạt; contentVersion vẫn là `818a32e3`; snapshot CMS `500f4374bb2c86639d1f48f29ae8a09ade5d6e5e42302fbafe72e778076ee7bc` giữ nguyên.
+
+Kiểm thử điện thoại dùng trình duyệt mô phỏng touch; chưa kiểm tra thiết bị Android vật lý trong lượt này. Dùng Ctrl+F5 khi mở lại game để tải script mới.

@@ -64,4 +64,8 @@ Bản `game-ui-53f16ef-20261013` đã triển khai lên `https://ltt.vui-hoc.xyz
 
 Smoke trên live qua bốn viewport xác minh HUD mới, hitbox chính ≥44 CSS px, E/Space/ESC khi canvas có focus, HUD/joystick ẩn khi mở panel, sprite CMS thật và tọa độ Bác Kể Chuyện (-128, -800); không có page error. Report/ảnh local ở `apps/game-client/temp/ui-live/`. Đây là browser mô phỏng touch/Android UA, không phải lượt test điện thoại vật lý.
 
+Kiểm tra bổ sung game live xác minh lựa chọn «Xem nhiệm vụ liên kết» của Bác Kể Chuyện mở đúng hội thoại Ông Đồ trong Chương 1, không mở panel của chương khác; snapshot vẫn `578f129d038e…`. Report ở `apps/game-client/temp/ui-live-linked/`.
+
+Kiểm tra bổ sung đăng nhập dashboard live bằng thông tin admin trong file cấu hình local bị từ chối với thông báo bí danh/mật khẩu chưa đúng; chưa xác minh lại dashboard live trong đợt này. Không đổi tài khoản/mật khẩu hoặc đăng lại snapshot để xử lý phép kiểm tra đó. Luồng quản trị CMS đã qua E2E với fixture; game live vẫn tải snapshot đã xuất bản đúng phiên bản.
+
 Giữ snapshot CMS `578f129d038e…`, NPC Bác Kể Chuyện và phiên bản luật game `785f4e7e`. Người chơi đang mở trang cần tải lại để nhận bundle mới. Các bước CMS tiếp theo (upload asset mới, world editor đa đối tượng, nhiệm vụ mới, production publishing) vẫn theo `docs/design/CMS_STAGING.md`, ngoài đợt gameplay UI này.

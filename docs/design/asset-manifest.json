@@ -14,6 +14,78 @@
   ],
   "assets": [
     {
+      "id": "expansion.riverside",
+      "name": "riverside",
+      "group": "Buildings",
+      "path": "assets/resources/village/expansion-v1/riverside.png",
+      "size": [
+        360,
+        270
+      ],
+      "anchor": [
+        0.5,
+        0
+      ],
+      "layer": "Actors",
+      "collision": null,
+      "status": "placeholder",
+      "trim": true,
+      "source": "OpenAI built-in imagegen; docs/design/EXPANSION_ASSETS.md",
+      "pixels": [
+        1536,
+        1024
+      ],
+      "bytes": 2339058
+    },
+    {
+      "id": "expansion.garden",
+      "name": "garden",
+      "group": "Buildings",
+      "path": "assets/resources/village/expansion-v1/garden.png",
+      "size": [
+        360,
+        270
+      ],
+      "anchor": [
+        0.5,
+        0
+      ],
+      "layer": "Actors",
+      "collision": null,
+      "status": "placeholder",
+      "trim": true,
+      "source": "OpenAI built-in imagegen; docs/design/EXPANSION_ASSETS.md",
+      "pixels": [
+        1536,
+        1024
+      ],
+      "bytes": 2647633
+    },
+    {
+      "id": "expansion.school",
+      "name": "school",
+      "group": "Buildings",
+      "path": "assets/resources/village/expansion-v1/school.png",
+      "size": [
+        360,
+        270
+      ],
+      "anchor": [
+        0.5,
+        0
+      ],
+      "layer": "Actors",
+      "collision": null,
+      "status": "placeholder",
+      "trim": true,
+      "source": "OpenAI built-in imagegen; docs/design/EXPANSION_ASSETS.md",
+      "pixels": [
+        1536,
+        1024
+      ],
+      "bytes": 2997475
+    },
+    {
       "id": "animation.npc-directions",
       "name": "Eight viewpoints for eight village NPCs",
       "group": "Characters",
@@ -1487,6 +1559,180 @@
       "bytes": 1135642
     },
     {
+      "id": "character.anh-nam",
+      "name": "Anh Nam",
+      "group": "Characters",
+      "path": "assets/resources/village/expansion-v1/anh-nam.png",
+      "size": [
+        96,
+        110
+      ],
+      "anchor": [
+        0.5,
+        0
+      ],
+      "layer": "Actors",
+      "collision": {
+        "radius": 0
+      },
+      "status": "placeholder",
+      "source": "OpenAI built-in imagegen; eight authored viewpoints; docs/design/EXPANSION_ASSETS.md",
+      "cell": 6,
+      "columns": 4,
+      "rows": 2,
+      "trim": true,
+      "pixels": [
+        1536,
+        1024
+      ],
+      "bytes": 1810709
+    },
+    {
+      "id": "character.chi-mai",
+      "name": "Chị Mai",
+      "group": "Characters",
+      "path": "assets/resources/village/expansion-v1/chi-mai.png",
+      "size": [
+        96,
+        110
+      ],
+      "anchor": [
+        0.5,
+        0
+      ],
+      "layer": "Actors",
+      "collision": {
+        "radius": 0
+      },
+      "status": "placeholder",
+      "source": "OpenAI built-in imagegen; eight authored viewpoints; docs/design/EXPANSION_ASSETS.md",
+      "cell": 6,
+      "columns": 4,
+      "rows": 2,
+      "trim": true,
+      "pixels": [
+        1536,
+        1024
+      ],
+      "bytes": 1924051
+    },
+    {
+      "id": "character.chu-hai",
+      "name": "Chú Hải",
+      "group": "Characters",
+      "path": "assets/resources/village/expansion-v1/chu-hai.png",
+      "size": [
+        96,
+        110
+      ],
+      "anchor": [
+        0.5,
+        0
+      ],
+      "layer": "Actors",
+      "collision": {
+        "radius": 0
+      },
+      "status": "placeholder",
+      "source": "OpenAI built-in imagegen; eight authored viewpoints; docs/design/EXPANSION_ASSETS.md",
+      "cell": 6,
+      "columns": 4,
+      "rows": 2,
+      "trim": true,
+      "pixels": [
+        1536,
+        1024
+      ],
+      "bytes": 2018756
+    },
+    {
+      "id": "character.co-lan-song",
+      "name": "Cô Lan",
+      "group": "Characters",
+      "path": "assets/resources/village/expansion-v1/co-lan-song.png",
+      "size": [
+        96,
+        110
+      ],
+      "anchor": [
+        0.5,
+        0
+      ],
+      "layer": "Actors",
+      "collision": {
+        "radius": 0
+      },
+      "status": "placeholder",
+      "source": "OpenAI built-in imagegen; eight authored viewpoints; docs/design/EXPANSION_ASSETS.md",
+      "cell": 6,
+      "columns": 4,
+      "rows": 2,
+      "trim": true,
+      "pixels": [
+        1536,
+        1024
+      ],
+      "bytes": 1922445
+    },
+    {
+      "id": "character.be-minh",
+      "name": "Bé Minh",
+      "group": "Characters",
+      "path": "assets/resources/village/expansion-v1/be-minh.png",
+      "size": [
+        96,
+        110
+      ],
+      "anchor": [
+        0.5,
+        0
+      ],
+      "layer": "Actors",
+      "collision": {
+        "radius": 0
+      },
+      "status": "placeholder",
+      "source": "OpenAI built-in imagegen; eight authored viewpoints; docs/design/EXPANSION_ASSETS.md",
+      "cell": 6,
+      "columns": 4,
+      "rows": 2,
+      "trim": true,
+      "pixels": [
+        1536,
+        1024
+      ],
+      "bytes": 1845389
+    },
+    {
+      "id": "character.be-an",
+      "name": "Bé An",
+      "group": "Characters",
+      "path": "assets/resources/village/expansion-v1/be-an.png",
+      "size": [
+        96,
+        110
+      ],
+      "anchor": [
+        0.5,
+        0
+      ],
+      "layer": "Actors",
+      "collision": {
+        "radius": 0
+      },
+      "status": "placeholder",
+      "source": "OpenAI built-in imagegen; eight authored viewpoints; docs/design/EXPANSION_ASSETS.md",
+      "cell": 6,
+      "columns": 4,
+      "rows": 2,
+      "trim": true,
+      "pixels": [
+        1536,
+        1024
+      ],
+      "bytes": 1993243
+    },
+    {
       "id": "water.lotus",
       "name": "Sen",
       "group": "Water",
@@ -1824,6 +2070,198 @@
           {
             "x": 15,
             "y": 30
+          },
+          {
+            "x": 12,
+            "y": 39
+          },
+          {
+            "x": 13,
+            "y": 39
+          },
+          {
+            "x": 14,
+            "y": 39
+          },
+          {
+            "x": 15,
+            "y": 39
+          },
+          {
+            "x": 16,
+            "y": 39
+          },
+          {
+            "x": 17,
+            "y": 39
+          },
+          {
+            "x": 18,
+            "y": 39
+          },
+          {
+            "x": 19,
+            "y": 39
+          },
+          {
+            "x": 12,
+            "y": 40
+          },
+          {
+            "x": 13,
+            "y": 40
+          },
+          {
+            "x": 14,
+            "y": 40
+          },
+          {
+            "x": 15,
+            "y": 40
+          },
+          {
+            "x": 16,
+            "y": 40
+          },
+          {
+            "x": 17,
+            "y": 40
+          },
+          {
+            "x": 18,
+            "y": 40
+          },
+          {
+            "x": 19,
+            "y": 40
+          },
+          {
+            "x": 12,
+            "y": 41
+          },
+          {
+            "x": 13,
+            "y": 41
+          },
+          {
+            "x": 14,
+            "y": 41
+          },
+          {
+            "x": 15,
+            "y": 41
+          },
+          {
+            "x": 16,
+            "y": 41
+          },
+          {
+            "x": 17,
+            "y": 41
+          },
+          {
+            "x": 18,
+            "y": 41
+          },
+          {
+            "x": 19,
+            "y": 41
+          },
+          {
+            "x": 12,
+            "y": 42
+          },
+          {
+            "x": 13,
+            "y": 42
+          },
+          {
+            "x": 14,
+            "y": 42
+          },
+          {
+            "x": 15,
+            "y": 42
+          },
+          {
+            "x": 16,
+            "y": 42
+          },
+          {
+            "x": 17,
+            "y": 42
+          },
+          {
+            "x": 18,
+            "y": 42
+          },
+          {
+            "x": 19,
+            "y": 42
+          },
+          {
+            "x": 12,
+            "y": 43
+          },
+          {
+            "x": 13,
+            "y": 43
+          },
+          {
+            "x": 14,
+            "y": 43
+          },
+          {
+            "x": 15,
+            "y": 43
+          },
+          {
+            "x": 16,
+            "y": 43
+          },
+          {
+            "x": 17,
+            "y": 43
+          },
+          {
+            "x": 18,
+            "y": 43
+          },
+          {
+            "x": 19,
+            "y": 43
+          },
+          {
+            "x": 12,
+            "y": 44
+          },
+          {
+            "x": 13,
+            "y": 44
+          },
+          {
+            "x": 14,
+            "y": 44
+          },
+          {
+            "x": 15,
+            "y": 44
+          },
+          {
+            "x": 16,
+            "y": 44
+          },
+          {
+            "x": 17,
+            "y": 44
+          },
+          {
+            "x": 18,
+            "y": 44
+          },
+          {
+            "x": 19,
+            "y": 44
           }
         ]
       },
@@ -2261,15 +2699,6 @@
       "essential": false
     },
     {
-      "id": "foliage-20-30",
-      "cell": 1,
-      "x": 20,
-      "y": 30,
-      "width": 95,
-      "height": 72,
-      "essential": false
-    },
-    {
       "id": "foliage-5-33",
       "cell": 2,
       "x": 5,
@@ -2294,15 +2723,6 @@
       "y": 33,
       "width": 95,
       "height": 72,
-      "essential": false
-    },
-    {
-      "id": "foliage-20-33",
-      "cell": 0,
-      "x": 20,
-      "y": 33,
-      "width": 95,
-      "height": 45,
       "essential": false
     },
     {
@@ -2375,60 +2795,6 @@
       "y": 36,
       "width": 95,
       "height": 45,
-      "essential": false
-    },
-    {
-      "id": "foliage-20-36",
-      "cell": 2,
-      "x": 20,
-      "y": 36,
-      "width": 65,
-      "height": 50,
-      "essential": false
-    },
-    {
-      "id": "foliage-23-36",
-      "cell": 0,
-      "x": 23,
-      "y": 36,
-      "width": 95,
-      "height": 45,
-      "essential": false
-    },
-    {
-      "id": "foliage-26-36",
-      "cell": 0,
-      "x": 26,
-      "y": 36,
-      "width": 95,
-      "height": 45,
-      "essential": false
-    },
-    {
-      "id": "foliage-29-36",
-      "cell": 6,
-      "x": 29,
-      "y": 36,
-      "width": 95,
-      "height": 72,
-      "essential": false
-    },
-    {
-      "id": "foliage-32-36",
-      "cell": 0,
-      "x": 32,
-      "y": 36,
-      "width": 95,
-      "height": 45,
-      "essential": false
-    },
-    {
-      "id": "foliage-35-36",
-      "cell": 2,
-      "x": 35,
-      "y": 36,
-      "width": 65,
-      "height": 50,
       "essential": false
     },
     {
@@ -2757,15 +3123,6 @@
       "x": 1,
       "y": 18,
       "id": "village-grove-0",
-      "cell": 5,
-      "width": 160,
-      "height": 180,
-      "essential": false
-    },
-    {
-      "x": 36,
-      "y": 15,
-      "id": "village-grove-3",
       "cell": 5,
       "width": 160,
       "height": 180,

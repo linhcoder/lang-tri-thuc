@@ -29,6 +29,7 @@
     "test:npc": "node apps/game-client/tests/npc-patrol-web.cjs",
     "test:expansion": "node apps/game-client/tests/expansion.cjs",
     "test:expansion-ui": "node apps/game-client/tests/expansion-web.cjs",
+    "test:expansion-assets": "node apps/game-client/tests/expansion-assets-web.cjs",
     "test:npc-gait": "node apps/game-client/tests/npc-gait.cjs",
     "test:puzzle": "node apps/game-client/tests/puzzle-upgrade-web.cjs",
     "test:maze": "node apps/game-client/tests/maze-upgrade-web.cjs",

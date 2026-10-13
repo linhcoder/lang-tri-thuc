@@ -10,6 +10,13 @@ export class VillageArt {
     npcPoses:SpriteFrame[][]=[];
     npcDirections:SpriteFrame[][]=[];
     npcWalkSteps:SpriteFrame[][]=[];
+    private expansionRows=new Map<string,number>();
+    async ensureExpansionCharacters():Promise<void>{
+        await Promise.all(['anh-nam','chi-mai','chu-hai','co-lan-song','be-minh','be-an'].map((id,index)=>new Promise<void>(resolve=>resources.load(assetResourceKey('character.'+id)+'/texture',Texture2D,(error,texture)=>{
+            if(!error&&!this.disposed){const frames:SpriteFrame[]=[];for(let direction=0;direction<8;direction++){const frame=new SpriteFrame();frame.texture=texture;frame.rect=new Rect(direction%4*texture.width/4,Math.floor(direction/4)*texture.height/2,texture.width/4,texture.height/2);frames.push(frame);}this.npcDirections[8+index]=frames;this.expansionRows.set(id,8+index);}resolve();
+        }))));
+    }
+    expansionCharacterFrame(id:string,direction:number,phase:number):SpriteFrame|null{const row=this.expansionRows.get(id);return row===undefined?null:phase<0?this.npcDirections[row][direction]:this.npcCycleFrame(row,direction,phase);}
     avatarVariants:Partial<Record<number,SpriteFrame[]>>={};
     details:SpriteFrame[]=[];
     hairVariants:Partial<Record<number,SpriteFrame[]>>={};private decorationLoads=new Map<string,Promise<void>>();private avatarLoads=new Map<number,Promise<void>>();private hairLoads=new Map<number,Promise<void>>();private disposed=false;

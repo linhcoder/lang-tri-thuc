@@ -150,9 +150,9 @@ export class VillageBootstrap extends Component {
             const expansionBody=state.body.name.startsWith('ExpansionSprite-');
             const directional=expansionBody||!!directions&&(moving||greeting===0);
             const walkingFrames=moving&&steps&&state.gait.stepFrame===1?steps:directions;
-            if(sprite&&state.body.name.startsWith('ExpansionSprite-'))sprite.spriteFrame=this.art.npcCharacterFrame(Number(state.body.name.slice(16)),walk?.direction??6,moving?1+state.gait.cycleFrame:0,1,node.name==='chu-hai'?2:1);
+            if(sprite&&state.body.name.startsWith('ExpansionSprite-'))sprite.spriteFrame=this.art.expansionCharacterFrame(node.name,walk?.direction??6,moving?state.gait.cycleFrame:-1)??this.art.npcCharacterFrame(Number(state.body.name.slice(16)),walk?.direction??6,moving?1+state.gait.cycleFrame:0,1,node.name==='chu-hai'?2:1);
             else if(sprite)sprite.spriteFrame=directional?(moving?this.art.npcCycleFrame(state.row,walk?.direction??6,state.gait.cycleFrame):walkingFrames[walk?.direction??6]):poses&&(moving||greeting>0)?poses[moving?state.gait.stepFrame:2]:state.idle;
-            state.transform.setContentSize(expansionBody?state.width:directional?state.height*directions[0].rect.width/directions[0].rect.height:state.width,state.height);
+            state.transform.setContentSize(expansionBody&&sprite?.spriteFrame?state.height*sprite.spriteFrame.rect.width/sprite.spriteFrame.rect.height:directional?state.height*directions[0].rect.width/directions[0].rect.height:state.width,state.height);
             state.body.setPosition(state.gait.offsetX+state.gait.sway,state.baseY+state.gait.offsetY+state.gait.bob+Math.sin(state.time*1.8)*.65*(1-state.gait.weight)+greeting*3);
             state.body.setScale(state.scale*(directional?1:facing),state.scale*(state.gait.stretch+Math.sin(state.time*1.8)*.004*(1-state.gait.weight)),1);
             state.body.angle=state.gait.angle+greeting*Math.sin((1.4-state.greeting)*9)*3;
@@ -259,7 +259,7 @@ export class VillageBootstrap extends Component {
                 const ring=ui(node,'HarvestRing').addComponent(Graphics);ring.strokeColor=new Color(255,255,180);ring.lineWidth=3;ring.ellipse(0,2,23,12);ring.stroke();
                 label(node,'Thu hoạch',100,25,16).setPosition(0,80);node.active=this.learning.data.collected.indexOf(i)<0;this.bundleNodes.push(node);
             }
-            createExpansionScenery(this.actors,this.world);
+            await Promise.all([createExpansionScenery(this.actors,this.world,this.art),this.art.ensureExpansionCharacters()]);
             for(const friend of expansionFriends){const node=this.hub?.npcNodes.find(n=>n.name===friend.id);if(!node)continue;node.getComponent(Graphics)!.clear();const height=friend.id.startsWith('be-')?100:130,body=this.art.sprite(node,'ExpansionSprite-'+friend.avatar,this.art.avatarFrame(friend.avatar,0,6,1,friend.id==='chu-hai'?2:1),height*.75,height);body.setScale(actorScale,actorScale,1);this.registerNpcMotion(node,body);}
             this.nameplates=new VillageNameplates(this.world,this.actors);
             if(this.hub){this.hud=new VillageHUD(this.root,mode=>this.hub?.open(mode),()=>this.interactNearest(),id=>{this.resetInput();this.player.cancel();this.hub?.onGesture?.(id);},()=>{this.desktopJoystick=!this.desktopJoystick;this.releaseStick();},()=>this.navigateQuest());this.header.active=false;this.networkBadge!.node.active=false;this.status.node.active=false;}

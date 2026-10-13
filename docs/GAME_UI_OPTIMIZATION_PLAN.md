@@ -17,3 +17,7 @@ Vấn đề: banner tên làng cố định; tracker desktop liệt kê nhiều 
 7. Build, strict check và kiểm thử di chuyển, keyboard, HUD/pan/zoom, nhiệm vụ, dialogue/CMS, viewport. Ghi ảnh và kết quả vào tài liệu bàn giao; commit các thay đổi đã xác minh.
 
 Low/Medium/High đã có trong game; tiếp tục dùng cơ chế quality/culling hiện tại. Mục tiêu 60 FPS desktop và 30–60 FPS mobile chỉ là mục tiêu cho tới khi có benchmark thiết bị thật. Số đo ngắn trên headless browser không chứng minh soak lâu hoặc hiệu suất điện thoại.
+
+## Kết quả
+
+Đã triển khai các thay đổi HUD/tracker, responsive, NPC/dialogue và feedback vào mã Cocos, build/strict check, kiểm thử state, native UI, Chương 1, zoom và CMS; staging chạy bản `game-ui-53f16ef-20261013`. Xem [kết quả, số đo trước/sau và giới hạn xác minh](GAME_UI_OPTIMIZATION_RESULT.md).

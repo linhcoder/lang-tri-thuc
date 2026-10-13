@@ -1,0 +1,6 @@
+import React,{useState} from 'react';
+import Icon from './Icon';
+export default function TopBar({account,role,links,navigate}:{account:string;role:string;links:string[][];navigate:(tab:string)=>void}){
+const [query,setQuery]=useState('');const normalize=(s:string)=>s.toLocaleLowerCase('vi').normalize('NFD').replace(/\p{Diacritic}/gu,'').replace(/đ/g,'d');const matches=links.filter(([id,label])=>normalize(label+' '+id+(id==='images'?' asset':'' )).includes(normalize(query))).slice(0,6);
+return <header className="admin-topbar"><div className="mobile-brand">Làng Trí Thức</div><div className="quick-search"><Icon name="search"/><input type="search" aria-label="Tìm chức năng quản trị" placeholder="Tìm chức năng, NPC, asset…" value={query} onChange={e=>setQuery(e.target.value)} onKeyDown={e=>{if(e.key==='Escape')setQuery('');if(e.key==='Enter'&&matches[0]){navigate(matches[0][0]);setQuery('');}}}/>{query&&<div className="search-results">{matches.length?matches.map(([id,label])=><button key={id} onClick={()=>{navigate(id);setQuery('');}}><Icon name={id}/>{label}</button>):<p>Không có chức năng phù hợp.</p>}</div>}</div><div className="admin-identity"><span className="user-avatar">{account.slice(0,1).toUpperCase()||'A'}</span><div><strong>{account}</strong><small>{role==='admin'?'Quản trị viên':'Phụ huynh'}</small></div></div></header>;
+}

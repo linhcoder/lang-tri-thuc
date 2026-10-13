@@ -40,6 +40,7 @@
     "test:lunar": "node apps/game-client/tests/lunar-calendar.cjs",
     "test:holidays": "node apps/game-client/tests/holidays-web.cjs",
     "assets:manifest": "node tools/export-visual-assets.cjs",
+    "test:admin-workspace": "node apps/admin/tests/workspace-web.cjs",
     "test:admin": "node apps/admin/tests/admin-web.cjs",
     "test:backend-ui": "node apps/admin/tests/usability-web.cjs",
     "test:feedback-ui": "node apps/admin/tests/feedback-web.cjs",

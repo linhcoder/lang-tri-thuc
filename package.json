@@ -27,6 +27,7 @@
     "test:backlog": "node apps/game-client/tests/backlog-web.cjs",
     "test:creative": "node apps/game-client/tests/creative-web.cjs",
     "test:npc": "node apps/game-client/tests/npc-patrol-web.cjs",
+    "test:flower-care": "node apps/game-client/tests/flower-care-web.cjs",
     "test:expansion": "node apps/game-client/tests/expansion.cjs",
     "test:expansion-ui": "node apps/game-client/tests/expansion-web.cjs",
     "test:expansion-assets": "node apps/game-client/tests/expansion-assets-web.cjs",

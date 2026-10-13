@@ -14,6 +14,470 @@
   ],
   "assets": [
     {
+      "id": "ui.flower-care.panel",
+      "name": "Chăm hoa • panel",
+      "group": "UI",
+      "path": "assets/resources/village/flower-care-v1/atlas.png",
+      "size": [
+        100,
+        100
+      ],
+      "anchor": [
+        0.5,
+        0.5
+      ],
+      "layer": "HUD",
+      "collision": null,
+      "status": "final",
+      "region": [
+        0.022328548644338118,
+        0.03588516746411483,
+        0.22328548644338117,
+        0.20733652312599682
+      ],
+      "source": "OpenAI built-in imagegen, 2026-10-13; docs/design/FLOWER_CARE_UI.md",
+      "pixels": [
+        1254,
+        1254
+      ],
+      "bytes": 1394772
+    },
+    {
+      "id": "ui.flower-care.title",
+      "name": "Chăm hoa • title",
+      "group": "UI",
+      "path": "assets/resources/village/flower-care-v1/atlas.png",
+      "size": [
+        100,
+        100
+      ],
+      "anchor": [
+        0.5,
+        0.5
+      ],
+      "layer": "HUD",
+      "collision": null,
+      "status": "final",
+      "region": [
+        0.2583732057416268,
+        0.09170653907496013,
+        0.24720893141945774,
+        0.10207336523125997
+      ],
+      "source": "OpenAI built-in imagegen, 2026-10-13; docs/design/FLOWER_CARE_UI.md",
+      "pixels": [
+        1254,
+        1254
+      ],
+      "bytes": 1394772
+    },
+    {
+      "id": "ui.flower-care.card",
+      "name": "Chăm hoa • card",
+      "group": "UI",
+      "path": "assets/resources/village/flower-care-v1/atlas.png",
+      "size": [
+        100,
+        100
+      ],
+      "anchor": [
+        0.5,
+        0.5
+      ],
+      "layer": "HUD",
+      "collision": null,
+      "status": "final",
+      "region": [
+        0.5215311004784688,
+        0.08771929824561403,
+        0.22886762360446572,
+        0.12360446570972887
+      ],
+      "source": "OpenAI built-in imagegen, 2026-10-13; docs/design/FLOWER_CARE_UI.md",
+      "pixels": [
+        1254,
+        1254
+      ],
+      "bytes": 1394772
+    },
+    {
+      "id": "ui.flower-care.continue",
+      "name": "Chăm hoa • continue",
+      "group": "UI",
+      "path": "assets/resources/village/flower-care-v1/atlas.png",
+      "size": [
+        100,
+        100
+      ],
+      "anchor": [
+        0.5,
+        0.5
+      ],
+      "layer": "HUD",
+      "collision": null,
+      "status": "final",
+      "region": [
+        0.75518341307815,
+        0.09968102073365231,
+        0.23285486443381181,
+        0.10207336523125997
+      ],
+      "source": "OpenAI built-in imagegen, 2026-10-13; docs/design/FLOWER_CARE_UI.md",
+      "pixels": [
+        1254,
+        1254
+      ],
+      "bytes": 1394772
+    },
+    {
+      "id": "ui.flower-care.close",
+      "name": "Chăm hoa • close",
+      "group": "UI",
+      "path": "assets/resources/village/flower-care-v1/atlas.png",
+      "size": [
+        100,
+        100
+      ],
+      "anchor": [
+        0.5,
+        0.5
+      ],
+      "layer": "HUD",
+      "collision": null,
+      "status": "final",
+      "region": [
+        0.02631578947368421,
+        0.2894736842105263,
+        0.20175438596491227,
+        0.20095693779904306
+      ],
+      "source": "OpenAI built-in imagegen, 2026-10-13; docs/design/FLOWER_CARE_UI.md",
+      "pixels": [
+        1254,
+        1254
+      ],
+      "bytes": 1394772
+    },
+    {
+      "id": "ui.flower-care.seed",
+      "name": "Chăm hoa • seed",
+      "group": "UI",
+      "path": "assets/resources/village/flower-care-v1/atlas.png",
+      "size": [
+        100,
+        100
+      ],
+      "anchor": [
+        0.5,
+        0.5
+      ],
+      "layer": "HUD",
+      "collision": null,
+      "status": "final",
+      "region": [
+        0.2631578947368421,
+        0.2711323763955343,
+        0.23205741626794257,
+        0.22009569377990432
+      ],
+      "source": "OpenAI built-in imagegen, 2026-10-13; docs/design/FLOWER_CARE_UI.md",
+      "pixels": [
+        1254,
+        1254
+      ],
+      "bytes": 1394772
+    },
+    {
+      "id": "ui.flower-care.stone",
+      "name": "Chăm hoa • stone",
+      "group": "UI",
+      "path": "assets/resources/village/flower-care-v1/atlas.png",
+      "size": [
+        100,
+        100
+      ],
+      "anchor": [
+        0.5,
+        0.5
+      ],
+      "layer": "HUD",
+      "collision": null,
+      "status": "final",
+      "region": [
+        0.5311004784688995,
+        0.3333333333333333,
+        0.19617224880382775,
+        0.15311004784688995
+      ],
+      "source": "OpenAI built-in imagegen, 2026-10-13; docs/design/FLOWER_CARE_UI.md",
+      "pixels": [
+        1254,
+        1254
+      ],
+      "bytes": 1394772
+    },
+    {
+      "id": "ui.flower-care.pencil",
+      "name": "Chăm hoa • pencil",
+      "group": "UI",
+      "path": "assets/resources/village/flower-care-v1/atlas.png",
+      "size": [
+        100,
+        100
+      ],
+      "anchor": [
+        0.5,
+        0.5
+      ],
+      "layer": "HUD",
+      "collision": null,
+      "status": "final",
+      "region": [
+        0.7894736842105263,
+        0.2759170653907496,
+        0.17862838915470494,
+        0.21371610845295055
+      ],
+      "source": "OpenAI built-in imagegen, 2026-10-13; docs/design/FLOWER_CARE_UI.md",
+      "pixels": [
+        1254,
+        1254
+      ],
+      "bytes": 1394772
+    },
+    {
+      "id": "ui.flower-care.water",
+      "name": "Chăm hoa • water",
+      "group": "UI",
+      "path": "assets/resources/village/flower-care-v1/atlas.png",
+      "size": [
+        100,
+        100
+      ],
+      "anchor": [
+        0.5,
+        0.5
+      ],
+      "layer": "HUD",
+      "collision": null,
+      "status": "final",
+      "region": [
+        0.019138755980861243,
+        0.5143540669856459,
+        0.24481658692185007,
+        0.215311004784689
+      ],
+      "source": "OpenAI built-in imagegen, 2026-10-13; docs/design/FLOWER_CARE_UI.md",
+      "pixels": [
+        1254,
+        1254
+      ],
+      "bytes": 1394772
+    },
+    {
+      "id": "ui.flower-care.book",
+      "name": "Chăm hoa • book",
+      "group": "UI",
+      "path": "assets/resources/village/flower-care-v1/atlas.png",
+      "size": [
+        100,
+        100
+      ],
+      "anchor": [
+        0.5,
+        0.5
+      ],
+      "layer": "HUD",
+      "collision": null,
+      "status": "final",
+      "region": [
+        0.2751196172248804,
+        0.5191387559808612,
+        0.2240829346092504,
+        0.20972886762360446
+      ],
+      "source": "OpenAI built-in imagegen, 2026-10-13; docs/design/FLOWER_CARE_UI.md",
+      "pixels": [
+        1254,
+        1254
+      ],
+      "bytes": 1394772
+    },
+    {
+      "id": "ui.flower-care.ball",
+      "name": "Chăm hoa • ball",
+      "group": "UI",
+      "path": "assets/resources/village/flower-care-v1/atlas.png",
+      "size": [
+        100,
+        100
+      ],
+      "anchor": [
+        0.5,
+        0.5
+      ],
+      "layer": "HUD",
+      "collision": null,
+      "status": "final",
+      "region": [
+        0.5358851674641149,
+        0.5334928229665071,
+        0.18740031897926634,
+        0.19138755980861244
+      ],
+      "source": "OpenAI built-in imagegen, 2026-10-13; docs/design/FLOWER_CARE_UI.md",
+      "pixels": [
+        1254,
+        1254
+      ],
+      "bytes": 1394772
+    },
+    {
+      "id": "ui.flower-care.broken",
+      "name": "Chăm hoa • broken",
+      "group": "UI",
+      "path": "assets/resources/village/flower-care-v1/atlas.png",
+      "size": [
+        100,
+        100
+      ],
+      "anchor": [
+        0.5,
+        0.5
+      ],
+      "layer": "HUD",
+      "collision": null,
+      "status": "final",
+      "region": [
+        0.7527910685805422,
+        0.5191387559808612,
+        0.23604465709728867,
+        0.19059011164274323
+      ],
+      "source": "OpenAI built-in imagegen, 2026-10-13; docs/design/FLOWER_CARE_UI.md",
+      "pixels": [
+        1254,
+        1254
+      ],
+      "bytes": 1394772
+    },
+    {
+      "id": "ui.flower-care.foot",
+      "name": "Chăm hoa • foot",
+      "group": "UI",
+      "path": "assets/resources/village/flower-care-v1/atlas.png",
+      "size": [
+        100,
+        100
+      ],
+      "anchor": [
+        0.5,
+        0.5
+      ],
+      "layer": "HUD",
+      "collision": null,
+      "status": "final",
+      "region": [
+        0.014354066985645933,
+        0.7328548644338118,
+        0.23205741626794257,
+        0.23604465709728867
+      ],
+      "source": "OpenAI built-in imagegen, 2026-10-13; docs/design/FLOWER_CARE_UI.md",
+      "pixels": [
+        1254,
+        1254
+      ],
+      "bytes": 1394772
+    },
+    {
+      "id": "ui.flower-care.correct",
+      "name": "Chăm hoa • correct",
+      "group": "UI",
+      "path": "assets/resources/village/flower-care-v1/atlas.png",
+      "size": [
+        100,
+        100
+      ],
+      "anchor": [
+        0.5,
+        0.5
+      ],
+      "layer": "HUD",
+      "collision": null,
+      "status": "final",
+      "region": [
+        0.28309409888357256,
+        0.7535885167464115,
+        0.19776714513556617,
+        0.19617224880382775
+      ],
+      "source": "OpenAI built-in imagegen, 2026-10-13; docs/design/FLOWER_CARE_UI.md",
+      "pixels": [
+        1254,
+        1254
+      ],
+      "bytes": 1394772
+    },
+    {
+      "id": "ui.flower-care.wrong",
+      "name": "Chăm hoa • wrong",
+      "group": "UI",
+      "path": "assets/resources/village/flower-care-v1/atlas.png",
+      "size": [
+        100,
+        100
+      ],
+      "anchor": [
+        0.5,
+        0.5
+      ],
+      "layer": "HUD",
+      "collision": null,
+      "status": "final",
+      "region": [
+        0.5207336523125997,
+        0.7535885167464115,
+        0.20095693779904306,
+        0.19776714513556617
+      ],
+      "source": "OpenAI built-in imagegen, 2026-10-13; docs/design/FLOWER_CARE_UI.md",
+      "pixels": [
+        1254,
+        1254
+      ],
+      "bytes": 1394772
+    },
+    {
+      "id": "ui.flower-care.hint",
+      "name": "Chăm hoa • hint",
+      "group": "UI",
+      "path": "assets/resources/village/flower-care-v1/atlas.png",
+      "size": [
+        100,
+        100
+      ],
+      "anchor": [
+        0.5,
+        0.5
+      ],
+      "layer": "HUD",
+      "collision": null,
+      "status": "final",
+      "region": [
+        0.7679425837320574,
+        0.7280701754385965,
+        0.21451355661881977,
+        0.23125996810207336
+      ],
+      "source": "OpenAI built-in imagegen, 2026-10-13; docs/design/FLOWER_CARE_UI.md",
+      "pixels": [
+        1254,
+        1254
+      ],
+      "bytes": 1394772
+    },
+    {
       "id": "countryside.hills",
       "name": "hills",
       "group": "Vegetation",
@@ -3327,15 +3791,6 @@
       "essential": true
     },
     {
-      "id": "golden-rice-27-12",
-      "cell": 8,
-      "x": 27,
-      "y": 12,
-      "width": 86,
-      "height": 68,
-      "essential": true
-    },
-    {
       "id": "golden-rice-33-12",
       "cell": 8,
       "x": 33,
@@ -3366,15 +3821,6 @@
       "id": "golden-rice-26-13",
       "cell": 8,
       "x": 26,
-      "y": 13,
-      "width": 86,
-      "height": 68,
-      "essential": true
-    },
-    {
-      "id": "golden-rice-27-13",
-      "cell": 8,
-      "x": 27,
       "y": 13,
       "width": 86,
       "height": 68,
@@ -3563,8 +4009,8 @@
     {
       "id": "sign-rice",
       "cell": 9,
-      "x": 34,
-      "y": 24,
+      "x": 28,
+      "y": 21,
       "width": 100,
       "height": 48,
       "essential": true

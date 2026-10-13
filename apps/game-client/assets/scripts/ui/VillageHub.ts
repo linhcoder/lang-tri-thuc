@@ -1,3 +1,4 @@
+import {FlowerCareView} from './FlowerCareView';
 import {DialoguePresentation} from './DialoguePresentation';
 import {ExpansionGame,ExpansionId,expansionActivities,expansionFriends} from '../world/ExpansionActivities';
 import {avatarNames,skinNames} from '../world/CharacterArt';
@@ -25,8 +26,11 @@ import {careActivities,isCareId,PaintStroke,paintColors,paintBounds,maxPaintStro
 interface Button {node:Node;width:number;action:()=>void}
 type Mode='expansion'|'friend'|'expansion-game'|'skin'|'menu'|'gestures'|'achievements'|'settings'|'journal'|'chapter'|'lesson'|'game'|'gate'|'parent'|'age'|'quality'|'avatar'|'accessory'|'hair'|'activities'|'inventory'|'map'|'reset'|'help'|'online'|'home'|'explore'|'collection'|'care'|'painting'|'holidays'|'holiday';
 export class VillageHub {
+    private flowerView?:FlowerCareView;private flowerCompact=false;
+    configureFlowerLayout(compact:boolean){if(this.flowerCompact===compact)return;this.flowerCompact=compact;if(this.flowerCareActive)this.render();}
+    get flowerCareActive():boolean{return this.mode==='expansion-game'&&this.expansionGame?.id==='flower-care';}
     private presentation=new DialoguePresentation();
-    key(code:number){if(code===13||code===32){if(this.presentation.reveal())return;this.buttons.find(b=>b.node.name==='ChapterIntro'||b.node.name==='NextChapter')?.action();}}
+    key(code:number){if(this.flowerCareActive){this.flowerView?.key(code);return;}if(code===13||code===32){if(this.presentation.reveal())return;this.buttons.find(b=>b.node.name==='ChapterIntro'||b.node.name==='NextChapter')?.action();}}
 
     onGesture?:(id:AvatarGesture)=>void;
     onAvatarPreview?:(parent:Node,id:number,hair?:number,skin?:number)=>void;
@@ -53,7 +57,7 @@ export class VillageHub {
     private puzzleWide=typeof window==='undefined'||window.innerWidth>=window.innerHeight;
     get largePuzzle():boolean{return this.mode==='game'&&this.game?.id==='mg.dong-ho';}
     get puzzlePanelSize():{width:number;height:number}|null{return this.largePuzzle?(this.puzzleWide?{width:1040,height:640}:{width:700,height:1400}):null;}
-    configurePuzzleLayout(wide:boolean):void{if(this.puzzleWide===wide)return;this.puzzleWide=wide;if(this.largePuzzle)this.render();}
+    configurePuzzleLayout(wide:boolean):void{if(this.puzzleWide===wide)return;this.puzzleWide=wide;if(this.largePuzzle||this.flowerCareActive)this.render();}
     private dragPiece?:{index:number;node:Node;puzzle?:boolean};
     private boardState='';private gameBoard?:MiniGameView;private lesson?:EducationEngine;private game?:MiniGameRules;private indicator?:Graphics;
     private serverGameSignature='';private gateAnswer=0;private pendingNpc:number|null=null;private syncSignature='';private lastRhythm:boolean|null=null;
@@ -179,7 +183,7 @@ export class VillageHub {
             if(this.indicator&&this.game.id==='mg.fishing'){const g=this.indicator;g.clear();g.strokeColor=new Color(90,150,205);g.rect(-70,55,140,45);g.stroke();for(let i=0;i<3;i++){if(this.game.data.observed.includes(i))continue;g.fillColor=[new Color(80,175,120),new Color(230,150,60),new Color(155,110,190)][i];g.ellipse(this.game.fishX(i),75,15,9);g.fill();}}
         }
     }
-    handle(point:Point):void{const p=this.node.getComponent(UITransform)!.convertToNodeSpaceAR(new Vec3(point.x,point.y));
+    handle(point:Point):void{if(this.flowerCareActive){this.flowerView?.handle(point);return;}const p=this.node.getComponent(UITransform)!.convertToNodeSpaceAR(new Vec3(point.x,point.y));
         if(this.mode==='game'&&this.game&&this.gameBoard){const local=this.gameBoard.node.getComponent(UITransform)!.convertToNodeSpaceAR(new Vec3(point.x,point.y));const action=this.gameBoard.actionAt(this.game,local.x,local.y);if(action){this.performGameAction(action.type,action.index);return;}}
         const hit=this.buttons.find(b=>Math.abs(p.x-b.node.position.x)<=b.width/2&&Math.abs(p.y-b.node.position.y)<=b.node.getComponent(UITransform)!.height/2);if(hit){this.presentation.reveal();hit.action();}else this.presentation.reveal();}
     private performGameAction(type:string,index:number):void{
@@ -221,7 +225,7 @@ export class VillageHub {
     }
     private exportSave():void{if(typeof document==='undefined')return;const raw=JSON.stringify({version:1,chapterOne:this.first.progress.data,campaign:this.campaign.data},null,2),url=URL.createObjectURL(new Blob([raw],{type:'application/json'})),a=document.createElement('a');a.href=url;a.download='lang-tri-thuc-progress.json';a.click();URL.revokeObjectURL(url);this.message='Đã tạo bản sao tiến độ, không có tên thật hay tài khoản.';this.render();}
     stopReading():void{this.reader.stop();if(this.readingButton)this.readingButton.string='Nghe';}
-    dispose():void{this.presentation.dispose();this.cancelDrag();this.stopReading();disposeFolkPuzzleArt();}
+    dispose():void{this.flowerView?.dispose();this.presentation.dispose();this.cancelDrag();this.stopReading();disposeFolkPuzzleArt();}
     private readingMessage(value:string):void{if(this.readingNotice){this.readingNotice.string=value;this.readingNotice.fontSize=18;this.readingNotice.lineHeight=26;}}
     private read():void{
         if(this.reader.reading){this.stopReading();return;}
@@ -232,12 +236,28 @@ export class VillageHub {
         if(message)this.readingMessage(message);
         if(this.readingButton)this.readingButton.string=this.reader.reading?'D\u1eebng \u0111\u1ecdc':'Nghe';
     }
+    private renderFlower():void{
+        const game=this.expansionGame!;
+        if(!this.flowerView)this.flowerView=new FlowerCareView(this.node,index=>{
+            if(this.expansionAttempt){this.onExpansionChoice?.(game.id,this.expansionAttempt,this.expansionGame!.step,index);return;}
+            const current=this.expansionGame!;if(!current.choose(index))return;
+            (this.campaign.data.expansionProgress??={})[current.id]={step:current.ended?0:current.step,age:current.age,updated:Date.now()};
+            if(current.ended){const completed=this.campaign.data.expansion??=[];if(!completed.includes(current.id))completed.push(current.id);}
+            this.persist();this.message='';this.render();
+        },()=>this.close(),()=>{if(this.expansionAttempt)this.onExpansionLeave?.();this.endExpansionOnline();this.mode='friend';this.message='';this.render();},()=>!this.campaign.data.sound,()=>{this.campaign.data.sound=!this.campaign.data.sound;this.persist();});
+        for(const n of [...this.node.children])if(n!==this.flowerView.node){n.active=false;n.removeFromParent();n.destroy();}
+        this.buttons=[];this.node.getComponent(Graphics)!.clear();this.flowerView.layout(this.puzzleWide,this.flowerCompact);
+        const size=this.flowerView.size;this.node.getComponent(UITransform)!.setContentSize(size.width,size.height);
+        this.flowerView.show(game,this.message);
+    }
     private render():void{
+        if(this.flowerCareActive){this.stopReading();this.renderFlower();return;}
+        if(this.flowerView)this.flowerView.node.active=false;
         this.cancelDrag();this.paintPuzzleFrame();
         this.stopReading();this.spokenParts=[];this.readingButton=undefined;this.readingNotice=undefined;
         // Cocos defers destruction until the end of the frame. Detach old children
         // now so name lookups below cannot style a stale, inactive title or notice.
-        for(const n of [...this.node.children]){n.active=false;n.removeFromParent();n.destroy();}this.buttons=[];this.gameBoard=undefined;this.indicator=undefined;this.lastRhythm=null;
+        for(const n of [...this.node.children]){if(n===this.flowerView?.node)continue;n.active=false;n.removeFromParent();n.destroy();}this.buttons=[];this.gameBoard=undefined;this.indicator=undefined;this.lastRhythm=null;
         const titles:Record<Mode,string>={expansion:'BA KHU VUI CHƠI MỚI',friend:storyNpcs.find(n=>n.id===this.selectedFriend)?.name??'BẠN MỚI','expansion-game':this.expansionGame?.activity.title??'CÙNG CHƠI',skin:'CHỌN MÀU DA',holidays:'SỔ NGÀY LỄ',holiday:'CÙNG VUI NGÀY LỄ',care:'CHĂM GÓC LÀNG',painting:'GÓC VẼ CỦA BÉ',collection:'SỔ KHÁM PHÁ VÀ NGÀY HỘI',explore:'KHÁM PHÁ LÀNG',gestures:'BI\u1ec2U C\u1ea2M',menu:'SỔ TAY CỦA BÉ',achievements:'THÀNH TÍCH CỦA BÉ',settings:'CÀI ĐẶT',activities:'HOẠT ĐỘNG MỞ RỘNG',hair:'CH\u1eccN KI\u1ec2U T\u00d3C',accessory:'KHĂN QUÀNG CỦA BÉ',home:'NHÀ CỦA BÉ',online:'BẠN BÈ • PHÒNG RIÊNG',journal:'SỔ LÀNG • TÁM CHƯƠNG',chapter:chapters[this.chapterIndex].title.toUpperCase(),lesson:'BÀI HỌC',game:this.game?gameNames[this.game.id]:'TRÒ CHƠI',gate:'GÓC PHỤ HUYNH',parent:'PHỤ HUYNH • BẢN THỬ',age:'MỨC HỌC',quality:'HÌNH ẢNH',avatar:'CHỌN NHÂN VẬT',inventory:'SAO VÀ BỘ SƯU TẬP',map:'BẢN ĐỒ LÀNG',reset:'XÁC NHẬN XÓA SỔ',help:'HƯỚNG DẪN TRÒ CHƠI'};
         const heading=['chapter','activities','collection','explore','care','painting','holidays','holiday','game','friend','expansion-game'].includes(this.mode)?titles[this.mode]:this.message||titles[this.mode];
         const title=this.text(this.node,heading,0,this.mode==='game'?238:225,590,this.mode==='game'?32:65,this.mode==='game'?24:this.message&&heading===this.message?20:26);

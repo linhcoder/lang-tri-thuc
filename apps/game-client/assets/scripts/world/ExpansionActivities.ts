@@ -1,3 +1,4 @@
+import {flowerCareContent} from './FlowerCareContent';
 import {AgeBand} from './CampaignContent';
 export const expansionActivities=[
     {id:'flower-care',zone:'seasons',npc:'anh-nam',title:'Chăm hoa',intro:'Cùng anh Nam gieo hạt, tưới nước và ngắm hoa nở.',kind:'care'},
@@ -45,7 +46,7 @@ export class ExpansionGame {
     get ended():boolean{return this.step>=3;}
     get round():ExpansionRound{
         const i=Math.min(this.step,2),kind=this.activity.kind;
-        if(kind==='care')return {prompt:['Đầu tiên, mình đặt gì vào đất?','Hạt đã vào đất. Mình dùng gì để tưới?','Hoa đã nở. Mình chăm cây thế nào?'][i],choices:[['Hạt giống','Viên đá','Chiếc bút'],['Bình tưới','Quyển sách','Quả bóng'],['Tưới vừa đủ','Bẻ cành','Giẫm lên hoa']][i],answer:0,picture:['seed','water','flower'][i],count:1};
+        if(kind==='care'){const r=flowerCareContent.rounds[i];return {prompt:r.prompt,choices:r.choices.map(c=>c.label),answer:r.answer,picture:r.picture,count:1};}
         if(kind==='boat')return {prompt:['Đặt thân thuyền trước nhé!','Thuyền cần một cột để giữ buồm.','Lắp buồm để đón gió nào!'][i],choices:['Thân thuyền','Cột buồm','Cánh buồm'],answer:i,picture:'boat',count:i+1};
         if(kind==='float')return {prompt:['Khúc gỗ này ở trên mặt nước. Nó…','Viên đá này ở dưới đáy chậu. Nó…','Chiếc lá này ở trên mặt nước. Nó…'][i],choices:['Nổi','Chìm'],answer:i===1?1:0,picture:i===1?'stone':'leaf',count:1};
         if(kind==='count'){const count=i+ (this.age==='3-5'?1:this.age==='6-8'?3:6);return {prompt:'Có bao nhiêu bạn cá?',choices:[String(count+1),String(count),String(count+2)],answer:1,picture:'fish',count};}
@@ -56,7 +57,7 @@ export class ExpansionGame {
     /** Pictures follow visible choices, so children can choose without reading. */
     get choicePictures():string[]{
         const kind=this.activity.kind,i=Math.min(this.step,2);
-        if(kind==='care')return [['seed','stone','pencil'],['water','book','ball'],['water','broken','foot']][i];
+        if(kind==='care')return flowerCareContent.rounds[i].choices.map(c=>c.id);
         if(kind==='boat')return ['hull','mast','sail'];
         if(kind==='float')return ['floating','sinking'];
         if(kind==='color')return ['red','yellow','green'];
@@ -65,5 +66,5 @@ export class ExpansionGame {
         return this.round.choices.map(()=> '');
     }
     choose(index:number):boolean{if(this.ended||!Number.isInteger(index)||index<0||index>=this.round.choices.length)return false;if(index!==this.round.answer){this.feedback='Mình thử lại nhé! Chạm Gợi ý nếu cần.';return false;}this.step++;this.countedFish.clear();this.feedback=this.ended?'Hoàn thành! Cảm ơn bé đã cùng chơi.':'Đúng rồi! Cùng làm bước tiếp theo.';return true;}
-    hint():void{if(!this.ended)this.feedback='Gợi ý: '+this.round.choices[this.round.answer]+'. Không mất điểm khi dùng gợi ý.';}
+    hint():void{if(this.id==='flower-care'){if(!this.ended)this.feedback=flowerCareContent.rounds[this.step].hint;return;}if(!this.ended)this.feedback='Gợi ý: '+this.round.choices[this.round.answer]+'. Không mất điểm khi dùng gợi ý.';}
 }

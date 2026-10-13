@@ -388,11 +388,12 @@ export class VillageBootstrap extends Component {
             const cssScale=Math.max(size.width/cssWidth,size.height/cssHeight);
             const compactViewport=cssWidth<700||cssHeight<500;
             this.hub.configurePuzzleLayout(size.width>size.height);
-            this.hub.configureFlowerLayout?.(cssWidth/cssHeight>1.8||cssWidth>cssHeight&&cssHeight<400);
+            this.hub.configureFlowerLayout?.(cssWidth>cssHeight&&cssHeight<500);
             const hubSize=this.hub.node.getComponent(UITransform)!;
-            const scale=this.hub.largePuzzle||this.hub.flowerCareActive
+            let scale=this.hub.largePuzzle||this.hub.flowerCareActive
                 ?Math.min((size.width-16*cssScale)/hubSize.width,(size.height-16*cssScale)/hubSize.height)
                 :Math.min(compactViewport?Infinity:uiScale,(size.width-24*cssScale)/620,(size.height-24*cssScale)/560);
+            if(this.hub.flowerCareActive&&!compactViewport)scale=Math.min(scale,Math.min(960,cssWidth*.84)*cssScale/hubSize.width,Math.min(size.width>size.height?620:900,cssHeight*.84)*cssScale/hubSize.height);
             if(this.hub.node.scale.x!==scale)this.hub.node.setScale(scale,scale,1);
         }
         for(const button of [this.questButton,this.journalButton,this.parentButton])if(button)button.active=!this.modalActive&&(!this.hud||button===this.questButton);
@@ -569,6 +570,7 @@ export class VillageBootstrap extends Component {
         const point=e.getUILocation(), start={x:point.x,y:point.y};
         // A modal owns one pointer; a second finger must not replace a drawing stroke or tap a button.
         if(this.modalActive&&this.touches.size){this.touches.set(id,{start,current:start,dragged:false,blocked:true,control:true});return;}
+        if(this.hub?.node.active)this.hub.beginPress?.(point);
         const stickPoint=this.joystick.active?this.local(point,this.joystick):null;
         const onStick=!!stickPoint&&Math.hypot(stickPoint.x,stickPoint.y)<=75;
         this.touches.set(id,{start,current:start,dragged:false,control:this.isHudControl(point),hubDrag:this.hub?.beginDrag?.(point),panBase:{x:(this.world?.position.x??0)/this.worldScale,y:(this.world?.position.y??0)/this.worldScale},blocked:!!this.pinchIds||!this.modalActive&&(this.isHeader(point)||onStick)});
@@ -585,11 +587,12 @@ export class VillageBootstrap extends Component {
         const gesture=this.touches.get(id),p=e.getUILocation();
         if(gesture)gesture.current={x:p.x,y:p.y};
         if(this.pinchIds){const a=this.touches.get(this.pinchIds[0]),b=this.touches.get(this.pinchIds[1]);if(a&&b)this.changeZoom(this.zoom.pinch(Math.hypot(a.current.x-b.current.x,a.current.y-b.current.y)));return;}
-        if(gesture&&Math.hypot(p.x-gesture.start.x,p.y-gesture.start.y)>this.tapThreshold())gesture.dragged=true;
+        if(gesture&&Math.hypot(p.x-gesture.start.x,p.y-gesture.start.y)>this.tapThreshold()){gesture.dragged=true;this.hub?.endPress?.();}
         if(this.world&&this.player&&gesture?.dragged&&!gesture.blocked&&!gesture.control&&!gesture.hubDrag&&!this.modalActive&&this.touches.size===1&&id!==this.stickId){const base=gesture.panBase!;this.freeCameraOffset={x:base.x+(p.x-gesture.start.x)/this.worldScale,y:base.y+(p.y-gesture.start.y)/this.worldScale};this.keys.clear();this.player.cancel();this.pendingNpc=false;this.pendingBundle=null;this.chapter?.cancel();this.hub?.cancel();}
         if(gesture?.hubDrag&&gesture.dragged)this.hub?.moveDrag(p);if (id === this.stickId) this.updateStick(e);
     }
     private touchEnd(e: EventTouch): void {if(this.loadingPanel?.active)return;
+        this.hub?.endPress?.();
         const id=e.getID();if(id===null)return;
         const gesture=this.touches.get(id);this.touches.delete(id);
         if(this.pinchIds){this.pinchIds=undefined;this.zoom.endPinch();this.touches.forEach(g=>g.blocked=true);return;}
@@ -598,9 +601,9 @@ export class VillageBootstrap extends Component {
         if(gesture?.hubDrag&&this.hub?.endDrag(p,gesture.dragged))return;
         if(gesture&&!gesture.blocked&&!gesture.dragged&&Math.hypot(p.x-gesture.start.x,p.y-gesture.start.y)<=this.tapThreshold())this.select(p);
     }
-    private touchCancel(e: EventTouch): void { const id=e.getID();if(id===null)return;if(this.touches.get(id)?.hubDrag)this.hub?.cancelDrag();this.touches.delete(id);if(this.pinchIds){this.pinchIds=undefined;this.zoom.endPinch();this.touches.forEach(g=>g.blocked=true);} if (id === this.stickId) this.releaseStick(); }
+    private touchCancel(e: EventTouch): void {this.hub?.endPress?.(); const id=e.getID();if(id===null)return;if(this.touches.get(id)?.hubDrag)this.hub?.cancelDrag();this.touches.delete(id);if(this.pinchIds){this.pinchIds=undefined;this.zoom.endPinch();this.touches.forEach(g=>g.blocked=true);} if (id === this.stickId) this.releaseStick(); }
     private releaseStick(): void { this.stickId = null; this.stick = { x: 0, y: 0 }; this.knob.setPosition(0, 0); }
-    private resetInput(): void { this.keys.clear(); this.freeCameraOffset=undefined;this.releaseStick();this.pinchIds=undefined;this.zoom.endPinch();this.touches.clear();this.player?.cancel();this.pendingNpc=false;this.pendingBundle=null;this.chapter?.cancel();this.hub?.cancel(); }
+    private resetInput(): void {this.hub?.endPress?.(); this.keys.clear(); this.freeCameraOffset=undefined;this.releaseStick();this.pinchIds=undefined;this.zoom.endPinch();this.touches.clear();this.player?.cancel();this.pendingNpc=false;this.pendingBundle=null;this.chapter?.cancel();this.hub?.cancel(); }
     private handleBlur = (): void => { this.resetInput(); };
     // Full-screen CSS keeps frame style strings constant; explicitly reapply the
     // public policy so Creator updates its backing canvas after viewport rotation.

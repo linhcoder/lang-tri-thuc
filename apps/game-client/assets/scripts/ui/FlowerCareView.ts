@@ -9,14 +9,15 @@ type Action={node:Node;run:()=>void};
 export class FlowerCareView {
  readonly node:Node;
  private frames:SpriteFrame[]=[];private bindings:Array<{sprite:Sprite;art:number}>=[];
+ private skins:Array<{root:Node;sprite:Sprite;art:number}>=[];private pressed?:Node;
  private actions:Action[]=[];private cards:Node[]=[];private icons:Sprite[]=[];private labels:Label[]=[];private badges:Sprite[]=[];
- private question:Label;private progress:Label;private notice:Label;private next:Node;private nextLabel:Label;private soundLabel:Label;
+ private question:Label;private progress:Label;private notice:Label;private next:Node;private nextSprite:Sprite;private nextLabel:Label;private soundLabel:Label;
  private game?:ExpansionGame;private step=-1;private selected=-1;private complete=false;private ready=false;private disposed=false;
  private sound=new UiClickSound();private evaluating=false;private hintShown=false;private wide=true;private compact=false;
  constructor(parent:Node,private choose:(index:number)=>void,private close:()=>void,private finish:()=>void,private muted:()=>boolean,private toggleSound:()=>void){
   this.node=new Node('FlowerCarePanel');parent.addChild(this.node);this.node.addComponent(UITransform).setContentSize(0,0);
   this.art(this.node,'Paper',0,0,0,960,650,true);
-  this.art(this.node,'WoodTitle',1,0,275,520,85,false);this.text(this.node,'Title',flowerCareContent.title,0,275,430,64,42);
+  this.skin('WoodTitle',1,0,275,520,85);this.text(this.node,'Title',flowerCareContent.title,0,275,430,64,42);
   this.text(this.node,'Subtitle',flowerCareContent.subtitle,0,207,790,42,23);
   this.progress=this.text(this.node,'Progress','',-385,140,130,65,26);
   this.question=this.text(this.node,'Question','',35,145,680,80,30);
@@ -27,20 +28,21 @@ export class FlowerCareView {
    const badge=this.art(card,'Result',13,94,99,52,52);badge.node.active=false;this.badges.push(badge);
    this.actions.push({node:card,run:()=>this.select(i)});
   }
-  this.art(this.node,'HintPaper',2,0,-195,800,104,false).color=new Color(216,241,199);
+  this.skin('HintPaper',2,0,-195,800,104).getChildByName('Skin')!.getComponent(Sprite)!.color=new Color(216,241,199);
   this.notice=this.text(this.node,'Feedback','',-30,-195,640,90,24);
   const hint=this.art(this.node,'ExpansionHint',15,350,-193,70,74).node;this.actions.push({node:hint,run:()=>this.hint()});
-  const closeButton=this.art(this.node,'HubClose',2,-240,-277,250,72,false).node;this.text(closeButton,'Text','Đóng',0,0,210,65,26);this.actions.push({node:closeButton,run:()=>this.close()});
-  this.next=this.art(this.node,'ExpansionContinue',3,140,-277,390,72,false).node;this.nextLabel=this.text(this.next,'Text','Tiếp tục',0,0,310,65,29);this.actions.push({node:this.next,run:()=>this.advance()});
+  const closeButton=this.skin('HubClose',2,-240,-277,250,72);this.text(closeButton,'Text','Đóng',0,0,210,65,26);this.actions.push({node:closeButton,run:()=>this.close()});
+  this.next=this.skin('ExpansionContinue',3,140,-277,390,72);this.nextSprite=this.next.getChildByName('Skin')!.getComponent(Sprite)!;this.nextLabel=this.text(this.next,'Text','Tiếp tục',0,0,310,65,29);this.actions.push({node:this.next,run:()=>this.advance()});
   const x=this.art(this.node,'CloseTop',4,422,277,65,65).node;this.text(x,'Text','×',0,0,50,56,40);this.actions.push({node:x,run:()=>this.close()});
-  const audio=this.art(this.node,'FlowerSound',2,-390,-277,100,72,false).node;this.soundLabel=this.text(audio,'Text','',0,0,88,64,17);this.actions.push({node:audio,run:()=>{this.toggleSound();this.refresh();}});
+  const audio=this.skin('FlowerSound',2,-390,-277,100,72);this.soundLabel=this.text(audio,'Text','',0,0,78,64,20);this.actions.push({node:audio,run:()=>{this.toggleSound();this.refresh();}});
   this.notice.string='Đang tải hình minh họa…';
   resources.load('village/flower-care-v1/atlas/texture',Texture2D,(error,texture)=>{
    if(this.disposed)return;
    if(error){this.notice.string='Chưa tải được hình. Tải lại trang để thử lại.';return;}
-   this.frames=flowerCareAtlasRects.map((r,i)=>{const f=new SpriteFrame();f.texture=texture;f.rect=new Rect(...r);f.originalSize=new Size(r[2],r[3]);f.offset=new Vec2(0,0);if(i<4){f.insetLeft=f.insetRight=i===0?65:38;f.insetTop=f.insetBottom=i===0?65:28;}return f;});
+   this.frames=flowerCareAtlasRects.map((r,i)=>{const f=new SpriteFrame();f.texture=texture;f.rect=new Rect(...r);f.originalSize=new Size(r[2],r[3]);f.offset=new Vec2(0,0);if(i<4){f.insetLeft=f.insetRight=i===0?65:i===2?80:90;f.insetTop=f.insetBottom=i===0?65:i===2?60:45;}return f;});
    for(const b of this.bindings)b.sprite.spriteFrame=this.frames[b.art];this.ready=true;this.refresh();
   });
+  this.skinGeometry();this.fitIcons();
  }
  get size(){return this.wide?{width:this.compact?840:960,height:this.compact?450:650}:{width:620,height:1010};}
  layout(wide:boolean,compact=false){if(this.wide===wide&&this.compact===compact&&this.node.getComponent(UITransform)!.width)return;this.wide=wide;this.compact=compact;const {width,height}=this.size;this.node.getComponent(UITransform)!.setContentSize(width,height);
@@ -54,19 +56,29 @@ export class FlowerCareView {
   });
  }
  show(game:ExpansionGame,message=''){this.node.active=true;if(this.game!==game||this.step!==game.step){this.game=game;this.step=game.step;this.selected=-1;this.complete=false;this.evaluating=false;this.hintShown=false;}this.refresh();if(message)this.notice.string=message;}
- handle(point:{x:number;y:number}){const p=this.node.getComponent(UITransform)!.convertToNodeSpaceAR(new Vec3(point.x,point.y));const hit=this.actions.find(a=>{const t=a.node.getComponent(UITransform)!;return Math.abs(p.x-a.node.position.x)<=t.width/2&&Math.abs(p.y-a.node.position.y)<=t.height/2;});hit?.run();}
+ private actionAt(point:{x:number;y:number}){const p=this.node.getComponent(UITransform)!.convertToNodeSpaceAR(new Vec3(point.x,point.y));return this.actions.find(a=>{if(!a.node.activeInHierarchy)return false;const t=a.node.getComponent(UITransform)!;return Math.abs(p.x-a.node.position.x)<=t.width/2&&Math.abs(p.y-a.node.position.y)<=t.height/2;});}
+ press(point:{x:number;y:number}){this.releasePress();const hit=this.actionAt(point);if(!hit)return;this.pressed=hit.node;Tween.stopAllByTarget(hit.node);tween(hit.node).to(.06,{scale:new Vec3(.94,.94,1)}).start();}
+ releasePress(){const node=this.pressed;this.pressed=undefined;if(!node)return;Tween.stopAllByTarget(node);tween(node).to(.12,{scale:new Vec3(1,1,1)}).start();}
+ handle(point:{x:number;y:number}){this.releasePress();const hit=this.actionAt(point);if(!hit)return;if(!this.cards.includes(hit.node)){Tween.stopAllByTarget(hit.node);hit.node.setScale(.96,.96,1);tween(hit.node).to(.18,{scale:new Vec3(1,1,1)}).start();}hit.run();}
  key(code:number){if(code>=49&&code<=51)this.select(code-49);else if(code===13)this.advance();else if(code===72)this.hint();}
  private select(index:number){if(!this.ready||!this.game||this.game.ended||this.complete||this.evaluating)return;this.evaluating=true;this.selected=index;this.refresh();this.notice.string='Đang chọn…';const card=this.cards[index];Tween.stopAllByTarget(card);card.setScale(1,1,1);
   tween(card).to(.08,{scale:new Vec3(.97,.97,1)}).to(.1,{scale:new Vec3(1,1,1)}).call(()=>{this.evaluating=false;if(!this.node.activeInHierarchy||this.game?.step!==this.step)return;this.complete=index===flowerCareContent.rounds[this.step].answer;this.refresh();if(!this.muted())this.sound.play(this.complete?'correct':'wrong');}).start();
  }
  private hint(){if(!this.ready||!this.game||this.game.ended)return;this.hintShown=true;this.refresh();}
- private advance(){if(!this.game||!this.ready)return;if(this.game.ended){this.finish();return;}if(this.complete)this.choose(this.selected);}
+ private advance(){if(!this.game||!this.ready)return;if(this.game.ended){this.finish();return;}if(this.complete)this.choose(this.selected);else this.notice.string='Chọn một đáp án đúng rồi bấm Tiếp tục nhé.';}
  private refresh(){if(!this.game||!this.ready)return;const ended=this.game.ended,r=flowerCareContent.rounds[Math.min(this.step,2)];this.question.string=ended?'Hoa đã được chăm sóc!':r.prompt;this.progress.string=ended?'Hoàn thành 3/3':`Bước ${this.step+1}/3`;
   this.cards.forEach((card,i)=>{card.active=!ended;const sprite=card.getComponent(Sprite)!;sprite.color=new Color(...(this.selected===i?(this.complete?[180,235,156,255]:this.evaluating?[243,230,148,255]:[255,207,179,255]):[255,255,255,255]) as [number,number,number,number]);this.icons[i].spriteFrame=this.frames[r.choices[i].art];this.labels[i].string=r.choices[i].label;this.badges[i].node.active=this.selected===i&&!this.evaluating;this.badges[i].spriteFrame=this.frames[this.complete?13:14];});
   this.notice.string=ended?'Đã hoàn thành ba bước. Bé có thể chơi lại cùng bạn.':this.complete?r.correct:this.evaluating?'Đang chọn…':this.hintShown?'Gợi ý: '+r.hint:this.selected>=0?'Chưa đúng. Mình thử cách khác nhé!':'Chọn hình hoặc tên. Chạm bóng đèn để xem gợi ý.';
-  this.next.getComponent(Sprite)!.color=ended||this.complete?Color.WHITE:new Color(170,170,170);this.nextLabel.string=ended?'Xong':'Tiếp tục';this.nextLabel.color=ended||this.complete?new Color(255,255,255):new Color(84,73,44);this.soundLabel.string=this.muted()?'Âm: tắt':'Âm: bật';
+  this.nextSprite.spriteFrame=this.frames[ended||this.complete?3:2];this.nextSprite.color=ended||this.complete?Color.WHITE:new Color(204,204,204);this.nextLabel.string=ended?'Xong':'Tiếp tục';this.nextLabel.color=ended||this.complete?new Color(255,255,255):new Color(105,99,83);this.soundLabel.string=this.muted()?'Âm: tắt':'Âm: bật';
+  this.node.getChildByName('ExpansionHint')!.getComponent(Sprite)!.color=this.hintShown?new Color(255,224,150):Color.WHITE;
+  this.soundLabel.node.parent!.getChildByName('Skin')!.getComponent(Sprite)!.color=this.muted()?new Color(238,211,198):new Color(204,238,182);
+  this.skinGeometry();this.fitIcons();
  }
+ private fitIcons(){this.icons.forEach(sprite=>{if(!sprite.spriteFrame)return;const r=sprite.spriteFrame.rect,w=this.wide?(this.compact?110:160):105,h=this.wide?(this.compact?88:150):108,s=Math.min(w/r.width,h/r.height);sprite.node.getComponent(UITransform)!.setContentSize(r.width*s,r.height*s);});}
+ private skin(name:string,art:number,x:number,y:number,w:number,h:number){const root=new Node(name);this.node.addChild(root);root.setPosition(x,y);root.addComponent(UITransform).setContentSize(w,h);const sprite=this.art(root,'Skin',art,0,0,w,h,true);this.skins.push({root,sprite,art});return root;}
+ /** Keep source height and corner proportions; stretch only the centre strip. */
+ private skinGeometry(){for(const {root,sprite,art} of this.skins){const r=sprite.spriteFrame?.rect,sourceHeight=r?.height??flowerCareAtlasRects[art][3],size=root.getComponent(UITransform)!,scale=size.height/sourceHeight;sprite.node.getComponent(UITransform)!.setContentSize(size.width/scale,sourceHeight);sprite.node.setScale(scale,scale,1);}}
  private art(parent:Node,name:string,art:number,x:number,y:number,w:number,h:number,sliced=false){const node=new Node(name);parent.addChild(node);node.setPosition(x,y);node.addComponent(UITransform).setContentSize(w,h);const sprite=node.addComponent(Sprite);sprite.sizeMode=Sprite.SizeMode.CUSTOM;sprite.type=sliced?Sprite.Type.SLICED:Sprite.Type.SIMPLE;this.bindings.push({sprite,art});return sprite;}
  private text(parent:Node,name:string,value:string,x:number,y:number,w:number,h:number,size:number){const n=new Node(name);parent.addChild(n);n.setPosition(x,y);n.addComponent(UITransform).setContentSize(w,h);const l=n.addComponent(Label);l.string=value;l.fontSize=size;l.lineHeight=size+6;l.color=new Color(87,44,19);l.isBold=true;l.enableWrapText=true;l.overflow=Label.Overflow.SHRINK;l.cacheMode=Label.CacheMode.CHAR;return l;}
- dispose(){this.disposed=true;this.cards.forEach(c=>Tween.stopAllByTarget(c));this.frames.forEach(f=>f.destroy());this.sound.dispose();this.node.destroy();}
+ dispose(){this.disposed=true;this.actions.forEach(a=>Tween.stopAllByTarget(a.node));this.frames.forEach(f=>f.destroy());this.sound.dispose();this.node.destroy();}
 }

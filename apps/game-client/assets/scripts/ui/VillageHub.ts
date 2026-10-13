@@ -29,6 +29,8 @@ export class VillageHub {
     private flowerView?:FlowerCareView;private flowerCompact=false;
     configureFlowerLayout(compact:boolean){if(this.flowerCompact===compact)return;this.flowerCompact=compact;if(this.flowerCareActive)this.render();}
     get flowerCareActive():boolean{return this.mode==='expansion-game'&&this.expansionGame?.id==='flower-care';}
+    beginPress(point:Point):void{if(this.flowerCareActive)this.flowerView?.press(point);}
+    endPress():void{this.flowerView?.releasePress();}
     private presentation=new DialoguePresentation();
     key(code:number){if(this.flowerCareActive){this.flowerView?.key(code);return;}if(code===13||code===32){if(this.presentation.reveal())return;this.buttons.find(b=>b.node.name==='ChapterIntro'||b.node.name==='NextChapter')?.action();}}
 

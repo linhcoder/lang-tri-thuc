@@ -1,5 +1,7 @@
 # Cảnh quê và động vật — v1
 
+Điều chỉnh bố trí v2: đẩy toàn bộ ruộng và đồi lên phía bắc thêm 160 đơn vị thế giới. Mép gần nhất của ruộng ở y=-360/-340, để sân đình và lối đi của cô Lan nằm tách khỏi cảnh xa. Giữ nguyên ảnh và tuyến nhân vật.
+
 PNG RGBA `apps/game-client/assets/resources/village/countryside-v1/atlas.png`, tạo bằng OpenAI built-in imagegen ngày 13/10/2026. Sáu hình: đồi xanh, ruộng lúa, đống rơm, gà trống, chó vàng, mèo mướp cam. Registry dùng vùng ảnh riêng vì bố cục ảnh sinh ra không khớp hoàn toàn lưới 3×2.
 
 Năm cụm đồi và tám cụm ruộng tạo cảnh xa phía bắc làng; ba đống rơm đặt ở rìa. Chó và mèo dùng tuyến A* qua các điểm trong làng, nghỉ chân, dừng khi gặp người chơi hoặc NPC. Các động vật chỉ trang trí tại client, không thêm collider, phần thưởng hoặc dữ liệu đồng bộ phòng. Hình chạy là một góc nhìn với chuyển động nhún và đổi hướng trái/phải.

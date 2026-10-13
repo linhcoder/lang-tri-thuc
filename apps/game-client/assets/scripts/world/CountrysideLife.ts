@@ -12,9 +12,9 @@ export class CountrysideLife {
         if(!world.isValid||!actors.isValid)return;
         if(typeof window!=='undefined'){window.addEventListener('pointerdown',this.unlock);window.addEventListener('keydown',this.unlock);}
         const place=(id:string,name:string,parent:Node,x:number,y:number,width:number)=>{const frame=art.objectFrame('countryside.'+id,-1);if(!frame)return undefined;const node=art.sprite(parent,name,frame,width,width*frame.rect.height/frame.rect.width*(id==='hills'?.48:id==='fields'?.5:1));node.setPosition(x,y);return node;};
-        // Distant scenery sits beyond the village's northern edge, behind its terrain and actors.
-        for(let i=0;i<5;i++){const hill=place('hills','Countryside-Hills-'+i,world,-2100+i*1000,-500+i%2*20,1100);hill?.setSiblingIndex(actors.getSiblingIndex());}
-        for(let i=0;i<8;i++){const field=place('fields','Countryside-Fields-'+i,world,-1950+i*550,-520+i%2*20,650);field?.setSiblingIndex(actors.getSiblingIndex());}
+        // Keep the distant band north of the courtyard and the teacher's walking lane.
+        for(let i=0;i<5;i++){const hill=place('hills','Countryside-Hills-'+i,world,-2100+i*1000,-340+i%2*20,1100);hill?.setSiblingIndex(actors.getSiblingIndex());}
+        for(let i=0;i<8;i++){const field=place('fields','Countryside-Fields-'+i,world,-1950+i*550,-360+i%2*20,650);field?.setSiblingIndex(actors.getSiblingIndex());}
         for(const [i,tile] of [{x:35,y:12},{x:8,y:33},{x:33,y:27}].entries()){const p=toWorld(tile);place('hay','Countryside-Hay-'+i,actors,p.x,p.y,95);}
         const p=toWorld({x:34,y:12});this.rooster=place('rooster','Countryside-Rooster',actors,p.x,p.y,48);
         if(this.rooster){this.call=new Node('RoosterCall');this.call.layer=actors.layer;this.rooster.addChild(this.call);this.call.addComponent(UITransform).setContentSize(120,24);this.call.setPosition(0,80);const label=this.call.addComponent(Label);label.string='Ò ó o…';label.fontSize=16;label.color=new Color(90,64,34);this.call.active=false;}

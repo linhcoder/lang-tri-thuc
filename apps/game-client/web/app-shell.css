@@ -1,0 +1,15 @@
+#app-splash{position:fixed;inset:0;z-index:9999;display:grid;place-items:center;background:radial-gradient(ellipse at 50% 35%,#347452,#184c38 70%);color:#fff1c9;font-family:system-ui,sans-serif;padding:24px;box-sizing:border-box;text-align:center;transition:opacity .25s}
+#app-splash[hidden]{display:none}#app-splash.leaving{opacity:0;pointer-events:none}
+.splash-card{width:min(100%,360px)}.splash-logo{width:clamp(108px,24vw,160px);height:auto;filter:drop-shadow(0 14px 25px #0b2d3555);border-radius:25%}
+.splash-card h1{font-size:clamp(26px,5vw,36px);margin:22px 0 8px;letter-spacing:-.6px}.splash-tagline{color:#c7ddb9;margin:0 0 36px;font-size:15px}
+.splash-track{height:9px;border-radius:12px;background:#ffffff24;overflow:hidden}.splash-track span{display:block;width:0;height:100%;background:#f7cd61;border-radius:12px;transition:width .2s}
+.splash-progress{display:flex;justify-content:space-between;gap:12px;font-size:14px;margin:14px 0;color:#e6edcf}.splash-progress strong{color:#f7cd61;font-variant-numeric:tabular-nums}
+#splash-retry,#install-app{border:1px solid #f7cd6177;border-radius:14px;background:#fff1c9;color:#184c38;padding:12px 20px;font:600 14px system-ui;cursor:pointer;min-height:44px}
+#install-app{position:fixed;right:max(16px,env(safe-area-inset-right));bottom:max(16px,env(safe-area-inset-bottom));z-index:2000;box-shadow:0 4px 16px #0003}#install-app[hidden],#splash-retry[hidden]{display:none}
+@media(prefers-reduced-motion:reduce){#app-splash,.splash-track span{transition:none}}
+#GameDiv{width:var(--game-width,100dvw)!important;height:var(--game-height,100dvh)!important}
+#rotate-device{position:fixed;inset:0;z-index:10000;display:grid;place-items:center;padding:max(24px,env(safe-area-inset-top)) 24px max(24px,env(safe-area-inset-bottom));box-sizing:border-box;background:radial-gradient(ellipse at 50% 35%,#347452,#184c38 70%);color:#fff1c9;text-align:center;font:16px system-ui}
+#rotate-device[hidden],#fullscreen-game[hidden],#rotate-fullscreen[hidden],#fullscreen-help[hidden]{display:none}
+.rotate-card{max-width:340px}.rotate-card img{width:88px;height:88px;border-radius:24px}.rotate-phone{width:100px;height:100px;margin:28px auto 18px;display:block;color:#f7cd61}.rotate-card h2{font-size:26px;margin:16px 0}.rotate-card p{color:#dce8ca;line-height:1.5}.rotate-card button,#fullscreen-game{min-height:44px;border:1px solid #f7cd6177;border-radius:12px;padding:10px 18px;background:#fff1c9;color:#184c38;font:600 14px system-ui;cursor:pointer}
+#fullscreen-game{position:fixed;top:max(12px,env(safe-area-inset-top));left:50%;transform:translateX(-50%);z-index:1500;padding:8px 14px;box-shadow:0 3px 12px #0003}
+html:fullscreen,html:-webkit-full-screen{background:#184c38}

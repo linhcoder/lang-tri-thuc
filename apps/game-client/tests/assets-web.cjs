@@ -7,6 +7,8 @@ const output=path.resolve(__dirname,'../temp/assets-qa');fs.mkdirSync(output,{re
  const errors=[];const context=await browser.newContext({viewport:{width:1280,height:720}}),page=await context.newPage();
  page.on('pageerror',e=>errors.push(String(e)));page.on('console',m=>{if(m.type()==='error')errors.push(m.text());});
  try{
+  // Asset QA uses an empty staging response without requiring a local API.
+  await page.route('http://127.0.0.1:33000/content/staging',route=>route.fulfill({status:200,contentType:'application/json',body:'null',headers:{'Access-Control-Allow-Origin':'*'}}));
   await page.goto(process.env.GAME_WEB_URL||'http://127.0.0.1:8080');
   await page.waitForFunction(()=>!!window.System);await page.evaluate(async()=>window.cc=await System.import('cc'));
   await page.waitForFunction(()=>cc.director.getScene()?.getChildByName('Canvas')?.getComponent('VillageBootstrap')?.assetsReady,undefined,{timeout:90000});
@@ -32,7 +34,7 @@ const output=path.resolve(__dirname,'../temp/assets-qa');fs.mkdirSync(output,{re
   await inspect('friends',{x:23,y:13});await clickNpc('ti-na',-45);
   await inspect('market',{x:26,y:29});await clickNpc('ba-ban-hang');
   await inspect('festival',{x:32,y:28});await clickNpc('chi-hang-cuoi',45);
-  assert.equal(await page.evaluate(()=>village.hub.npcNodes.filter(n=>n.children.some(c=>c.getComponent(cc.Sprite)?.spriteFrame)).length),6);assert.equal(await page.evaluate(()=>village.art.details.length),8);assert.equal(await page.evaluate(()=>[...village.actors.children,...village.world.children].filter(n=>n.name.startsWith('Detail-')).length),12);assert.equal(await page.evaluate(()=>['Detail-bridge','Detail-bridge-west'].every(id=>village.world.getChildByName(id).getComponent(cc.Sprite)?.spriteFrame&&village.world.getChildByName(id).getSiblingIndex()<village.actors.getSiblingIndex())),true);
+  assert.equal(await page.evaluate(()=>village.hub.npcNodes.filter(n=>['co-tam','co-giao-lan','ba-ban-hang','nghe-nhan-gom','ti-na','chi-hang-cuoi'].includes(n.name)&&n.children.some(c=>c.getComponent(cc.Sprite)?.spriteFrame)).length),6);assert.equal(await page.evaluate(()=>village.art.details.length),8);assert.equal(await page.evaluate(()=>[...village.actors.children,...village.world.children].filter(n=>n.name.startsWith('Detail-')).length),12);assert.equal(await page.evaluate(()=>['Detail-bridge','Detail-bridge-west'].every(id=>village.world.getChildByName(id).getComponent(cc.Sprite)?.spriteFrame&&village.world.getChildByName(id).getSiblingIndex()<village.actors.getSiblingIndex())),true);
   assert.deepEqual(errors,[]);fs.writeFileSync(path.join(output,'report.json'),JSON.stringify({sprites,npcClicks:true,errors},null,2));console.log(JSON.stringify({sprites,npcClicks:true,errors},null,2));
  }finally{await context.close();await browser.close();}
 })().catch(e=>{console.error(e);process.exitCode=1;});

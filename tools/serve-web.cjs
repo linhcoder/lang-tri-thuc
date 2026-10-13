@@ -2,7 +2,7 @@ const http=require('node:http'),fs=require('node:fs'),path=require('node:path');
 const buildName=process.env.GAME_BUILD_NAME||'web-desktop';
 if(!/^[a-zA-Z0-9][a-zA-Z0-9_-]*$/.test(buildName))throw Error('Invalid GAME_BUILD_NAME');
 const root=path.resolve(__dirname,'../apps/game-client/build',buildName);
-const mime={'.html':'text/html','.js':'application/javascript','.json':'application/json','.png':'image/png','.jpg':'image/jpeg','.css':'text/css','.wasm':'application/wasm','.ttf':'font/ttf','.woff2':'font/woff2'};
+const mime={'.html':'text/html','.js':'application/javascript','.json':'application/json','.webmanifest':'application/manifest+json','.svg':'image/svg+xml','.ico':'image/x-icon','.png':'image/png','.jpg':'image/jpeg','.css':'text/css','.wasm':'application/wasm','.ttf':'font/ttf','.woff2':'font/woff2'};
 const port=Number(process.env.WEB_PORT||8080),host=process.env.HOST||'127.0.0.1';
 const server=http.createServer((req,res)=>{
     let pathname;try{pathname=decodeURIComponent(new URL(req.url,'http://localhost').pathname);}catch{res.writeHead(400);res.end();return;}

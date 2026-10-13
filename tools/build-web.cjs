@@ -27,5 +27,5 @@ child.on('exit',code=>{
     html=html.replace('<html>','<html lang="vi">').replace(/<title>[^<]*<\/title>/,'<title>Làng Tri Thức</title>').replace(/\s*<h1 class="header">[\s\S]*?<\/h1>/,'').replace(/\s*<p class="footer">[\s\S]*?<\/p>/,'');
     html=html.replace('minimal-ui=true','minimal-ui=true,viewport-fit=cover');
     html=html.replace('</head>','<style>html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#c1dab3}#GameDiv{position:fixed!important;inset:0;width:100vw!important;height:100vh!important;border:0;border-radius:0;box-shadow:none}canvas{touch-action:none;outline:none;display:block}</style></head>');
-    fs.writeFileSync(htmlPath,html);fs.copyFileSync(path.join(sdkRoot,'LICENSE'),path.join(project,'build',buildName,'COLYSEUS-LICENSE.txt'));console.log(`Web build ready: ${htmlPath}`);
+    fs.writeFileSync(htmlPath,html);require('./install-game-shell.cjs')(path.dirname(htmlPath));fs.copyFileSync(path.join(sdkRoot,'LICENSE'),path.join(project,'build',buildName,'COLYSEUS-LICENSE.txt'));console.log(`Web build ready: ${htmlPath}`);
 });

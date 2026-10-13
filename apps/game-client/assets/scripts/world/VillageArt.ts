@@ -51,17 +51,25 @@ export class VillageArt {
             }catch{console.warn('Scenery '+asset.id+' unavailable; base map remains playable');}
         })).then(()=>{});return this.sceneryLoad;
     }
-    async load():Promise<void>{
-        const load=(id:string)=>new Promise<Texture2D>((resolve,reject)=>resources.load(`${assetResourceKey(id)}/texture`,Texture2D,(error,asset)=>error?reject(error):resolve(asset)));
-        const [child,temple,banyan,farmer,tiles]=await Promise.all(['avatar.child','dinh','banyan','character.farmer','ground.legacy'].map(id=>load(id)));
+    async load(onProgress:(value:number)=>void=()=>{}):Promise<void>{
+        let completed=0;
+        const load=(id:string)=>new Promise<Texture2D>((resolve,reject)=>resources.load(`${assetResourceKey(id)}/texture`,Texture2D,(error,asset)=>{onProgress(Math.min(.7,++completed/10));error?reject(error):resolve(asset);}));
+        // Start independent downloads together instead of adding network round trips.
+        const optional=(id:string,message:string)=>load(id).catch(()=>{console.warn(message);return undefined;});
+        const [child,temple,banyan,farmer,tiles,ground,bamboo]=await Promise.all([
+            load('avatar.child'),load('dinh'),load('banyan'),load('character.farmer'),load('ground.legacy'),
+            optional('ground.meadow-texture','Ground texture unavailable; procedural terrain remains playable'),
+            optional('bamboo','Village details unavailable; keeping base map'),
+        ]);
         if(this.disposed)return;
         this.child=animationFrames(child,'avatar.child');this.tiles=tiles;
-        try{this.groundTexture=await load('ground.meadow-texture');}catch{console.warn('Ground texture unavailable; procedural terrain remains playable');}
-        try{const texture=await load('bamboo');if(!this.disposed)this.details=this.slice(texture,4,2);}catch{console.warn('Village details unavailable; keeping base map');}
+        this.groundTexture=ground;
+        if(bamboo)this.details=this.slice(bamboo,4,2);
         if(this.disposed)return;
         const frame=(texture:Texture2D,id:string)=>assetFrame(texture,id);
         this.environment=[frame(temple,'dinh'),frame(temple,'dinh'),frame(banyan,'banyan'),frame(temple,'dinh'),frame(temple,'dinh'),frame(temple,'dinh'),frame(farmer,'character.farmer')];[0,2,6].forEach(index=>this.environmentLoaded.add(index));
         await Promise.all([this.loadNpcPoses(),...(['elder','lotus','seedling'] as const).map(name=>this.ensureDecoration(name)),...villageDetails.filter(o=>assetResourceKey(o.id)!==assetResourceKey('bamboo')).map(o=>this.ensureObject(o.id,-1))]);
+        if(!this.disposed)onProgress(1);
     }
     private async loadNpcPoses():Promise<void>{
         await Promise.all([
@@ -104,20 +112,11 @@ export class VillageArt {
         }));this.hairLoads.set(id,task);return task;
     }
     private drawnCharacters=new Map<string,SpriteFrame[]>();
-    /** Eight cached visual phases per authored viewpoint; actor roots stay authoritative. */
+    /** Keep authored poses at source resolution; gait moves the whole actor. */
     npcCycleFrame(row:number,direction:number,phaseFrame:number):SpriteFrame|null{
-        const key='npc-cycle:'+row;let frames=this.drawnCharacters.get(key);
         const base=this.npcDirections[row],step=this.npcWalkSteps[row];
-        if(!frames&&base?.length===8&&typeof document!=='undefined'){
-            const canvas=document.createElement('canvas');canvas.width=384;canvas.height=512;const context=canvas.getContext('2d');
-            if(context){for(let phase=0;phase<8;phase++)for(let d=0;d<8;d++){
-                const wave=Math.sin(phase*Math.PI/4),source=(wave<0&&step?.[d]||base[d]),image=(source.texture as Texture2D)?.image?.data as CanvasImageSource|undefined;if(!image)continue;
-                const r=source.rect,x=d*48,y=phase*64,split=.72,bob=Math.abs(wave)*.7;
-                context.drawImage(image,r.x,r.y,r.width,r.height*split,x,y-bob,48,64*split);
-                for(let side=0;side<2;side++){const sign=side?1:-1;context.drawImage(image,r.x+side*r.width/2,r.y+r.height*split,r.width/2,r.height*(1-split),x+side*24+sign*wave*1.1,y+64*split-bob+sign*wave*.6,24,64*(1-split));}
-            }const texture=new Texture2D();texture.image=new ImageAsset(canvas);this.generatedTextures.push(texture);frames=this.slice(texture,8,8);this.drawnCharacters.set(key,frames);}
-        }
-        return frames?.[phaseFrame*8+direction]??base?.[direction]??null;
+        // Never split the legs or resample into a tiny animation atlas.
+        return (phaseFrame>=4?step?.[direction]:undefined)??base?.[direction]??null;
     }
     npcCharacterFrame(id:number,direction:number,phaseFrame:number,hair=1,skin=1):SpriteFrame{
         const key=`npc:${id}:${hair}:${skin}`;let frames=this.drawnCharacters.get(key);

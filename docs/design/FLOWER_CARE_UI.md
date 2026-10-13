@@ -64,6 +64,8 @@ Ngày 2026-10-13, release `flower-care-70c5cba-20261013` hoạt động tại `h
 
 Kiểm tra trực tiếp staging bằng browser context mới đã qua cả sáu viewport, bao gồm vùng chạm ≥44 px, không chồng vùng tương tác, chọn sai/thử lại/gợi ý, Tiếp tục, cả hai nút đóng, mute, reload checkpoint và một huy hiệu. Báo cáo/ảnh ở `apps/game-client/temp/flower-care-live/` (ignore). Có thể hard refresh game rồi mở Vườn bốn mùa → Anh Nam → Chăm hoa để xem bản mới.
 
+Bản sửa modal/input hiện tại là release `flower-care-02ca6dd-20261013`, code commit `02ca6dd`. Đã kiểm tra trực tiếp staging ở 1920×925 với DPI 2 và 390×844 touch: giới hạn kích thước PC, tỷ lệ icon, hiệu ứng pointer-down, click hình/nhãn, màu/dấu đáp án, đổi skin Tiếp tục, mute và reload checkpoint đều qua. Health MySQL đạt, compatibility hash và snapshot CMS không đổi. QA local bảy viewport và phòng hai người desktop/mobile cũng đã qua cho bản này.
+
 ## File thay đổi
 
 `FlowerCareView.ts`, `FlowerCareAtlasRects.ts`, `FlowerCareContent.ts` và `.meta`; atlas PNG/folder `.meta`; `VillageHub.ts`, `VillageBootstrap.ts`, `UiClickSound.ts`, `ExpansionActivities.ts`, `VisualAssets.ts`; `flower-care-web.cjs`, `expansion-web.cjs`, `expansion-coop-web.cjs`, `expansion.cjs`; `package.json`, `docs/design/asset-manifest.json` và tài liệu này.

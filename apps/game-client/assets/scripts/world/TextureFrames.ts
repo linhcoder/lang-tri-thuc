@@ -6,6 +6,7 @@ const pixels=new WeakMap<Texture2D,Uint8ClampedArray>();
 export function assetFrame(texture:Texture2D,id:string):SpriteFrame {
     const asset=visualAssets.find(a=>a.id===id),columns=asset?.columns??4,rows=asset?.rows??2;
     let x=0,y=0,width=texture.width,height=texture.height;
+    if(asset?.region){[x,y,width,height]=asset.region.map((value,index)=>value*(index%2===0?texture.width:texture.height));}
     if(asset?.cell!==undefined){width=texture.width/columns;const row=Math.floor(asset.cell/columns),cuts=[0,...(asset.rowCuts??Array.from({length:rows-1},(_,i)=>(i+1)/rows)),1];height=(cuts[row+1]-cuts[row])*texture.height;x=asset.cell%columns*width;y=cuts[row]*texture.height;}
     if(asset?.trim&&typeof document!=='undefined'&&texture.image?.data){
         try{

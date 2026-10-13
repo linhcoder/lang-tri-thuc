@@ -1,4 +1,5 @@
 import { _decorator, Color, Component, director, EventKeyboard, EventTouch, game, Game, Graphics, input, Input, JsonAsset, resources, Label, Layers, Node, Sprite, SpriteFrame, sys, UITransform, Vec3, view } from 'cc';
+import {CountrysideLife} from '../world/CountrysideLife';
 import {expansionFriends} from '../world/ExpansionActivities';
 import {createExpansionScenery} from '../ui/ExpansionScenery';
 import { cameraOffset, inputAxis, Point, SIZE, terrain, tileAt, toWorld, VillageMap, storyNpcs, villageDetails, villageObjects,environmentGuides } from '../world/VillageModel';
@@ -109,7 +110,7 @@ export class VillageBootstrap extends Component {
     private markerTime = 0;
     private touches = new Map<number, { start: Point; current:Point; dragged: boolean; blocked: boolean;control?:boolean;hubDrag?:boolean;panBase?:Point }>();
     private freeCameraOffset?:Point;
-    private art=new VillageArt();
+    private art=new VillageArt();private countryside=new CountrysideLife();
     private childSprite?:Sprite;
     private gesture=new AvatarGestureState();private gestureGraphic?:Graphics;private spriteTime=0;private accessoryGraphic?:Graphics;
     private learning=new LearningProgress();
@@ -259,7 +260,7 @@ export class VillageBootstrap extends Component {
                 const ring=ui(node,'HarvestRing').addComponent(Graphics);ring.strokeColor=new Color(255,255,180);ring.lineWidth=3;ring.ellipse(0,2,23,12);ring.stroke();
                 label(node,'Thu hoạch',100,25,16).setPosition(0,80);node.active=this.learning.data.collected.indexOf(i)<0;this.bundleNodes.push(node);
             }
-            await Promise.all([createExpansionScenery(this.actors,this.world,this.art),this.art.ensureExpansionCharacters()]);
+            await Promise.all([createExpansionScenery(this.actors,this.world,this.art),this.art.ensureExpansionCharacters(),this.countryside.create(this.world,this.actors,this.art)]);
             for(const friend of expansionFriends){const node=this.hub?.npcNodes.find(n=>n.name===friend.id);if(!node)continue;node.getComponent(Graphics)!.clear();const height=friend.id.startsWith('be-')?100:130,body=this.art.sprite(node,'ExpansionSprite-'+friend.avatar,this.art.avatarFrame(friend.avatar,0,6,1,friend.id==='chu-hai'?2:1),height*.75,height);body.setScale(actorScale,actorScale,1);this.registerNpcMotion(node,body);}
             this.nameplates=new VillageNameplates(this.world,this.actors);
             if(this.hub){this.hud=new VillageHUD(this.root,mode=>this.hub?.open(mode),()=>this.interactNearest(),id=>{this.resetInput();this.player.cancel();this.hub?.onGesture?.(id);},()=>{this.desktopJoystick=!this.desktopJoystick;this.releaseStick();},()=>this.navigateQuest());this.header.active=false;this.networkBadge!.node.active=false;this.status.node.active=false;}
@@ -346,6 +347,7 @@ export class VillageBootstrap extends Component {
         return n;
     }
     update(dt: number): void {
+        if(this.assetsReady)this.countryside.step(dt,[this.player.position,...this.npcCollisionPositions],this.hub?.campaign.data.sound===true);
         const size = this.node.getComponent(UITransform)!;
         const pixelScale = view.getScaleX() / view.getDevicePixelRatio();
         if (size.width !== this.viewWidth || size.height !== this.viewHeight || (sys.isMobile && pixelScale !== this.lastPixelScale)) {
@@ -605,5 +607,5 @@ export class VillageBootstrap extends Component {
         game.off(Game.EVENT_HIDE, this.resetInput, this);
         if (sys.isBrowser){window.removeEventListener('blur', this.handleBlur);window.removeEventListener('resize',this.handleResize);window.removeEventListener('wheel',this.handleWheel,true);}
     }
-    onDestroy(): void {this.hud?.dispose();this.hub?.dispose();this.chapter?.dispose();this.network.dispose();this.art.dispose(); if (this.root) this.root.destroy();}
+    onDestroy(): void {this.countryside.dispose();this.hud?.dispose();this.hub?.dispose();this.chapter?.dispose();this.network.dispose();this.art.dispose(); if (this.root) this.root.destroy();}
 }

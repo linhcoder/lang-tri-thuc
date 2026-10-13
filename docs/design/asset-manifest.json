@@ -14,6 +14,186 @@
   ],
   "assets": [
     {
+      "id": "countryside.hills",
+      "name": "hills",
+      "group": "Vegetation",
+      "path": "assets/resources/village/countryside-v1/atlas.png",
+      "region": [
+        0,
+        0.08455467869222097,
+        0.36076662908680945,
+        0.3438556933483653
+      ],
+      "size": [
+        100,
+        80
+      ],
+      "anchor": [
+        0.5,
+        0
+      ],
+      "layer": "Actors",
+      "collision": null,
+      "status": "placeholder",
+      "trim": true,
+      "source": "OpenAI built-in imagegen; docs/design/COUNTRYSIDE_ASSETS.md",
+      "pixels": [
+        1774,
+        887
+      ],
+      "bytes": 1802892
+    },
+    {
+      "id": "countryside.fields",
+      "name": "fields",
+      "group": "Vegetation",
+      "path": "assets/resources/village/countryside-v1/atlas.png",
+      "region": [
+        0.36076662908680945,
+        0.05073280721533258,
+        0.38613303269447574,
+        0.41149943630214203
+      ],
+      "size": [
+        100,
+        80
+      ],
+      "anchor": [
+        0.5,
+        0
+      ],
+      "layer": "Actors",
+      "collision": null,
+      "status": "placeholder",
+      "trim": true,
+      "source": "OpenAI built-in imagegen; docs/design/COUNTRYSIDE_ASSETS.md",
+      "pixels": [
+        1774,
+        887
+      ],
+      "bytes": 1802892
+    },
+    {
+      "id": "countryside.hay",
+      "name": "hay",
+      "group": "Vegetation",
+      "path": "assets/resources/village/countryside-v1/atlas.png",
+      "region": [
+        0.7440811724915445,
+        0,
+        0.25591882750845546,
+        0.5050732807215332
+      ],
+      "size": [
+        100,
+        80
+      ],
+      "anchor": [
+        0.5,
+        0
+      ],
+      "layer": "Actors",
+      "collision": null,
+      "status": "placeholder",
+      "trim": true,
+      "source": "OpenAI built-in imagegen; docs/design/COUNTRYSIDE_ASSETS.md",
+      "pixels": [
+        1774,
+        887
+      ],
+      "bytes": 1802892
+    },
+    {
+      "id": "countryside.rooster",
+      "name": "rooster",
+      "group": "Animals",
+      "path": "assets/resources/village/countryside-v1/atlas.png",
+      "region": [
+        0.019729425028184894,
+        0.42841037204058624,
+        0.2733934611048478,
+        0.5636978579481398
+      ],
+      "size": [
+        100,
+        80
+      ],
+      "anchor": [
+        0.5,
+        0
+      ],
+      "layer": "Actors",
+      "collision": null,
+      "status": "placeholder",
+      "trim": true,
+      "source": "OpenAI built-in imagegen; docs/design/COUNTRYSIDE_ASSETS.md",
+      "pixels": [
+        1774,
+        887
+      ],
+      "bytes": 1802892
+    },
+    {
+      "id": "countryside.dog",
+      "name": "dog",
+      "group": "Animals",
+      "path": "assets/resources/village/countryside-v1/atlas.png",
+      "region": [
+        0.3523111612175874,
+        0.496054114994363,
+        0.3156708004509583,
+        0.4509582863585118
+      ],
+      "size": [
+        100,
+        80
+      ],
+      "anchor": [
+        0.5,
+        0
+      ],
+      "layer": "Actors",
+      "collision": null,
+      "status": "placeholder",
+      "trim": true,
+      "source": "OpenAI built-in imagegen; docs/design/COUNTRYSIDE_ASSETS.md",
+      "pixels": [
+        1774,
+        887
+      ],
+      "bytes": 1802892
+    },
+    {
+      "id": "countryside.cat",
+      "name": "cat",
+      "group": "Animals",
+      "path": "assets/resources/village/countryside-v1/atlas.png",
+      "region": [
+        0.7102593010146562,
+        0.5016910935738444,
+        0.2897406989853439,
+        0.4509582863585118
+      ],
+      "size": [
+        100,
+        80
+      ],
+      "anchor": [
+        0.5,
+        0
+      ],
+      "layer": "Actors",
+      "collision": null,
+      "status": "placeholder",
+      "trim": true,
+      "source": "OpenAI built-in imagegen; docs/design/COUNTRYSIDE_ASSETS.md",
+      "pixels": [
+        1774,
+        887
+      ],
+      "bytes": 1802892
+    },
+    {
       "id": "expansion.riverside",
       "name": "riverside",
       "group": "Buildings",

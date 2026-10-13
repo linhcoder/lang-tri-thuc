@@ -1,3 +1,4 @@
+import {DialoguePresentation} from './DialoguePresentation';
 import {ExpansionGame,ExpansionId,expansionActivities,expansionFriends} from '../world/ExpansionActivities';
 import {avatarNames,skinNames} from '../world/CharacterArt';
 import {paintExpansionSymbol} from './ExpansionArt';
@@ -24,6 +25,9 @@ import {careActivities,isCareId,PaintStroke,paintColors,paintBounds,maxPaintStro
 interface Button {node:Node;width:number;action:()=>void}
 type Mode='expansion'|'friend'|'expansion-game'|'skin'|'menu'|'gestures'|'achievements'|'settings'|'journal'|'chapter'|'lesson'|'game'|'gate'|'parent'|'age'|'quality'|'avatar'|'accessory'|'hair'|'activities'|'inventory'|'map'|'reset'|'help'|'online'|'home'|'explore'|'collection'|'care'|'painting'|'holidays'|'holiday';
 export class VillageHub {
+    private presentation=new DialoguePresentation();
+    key(code:number){if(code===13||code===32){if(this.presentation.reveal())return;this.buttons.find(b=>b.node.name==='ChapterIntro'||b.node.name==='NextChapter')?.action();}}
+
     onGesture?:(id:AvatarGesture)=>void;
     onAvatarPreview?:(parent:Node,id:number,hair?:number,skin?:number)=>void;
     onDetailPreview?:(parent:Node,id:string)=>void;
@@ -81,7 +85,7 @@ export class VillageHub {
         this.syncFirst();
     }
     private make(parent:Node,name:string,width:number,height:number):Node{const n=new Node(name);n.layer=parent.layer;parent.addChild(n);n.addComponent(UITransform).setContentSize(width,height);return n;}
-    private text(parent:Node,value:string,x:number,y:number,width=560,height=75,size=24):Node{if(parent===this.node)this.spokenParts.push(value);const n=this.make(parent,'Text',width,height);n.setPosition(x,y);const l=n.addComponent(Label);l.string=value;l.fontSize=size;l.lineHeight=size+8;l.enableWrapText=true;l.overflow=Label.Overflow.CLAMP;l.color=parent===this.node&&y>=210?new Color(255,245,211):new Color(70,63,40);if(parent===this.node&&y>=210)n.getComponent(UITransform)!.setContentSize(Math.min(width,536),height);return n;}
+    private text(parent:Node,value:string,x:number,y:number,width=560,height=75,size=24):Node{if(parent===this.node)this.spokenParts.push(value);const n=this.make(parent,'Text',width,height);n.setPosition(x,y);const l=n.addComponent(Label);l.string=value;l.fontSize=size;l.lineHeight=size+8;l.enableWrapText=true;l.overflow=Label.Overflow.CLAMP;l.color=parent===this.node&&y>=210?new Color(255,245,211):new Color(70,63,40);if(parent===this.node&&y>=210)n.getComponent(UITransform)!.setContentSize(Math.min(width,536),height);if(parent===this.node&&height>=150&&['chapter','friend'].includes(this.mode))this.presentation.bind(l,value);return n;}
     private button(id:string,label:string,x:number,y:number,width:number,action:()=>void):Node{const n=this.make(this.node,id,width,76);n.setPosition(x,y);paintModalButton(n,id);const caption=this.text(n,label,0,0,width-20,70,21);caption.getComponent(Label)!.color=modalButtonColor(id);caption.getComponent(Label)!.overflow=Label.Overflow.SHRINK;this.buttons.push({node:n,width,action});return n;}
     private grid(items:Array<{id:string;label:string;action:()=>void}>,columns=2):void{const width=columns===1?560:columns===2?280:165;items.forEach((b,i)=>this.button(b.id,b.label,(i%columns-(columns-1)/2)*(width+12),120-Math.floor(i/columns)*92,width,b.action));}
     private chapterTasks():void{
@@ -166,7 +170,7 @@ export class VillageHub {
         candidates.sort((a,b)=>{const pa=toWorld(a),pb=toWorld(b);return Math.hypot(pa.x-this.player.position.x,pa.y-this.player.position.y)-Math.hypot(pb.x-this.player.position.x,pb.y-this.player.position.y);});
         for(const goal of candidates)if(this.player.goTo(goal)){this.pendingNpc=index;this.pendingDetail=null;this.npcDestination={x:node.position.x,y:node.position.y};this.npcReplan=.5;this.destination(goal);return true;}return false;
     }
-    step(dt:number):void{
+    step(dt:number):void{this.presentation.step(dt);
         if(this.pendingDetail&&!this.player.hasPath){const id=this.pendingDetail,detail=villageDetails.find(d=>d.id===id)!,p=toWorld(detail);if(Math.hypot(p.x-this.player.position.x,p.y-this.player.position.y)<60){this.pendingDetail=null;this.selectedDetail=id;const explored=this.campaign.data.explored??=[];if(!explored.includes(id))explored.push(id);this.persist();this.open('explore');}else if(!this.approachDetail(id))this.pendingDetail=null;}
         if(this.gameBoard&&this.game&&this.node.active&&this.mode==='game')this.gameBoard.update(this.game);this.syncFirst();
         this.npcReplan=Math.max(0,this.npcReplan-dt);
@@ -177,7 +181,7 @@ export class VillageHub {
     }
     handle(point:Point):void{const p=this.node.getComponent(UITransform)!.convertToNodeSpaceAR(new Vec3(point.x,point.y));
         if(this.mode==='game'&&this.game&&this.gameBoard){const local=this.gameBoard.node.getComponent(UITransform)!.convertToNodeSpaceAR(new Vec3(point.x,point.y));const action=this.gameBoard.actionAt(this.game,local.x,local.y);if(action){this.performGameAction(action.type,action.index);return;}}
-        const hit=this.buttons.find(b=>Math.abs(p.x-b.node.position.x)<=b.width/2&&Math.abs(p.y-b.node.position.y)<=b.node.getComponent(UITransform)!.height/2);hit?.action();}
+        const hit=this.buttons.find(b=>Math.abs(p.x-b.node.position.x)<=b.width/2&&Math.abs(p.y-b.node.position.y)<=b.node.getComponent(UITransform)!.height/2);if(hit){this.presentation.reveal();hit.action();}else this.presentation.reveal();}
     private performGameAction(type:string,index:number):void{
         const game=this.game;if(!game||game.status!=='running')return;
         if(!this.practice&&this.onGameAction){this.onGameAction(type,index);return;}
@@ -217,7 +221,7 @@ export class VillageHub {
     }
     private exportSave():void{if(typeof document==='undefined')return;const raw=JSON.stringify({version:1,chapterOne:this.first.progress.data,campaign:this.campaign.data},null,2),url=URL.createObjectURL(new Blob([raw],{type:'application/json'})),a=document.createElement('a');a.href=url;a.download='lang-tri-thuc-progress.json';a.click();URL.revokeObjectURL(url);this.message='Đã tạo bản sao tiến độ, không có tên thật hay tài khoản.';this.render();}
     stopReading():void{this.reader.stop();if(this.readingButton)this.readingButton.string='Nghe';}
-    dispose():void{this.cancelDrag();this.stopReading();disposeFolkPuzzleArt();}
+    dispose():void{this.presentation.dispose();this.cancelDrag();this.stopReading();disposeFolkPuzzleArt();}
     private readingMessage(value:string):void{if(this.readingNotice){this.readingNotice.string=value;this.readingNotice.fontSize=18;this.readingNotice.lineHeight=26;}}
     private read():void{
         if(this.reader.reading){this.stopReading();return;}
@@ -323,6 +327,7 @@ export class VillageHub {
         }else if(this.mode==='journal'){
             this.grid(chapters.map((c,i)=>({id:'Chapter-'+i,label:`${i+1}. ${c.title}${this.campaign.data.receipts.includes('reward.star.'+c.id)?' ★':this.campaign.unlocked(i)?'':' 🔒'}`,action:()=>{if(i===0){this.message='Chương 1 chơi cùng Ông Đồ và bác trong làng.';this.render();}else{this.chapterIndex=i;this.mode='chapter';this.render();}}})));
         }else if(this.mode==='chapter'){
+            const person=storyNpcs.find(n=>n.chapter===this.chapterIndex);if(person)this.presentation.portrait(this.node,'character.'+person.id);
             const c=chapters[this.chapterIndex];
             if(!this.campaign.unlocked(this.chapterIndex))this.text(this.node,'Chương này mở sau khi nhận sao của chương trước. Cháu có thể luyện lại các chương đã mở.',0,65,550,235);
             else if(!this.campaign.data.introduced.includes(c.id)){this.text(this.node,(storyNpcs.find(n=>n.chapter===this.chapterIndex)?.name??c.npc)+'\n'+c.intro,0,65,550,235);this.button('ChapterIntro','Bắt đầu',0,-110,350,()=>{this.campaign.introduce(this.chapterIndex);this.onChapterIntro?.(this.chapterIndex);this.persist();this.render();});}
@@ -374,7 +379,7 @@ export class VillageHub {
             this.button('PlayOffline','Chơi một mình',-215,-235,175,()=>{this.onOnline?.('offline');this.close();});
         }
         else if(this.mode==='age'){this.text(this.node,'Chọn mức bắt đầu; không cần ngày sinh hoặc tên thật. Trẻ có thể dùng gợi ý ở mọi mức.',0,100,550,150);(['3-5','6-8','9-11'] as AgeBand[]).forEach((a,i)=>this.button('Age-'+a,a+' tuổi',(i-1)*180,-100,160,()=>{this.campaign.data.age=a;this.persist();this.mode='parent';this.render();}));}
-        else if(this.mode==='quality'){this.text(this.node,'Low giảm hiệu ứng; Medium và High dùng hình ảnh đầy đủ hơn. Tốc độ và luật chơi giữ nguyên.',0,100,550,150);(['low','medium','high'] as const).forEach((a,i)=>this.button('Quality-'+a,a,(i-1)*180,-100,160,()=>{this.campaign.data.quality=a;this.persist();this.mode='parent';this.render();}));}
+        else if(this.mode==='quality'){this.text(this.node,'Low giảm hiệu ứng; Medium và High dùng hình ảnh đầy đủ hơn. Tốc độ và luật chơi giữ nguyên.',0,100,550,150);(['low','medium','high'] as const).forEach((a,i)=>this.button('Quality-'+a,({low:'Thấp',medium:'Vừa',high:'Cao'})[a],(i-1)*180,-100,160,()=>{this.campaign.data.quality=a;this.persist();this.mode='parent';this.render();}));}
         else if(this.mode==='avatar'){
             avatarNames.slice(this.avatarPage*4,this.avatarPage*4+4).forEach((value,local)=>{const i=this.avatarPage*4+local;
                 const selected=this.campaign.data.avatar===i;

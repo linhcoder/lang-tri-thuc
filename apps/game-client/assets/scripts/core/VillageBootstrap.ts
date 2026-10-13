@@ -1,3 +1,4 @@
+import {UiClickSound} from '../ui/UiClickSound';
 import {CmsActors} from '../ui/CmsActors';
 import { _decorator, Color, Component, director, EventKeyboard, EventTouch, game, Game, Graphics, input, Input, JsonAsset, resources, Label, Layers, Node, Sprite, SpriteFrame, sys, UITransform, Vec3, view } from 'cc';
 import {CountrysideLife} from '../world/CountrysideLife';
@@ -81,7 +82,9 @@ function animateGesture(state:AvatarGestureState,sprite:Sprite,scarf:Graphics,g:
 @requireComponent(UITransform)
 export class VillageBootstrap extends Component {
     private map = new VillageMap();
-    private desktopJoystick=true;
+    private get compactScreen():boolean{return sys.isMobile||(game?.canvas?.clientWidth??1280)<900;}
+    private uiClick=new UiClickSound();
+    private desktopJoystick=false;
     private root!: Node;
     private world!: Node;
     private actors!: Node;
@@ -161,6 +164,7 @@ export class VillageBootstrap extends Component {
         }
     }
     private cms?:CmsActors;
+    private hudTick=0;private namesTick=0;
     private assetsReady=false;private sceneryNodes:Node[]=[];private npcDecorated=new Set<string>();private loadingLabel?:Label;private loadingPanel?:Node;
     private sceneryPending=false;private sceneryReady=false;private optionalScenery=new Set<Node>();
     private nameplates?:VillageNameplates;
@@ -206,7 +210,7 @@ export class VillageBootstrap extends Component {
         this.joystick = ui(this.root, 'Joystick', 140, 140);
         const jg = this.joystick.addComponent(Graphics); circle(jg, 0, 0, 65, new Color(255, 255, 255, 100));
         this.knob = ui(this.joystick, 'Knob'); circle(this.knob.addComponent(Graphics), 0, 0, 25, new Color(70, 100, 80, 170));
-        this.joystick.active = sys.isMobile;
+        this.joystick.active = this.compactScreen;
         if(this.demo){this.panel=new LearningPanel(this.root,this.learning,()=>this.saveLearning());this.dialog=this.panel.node;}
         else{this.chapter=new ChapterOneView(this.root,this.actors,this.chapterSave!.progress,this.player,this.chapterSave!,()=>this.resetInput(),p=>this.showDestination(p));this.dialog=this.chapter.node;}
         if(this.chapter){
@@ -265,7 +269,7 @@ export class VillageBootstrap extends Component {
             await Promise.all([createExpansionScenery(this.actors,this.world,this.art),this.art.ensureExpansionCharacters(),this.countryside.create(this.world,this.actors,this.art)]);
             for(const friend of expansionFriends){const node=this.hub?.npcNodes.find(n=>n.name===friend.id);if(!node)continue;node.getComponent(Graphics)!.clear();const height=friend.id.startsWith('be-')?100:130,body=this.art.sprite(node,'ExpansionSprite-'+friend.avatar,this.art.avatarFrame(friend.avatar,0,6,1,friend.id==='chu-hai'?2:1),height*.75,height);body.setScale(actorScale,actorScale,1);this.registerNpcMotion(node,body);}
             this.nameplates=new VillageNameplates(this.world,this.actors);
-            if(this.hub){this.hud=new VillageHUD(this.root,mode=>this.hub?.open(mode),()=>this.interactNearest(),id=>{this.resetInput();this.player.cancel();this.hub?.onGesture?.(id);},()=>{this.desktopJoystick=!this.desktopJoystick;this.releaseStick();},()=>this.navigateQuest());this.header.active=false;this.networkBadge!.node.active=false;this.status.node.active=false;}
+            if(this.hub){this.hud=new VillageHUD(this.root,mode=>this.hub?.open(mode),()=>this.interactNearest(),id=>{this.resetInput();this.player.cancel();this.hub?.onGesture?.(id);},()=>{this.desktopJoystick=!this.desktopJoystick;this.releaseStick();},()=>this.navigateQuest());this.hud.onClick=()=>{if(this.hub?.campaign.data.sound)this.uiClick.play();};if(this.questButton)this.hud.bindQuestTarget(this.questButton,()=>this.navigateQuest());this.header.active=false;this.networkBadge!.node.active=false;this.status.node.active=false;}
             this.assetsReady=true;if(this.loadingPanel)this.loadingPanel.active=false;
             if(sys.isBrowser){const requested=new URLSearchParams(window.location.search).get('server');
                 if(requested){let endpoint:URL;try{endpoint=new URL(requested);}catch{throw new Error('Địa chỉ server không hợp lệ');}
@@ -349,37 +353,37 @@ export class VillageBootstrap extends Component {
         return n;
     }
     update(dt: number): void {
-        this.cms?.step();
+        this.cms?.step(dt);this.chapter?.stepDialogue?.(dt);
         if(this.assetsReady)this.countryside.step(dt,[this.player.position,...this.npcCollisionPositions],this.hub?.campaign.data.sound===true);
         const size = this.node.getComponent(UITransform)!;
         const pixelScale = view.getScaleX() / view.getDevicePixelRatio();
-        if (size.width !== this.viewWidth || size.height !== this.viewHeight || (sys.isMobile && pixelScale !== this.lastPixelScale)) {
+        if (size.width !== this.viewWidth || size.height !== this.viewHeight || (this.compactScreen && pixelScale !== this.lastPixelScale)) {
             this.viewWidth = size.width; this.viewHeight = size.height;
             this.lastPixelScale = pixelScale;
             // Keep mobile HUD dimensions in CSS pixels despite a 1280px design Canvas.
-            const uiScale = sys.isMobile ? Math.max(1, 1 / pixelScale) : 1;
-            this.baseWorldScale = sys.isMobile ? uiScale * 0.8 : Math.max(1,Math.min(size.width/1440,size.height/810));
+            const uiScale = this.compactScreen ? Math.max(1, 1 / pixelScale) : 1;
+            this.baseWorldScale = this.compactScreen ? uiScale * 0.8 : Math.max(1,Math.min(size.width/1440,size.height/810));
             this.zoomButtons.forEach((button,i)=>{button.setScale(uiScale,uiScale,1);button.setPosition(size.width/2-(168-i*64)*uiScale,size.height/uiScale<500?-10*uiScale:size.height/2-225*uiScale);});
             this.backdrop.clear(); this.backdrop.fillColor = new Color(193, 218, 179);
             this.backdrop.rect(-size.width / 2, -size.height / 2, size.width, size.height); this.backdrop.fill();
             const width = Math.min(840, size.width / uiScale - 24), hint = this.header.getChildByName('Instructions')!;
             hint.getComponent(UITransform)!.setContentSize(width - 20, 90);
             this.header.setScale(uiScale, uiScale, 1); this.header.setPosition(0, size.height / 2 - 60 * uiScale);
-            if(this.questButton){const w=sys.isMobile?140:200;this.questButton.setScale(uiScale,uiScale,1);this.questButton.setPosition(0,size.height/2-148*uiScale);this.questButton.getComponent(UITransform)!.setContentSize(w,58);}
+            if(this.questButton){const w=this.compactScreen?140:200;this.questButton.setScale(uiScale,uiScale,1);this.questButton.setPosition(0,size.height/2-148*uiScale);this.questButton.getComponent(UITransform)!.setContentSize(w,58);}
             for(const [button,sign] of [[this.journalButton,-1],[this.parentButton,1]] as const)if(button){button.setScale(uiScale,uiScale,1);button.setPosition(sign*(size.width/2-68*uiScale),size.height/2-148*uiScale);}
-            if(this.networkBadge){this.networkBadge.node.setScale(uiScale,uiScale,1);this.networkBadge.node.setPosition(sys.isMobile?size.width/2-(110+10)*uiScale:0,-size.height/2+125*uiScale);this.networkBadge.node.getComponent(UITransform)!.setContentSize(sys.isMobile?220:500,55);}
+            if(this.networkBadge){this.networkBadge.node.setScale(uiScale,uiScale,1);this.networkBadge.node.setPosition(this.compactScreen?size.width/2-(110+10)*uiScale:0,-size.height/2+125*uiScale);this.networkBadge.node.getComponent(UITransform)!.setContentSize(this.compactScreen?220:500,55);}
             const hg = this.header.getComponent(Graphics)!; hg.clear(); hg.fillColor = new Color(43, 78, 50, 235);
             hg.roundRect(-width / 2, -48, width, 96, 12); hg.fill();
-            const statusWidth=Math.min(500,size.width/uiScale-(sys.isMobile?175:20));
-            this.status.node.setScale(uiScale, uiScale, 1); this.status.node.setPosition(sys.isMobile?size.width/2-(statusWidth/2+10)*uiScale:0, -size.height / 2 + 40 * uiScale);
-            this.status.fontSize=sys.isMobile?16:20;this.status.lineHeight=sys.isMobile?24:28;
+            const statusWidth=Math.min(500,size.width/uiScale-(this.compactScreen?175:20));
+            this.status.node.setScale(uiScale, uiScale, 1); this.status.node.setPosition(this.compactScreen?size.width/2-(statusWidth/2+10)*uiScale:0, -size.height / 2 + 40 * uiScale);
+            this.status.fontSize=this.compactScreen?16:20;this.status.lineHeight=this.compactScreen?24:28;
             this.status.node.getComponent(UITransform)!.setContentSize(statusWidth, 80);
             this.joystick.setScale(uiScale, uiScale, 1); this.joystick.setPosition(-size.width / 2 + 95 * uiScale, -size.height / 2 + 95 * uiScale);
             const scale = Math.min(uiScale, (size.width - 24 * uiScale) / 620,(size.height-24*uiScale)/560); this.dialog.setScale(scale, scale, 1);
         }
         // A puzzle can open without a viewport resize. Fit its responsive board immediately.
         if(this.hub){
-            const uiScale=sys.isMobile?Math.max(1,1/pixelScale):1;
+            const uiScale=this.compactScreen?Math.max(1,1/pixelScale):1;
             const cssWidth=game.canvas?.clientWidth||size.width,cssHeight=game.canvas?.clientHeight||size.height;
             const cssScale=Math.max(size.width/cssWidth,size.height/cssHeight);
             const compactViewport=cssWidth<700||cssHeight<500;
@@ -390,7 +394,7 @@ export class VillageBootstrap extends Component {
                 :Math.min(compactViewport?Infinity:uiScale,(size.width-24*cssScale)/620,(size.height-24*cssScale)/560);
             if(this.hub.node.scale.x!==scale)this.hub.node.setScale(scale,scale,1);
         }
-        for(const button of [this.questButton,this.journalButton,this.parentButton])if(button)button.active=!this.modalActive;
+        for(const button of [this.questButton,this.journalButton,this.parentButton])if(button)button.active=!this.modalActive&&(!this.hud||button===this.questButton);
         this.zoomButtons.forEach(button=>button.active=!this.modalActive&&!this.loadingPanel?.active);
         const zoomScale=this.baseWorldScale*this.zoom.value;if(zoomScale!==this.worldScale){this.worldScale=zoomScale;this.world.setScale(zoomScale,zoomScale,1);}
         if(this.zoomLabel)this.zoomLabel.string=Math.round(this.zoom.value*100)+'%';
@@ -402,29 +406,22 @@ export class VillageBootstrap extends Component {
         this.player.step(dt);
         this.chapter?.step();
         this.hub?.step(dt);
-        if(this.hud&&this.hub){const scale=sys.isMobile?Math.max(1,1/pixelScale):1;this.hud.resize(size.width,size.height,scale);const data=this.hub.campaign.data;const chapterIndex=chapters.findIndex(c=>!data.receipts.includes('reward.star.'+c.id)),currentChapter=chapters[chapterIndex<0?chapters.length-1:chapterIndex];this.hud.step({stars:this.hub.campaign.stars,completed:data.completed.length,total:chapters.reduce((sum,c)=>sum+c.quests.length,0),practice:data.practice.length,objective:this.objective,chapterTitle:`Ch\u01b0\u01a1ng ${chapterIndex<0?8:chapterIndex+1} - ${currentChapter.title}`,quests:currentChapter.quests.map(q=>({title:q.title,done:data.completed.includes(q.id)})),avatar:this.art.avatarFrame(data.avatar,0,6,data.hair,data.skin),player:this.player.position},!this.modalActive&&!this.loadingPanel?.active);
+        this.hudTick+=dt;const refreshHud=this.hudTick>=.1;
+        if(this.hud&&this.hub&&refreshHud){const scale=this.compactScreen?Math.max(1,1/pixelScale):1;this.hud.resize(size.width,size.height,scale);const data=this.hub.campaign.data;const chapterIndex=chapters.findIndex(c=>!data.receipts.includes('reward.star.'+c.id)),currentChapter=chapters[chapterIndex<0?chapters.length-1:chapterIndex];this.hud.step({stars:this.hub.campaign.stars,completed:data.completed.length,total:chapters.reduce((sum,c)=>sum+c.quests.length,0),practice:data.practice.length,objective:this.objective,chapterTitle:`Ch\u01b0\u01a1ng ${chapterIndex<0?8:chapterIndex+1} - ${currentChapter.title}`,quests:currentChapter.quests.map(q=>({title:q.title,done:data.completed.includes(q.id)})),avatar:this.art.avatarFrame(data.avatar,0,6,data.hair,data.skin),player:this.player.position,dt:this.hudTick,protectedTargets:this.chapterSave?.progress.stage==='plant'?this.chapter?.plots.filter((_,i)=>!this.chapterSave!.progress.data.planted.includes(i)):[],canInteract:[this.farmer.node,...(this.chapter?[this.chapter.elder]:[]),...(this.hub?.npcNodes??[]),...(this.cms?.nodes??[])].some(n=>Math.hypot(n.position.x-this.player.position.x,n.position.y-this.player.position.y)<100)},!this.modalActive&&!this.loadingPanel?.active);
             this.header.active=false;this.networkBadge!.node.active=false;this.status.node.active=this.statusRemaining>0&&!this.modalActive;
             if(this.status.node.active){const portraitNotice=size.width/scale<600;this.status.node.setPosition(portraitNotice?-size.width/2+105*scale:((size.width/scale<900||size.height/scale<600)?50*scale:0),-size.height/2+(portraitNotice?210:115)*scale);this.status.node.getComponent(UITransform)!.setContentSize(portraitNotice?180:320,48);this.status.fontSize=14;this.status.lineHeight=20;}
             this.hud.skinControls();
-            this.joystick.active=!this.modalActive&&(sys.isMobile||this.desktopJoystick&&size.width/scale>=900&&size.height/scale>=600);if(!sys.isMobile){this.joystick.setScale(scale*.65,scale*.65,1);this.joystick.setPosition(size.width/2-170*scale,-size.height/2+75*scale);}
-            const narrow=size.width/scale<360,controlScale=scale*(narrow?.8:1),edge=narrow?55:65;
-            for(const button of [this.journalButton,this.parentButton])button?.getComponent(UITransform)!.setContentSize(110,58);this.questButton?.getComponent(UITransform)!.setContentSize(sys.isMobile?140:200,58);
-            this.journalButton?.setScale(controlScale,controlScale,1);this.parentButton?.setScale(controlScale,controlScale,1);this.questButton?.setScale(controlScale,controlScale,1);
-            this.journalButton?.setPosition(-size.width/2+edge*scale,size.height/2-178*scale);this.parentButton?.setPosition(size.width/2-edge*scale,size.height/2-178*scale);this.questButton?.setPosition(0,size.height/2-178*scale);
-            const desktop=size.width/scale>=900&&size.height/scale>=600;if(desktop){
-                for(const button of [this.journalButton,this.parentButton])button?.getComponent(UITransform)!.setContentSize(64,48);
-                this.journalButton?.setPosition(-size.width/2+42*scale,size.height/2-106*scale);if(this.parentButton)this.parentButton.active=false;if(this.questButton)this.questButton.active=false;
-                this.parentButton?.setPosition(-size.width/2+428*scale,size.height/2-112*scale);
-                this.questButton?.getComponent(UITransform)!.setContentSize(200,36);this.questButton?.setPosition(-size.width/2+129*scale,size.height/2-390*scale);
-            }
-            const portrait=size.width/scale<600;this.zoomButtons.forEach((button,i)=>button.setPosition(size.width/2-(portrait?38:168-i*64)*scale,size.height/2-(portrait?248+i*56:245)*scale));
+            this.joystick.active=!this.modalActive&&(this.compactScreen||this.desktopJoystick&&size.width/scale>=900&&size.height/scale>=600);if(!this.compactScreen){this.joystick.setScale(scale*.65,scale*.65,1);this.joystick.setPosition(size.width/2-170*scale,-size.height/2+75*scale);}
+            if(this.journalButton)this.journalButton.active=false;if(this.parentButton)this.parentButton.active=false;if(this.questButton)this.questButton.active=!this.modalActive;
+            const desktop=size.width/scale>=900&&size.height/scale>=600;
             this.zoomButtons.forEach((button,i)=>{button.setSiblingIndex(this.root.children.length-1);button.getComponent(UITransform)!.setContentSize(desktop?24:56,desktop?24:48);if(desktop)button.setPosition(size.width/2-24*scale,size.height/2-(46+i*28)*scale);const caption=button.children[0].getComponent(Label)!;caption.node.getComponent(UITransform)!.setContentSize(desktop?22:52,desktop?22:46);caption.fontSize=desktop?18:i===1?16:26;});
             if(desktop&&this.zoomLabel)this.zoomLabel.string='⌖';
         }
         if(this.hub&&this.assetsReady){const home=this.hub.campaign.data.home,houseNode=this.actors.getChildByName('house'),house=houseNode?scenerySprite(houseNode):null;if(home!==this.homeStyle&&house){this.homeStyle=home;house.color=[new Color(255,255,255),new Color(175,235,205),new Color(225,190,255),new Color(255,240,150)][home];}
             const stars=this.hub.campaign.stars;if(stars!==this.starCount){this.starCount=stars;if(!this.treeLights){const n=ui(this.world,'BanyanLights'),p=toWorld(villageObjects.find(o=>o.id==='banyan')!);n.setPosition(p.x,p.y+280);this.treeLights=n.addComponent(Graphics);}const g=this.treeLights;g.clear();for(let i=0;i<8;i++){g.fillColor=i<stars?new Color(255,228,100):new Color(110,135,100);g.circle(Math.cos(i*Math.PI/4)*60,Math.sin(i*Math.PI/4)*35,7);g.fill();}}}
 
-        if(this.hud&&this.hub){const people=[{id:'farmer',position:this.farmer.node.position,friend:false},...(this.chapter?[{id:'elder',position:this.chapter.elder.position,friend:false}]:[]),...this.hub.npcNodes.map(n=>({id:n.name,position:n.position,friend:false})),...Array.from(this.network.players,([id,p])=>({id:'friend-'+id,position:p,friend:true}))];this.hud.updateMapPeople(people);}
+        if(this.hud&&this.hub&&refreshHud){const people=[{id:'farmer',position:this.farmer.node.position,friend:false},...(this.chapter?[{id:'elder',position:this.chapter.elder.position,friend:false}]:[]),...this.hub.npcNodes.map(n=>({id:n.name,position:n.position,friend:false})),...Array.from(this.network.players,([id,p])=>({id:'friend-'+id,position:p,friend:true}))];this.hud.updateMapPeople(people);}
+        if(refreshHud)this.hudTick=0;
         if(this.hub&&this.qualityStyle!==this.hub.campaign.data.quality){this.qualityStyle=this.hub.campaign.data.quality;const pipeline=director.root?.pipeline;if(pipeline)pipeline.shadingScale=this.qualityStyle==='low'?0.75:this.qualityStyle==='medium'?0.9:1;}
         this.playerVisual?.step(dt,this.player.moving,this.player.direction);
         if(this.hub)void this.art.ensureAvatar(this.hub.campaign.data.avatar);if(this.hub?.campaign.data.hair===1)void this.art.ensureHair(this.hub.campaign.data.avatar);if(this.childSprite){this.spriteTime+=dt;const row=this.player.moving?1+(Math.floor(this.spriteTime*8)%2):0;this.childSprite.spriteFrame=this.art.avatarFrame(this.hub?.campaign.data.avatar??0,row,this.player.direction,this.hub?.campaign.data.hair??0,this.hub?.campaign.data.skin??0);if(this.accessoryGraphic)drawAccessory(this.accessoryGraphic,this.hub?.campaign.data.accessory??0,this.player.direction,row);if(this.accessoryGraphic&&this.gestureGraphic)animateGesture(this.gesture,this.childSprite,this.accessoryGraphic,this.gestureGraphic,dt,this.player.moving);}
@@ -443,8 +440,8 @@ export class VillageBootstrap extends Component {
         if(this.loadingPanel?.active){const g=this.loadingPanel.getComponent(Graphics)!;g.clear();g.fillColor=new Color(43,78,50,250);g.rect(-size.width/2,-size.height/2,size.width,size.height);g.fill();}
         const cameraWidth = size.width / this.worldScale, cameraHeight = size.height / this.worldScale;
         // Reserve the top HUD area: put the player below center so nearby NPC heads stay visible.
-        const hudScale=sys.isMobile?Math.max(1,1/pixelScale):1;
-        const focus=referenceCameraFocus(this.player.position,cameraWidth,cameraHeight,sys.isMobile||size.width<900||size.height<600||tileAt(this.player.position).x>=36||tileAt(this.player.position).y>=36,(sys.isMobile?160:45)*hudScale/this.worldScale);
+        const hudScale=this.compactScreen?Math.max(1,1/pixelScale):1;
+        const focus=referenceCameraFocus(this.player.position,cameraWidth,cameraHeight,this.compactScreen||size.width<900||size.height<600||tileAt(this.player.position).x>=36||tileAt(this.player.position).y>=36,(this.compactScreen?160:45)*hudScale/this.worldScale);
         if(this.player.moving)this.freeCameraOffset=undefined;
         const camera = cameraOffset(this.freeCameraOffset?{x:-this.freeCameraOffset.x,y:-this.freeCameraOffset.y}:focus, cameraWidth, cameraHeight); this.world.setPosition(camera.x * this.worldScale, camera.y * this.worldScale);
         this.animateNpcs(dt,camera,cameraWidth,cameraHeight);
@@ -461,7 +458,7 @@ export class VillageBootstrap extends Component {
         }
         for(const scenery of this.sceneryNodes){const bounds=scenery.getComponent(UITransform)!;scenery.active=(!this.optionalScenery.has(scenery)||this.hub?.campaign.data.quality!=='low')&&Math.abs(scenery.position.x+camera.x)<cameraWidth/2+bounds.width&&Math.abs(scenery.position.y+camera.y)<cameraHeight/2+bounds.height;}
         // Foliage/roofs fade when they would cover the local child's face. Collision is unchanged.
-        const silhouettes=[this.player.position,...(this.hub?.npcNodes.map(n=>n.position)??[])];
+        const silhouettes=[this.player.position,...(this.hub?.npcNodes.map(n=>n.position)??[]),...(this.cms?.nodes.map(n=>n.position)??[])];
         for(const scenery of this.sceneryNodes){const sprite=scenerySprite(scenery);if(!sprite||scenery.parent!==this.actors)continue;const bounds=scenery.getComponent(UITransform)!,covered=silhouettes.some(p=>p.y>scenery.position.y&&Math.abs(p.x-scenery.position.x)<bounds.width*.5&&p.y+58>scenery.position.y&&p.y+58<scenery.position.y+bounds.height),alpha=covered?92:255;if(sprite.color.a!==alpha){const color=sprite.color;sprite.color=new Color(color.r,color.g,color.b,alpha);}}
         for(const item of this.regionalScenery)if(item.node.active&&!item.pending){item.pending=true;void this.art.ensureObject(item.id,item.frame).then(frame=>{if(!this.isValid||!item.node.isValid||!frame)return;item.node.getComponent(Graphics)?.clear();const bounds=item.node.getComponent(UITransform)!;this.art.sprite(item.node,'RegionalArt',frame,bounds.width,bounds.height);});}
         for (const chunk of this.terrainChunks) {
@@ -472,7 +469,7 @@ export class VillageBootstrap extends Component {
         else if(this.status.string!==this.objective)this.status.string=this.objective;
         const sorted=[...this.actors.children].sort((a,b)=>b.position.y-a.position.y);
         for(let i=0;i<sorted.length;i++)if(sorted[i].getSiblingIndex()!==i)sorted[i].setSiblingIndex(i);
-        this.nameplates?.step(this.player.position,this.modalActive,{left:-camera.x-cameraWidth/2,right:-camera.x+cameraWidth/2,bottom:-camera.y-cameraHeight/2+75/this.worldScale,top:-camera.y+cameraHeight/2});
+        this.namesTick+=dt;if(this.namesTick>=.1){this.namesTick=0;this.nameplates?.step(this.player.position,this.modalActive,{left:-camera.x-cameraWidth/2,right:-camera.x+cameraWidth/2,bottom:-camera.y-cameraHeight/2+75/this.worldScale,top:-camera.y+cameraHeight/2},{OngDo:this.chapterSave?.progress.stage==='return'?'?':this.chapterSave?.progress.stage==='greet'?'!':'',...(this.chapterSave?.progress.stage==='plant'||this.chapterSave?.progress.stage==='count'?{[this.farmer.node.name]:'!'}:{})});}
         if (this.lastDirection !== this.player.direction) {
             this.lastDirection = this.player.direction; const angle = this.lastDirection * Math.PI / 4, g = this.arrow.getComponent(Graphics)!;
             g.clear(); g.fillColor = new Color(255, 255, 245); const x = Math.cos(angle), y = Math.sin(angle);
@@ -485,6 +482,9 @@ export class VillageBootstrap extends Component {
             }
         }
         if(this.pendingBundle!==null&&!this.player.hasPath){const p=toWorld(riceBundles[this.pendingBundle]);if(Math.hypot(p.x-this.player.position.x,p.y-this.player.position.y)<8){this.learning.collect(this.pendingBundle);this.pendingBundle=null;this.saveLearning();}}
+        // Modal visibility is immediate; only HUD data/layout waits for the 10 Hz refresh.
+        if(this.hud)this.hud.node.active=!this.modalActive&&!this.loadingPanel?.active;
+        if(this.modalActive){if(this.joystick)this.joystick.active=false;if(this.status?.node)this.status.node.active=false;this.zoomButtons.forEach(button=>button.active=false);if(this.questButton)this.questButton.active=false;}
     }
     private updateRemoteActors(dt:number):void{
         this.remoteActors.forEach((actor,id)=>{if(!this.network.players.has(id)){actor.node.destroy();this.remoteActors.delete(id);}});
@@ -554,7 +554,11 @@ export class VillageBootstrap extends Component {
     private changeZoom(value:number):void{this.zoom.set(value);this.zoomSaveDelay=0.3;}
     private handleWheel=(event:WheelEvent):void=>{if(event.ctrlKey||this.modalActive||this.loadingPanel?.active||this.pinchIds||event.target!==game.canvas)return;event.preventDefault();this.changeZoom(this.zoom.wheel(event.deltaY));};
     private keyDown(e: EventKeyboard): void {if(this.loadingPanel?.active)return;
-        if (e.keyCode === 27) { this.hub?.close();this.chapter?.close();this.dialog.active = false; this.resetInput(); return; }
+        if (e.keyCode === 27) { this.hud?.closeEmotion?.(); this.cms?.close();this.hub?.close();this.chapter?.close();this.dialog.active = false; this.resetInput(); return; }
+        if(e.keyCode===69&&!this.modalActive){this.interactNearest();return;}
+        if(this.cms?.dialog.active){this.cms.key(e.keyCode);return;}
+        if(this.chapter?.node.active){this.chapter.key(e.keyCode);return;}
+        if(this.hub?.node.active){this.hub.key(e.keyCode);return;}
         if (!this.modalActive) this.keys.add(e.keyCode);
     }
     private keyUp(e: EventKeyboard): void { this.keys.delete(e.keyCode); }
@@ -612,5 +616,5 @@ export class VillageBootstrap extends Component {
         game.off(Game.EVENT_HIDE, this.resetInput, this);
         if (sys.isBrowser){window.removeEventListener('blur', this.handleBlur);window.removeEventListener('resize',this.handleResize);window.removeEventListener('wheel',this.handleWheel,true);}
     }
-    onDestroy(): void {this.cms?.dispose();this.countryside.dispose();this.hud?.dispose();this.hub?.dispose();this.chapter?.dispose();this.network.dispose();this.art.dispose(); if (this.root) this.root.destroy();}
+    onDestroy(): void {this.uiClick.dispose();this.cms?.dispose();this.countryside.dispose();this.hud?.dispose();this.hub?.dispose();this.chapter?.dispose();this.network.dispose();this.art.dispose(); if (this.root) this.root.destroy();}
 }

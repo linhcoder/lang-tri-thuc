@@ -1,16 +1,18 @@
-import {Node,UITransform,Graphics,Color,Label,Sprite,SpriteFrame,Vec3,Texture2D,Rect,resources,RichText} from 'cc';
+import {hudLayout,readSafeInsets} from './ResponsiveHudLayout';
+import {Node,UITransform,Graphics,Color,Label,Sprite,SpriteFrame,Vec3,Texture2D,Rect,resources,RichText,tween,Tween} from 'cc';
 import {Point,SIZE,terrain,toWorld,villageObjects,villageDetails} from '../world/VillageModel';
 import {villagePaths} from '../world/GroundPaths';
 import {assetResourceKey} from '../world/VisualAssets';
 import {assetFrame} from '../world/TextureFrames';
 import {worldZones} from '../world/WorldZones';
 import {AvatarGesture,avatarGestures} from '../world/AvatarGestures';
-export interface HudData {stars:number;completed:number;total:number;practice:number;objective:string;avatar?:SpriteFrame;player:Point;chapterTitle?:string;quests?:Array<{title:string;done:boolean}>;mapPeople?:Array<{id:string;position:Point;friend:boolean}>;}
+export interface HudData {stars:number;completed:number;total:number;practice:number;objective:string;avatar?:SpriteFrame;player:Point;chapterTitle?:string;quests?:Array<{title:string;done:boolean}>;protectedTargets?:Node[];canInteract?:boolean;dt?:number;mapPeople?:Array<{id:string;position:Point;friend:boolean}>;}
 export class VillageHUD {
+    onClick?:()=>void;private feedbackScales=new WeakMap<Node,Vec3>();
     artReady=false;private disposed=false;private paintedFrames:SpriteFrame[]=[];private controlSkinSignature='';
     readonly node:Node;private title:Node;private profile:Node;private summary:Node;private map:Node;private marker:Node;private avatar:Sprite;private info:Label;private stars:Label;private quest:Label;private progress:Graphics;private buttons:Array<{node:Node;action:()=>void}>=[];private signature='';private layout='';
     private extras:Array<{node:Node;action:()=>void}>=[];private chapterLabel:Label;private portraitSource?:SpriteFrame;private portraitFrame?:SpriteFrame;private mapFrames:SpriteFrame[]=[];private counters:Node[]=[];private learningCounter:Label;
-    private level:Label;private richQuests:RichText;
+    private level:Label;private richQuests:RichText;private emotionOpen=false;private miniCollapsed=false;private titleTime=0;private toastTime=0;private lastCompleted=-1;private notification:Label;private latestLayout?:ReturnType<typeof hudLayout>;private nearInteraction=false;private questSignature='';
     private peoplePins=new Map<string,Node>();
     private mapPeople:NonNullable<HudData['mapPeople']>=[];
     updateMapPeople(people:NonNullable<HudData['mapPeople']>):void{this.mapPeople=people;}
@@ -42,14 +44,20 @@ export class VillageHUD {
         const menu=this.panel(this.node,'HudMenu',110,52);this.text(menu,'Menu',0,0,106,50,17);this.buttons.push({node:menu,action:()=>open('menu')});
         const chapter=this.panel(this.node,'HudChapter',206,32);this.chapterLabel=this.text(chapter,'Chương 1 · Ngày Về Làng  ▾',0,0,194,28,13);this.extras.push({node:chapter,action:()=>open('journal')});
         const dock=this.make(this.node,'EmoteDock',440,64),dg=dock.addComponent(Graphics);dg.fillColor=new Color(24,43,39,225);dg.roundRect(-220,-32,440,64,30);dg.fill();dg.strokeColor=new Color(215,178,107);dg.lineWidth=1;dg.roundRect(-220,-32,440,64,30);dg.stroke();
-        for(const {id,title} of avatarGestures.filter(g=>g.id!=='thanks'&&g.id!=='point')){const n=this.make(this.node,'HudGesture-'+id,68,54);this.text(n,title,0,-16,66,22,12);this.gestureIcon(n,id);this.extras.push({node:n,action:()=>gesture(id)});}
+        for(const {id,title} of avatarGestures.filter(g=>g.id!=='thanks'&&g.id!=='point')){const n=this.make(this.node,'HudGesture-'+id,68,54);this.text(n,title,0,-16,66,22,12);this.gestureIcon(n,id);this.extras.push({node:n,action:()=>{gesture(id);this.emotionOpen=false;this.layout='';}});}
         const movement=this.panel(this.node,'HudMove',76,76);this.text(movement,'Di chuyển',0,-19,68,24,13);const shoe=this.make(movement,'ShoeIcon',36,30),sg=shoe.addComponent(Graphics);shoe.setPosition(0,8);sg.fillColor=new Color(250,248,232);sg.moveTo(-17,-8);sg.quadraticCurveTo(-4,-7,4,12);sg.lineTo(13,6);sg.lineTo(17,-5);sg.quadraticCurveTo(4,-16,-15,-13);sg.close();sg.fill();this.extras.push({node:movement,action:move});
         const tip=this.panel(this.node,'MovementTip',206,52);this.text(tip,'☀ Mẹo nhỏ\nChạm đường để đi · Kéo nền để xem',0,0,192,44,12);
-        this.extras.push({node:this.summary,action:navigate});
+        this.extras.push({node:this.summary,action:()=>open('journal')});
+        const emotion=this.panel(this.node,'HudEmotion',52,48);this.text(emotion,'☺',0,0,48,42,27);this.extras.push({node:emotion,action:()=>{this.emotionOpen=!this.emotionOpen;this.layout='';}});
+        const fold=this.panel(this.node,'HudMapToggle',44,44);this.text(fold,'−',0,0,38,38,24);this.extras.push({node:fold,action:()=>{this.miniCollapsed=!this.miniCollapsed;this.layout='';}});
+        this.extras.push({node:this.profile,action:()=>open('achievements')});
+        const toast=this.panel(this.node,'ObjectiveToast',300,48);this.notification=this.text(toast,'',0,0,278,42,16);toast.active=false;
         paintVillageMap(g,s);
         this.loadMapLandmarks(ground,s);
         void this.loadPaintedArt();
     }
+    bindQuestTarget(node:Node,navigate:()=>void){node.setParent(this.summary);this.extras.push({node,action:navigate});this.layout='';}
+    closeEmotion(){this.emotionOpen=false;this.layout='';}
     private loadMapLandmarks(ground:Node,s:number):void{
         const landmarks=[...villageObjects.filter(o=>['dinh','house','banyan'].includes(o.id)),...villageDetails.filter(o=>['well','bridge'].includes(o.id)),{id:'scenery.market',x:23,y:29,width:200,height:170}].sort((a,b)=>toWorld(b).y-toWorld(a).y);
         for(const o of landmarks){const n=this.make(ground,'MapArt-'+o.id,o.width*s,o.height*s),p=toWorld(o);n.getComponent(UITransform)!.setAnchorPoint(.5,0);n.setPosition(p.x*s,(p.y+SIZE*16)*s);const sprite=n.addComponent(Sprite);sprite.sizeMode=Sprite.SizeMode.CUSTOM;
@@ -75,27 +83,28 @@ export class VillageHUD {
     }
     private text(parent:Node,value:string,x:number,y:number,w:number,h:number,size:number):Label{const n=this.make(parent,'Text',w,h);n.setPosition(x,y);const l=n.addComponent(Label);l.string=value;l.fontSize=size;l.lineHeight=size+4;l.overflow=Label.Overflow.SHRINK;l.enableWrapText=true;l.color=new Color(255,246,219);return l;}
     resize(width:number,height:number,scale:number):void{
-        const w=width/scale,h=height/scale,key=[w,h,scale].join(':');if(key===this.layout)return;this.layout=key;this.node.setScale(scale,scale,1);
-        const profileWidth=w<420?w*.51:248,mapWidth=w<420?w*.35:138;
-        this.paintPanel(this.profile,248,64);this.profile.setScale(profileWidth/248,profileWidth/248,1);this.map.setScale(mapWidth/138,mapWidth/138,1);
-        this.profile.setPosition(-w/2+10+profileWidth/2,h/2-42);this.map.setPosition(w/2-10-mapWidth/2,h/2-60);
-        this.profile.getChildByName('PortraitRing')!.setPosition(-89,0);
-        const desktop=w>=900&&h>=600;this.title.active=desktop;this.title.setPosition(w/2-358,h/2-40);
-        const counters=desktop&&w>=1000;this.counters.forEach(n=>n.active=counters);this.counters[0].setPosition(-w/2+311,h/2-28);this.counters[1].setPosition(-w/2+412,h/2-28);this.stars.node.setParent(counters?this.counters[0]:this.profile);this.stars.node.setPosition(counters?15:32,counters?0:-5);this.stars.node.getComponent(UITransform)!.setContentSize(counters?48:152,counters?30:20);this.info.node.setPosition(32,17);this.level.node.active=counters;this.profile.getChildByName('Progress')!.setPosition(counters?50:29,-21);this.signature='';
-        if(desktop){this.map.setScale(1.3,1.3,1);this.map.setPosition(w/2-100,h/2-75);}
-        this.paintPanel(this.summary,desktop?238:350,desktop?216:48);this.quest.node.getComponent(UITransform)!.setContentSize(desktop?218:336,desktop?200:46);this.quest.horizontalAlign=desktop?Label.HorizontalAlign.LEFT:Label.HorizontalAlign.CENTER;this.quest.fontSize=desktop?13:14;this.quest.lineHeight=desktop?21:18;this.signature='';
-        this.richQuests.node.active=desktop;this.quest.node.active=!desktop;
-        this.summary.setPosition(desktop?-w/2+129:0,desktop?h/2-257:h/2-129);this.summary.setScale(desktop?1:Math.min(.95,(w-20)/350),desktop?1:.68,1);
-        const toolbarScale=Math.min(1,(w-24)/352);this.buttons.slice(0,4).forEach((b,i)=>{b.node.active=w>=600;b.node.getComponent(UITransform)!.setContentSize(desktop?72:82,48);b.node.setScale(toolbarScale,1,1);b.node.setPosition(desktop?-w/2+116+[0,2,1,3][i]*78:(i-1.5)*90*toolbarScale,desktop?h/2-106:-h/2+36);});
-        this.buttons[4].node.setPosition(w/2-74,-h/2+55);
-        this.buttons[6].node.active=!desktop;this.buttons[6].node.setPosition(w>=600?-w/2+225:w/2-74,-h/2+125);
-        this.extras.forEach(b=>{if(b.node!==this.summary)b.node.active=desktop;});
-        this.extras[0].node.setPosition(w/2-113,h/2-162);
-        this.extras.slice(1,7).forEach((b,i)=>b.node.setPosition((i-2.5)*72,-h/2+37));
-        const dock=this.node.getChildByName('EmoteDock')!;dock.active=desktop;dock.setPosition(0,-h/2+37);
-        const tip=this.node.getChildByName('MovementTip')!;tip.active=desktop;tip.setPosition(-w/2+113,-h/2+37);
-        const action=this.buttons[4].node;if(desktop){this.circleControl(action);action.setPosition(w/2-57,-h/2+143);const movement=this.extras[7].node;this.circleControl(movement);movement.setPosition(w/2-57,-h/2+57);}else this.paintPanel(action,110,52);
+        const w=width/scale,h=height/scale,key=[w,h,scale].join(':');if(key===this.layout)return;this.layout=key;for(const {node} of [...this.buttons,...this.extras]){Tween.stopAllByTarget(node);const base=this.feedbackScales.get(node);if(base)node.setScale(base);this.feedbackScales.delete(node);}this.node.setScale(scale,scale,1);
+        const l=hudLayout(w,h,readSafeInsets());this.latestLayout=l;
+        this.paintPanel(this.profile,248,64);this.profile.setScale(l.profileWidth/248,l.profileWidth/248,1);this.profile.setPosition(l.left+l.profileWidth/2,l.top-32);this.profile.getChildByName('PortraitRing')!.setPosition(-89,0);
+        this.map.active=!this.miniCollapsed;this.map.setScale(l.mapWidth/138,l.mapWidth/138,1);this.map.setPosition(l.right-l.mapWidth/2,l.top-48);
+        this.title.setPosition(0,l.top-36);this.title.active=this.titleTime<4&&w>700;
+        this.counters.forEach(n=>n.active=l.toolbar);this.counters[0].setPosition(l.left+l.profileWidth+52,l.top-18);this.counters[1].setPosition(l.left+l.profileWidth+151,l.top-18);
+        this.stars.node.setParent(l.toolbar?this.counters[0]:this.profile);this.stars.node.setPosition(l.toolbar?15:32,l.toolbar?0:-5);this.stars.node.getComponent(UITransform)!.setContentSize(l.toolbar?48:152,l.toolbar?30:20);this.level.node.active=true;this.info.fontSize=20;this.level.fontSize=16;this.info.node.setPosition(32,17);if(!l.toolbar){this.stars.node.setPosition(65,-6);this.stars.node.getComponent(UITransform)!.setContentSize(100,20);this.stars.fontSize=15;}this.profile.getChildByName('Progress')!.setPosition(l.toolbar?50:29,-26);
+        this.paintPanel(this.summary,l.trackerWidth,l.trackerHeight);this.summary.setScale(1,1,1);this.summary.setPosition(l.left+l.trackerWidth/2,l.trackerY);this.quest.node.active=false;this.richQuests.node.active=true;this.summary.active=!this.emotionOpen;this.richQuests.node.setPosition(0,24);this.richQuests.maxWidth=l.trackerWidth-20;this.richQuests.node.getComponent(UITransform)!.setContentSize(l.trackerWidth-20,l.trackerHeight-58);this.richQuests.fontSize=l.short?12:13;this.richQuests.lineHeight=l.short?17:21;
+        this.buttons.slice(0,4).forEach((b,i)=>{b.node.active=l.toolbar;b.node.setScale(1,1,1);b.node.getComponent(UITransform)!.setContentSize(64,48);b.node.setPosition(l.left+32+i*70,l.top-87);});
+        const action=this.buttons[4].node;this.circleControl(action);action.setScale(.84,.84,1);action.setPosition(l.actionX,l.actionY);action.active=this.nearInteraction;
+        const menu=this.buttons[6].node;menu.active=true;menu.setScale(1,1,1);menu.getComponent(UITransform)!.setContentSize(52,48);this.paintPanel(menu,52,48);menu.setPosition(l.menuX,l.bottom+28);menu.getChildByName('Text')!.getComponent(UITransform)!.setContentSize(48,44);menu.getChildByName('Text')!.getComponent(Label)!.fontSize=12;
+        this.extras[0].node.active=false;
+        const columns=l.portrait?3:6;this.extras.slice(1,7).forEach((b,i)=>{b.node.active=this.emotionOpen;b.node.setPosition((i%columns-(columns-1)/2)*68,l.bottom+(l.portrait?231:98)+Math.floor(i/columns)*58);});
+        const dock=this.node.getChildByName('EmoteDock')!;dock.active=this.emotionOpen;dock.setPosition(0,l.bottom+(l.portrait?260:98));const dg=dock.getComponent(Graphics)!;dg.clear();dg.fillColor=new Color(36,59,58,235);dg.roundRect(l.portrait?-108:-212,l.portrait?-62:-34,l.portrait?216:424,l.portrait?124:68,18);dg.fill();
+        const movement=this.extras[7].node;movement.active=l.toolbar;this.circleControl(movement);movement.setScale(.65,.65,1);movement.setPosition(l.actionX,l.moveY);
+        this.node.getChildByName('MovementTip')!.active=false;
+        const emotion=this.node.getChildByName('HudEmotion')!;emotion.active=true;emotion.setPosition(l.emotionX,l.bottom+28);
+        const fold=this.node.getChildByName('HudMapToggle')!;fold.active=true;fold.setPosition(w<350?l.right-l.mapWidth/2:l.right-l.mapWidth-24,l.top-(w<350?119:22));fold.getChildByName('Text')!.getComponent(Label)!.string=this.miniCollapsed?'▦':'−';
+        const target=this.summary.getChildByName('QuestTarget');if(target){target.setScale(1,1,1);target.setPosition(0,-l.trackerHeight/2+28);target.getComponent(UITransform)!.setContentSize(l.trackerWidth-18,44);paintHudControl(target);}
+        this.notification.node.parent!.setPosition(0,l.top-101);this.signature='';this.questSignature='';
     }
+
     private circleControl(n:Node):void{const size=n.name==='HudMove'?92:76,radius=size/2-2;n.getComponent(UITransform)!.setContentSize(size,size);const g=n.getComponent(Graphics)!;g.clear();g.fillColor=new Color(28,48,38,215);g.circle(0,0,radius);g.fill();g.strokeColor=new Color(244,226,169);g.lineWidth=2;g.circle(0,0,radius);g.stroke();}
     private gestureIcon(parent:Node,id:AvatarGesture):void{
         const n=this.make(parent,'GestureIcon',32,32);n.setPosition(0,9);const g=n.addComponent(Graphics);g.fillColor=new Color(255,248,227);g.strokeColor=new Color(255,248,227);g.lineWidth=3;
@@ -105,12 +114,17 @@ export class VillageHUD {
     }
     step(data:HudData,visible:boolean):void{
         this.node.active=visible;if(!visible)return;
+        const box=this.summary.getComponent(UITransform)!;const obstructs=(data.protectedTargets??[]).some(n=>{if(!n.activeInHierarchy)return false;const p=n.getComponent(UITransform)!.convertToWorldSpaceAR(new Vec3());const local=box.convertToNodeSpaceAR(p);return Math.abs(local.x)<box.width/2+32&&Math.abs(local.y)<box.height/2+32;});this.summary.active=!this.emotionOpen&&!obstructs;
         if(data.avatar!==this.portraitSource){this.portraitSource=data.avatar;this.portraitFrame?.destroy();this.portraitFrame=undefined;if(data.avatar){const f=new SpriteFrame(),r=data.avatar.rect;f.texture=data.avatar.texture;f.rect=new Rect(r.x+r.width*.22,r.y+r.height*.01,r.width*.56,r.height*.55);this.portraitFrame=f;}this.avatar.spriteFrame=this.portraitFrame??null;}
         this.chapterLabel.string=(data.chapterTitle??'Chương 1 · Ngày Về Làng')+'  ▾';
         this.learningCounter.string=`${data.completed}/${data.total}`;
         const signature=[data.stars,data.completed,data.total,data.practice,data.objective,JSON.stringify(data.quests)].join('|');if(signature!==this.signature){this.signature=signature;this.info.string='Bé Tũn';this.level.string='Lv.'+(1+data.stars);this.stars.string=this.counters[0].active?`${data.stars}`:`\u2605 ${data.stars}/8  \u2022  ${data.completed}/${data.total}`;this.quest.string=this.title.active?`Nhi\u1ec7m v\u1ee5 ch\u00ednh\n${(data.quests??[]).map(q=>(q.done?'\u2611 ':'\u2610 ')+q.title).join('\n')}\n\nNhi\u1ec7m v\u1ee5 ph\u1ee5\n\u2610 Luy\u1ec7n t\u1eadp ${data.practice}/12 tr\u00f2 ch\u01a1i`:`Ch\u00ednh: ${data.objective}\nPh\u1ee5: luy\u1ec7n t\u1eadp ${data.practice}/12 tr\u00f2 ch\u01a1i`;this.progress.clear();this.progress.fillColor=new Color(186,195,146);this.progress.roundRect(this.counters[0].active?-59:-72.5,-5,this.counters[0].active?118:145,10,5);this.progress.fill();const ratio=Math.max(0,Math.min(1,data.total?data.completed/data.total:0));if(ratio>0){this.progress.fillColor=new Color(90,171,105);this.progress.roundRect(this.counters[0].active?-59:-72.5,-5,Math.max(10,(this.counters[0].active?118:145)*ratio),10,5);this.progress.fill();}}
         const escape=(value:string)=>value.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-        if(this.richQuests.node.active){const chapter=(data.chapterTitle??'').replace(/^Ch.+? \d+ [\u00b7-] /,'');const rows=(data.quests??[]).map(q=>(q.done?'\u2611 ':'\u2610 ')+escape(q.title)).join('\n');const text='<color=#fff5dc><b>Nhi\u1ec7m v\u1ee5 ch\u00ednh</b></color>\n<color=#ffda71>\u25c6 '+escape(chapter)+'</color>\n<color=#fff5dc>'+rows+'</color>\n\n<color=#ffda71><b>Nhi\u1ec7m v\u1ee5 ph\u1ee5</b></color>\n<color=#fff5dc>\u2610 Luy\u1ec7n t\u1eadp '+data.practice+'/12 tr\u00f2 ch\u01a1i</color>';if(this.richQuests.string!==text)this.richQuests.string=text;}
+        if(this.richQuests.node.active&&signature!==this.questSignature){this.questSignature=signature;const rows=(data.quests??[]).filter(q=>!q.done).slice(0,this.latestLayout?.short?2:3);const done=(data.quests??[]).filter(q=>q.done).length,total=(data.quests??[]).length;const text='<color=#F5C85B><b>Đang theo dõi · '+done+'/'+total+'</b></color>\n<color=#FFF4DC>'+ (rows.length?rows.map(q=>'○ '+escape(q.title)).join('\n'):'★ '+escape(data.objective))+'</color>';if(this.richQuests.string!==text)this.richQuests.string=text;}
+        this.titleTime+=data.dt??0;this.title.active=this.titleTime<4&&(this.latestLayout?.toolbar??false);
+        if(this.lastCompleted>=0&&data.completed>this.lastCompleted){this.toastTime=2.4;this.notification.string='★ Mục tiêu đã hoàn thành!';}this.lastCompleted=data.completed;this.toastTime=Math.max(0,this.toastTime-(data.dt??0));this.notification.node.parent!.active=this.toastTime>0;
+        this.nearInteraction=data.canInteract??false;this.buttons[4].node.active=this.nearInteraction;
+
         this.marker.setPosition(data.player.x*.0375,(data.player.y+SIZE*16)*.0375);
         const ground=this.marker.parent!,people=data.mapPeople??this.mapPeople,ids=new Set(people.map(p=>p.id));
         for(const [id,pin] of this.peoplePins)if(!ids.has(id)){pin.active=false;pin.destroy();this.peoplePins.delete(id);}
@@ -118,7 +132,7 @@ export class VillageHUD {
         this.marker.setSiblingIndex(ground.children.length-1);
     }
     hit(p:Point):boolean{if(!this.node.active)return false;return [...this.buttons.map(b=>b.node),...this.extras.map(b=>b.node),...this.counters,this.profile,this.summary,this.title,this.node.getChildByName('MovementTip')!,this.node.getChildByName('EmoteDock')!].some(n=>this.inside(p,n));}
-    handle(p:Point):boolean{if(!this.hit(p))return false;[...this.buttons,...this.extras].find(b=>this.inside(p,b.node))?.action();return true;}
+    handle(p:Point):boolean{if(!this.hit(p))return false;const entries=[...this.buttons,...this.extras],target=entries.find(b=>b.node.name==='QuestTarget'&&this.inside(p,b.node))??entries.find(b=>this.inside(p,b.node));if(target){const n=target.node,original=this.feedbackScales.get(n)??n.scale.clone();this.feedbackScales.set(n,original);Tween.stopAllByTarget(n);tween(n).to(.08,{scale:new Vec3(original.x*.95,original.y*.95,1)}).to(.12,{scale:original}).start();this.onClick?.();target.action();}return true;}
     private inside(p:Point,n:Node):boolean{if(!n.activeInHierarchy)return false;const t=n.getComponent(UITransform)!,v=t.convertToNodeSpaceAR(new Vec3(p.x,p.y));return Math.abs(v.x)<=t.width/2&&Math.abs(v.y)<=t.height/2;}
 }
 /** Same live world geometry in both maps; buildings are symbols, not a screenshot. */

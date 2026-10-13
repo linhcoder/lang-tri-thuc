@@ -19,6 +19,7 @@ const saveKey='lang-tri-thuc.chapter-one.v2',legacyKey='lang-tri-thuc.learning.v
     async function boot(mobile=false,seed){
         const context=await browser.newContext(mobile?{viewport:{width:390,height:844},isMobile:true,hasTouch:true,userAgent:'Mozilla/5.0 (Linux; Android 13) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Mobile Safari/537.36'}:{viewport:{width:1280,height:720}});
         if(seed)await context.addInitScript(({key,value})=>{if(!sessionStorage.seeded){localStorage.setItem(key,value);sessionStorage.seeded='1';}},seed);
+        if(process.env.QA_API_URL)await context.route('http://127.0.0.1:33000/**',async route=>{const response=await route.fetch({url:route.request().url().replace('http://127.0.0.1:33000',process.env.QA_API_URL)});await route.fulfill({response});});
         const page=await context.newPage();page.on('pageerror',e=>errors.push(String(e)));page.on('console',m=>{if(m.type()==='error')errors.push(m.text());});
         await page.goto(origin);await ready(page);return {context,page};
     }
@@ -30,7 +31,7 @@ const saveKey='lang-tri-thuc.chapter-one.v2',legacyKey='lang-tri-thuc.learning.v
         return {x:r.left+s.x/canvas.width*r.width,y:r.top+(canvas.height-s.y)/canvas.height*r.height,hud:b.isHudControl(w)};
     },{kind,id});}
     async function tap(page,kind,id,mobile=false){const p=await point(page,kind,id);assert.ok(p.x>=0&&p.y>=0,`${kind} outside viewport`);if(mobile)await page.touchscreen.tap(p.x,p.y);else await page.mouse.click(p.x,p.y);await page.waitForTimeout(80);}
-    async function npc(page,kind,mobile=false){const p=await point(page,kind,null),size=page.viewportSize();await tap(page,p.hud||p.x<0||p.x>size.width||p.y<0||p.y>size.height?'objective':kind,null,mobile);await page.waitForFunction(()=>village.dialog.active,undefined,{timeout:20000});}
+    async function npc(page,kind,mobile=false){const p=await point(page,kind,null),size=page.viewportSize(),target=p.hud||p.x<0||p.x>size.width||p.y<0||p.y>size.height?'objective':kind;if(target==='objective')await page.waitForFunction(()=>village.questButton.activeInHierarchy);await tap(page,target,null,mobile);await page.waitForFunction(()=>village.dialog.active,undefined,{timeout:20000});}
     async function reload(page){await page.reload();await ready(page);}
     async function answer(page,value,mobile=false){await tap(page,'button','Answer-'+value,mobile);}
     try{
@@ -73,7 +74,7 @@ const saveKey='lang-tri-thuc.chapter-one.v2',legacyKey='lang-tri-thuc.learning.v
         await tap(mobile.page,'plot',0,true);
         await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:stick.x,y:stick.y,id:1}]});await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
         assert.equal(await mobile.page.evaluate(()=>village.chapter.pending),null);
-        for(let i=0;i<5;i++){await tap(mobile.page,'plot',i,true);await mobile.page.waitForFunction(i=>village.chapterSave.progress.data.planted.includes(i),i,{timeout:20000});}
+        for(let i=0;i<5;i++){await tap(mobile.page,'plot',i,true);try{await mobile.page.waitForFunction(i=>village.chapterSave.progress.data.planted.includes(i),i,{timeout:20000});}catch(e){await mobile.page.screenshot({path:path.join(output,'failure-mobile-plot-'+i+'.png')});console.log('FAILED_PLOT',i,await point(mobile.page,'plot',i),await mobile.page.evaluate(()=>({stage:village.chapterSave.progress.stage,planted:village.chapterSave.progress.data.planted,pending:village.chapter.pending,player:village.player.position})));throw e;}}
         await checkRice(mobile.page);await npc(mobile.page,'farmer',true);assert.equal(await mobile.page.evaluate(()=>village.chapter.node.getChildByName('CountingPlants').children.filter(n=>n.getComponent(ccQA.Sprite)?.spriteFrame).length),3);await mobile.page.screenshot({path:path.join(output,'count-mobile.png')});for(const n of [3,5,2])await answer(mobile.page,n,true);await tap(mobile.page,'button','Close',true);
         await npc(mobile.page,'elder',true);await tap(mobile.page,'button','Continue',true);assert.equal(await mobile.page.evaluate(()=>village.chapterSave.progress.stars),1);
         await aspect(mobile.page);await touchSize(mobile.page);await mobile.page.setViewportSize({width:844,height:390});await mobile.page.waitForTimeout(400);await aspect(mobile.page);await touchSize(mobile.page);assert.equal(await mobile.page.evaluate(()=>village.questButton.active),false);await mobile.page.screenshot({path:path.join(output,'ending-landscape.png')});await tap(mobile.page,'button','Close',true);assert.equal(await mobile.page.evaluate(()=>village.dialog.active),false);results.push('mobile full chapter, touch/joystick ownership, 44px controls and landscape without canvas stretch or HUD obstruction');await mobile.context.close();

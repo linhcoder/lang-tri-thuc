@@ -1,3 +1,4 @@
+import {DialoguePresentation} from './DialoguePresentation';
 import {paintModalFrame,paintModalButton,modalButtonColor} from './ModalTheme';
 import { chapters } from '../world/CampaignContent';
 import { SpeechReader } from './SpeechReader';
@@ -13,6 +14,9 @@ export class ChapterOneView {
     readonly lesson:RiceCountGame;
     onCampaignRequested?:()=>void;
     canRead?:()=>boolean;
+    private presentation=new DialoguePresentation();
+    stepDialogue(dt:number){this.presentation.step(dt);}
+    key(code:number){if(code===13||code===32){if(this.presentation.reveal())return;this.buttons.find(b=>b.node.name==='Continue')?.action();}}
     private buttons:Button[]=[];private feedback='';private spoken='';
     private reader=new SpeechReader();
     private speaker:'elder'|'farmer'='elder';
@@ -40,7 +44,7 @@ export class ChapterOneView {
     }
     private make(parent:Node,name:string,width:number,height:number):Node{const n=new Node(name);n.layer=parent.layer;parent.addChild(n);n.addComponent(UITransform).setContentSize(width,height);return n;}
     private text(parent:Node,value:string,x:number,y:number,width=550,height=70,size=26):Node{
-        const n=this.make(parent,'Text',width,height);n.setPosition(x,y);const l=n.addComponent(Label);l.string=value;l.fontSize=size;l.lineHeight=size+8;l.enableWrapText=true;l.overflow=Label.Overflow.CLAMP;l.color=parent===this.node&&y>=210?new Color(255,245,211):new Color(70,63,40);if(parent===this.node&&y>=210)n.getComponent(UITransform)!.setContentSize(Math.min(width,536),height);return n;
+        const n=this.make(parent,'Text',width,height);n.setPosition(x,y);const l=n.addComponent(Label);l.string=value;l.fontSize=size;l.lineHeight=size+8;l.enableWrapText=true;l.overflow=Label.Overflow.SHRINK;l.color=parent===this.node&&y>=210?new Color(255,245,211):new Color(70,63,40);if(parent===this.node&&y>=210)n.getComponent(UITransform)!.setContentSize(Math.min(width,536),height);return n;
     }
     private button(id:string,value:string,x:number,y:number,width:number,action:()=>void):void{
         const n=this.make(this.node,id,width,76);n.setPosition(x,y);paintModalButton(n,id);
@@ -99,7 +103,7 @@ export class ChapterOneView {
     close():void{this.node.active=false;this.stopReading();}
     handle(point:Point):void{
         const p=this.node.getComponent(UITransform)!.convertToNodeSpaceAR(new Vec3(point.x,point.y,0));
-        const hit=this.buttons.find(b=>Math.abs(p.x-b.node.position.x)<=b.width/2&&Math.abs(p.y-b.node.position.y)<=b.height/2);hit?.action();
+        const hit=this.buttons.find(b=>Math.abs(p.x-b.node.position.x)<=b.width/2&&Math.abs(p.y-b.node.position.y)<=b.height/2);if(hit){this.presentation.reveal();hit.action();}else this.presentation.reveal();
     }
     private stopReading():void{this.reader.stop();}
     private read():void {
@@ -111,7 +115,7 @@ export class ChapterOneView {
         const stage=this.progress.stage,replay=this.progress.data.replayRound;
         let body='',action:(()=>void)|undefined,actionText='Tiếp tục';
         const title=stage==='intro'?'NGÀY VỀ LÀNG':this.speaker==='elder'?'ÔNG ĐỒ • CÂY ĐA TRI THỨC':'BÁC NÔNG DÂN';
-        this.text(this.node,title,0,225,590,65,26);
+        this.text(this.node,title,24,225,475,65,24);this.presentation.portrait(this.node,this.speaker==='elder'?'character.elder':'character.farmer');
         this.button('Close','Đóng',0,-235,150,()=>this.close());
         this.button('Read','Nghe',200,-235,135,()=>this.read());
         this.button('StopRead','Dừng đọc',-200,-235,185,()=>this.stopReading());
@@ -145,10 +149,11 @@ export class ChapterOneView {
         else body='Cháu đã hoàn thành Chương 1! Có thể về Ông Đồ để luyện đếm lần nữa.';
         const question=this.lesson.question!==null&&this.speaker==='farmer';
         this.spoken=body+(question?' Các lựa chọn: '+this.lesson.question!.choices.join(', '):'')+(this.feedback?' '+this.feedback:'');
-        this.text(this.node,body,0,question?140:70,550,question?100:235,question?25:26);
+        const dialogueText=this.text(this.node,body,0,question?140:70,550,question?100:235,question?25:26);
+        if(dialogueText)this.presentation.bind(dialogueText.getComponent(Label)!,body);
         if(action)this.button('Continue',actionText,this.speaker==='elder'&&stage==='complete'&&this.onCampaignRequested?-145:0,-100,this.speaker==='elder'&&stage==='complete'&&this.onCampaignRequested?270:380,action);
         if(this.speaker==='elder'&&stage==='complete'&&this.onCampaignRequested)this.button('Campaign','Chương tiếp',145,-100,270,()=>{this.close();this.onCampaignRequested?.();});
         this.text(this.node,this.feedback,0,-166,575,52,18);
     }
-    dispose():void{this.stopReading();}
+    dispose():void{this.presentation.dispose();this.stopReading();}
 }

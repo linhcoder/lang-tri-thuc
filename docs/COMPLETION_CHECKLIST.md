@@ -1,5 +1,11 @@
 # Đối chiếu hoàn thiện — 12/10/2026
 
+## Chốt bàn giao — 13/10/2026
+
+Người dùng xác nhận chơi thử Android với phụ huynh/bé ổn, xác nhận đã xong các bước còn lại và yêu cầu chốt. Đóng đợt bàn giao `beta-ready-v6`, rules 10 / `785f4e7e`; không có yêu cầu sửa đang mở. Xem [PLAYTEST_QA](PLAYTEST_QA.md).
+
+Offsite tiếp tục chờ kết nối theo lựa chọn đã thống nhất. Giữ nguyên bằng chứng kỹ thuật và các bản ghi duyệt chi tiết trong admin. Việc chốt hồ sơ không tự mở staging ra công khai. Các mục phía dưới là đối chiếu lịch sử trước xác nhận nghiệm thu của người dùng.
+
 ## Trạng thái mới nhất — 13/10/2026
 
 Staging đã cập nhật rules 10 / `785f4e7e`: ba khu mở rộng, chơi chung tối đa bốn người, checkpoint giữa thiết bị, NPC tám pha bước, hai API/phòng với Redis và monitor quản trị. Các mục lịch sử bên dưới giữ nguyên để đối chiếu. Kết quả và giới hạn ở [BETA_TECHNICAL_QA](BETA_TECHNICAL_QA.md).

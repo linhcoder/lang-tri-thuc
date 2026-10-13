@@ -1,5 +1,9 @@
 # Phần còn phát triển — 12/10/2026
 
+## Đóng đợt hiện tại — 13/10/2026
+
+Người dùng xác nhận chơi thử ổn, đã hoàn tất các bước còn lại và yêu cầu chốt bàn giao. Không có lỗi hoặc yêu cầu sửa đang mở cho đợt `beta-ready-v6` / `785f4e7e`. Các mục dưới đây giữ làm lịch sử và tham khảo cho đợt mới; không tự khởi động thêm công việc. Offsite chờ đích kết nối theo lựa chọn đã thống nhất. Xác nhận nghiệm thu tại [PLAYTEST_QA](PLAYTEST_QA.md).
+
 ## Trạng thái mới nhất — 13/10/2026
 
 Các tối ưu ba khu đã lên staging `785f4e7e`, có checkpoint giữa thiết bị, chơi chung bốn người, chặn bạn trong nhóm, tám pha bước NPC, hai API/phòng dùng Redis và cảnh báo quản trị. Chi tiết nghiệm thu tại [BETA_TECHNICAL_QA](BETA_TECHNICAL_QA.md). Các mô tả "local", "chơi cá nhân" và "offsite để sau" trong lịch sử phía dưới thuộc đợt trước.

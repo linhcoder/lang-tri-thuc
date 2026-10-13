@@ -1,5 +1,11 @@
 # Chuẩn bị chơi thử — 12/10/2026
 
+## Chốt nghiệm thu — 13/10/2026
+
+Người dùng xác nhận đã thực hiện các bước chơi thử Android với phụ huynh/bé và thấy ổn, sau đó xác nhận “xong hết rồi chốt đi”. Đóng đợt bàn giao `beta-ready-v6`, rules 10 / `785f4e7e`; chưa ghi nhận lỗi cần sửa từ lượt thử này. Đây là kết quả do người dùng báo lại, không bổ sung số đo hoặc mẫu thiết bị chưa được cung cấp.
+
+Offsite giữ cấu hình chờ kết nối theo lựa chọn trước đó. Các mục dưới đây là lịch sử trước xác nhận nghiệm thu; bằng chứng kỹ thuật tại [BETA_TECHNICAL_QA](BETA_TECHNICAL_QA.md).
+
 Cập nhật 13/10: bản mục tiêu mới là `beta-ready-v6`, rules 10 / `785f4e7e`. QA ba khu, chơi chung, đồng bộ giữa thiết bị, vận hành và các lượt chạy dài nằm tại [BETA_TECHNICAL_QA](BETA_TECHNICAL_QA.md). Các số liệu/rules bên dưới là lịch sử. Chưa có kết quả Android/iOS thật hoặc chơi thử với trẻ.
 
 Đã thêm góp ý chơi thử cho phụ huynh và hàng đợi phản hồi của quản trị. Giữ game v5/rules 8/contentVersion `8f4c4bbd`. Hướng dẫn thao tác và chạy lại kiểm tra: [PLAYTEST_GUIDE](PLAYTEST_GUIDE.md).

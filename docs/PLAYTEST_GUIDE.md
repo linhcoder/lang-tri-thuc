@@ -1,5 +1,7 @@
 # Chơi thử và phản hồi
 
+Đợt `beta-ready-v6` / `785f4e7e` đã chốt ngày 13/10/2026 theo xác nhận chơi thử ổn và hoàn tất các bước của người dùng. Hướng dẫn này được giữ để dùng lại khi cần; không còn lượt test bắt buộc đang chờ trong đợt hiện tại. Biên bản tại [PLAYTEST_QA](PLAYTEST_QA.md).
+
 Phụ huynh đăng nhập trang quản lý, mở Góp ý chơi thử. Chọn Lỗi khi chơi, Độ khó / thao tác hoặc Ý tưởng; có thể chọn trò liên quan. Mô tả việc đã làm, kết quả mong đợi và chỗ bé gặp khó. Không cần thông tin riêng của trẻ. Mỗi góp ý 12–1000 ký tự, tối đa ba góp ý/phút và 100 góp ý/tài khoản; có thể rút lại góp ý không còn cần thiết.
 
 Quản trị viên mở Phản hồi chơi thử, tìm/lọc, bấm Xử lý phản hồi. Ba trạng thái: Chờ xem, Đang xử lý, Đã xử lý. Ghi chú tối đa 500 ký tự và hiển thị cho phụ huynh gửi. Trạng thái/góp ý của phụ huynh khác chỉ được xem bằng tài khoản quản trị. Góp ý nằm trong bản xuất dữ liệu; rút lại hoặc xóa tài khoản sẽ xóa góp ý của tài khoản đó. Mục này riêng với báo cáo hành vi trong game.

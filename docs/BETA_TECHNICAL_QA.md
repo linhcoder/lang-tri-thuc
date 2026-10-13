@@ -1,5 +1,9 @@
 # Kiểm tra kỹ thuật trước lượt chơi thử — 13/10/2026
 
+## Xác nhận bàn giao
+
+Ngày 13/10/2026, người dùng báo đã chơi thử Android với phụ huynh/bé và thấy ổn, sau đó xác nhận các bước đã xong và yêu cầu chốt. Đóng đợt hiện tại theo xác nhận này. Bằng chứng bên dưới giữ nguyên; không suy diễn thêm số đo thiết bị, kết quả iOS hoặc hồ sơ quyền hình ảnh. Trạng thái duyệt chi tiết trong admin giữ nguyên. Offsite chờ kết nối theo lựa chọn đã thống nhất; staging giữ cơ chế truy cập hiện tại.
+
 Bản staging dùng Cocos `beta-ready-v6`, rules 10, contentVersion `785f4e7e`. Release: `29b35d8-beta-ready-785f4e7e-20261013`; source game client `2abd101`, bổ sung vận hành `bb712c9`/`f4bbb06`, sửa máy chủ `d75a13a`, QA mất mạng `8160f20`. Tên thư mục release giữ mã của bước chuẩn bị, nguồn thực tế ghi trong `RELEASE.txt`.
 
 ## Ba khu mở rộng

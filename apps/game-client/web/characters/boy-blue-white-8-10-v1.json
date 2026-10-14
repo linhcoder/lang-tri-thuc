@@ -1,0 +1,17 @@
+{
+  "image": "boy-blue-white-8-10-v1.png",
+  "reference": "docs/design/characters/boy-8-10-blue-white-concept-v1.png",
+  "ageLabel": "8-10",
+  "width": 1774,
+  "height": 887,
+  "columns": 8,
+  "rows": 3,
+  "directions": ["E", "NE", "N", "NW", "W", "SW", "S", "SE"],
+  "animations": {
+    "idle": { "row": 0 },
+    "walk": { "rows": [1, 2], "fps": 6 }
+  },
+  "anchor": { "x": 0.5, "y": 0 },
+  "integrationStatus": "asset-only",
+  "notes": "Generated source atlas. Measure cell bounds and normalize feet before runtime integration. Game age groups currently use 3-5, 6-8 and 9-11; ageLabel is a design label."
+}

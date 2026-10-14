@@ -12,6 +12,6 @@
     "walk": { "rows": [1, 2], "fps": 6 }
   },
   "anchor": { "x": 0.5, "y": 0 },
-  "integrationStatus": "asset-only",
-  "notes": "Generated source atlas. Measure cell bounds and normalize feet before runtime integration. Game age groups currently use 3-5, 6-8 and 9-11; ageLabel is a design label."
+  "integrationStatus": "runtime-avatar-1",
+  "notes": "Integrated as avatar 1. Runtime rows: 0, 300, 594, 887; normalized to 96x128 frames. Game age groups currently use 3-5, 6-8 and 9-11; ageLabel is a design label."
 }

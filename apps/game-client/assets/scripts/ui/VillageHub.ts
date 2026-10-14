@@ -425,7 +425,7 @@ export class VillageHub {
         else if(this.mode==='age'){this.text(this.node,'Chọn mức bắt đầu; không cần ngày sinh hoặc tên thật. Trẻ có thể dùng gợi ý ở mọi mức.',0,100,550,150);(['3-5','6-8','9-11'] as AgeBand[]).forEach((a,i)=>this.button('Age-'+a,a+' tuổi',(i-1)*180,-100,160,()=>{if(this.onStudentChange){this.onStudentChange();return;}this.campaign.data.age=a;this.persist();this.mode='parent';this.render();}));}
         else if(this.mode==='quality'){this.text(this.node,'Low giảm hiệu ứng; Medium và High dùng hình ảnh đầy đủ hơn. Tốc độ và luật chơi giữ nguyên.',0,100,550,150);(['low','medium','high'] as const).forEach((a,i)=>this.button('Quality-'+a,({low:'Thấp',medium:'Vừa',high:'Cao'})[a],(i-1)*180,-100,160,()=>{this.campaign.data.quality=a;this.persist();this.mode='parent';this.render();}));}
         else if(this.mode==='avatar'){
-            avatarNames.map((name,id)=>id===0&&this.campaign.data.age==='6-8'?'Bé trai • áo đỏ sao vàng':name).slice(this.avatarPage*4,this.avatarPage*4+4).forEach((value,local)=>{const i=this.avatarPage*4+local;if(this.studentGender&&([2,3,5].includes(i)!==(this.studentGender==='female')))return;
+            avatarNames.slice(this.avatarPage*4,this.avatarPage*4+4).forEach((value,local)=>{const i=this.avatarPage*4+local;if(this.studentGender&&([2,3,5].includes(i)!==(this.studentGender==='female')))return;
                 const selected=this.campaign.data.avatar===i;
                 const n=this.button('Avatar-'+i,'',(local%2-.5)*292,160-Math.floor(local/2)*80,280,()=>{this.campaign.data.avatar=i;this.persist();this.message='Đã chọn '+value.toLowerCase()+'.';this.render();});
                 this.text(n,value+(selected?' ✓':''),30,0,200,76,21);this.onAvatarPreview?.(n,i);

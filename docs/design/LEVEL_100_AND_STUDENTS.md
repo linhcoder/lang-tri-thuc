@@ -1,5 +1,9 @@
 # Hành trình 100 cấp và hồ sơ học sinh
 
+## Chọn nhân vật từ assets — bản local 15/10/2026
+
+Màn hồ sơ và phần chọn nhân vật trong game dùng avatar 0 cho mẫu áo đỏ sao vàng, avatar 1 cho mẫu áo xanh–trắng. Cả hai dùng atlas có sẵn trong `web/characters` cho xem trước, HUD và hoạt ảnh tám hướng; dùng được ở cả ba nhóm tuổi, không đổi độ khó bài học hoặc ID đã lưu. Hình vẽ sẵn giữ tóc và màu da của mẫu, các nhân vật còn lại vẫn hỗ trợ tùy chỉnh tóc/da. Nếu tải ảnh lỗi, game dùng hình dự phòng. Chưa triển khai thay đổi này lên VPS.
+
 ## Nhân vật bé trai áo đỏ sao vàng — 15/10/2026
 
 Release hiện tại `red-star-boy-d92c670c-20261015`, build `web-desktop`, contentVersion `d92c670c`. Bé trai nhóm 6–8 tuổi chọn avatar 0 có hình vẽ theo ảnh tham khảo và concept `docs/design/characters/boy-6-8-red-star-concept-v1.png`. Atlas `apps/game-client/web/characters/boy-red-star-6-8-v1.png` gồm tám hướng, một hàng đứng và hai hàng bước đi. Cắt hàng theo các rãnh thực tế, chuẩn hóa khung 96×128 và đặt chân cùng đường chuẩn; dùng chung trong làng, HUD và xem trước. Màn hồ sơ ghi “Áo đỏ sao vàng”. Giữ avatar ID cũ, không đổi cấu trúc dữ liệu. Hình painted dùng tóc/màu da mặc định; tùy chỉnh tóc hoặc da dùng fallback vẽ với áo đỏ sao vàng. Nhóm tuổi và avatar khác giữ hình hiện có.

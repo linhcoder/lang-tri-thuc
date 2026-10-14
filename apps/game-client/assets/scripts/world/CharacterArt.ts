@@ -1,6 +1,6 @@
 /** Code-drawn variants and fallback for the approved painted red-star boy. */
 import {isRedStarBoy} from './RedStarBoy';
-export const avatarNames=['Bé trai • áo đỏ','Bé trai • áo xanh','Bé gái • áo hồng','Bé gái • áo vàng','Bé trai • áo lá','Bé gái • áo tím'];
+export const avatarNames=['Bé trai • áo đỏ sao vàng','Bé trai • áo xanh–trắng','Bé gái • áo hồng','Bé gái • áo vàng','Bé trai • áo lá','Bé gái • áo tím'];
 export const skinNames=['Da sáng','Da ấm','Da nâu'];
 const skins=['#f4cba1','#dca478','#98613f'],clothes=['#d95851','#528eca','#e783a2','#eabf49','#6c9d59','#a58ac3'];
 export function paintCharacter(c:CanvasRenderingContext2D,id:number,row:number,direction:number,hair=0,skin=0,phase?:number,age?:'3-5'|'6-8'|'9-11'):void{

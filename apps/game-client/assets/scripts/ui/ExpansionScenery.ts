@@ -43,7 +43,7 @@ export async function createExpansionScenery(actors:Node,world:Node,assets:Villa
     await createSchoolyard(world,actors,assets);
     const make=(name:string,x:number,y:number)=>{const n=new Node('Expansion-'+name);n.layer=actors.layer;actors.addChild(n);n.addComponent(UITransform).setContentSize(260,160);const p=toWorld({x,y});n.setPosition(p.x,p.y);return n;};
     const garden=landmarkFootprints.find(f=>f.id==='expansion.garden')!,school=landmarkFootprints.find(f=>f.id==='expansion.school')!;
-    await Promise.all([{id:'garden',name:'Garden',x:garden.x,y:garden.y,width:280},{id:'riverside',name:'RiverDock',x:19,y:40,width:340},{id:'school',name:'SchoolPlay',x:school.x,y:school.y,width:360}].map(async item=>{
+    await Promise.all([{id:'garden',name:'Garden',x:garden.x,y:garden.y,width:280},{id:'school',name:'SchoolPlay',x:school.x,y:school.y,width:360}].map(async item=>{
         const frame=await assets.ensureObject('expansion.'+item.id,-1);if(!actors.isValid||!frame)return;const root=make(item.name,item.x,item.y);assets.sprite(root,'PaintedLandmark',frame,item.width,item.width*frame.rect.height/frame.rect.width);
     }));
     const signFrame=await assets.ensureObject('scenery.wood-sign',-1);if(!world.isValid||!signFrame)return;

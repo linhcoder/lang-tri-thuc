@@ -1,0 +1,82 @@
+[
+  {
+    "id": "craft",
+    "width": 1774,
+    "height": 887,
+    "bytes": 2549674,
+    "sha256": "fe76d93ae9313aba8831d068978e79458e98905da46d841574d9fef9b0084a76",
+    "alpha": true
+  },
+  {
+    "id": "culture",
+    "width": 1774,
+    "height": 887,
+    "bytes": 2491898,
+    "sha256": "ca49ee45b26b4ee240e9094c9b071fbba88f2bb5e8233973cf9f442a72695b02",
+    "alpha": true
+  },
+  {
+    "id": "farm",
+    "width": 1774,
+    "height": 887,
+    "bytes": 2542818,
+    "sha256": "0ee2b90206497487b4ff202465376bcc2be8913bee9ef560a2394b3d3294c102",
+    "alpha": true
+  },
+  {
+    "id": "forest",
+    "width": 1774,
+    "height": 887,
+    "bytes": 2420676,
+    "sha256": "96e1a196a7605cd2409110eb0f4d3ea09e4ca1d1d2c9dbf1fc72638c9f6c9f95",
+    "alpha": true
+  },
+  {
+    "id": "island",
+    "width": 1774,
+    "height": 887,
+    "bytes": 1611303,
+    "sha256": "9be2daf3c5b987852490d9d0b179357ba51d959a878f7480c1c4b108526cda2e",
+    "alpha": true
+  },
+  {
+    "id": "market",
+    "width": 1774,
+    "height": 887,
+    "bytes": 2192007,
+    "sha256": "241e903db91afc7467935eb9bd05ed326c97343a1992952dff5b6665d22bead8",
+    "alpha": true
+  },
+  {
+    "id": "river",
+    "width": 1774,
+    "height": 887,
+    "bytes": 2055303,
+    "sha256": "c3d450c5060efba17b6185856f8ac1a72cebb902a29e327a7b39a65278386a66",
+    "alpha": true
+  },
+  {
+    "id": "school",
+    "width": 1774,
+    "height": 887,
+    "bytes": 2343854,
+    "sha256": "1bf6bbfc425c4eb2d9e69979ff21cd1b0802f314f63bfaa6bedadec6b9ea8e05",
+    "alpha": true
+  },
+  {
+    "id": "science",
+    "width": 1774,
+    "height": 887,
+    "bytes": 1437540,
+    "sha256": "8fb5c54b0c37b73c6e1ea44c2493be29348716c791d724bf59f00c93b5769f02",
+    "alpha": true
+  },
+  {
+    "id": "village",
+    "width": 1659,
+    "height": 948,
+    "bytes": 2200716,
+    "sha256": "06120d9bcc575e95b1be74433968b8631cdcb1cb8ddb543401aad4fcae537d70",
+    "alpha": true
+  }
+]

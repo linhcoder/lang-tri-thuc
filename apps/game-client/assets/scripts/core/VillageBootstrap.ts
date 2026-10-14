@@ -199,10 +199,10 @@ export class VillageBootstrap extends Component {
         this.backdrop = ui(this.root, 'VillageBackground').addComponent(Graphics);
         this.world = ui(this.root, 'VillageWorld');
         this.drawMap();
-        createJourneyScenery(this.world);
         this.marker = ui(this.world, 'Destination'); const mg=this.marker.addComponent(Graphics);
         mg.strokeColor=new Color(255,250,210);mg.lineWidth=3;mg.ellipse(0,0,20,10);mg.stroke();this.marker.active=false;
         this.actors = ui(this.world, 'DepthSortedActors');
+        createJourneyScenery(this.world,this.actors);
         const pn = this.character(this.student?.profile.label??'Em bé', new Color(237, 115, 86), false);
         this.player = pn.addComponent(PlayerController); this.player.map = this.map;
         this.playerVisual = new PlayerVisual(pn);
@@ -255,7 +255,8 @@ export class VillageBootstrap extends Component {
             const loadPack=(name:string)=>new Promise<JsonAsset>((resolve,reject)=>resources.load(name,JsonAsset,(error,asset)=>{packCount++;progress();error?reject(error):resolve(asset);}));
             const [,pack,lessons,npcPack]=await Promise.all([this.art.load(value=>{artProgress=value;progress();}),loadPack('chapter-pack'),loadPack('lesson-pack'),loadPack('npc-pack')]);
             if(!this.isValid)return;
-            await decorateJourneyScenery(this.world,this.art);if(!this.isValid)return;
+            await decorateJourneyScenery(this.actors,this.art);if(!this.isValid)return;
+            this.sceneryNodes.push(...this.actors.children.filter(n=>n.name.startsWith('JourneyLandmark-')));
             this.cms=new CmsActors(this.root,this.actors,this.art,this.player,id=>{const index=chapters.findIndex(c=>c.quests.some(q=>q.id===id));if(index===0){this.hub?.close();this.chapter?.open(['q.ch01.plant','q.ch01.count'].includes(id)?'farmer':'elder');}else if(index>0)this.hub?.open('chapter',index);});void this.cms.load();
             if(!applyChapterText(pack.json))console.warn('Invalid chapter text pack: using built-in content');
             if(!applyLessonPack(lessons.json))console.warn('Invalid lesson pack: using built-in questions');
@@ -283,7 +284,7 @@ export class VillageBootstrap extends Component {
                 node.getComponent(UITransform)!.setAnchorPoint(0.5,0.5);node.setPosition(p.x,p.y);
             }
             for(const object of villageDetails){const frame=this.art.detailFrame(object.id,object.frame);if(!frame)continue;const node=this.art.sprite(this.actors,'Detail-'+object.id,frame,object.width,object.height),p=toWorld(object);node.setPosition(p.x,p.y);if(object.id.startsWith('bridge')){node.getComponent(UITransform)!.setAnchorPoint(.5,.5);node.setParent(this.world);node.setSiblingIndex(this.actors.getSiblingIndex());}this.sceneryNodes.push(node);}
-            for(const object of villageObjects){let node:Node;const objectFrame=this.art.objectFrame(object.id,object.frame);if(objectFrame)node=this.art.sprite(this.actors,object.id,objectFrame,object.width,object.height);else{node=ui(this.actors,object.id,object.width,object.height);node.getComponent(UITransform)!.setAnchorPoint(.5,0);const g=node.addComponent(Graphics);g.fillColor=new Color(139,161,102,150);g.ellipse(0,10,object.width*.3,15);g.fill();this.regionalScenery.push({node,id:object.id,frame:object.frame,pending:false});}const p=toWorld(object);node.setPosition(p.x,p.y);this.sceneryNodes.push(node);}
+            for(const object of villageObjects){if(object.id==='banyan'||object.id==='tree-east')continue;let node:Node;const objectFrame=this.art.objectFrame(object.id,object.frame);if(objectFrame)node=this.art.sprite(this.actors,object.id,objectFrame,object.width,object.height);else{node=ui(this.actors,object.id,object.width,object.height);node.getComponent(UITransform)!.setAnchorPoint(.5,0);const g=node.addComponent(Graphics);g.fillColor=new Color(139,161,102,150);g.ellipse(0,10,object.width*.3,15);g.fill();this.regionalScenery.push({node,id:object.id,frame:object.frame,pending:false});}const p=toWorld(object);node.setPosition(p.x,p.y);this.sceneryNodes.push(node);}
             if(this.demo)await this.art.ensureEnvironment(4);
             for(let i=0;this.demo&&i<riceBundles.length;i++){
                 const p=toWorld(riceBundles[i]),node=ui(this.actors,`RiceBundle-${i}`,75,95);node.setPosition(p.x,p.y);
@@ -510,7 +511,7 @@ export class VillageBootstrap extends Component {
             });
         }
         if(this.assetsReady&&!this.sceneryPending&&sceneryPlacements().some(item=>{const p=toWorld(item);return Math.abs(p.x+camera.x)<cameraWidth/2+250&&Math.abs(p.y+camera.y)<cameraHeight/2+250;})){
-            this.sceneryPending=true;void this.art.ensureScenery().then(()=>{if(!this.isValid)return;for(const item of sceneryPlacements()){const frame=this.art.scenery[item.cell];if(!frame)continue;const n=this.art.sprite(this.actors,'Scenery-'+item.id,frame,item.width,item.height),p=toWorld(item);n.setPosition(p.x,p.y);this.sceneryNodes.push(n);if(item.id.startsWith('sign-')){n.setParent(this.world);n.setSiblingIndex(this.world.children.length-1);const titles:Record<string,string>={'sign-banyan':'Cây Đa Tri Thức','sign-courtyard':'Sân Đình','sign-well':'Giếng Làng','sign-market':'Chợ Quê','sign-home':'Nhà Của Bé','sign-rice':'Ruộng Lúa'};const sign=villageSignLabel(n,titles[item.id]??'',item.width,item.height,'Text').node;if(item.id==='sign-banyan'){const words=(titles[item.id]??'').split(' ');sign.getComponent(Label)!.string=words.slice(0,2).join(' ')+'\n'+words.slice(2).join(' ');const pin=ui(n,'QuestPin',30,38),g=pin.addComponent(Graphics);pin.setPosition(0,87);g.fillColor=new Color(255,204,64);g.circle(0,0,13);g.fill();g.moveTo(-5,-9);g.lineTo(0,-22);g.lineTo(5,-9);g.close();g.fill();g.strokeColor=new Color(255,246,196);g.lineWidth=2;g.circle(0,0,13);g.stroke();label(pin,'!',22,25,20).getComponent(Label)!.color=new Color(70,48,25);}sign.getComponent(Label)!.color=new Color(255,244,205);}if(!item.essential)this.optionalScenery.add(n);}this.sceneryReady=this.art.scenery.length===10;});
+            this.sceneryPending=true;void this.art.ensureScenery().then(()=>{if(!this.isValid)return;for(const item of sceneryPlacements()){if(item.id==='market')continue;const frame=this.art.scenery[item.cell];if(!frame)continue;const n=this.art.sprite(this.actors,'Scenery-'+item.id,frame,item.width,item.height),p=toWorld(item);n.setPosition(p.x,p.y);this.sceneryNodes.push(n);if(item.id.startsWith('sign-')){n.setParent(this.world);n.setSiblingIndex(this.world.children.length-1);const titles:Record<string,string>={'sign-banyan':'Cây Đa Tri Thức','sign-courtyard':'Sân Đình','sign-well':'Giếng Làng','sign-market':'Chợ Quê','sign-home':'Nhà Của Bé','sign-rice':'Ruộng Lúa'};const sign=villageSignLabel(n,titles[item.id]??'',item.width,item.height,'Text').node;if(item.id==='sign-banyan'){const words=(titles[item.id]??'').split(' ');sign.getComponent(Label)!.string=words.slice(0,2).join(' ')+'\n'+words.slice(2).join(' ');const pin=ui(n,'QuestPin',30,38),g=pin.addComponent(Graphics);pin.setPosition(0,87);g.fillColor=new Color(255,204,64);g.circle(0,0,13);g.fill();g.moveTo(-5,-9);g.lineTo(0,-22);g.lineTo(5,-9);g.close();g.fill();g.strokeColor=new Color(255,246,196);g.lineWidth=2;g.circle(0,0,13);g.stroke();label(pin,'!',22,25,20).getComponent(Label)!.color=new Color(70,48,25);}sign.getComponent(Label)!.color=new Color(255,244,205);}if(!item.essential)this.optionalScenery.add(n);}this.sceneryReady=this.art.scenery.length===10;});
         }
         for(const scenery of this.sceneryNodes){const bounds=scenery.getComponent(UITransform)!;scenery.active=(!this.optionalScenery.has(scenery)||this.hub?.campaign.data.quality!=='low')&&Math.abs(scenery.position.x+camera.x)<cameraWidth/2+bounds.width&&Math.abs(scenery.position.y+camera.y)<cameraHeight/2+bounds.height;}
         // Foliage/roofs fade when they would cover the local child's face. Collision is unchanged.

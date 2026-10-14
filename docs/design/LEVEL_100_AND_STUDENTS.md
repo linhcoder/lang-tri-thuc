@@ -1,5 +1,9 @@
 # Hành trình 100 cấp và hồ sơ học sinh
 
+## Thiết kế mới toàn bộ cảnh vùng — bản local 15/10/2026
+
+Mười vùng hành trình có mười ảnh cảnh chính mới, sinh độc lập, không dùng chung nhà/đình/cây đa để thay thế cảnh vùng khác. Bộ PNG alpha riêng nằm trong `assets/resources/village/journey-regions-v1/`; thông tin, prompt và checksum tại [JOURNEY_REGION_ASSETS](JOURNEY_REGION_ASSETS.md). Thay đổi này chưa triển khai lên VPS. Mục Bản đồ bên dưới mô tả lần mở rộng trước khi có bộ hình riêng.
+
 ## Chọn nhân vật từ assets — VPS 15/10/2026
 
 Màn hồ sơ và phần chọn nhân vật trong game dùng avatar 0 cho mẫu áo đỏ sao vàng, avatar 1 cho mẫu áo xanh–trắng. Cả hai dùng atlas có sẵn trong `web/characters` cho xem trước, HUD và hoạt ảnh tám hướng; dùng được ở cả ba nhóm tuổi, không đổi độ khó bài học hoặc ID đã lưu. Hình vẽ sẵn giữ tóc và màu da của mẫu, các nhân vật còn lại vẫn hỗ trợ tùy chỉnh tóc/da. Nếu tải ảnh lỗi, game dùng hình dự phòng.

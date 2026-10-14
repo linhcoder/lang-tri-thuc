@@ -1,5 +1,9 @@
 # aaPanel staging: ltt.vui-hoc.xyz
 
+## Chọn nhân vật từ assets — 15/10/2026
+
+Release hiện tại `character-assets-8eb9f85-20261015`, source commit `8eb9f85`, build `web-desktop`, contentVersion `d92c670c`. Chọn mẫu áo đỏ sao vàng hoặc xanh–trắng ở màn hồ sơ và trong game, dùng cùng atlas cho preview/HUD/đứng/đi tám hướng ở mọi nhóm tuổi. Overlay 12 file SHA-256 `a95878c515d9fd231fa252db3b65aa4c2f85ea48d1dc853ac2591251e9ac8d3a`; checksum source/Web khớp. Backup `/opt/lang-tri-thuc/backups/database-20261014T194401Z.sql` phục hồi thử đạt; bản `red-star-boy-d92c670c-20261015` giữ để rollback. Hai API MySQL healthy, CMS giữ nguyên. QA HTTPS avatar xanh–trắng/24 frame/HUD/hồ sơ MySQL/desktop/mobile ngang và API/quyền phòng đạt, page errors rỗng; tài khoản QA đã xóa. Evidence local ignored: `temp/deploy/qa/character-assets-live/`. Các release dưới đây là lịch sử.
+
 ## Nhân vật bé trai áo đỏ sao vàng — 15/10/2026
 
 Release hiện tại `red-star-boy-d92c670c-20261015`, build `web-desktop`, contentVersion `d92c670c`. Bé trai nhóm 6–8 tuổi chọn avatar 0 có hình vẽ theo ảnh tham khảo và concept `docs/design/characters/boy-6-8-red-star-concept-v1.png`. Atlas `apps/game-client/web/characters/boy-red-star-6-8-v1.png` gồm tám hướng, một hàng đứng và hai hàng bước đi. Cắt hàng theo các rãnh thực tế, chuẩn hóa khung 96×128 và đặt chân cùng đường chuẩn; dùng chung trong làng, HUD và xem trước. Màn hồ sơ ghi “Áo đỏ sao vàng”. Giữ avatar ID cũ, không đổi cấu trúc dữ liệu. Hình painted dùng tóc/màu da mặc định; tùy chỉnh tóc hoặc da dùng fallback vẽ với áo đỏ sao vàng. Nhóm tuổi và avatar khác giữ hình hiện có.

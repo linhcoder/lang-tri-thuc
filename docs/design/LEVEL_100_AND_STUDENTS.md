@@ -1,8 +1,10 @@
 # Hành trình 100 cấp và hồ sơ học sinh
 
-## Chọn nhân vật từ assets — bản local 15/10/2026
+## Chọn nhân vật từ assets — VPS 15/10/2026
 
-Màn hồ sơ và phần chọn nhân vật trong game dùng avatar 0 cho mẫu áo đỏ sao vàng, avatar 1 cho mẫu áo xanh–trắng. Cả hai dùng atlas có sẵn trong `web/characters` cho xem trước, HUD và hoạt ảnh tám hướng; dùng được ở cả ba nhóm tuổi, không đổi độ khó bài học hoặc ID đã lưu. Hình vẽ sẵn giữ tóc và màu da của mẫu, các nhân vật còn lại vẫn hỗ trợ tùy chỉnh tóc/da. Nếu tải ảnh lỗi, game dùng hình dự phòng. Chưa triển khai thay đổi này lên VPS.
+Màn hồ sơ và phần chọn nhân vật trong game dùng avatar 0 cho mẫu áo đỏ sao vàng, avatar 1 cho mẫu áo xanh–trắng. Cả hai dùng atlas có sẵn trong `web/characters` cho xem trước, HUD và hoạt ảnh tám hướng; dùng được ở cả ba nhóm tuổi, không đổi độ khó bài học hoặc ID đã lưu. Hình vẽ sẵn giữ tóc và màu da của mẫu, các nhân vật còn lại vẫn hỗ trợ tùy chỉnh tóc/da. Nếu tải ảnh lỗi, game dùng hình dự phòng.
+
+Đã triển khai release `character-assets-8eb9f85-20261015` từ commit `8eb9f85`, build `web-desktop`, contentVersion `d92c670c`. Overlay 12 file, SHA-256 `a95878c515d9fd231fa252db3b65aa4c2f85ea48d1dc853ac2591251e9ac8d3a`; checksum source/Web khớp. Backup `/opt/lang-tri-thuc/backups/database-20261014T194401Z.sql` đã phục hồi thử khớp dữ liệu; giữ release `red-star-boy-d92c670c-20261015` để rollback. Hai API health MySQL đạt, CMS không đổi. TypeScript, test client và build Cocos đạt. QA HTTPS đạt chọn mẫu xanh–trắng, lưu avatar vào hồ sơ MySQL, 24 khung hoạt ảnh, cả hai bộ hình qua nhóm tuổi, HUD tên học sinh, desktop/mobile ngang, không có page error. Đã xem ảnh mobile và atlas; tài khoản QA đã xóa. Báo cáo local ignored: `temp/deploy/qa/character-assets-live/`. QA API/quyền quản trị và chặn phòng không vé đạt.
 
 ## Nhân vật bé trai áo đỏ sao vàng — 15/10/2026
 

@@ -155,7 +155,7 @@ test('keyboard aliases, opposite keys, diagonal normalization and 8 directions',
     for(let i=0;i<8;i++) assert.equal(m.direction8({x:Math.cos(i*Math.PI/4),y:Math.sin(i*Math.PI/4)}),i);
 });
 test('camera rectangular limits and oversized viewport',()=> {
-    assert.deepEqual(m.cameraOffset({x:9000,y:-9000},1280,720),{x:-896,y:1176});
+    assert.deepEqual(m.cameraOffset({x:9000,y:-9000},1280,720),{x:-1664,y:1944});
     const p=m.cameraOffset({x:0,y:0},4000,2000); assert.ok(Number.isFinite(p.x)&&Number.isFinite(p.y));
 });
 test('touch ownership, drag filtering, cancel and keyboard dialogue reset',()=> {

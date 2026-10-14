@@ -1,5 +1,19 @@
 # CMS — luồng nội dung staging
 
+## Nhân vật bé trai áo đỏ sao vàng — 15/10/2026
+
+Release hiện tại `red-star-boy-d92c670c-20261015`, build `web-desktop`, contentVersion `d92c670c`. Bé trai nhóm 6–8 tuổi chọn avatar 0 có hình vẽ theo ảnh tham khảo và concept `docs/design/characters/boy-6-8-red-star-concept-v1.png`. Atlas `apps/game-client/web/characters/boy-red-star-6-8-v1.png` gồm tám hướng, một hàng đứng và hai hàng bước đi. Cắt hàng theo các rãnh thực tế, chuẩn hóa khung 96×128 và đặt chân cùng đường chuẩn; dùng chung trong làng, HUD và xem trước. Màn hồ sơ ghi “Áo đỏ sao vàng”. Giữ avatar ID cũ, không đổi cấu trúc dữ liệu. Hình painted dùng tóc/màu da mặc định; tùy chỉnh tóc hoặc da dùng fallback vẽ với áo đỏ sao vàng. Nhóm tuổi và avatar khác giữ hình hiện có.
+
+Overlay 15 file, SHA-256 `f4122498242f76f74ed8be75e359514d75e994e9b12be04db3bc4a2786d2759b`; checksum source/Web khớp. Backup `/opt/lang-tri-thuc/backups/database-20261014T184047Z.sql` đã phục hồi thử đạt. Giữ release `level100-students-d92c670c-20261015` để rollback. Hai API health MySQL đạt; CMS manifest và nội dung không thay đổi. QA local TypeScript, client logic/lifecycle và Cocos desktop/mobile đạt; kiểm 24 frame, hình xem trước, tên HUD và phân biệt tuổi/avatar, không có page error. Artifact local `apps/game-client/temp/red-star-qa/`.
+
+## Triển khai VPS — 15/10/2026
+
+Release `/opt/lang-tri-thuc/releases/level100-students-d92c670c-20261015`, build `web-desktop`, contentVersion `d92c670c`, game https://ltt.vui-hoc.xyz/game/. Source working tree được đóng gói đầy đủ; 43 file khác release trước được tải bằng overlay sau khi đối chiếu SHA-256 từng file. Overlay SHA-256 `769465ccf15c78da1f29ffe832a4340a0b17fb676352fa29f8b675248fe81420`. `package-lock.json` được npm prune cập nhật trên Linux.
+
+Backup `/opt/lang-tri-thuc/backups/database-20261014T181651Z.sql` đã phục hồi thử và khớp dữ liệu. Giữ release `schoolyard-mobile-e5d974a-20261014` để rollback ứng dụng. Hai API và hai rooms active; cả hai API health MySQL/version đạt. CMS được nâng compatibility sang bản mới, NPC không thay đổi; manifest mới `9526d4b358c398958d5b83d7beb1a45fe8ad475c3eb6e3b5caf15ce3e060c1f4`.
+
+QA HTTPS quản trị/CMS, chặn API nội bộ và phòng không vé đạt. QA signed WebSocket đạt tên/tuổi/nhân vật, câu trả lời hành trình do server xác nhận và đọc lại tiến độ MySQL. Tài khoản QA đã xóa. Thông tin mật khẩu QA local là JSON string có dấu nháy; cần giải mã trước khi đăng nhập.
+
 Đợt 13/10/2026 triển khai luồng ưu tiên người dùng đã chọn: **asset có sẵn → NPC mới → đặt trên bản đồ → hội thoại / nhiệm vụ liên kết → kiểm duyệt → xuất bản staging → Cocos**. Đây là lớp NPC bổ sung; các phân hệ nâng cao trong master prompt tiếp tục theo giai đoạn, không được coi là đã hoàn thành toàn bộ.
 
 Bản sửa va chạm/bố trí ngày 13/10/2026 chuyển navigation sang `818a32e3`; snapshot staging hiện tại `500f4374bb2c…` giữ nguyên NPC/hội thoại từ `578f129d038e…`, có baseVersion mới. Migration chỉ áp dụng bản đã xuất bản hợp lệ từ `785f4e7e`, giữ lịch sử và bản nháp; chi tiết tại [LANDMARK_FIXES](LANDMARK_FIXES.md). Tải lại game sau cập nhật và làm mới workspace CMS nếu đang mở revision cũ.
@@ -66,3 +80,5 @@ Build admin staging cần `VITE_API_URL=https://ltt.vui-hoc.xyz/api`, `VITE_GAME
 ## Các giai đoạn tiếp theo chưa triển khai
 
 Upload/versioning asset mới; world editor cho cây/nhà/trigger, layer/transform/multi-select/undo-redo; lịch sinh hoạt và điều kiện hội thoại; nhiệm vụ mới với rewards/dependency graph; ngân hàng câu hỏi mở rộng; Daily Events biên tập; publish production và manifest tải asset remote. CMS hiện tại tiếp tục giữ các màn quản lý gia đình, chương, bài học và metadata tài nguyên cũ.
+
+QA trình duyệt HTTPS đã đạt đăng nhập bắt buộc, tên bé chính xác, ba nhóm tuổi/giới tính, thưởng cấp một lần, tiến độ MySQL và trang phục sau reload, cách ly học sinh, bốn khu mới, desktop/mobile ngang và logout; page errors rỗng. Báo cáo/ảnh local ignored `temp/deploy/qa/level100-live/`. Cleanup sau logout cần đăng nhập lại tài khoản fixture vì token cũ đã bị thu hồi; đã xác minh và tự xóa qua API.

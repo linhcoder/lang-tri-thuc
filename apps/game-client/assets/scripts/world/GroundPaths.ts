@@ -11,6 +11,10 @@ export const groundAssets = [
 
 // Connected spines with bends and branches. Independent control points are editable.
 export const villagePaths:ReadonlyArray<ReadonlyArray<Point>> = [
+    [{x:40,y:22},{x:48,y:22},{x:55,y:22},{x:55,y:18}],
+    [{x:55,y:22},{x:55,y:33},{x:55,y:45},{x:55,y:56}],
+    [{x:55,y:33},{x:56,y:33}],
+    [{x:34,y:36},{x:34,y:46},{x:34,y:56},{x:55,y:56},{x:56,y:56}],
     [{x:34,y:22},{x:36,y:20},{x:40,y:16},{x:40,y:26},{x:40,y:33}],
     [{x:25,y:31},{x:26,y:36},{x:20,y:36},{x:20,y:40}],
     [{x:26,y:36},{x:34,y:36},{x:40,y:33}],

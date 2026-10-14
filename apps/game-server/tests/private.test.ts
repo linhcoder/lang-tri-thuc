@@ -10,8 +10,31 @@ import {CampaignEngine} from '../../game-client/assets/scripts/world/CampaignEng
 import {ChapterOneProgress} from '../../game-client/assets/scripts/world/ChapterOneProgress';
 import {toWorld} from '../../game-client/assets/scripts/world/VillageModel';
 import {worldZones} from '../../game-client/assets/scripts/world/WorldZones';
+import {journeyQuestions} from '../../game-client/assets/scripts/world/LevelJourney';
+import {lessonQuestions} from '../../game-client/assets/scripts/world/EducationEngine';
 import {mkdir,writeFile} from 'node:fs/promises';
 const secret='integration-only-room-secret-32-characters-long';
+
+test('personal learning survives entering a friend room while story stars remain verified',{timeout:30000},async()=>{
+ const store=new SqliteRepository(),api=await createApi({store,roomSecret:secret});await api.listen({port:26618,host:'127.0.0.1'});
+ const server=await startServer(26619,'127.0.0.1',{roomSecret:secret,apiUrl:'http://127.0.0.1:26618'});let room:any;
+ const req=(method:any,url:string,payload?:any,token?:string)=>api.inject({method,url,payload,headers:token?{authorization:'Bearer '+token}:{}});
+ try{
+  await req('POST','/parents',{alias:'learning-history-parent',password:'LearningHistoryPassword123!'});const token=(await req('POST','/sessions',{alias:'learning-history-parent',password:'LearningHistoryPassword123!'})).json().token;
+  const profile=(await req('POST','/profiles',{label:'Minh Anh',age:'3-5',gender:'female',avatar:2},token)).json(),solo=new CampaignEngine();
+  solo.syncChapterOne({version:2,introSeen:true,greeted:true,accepted:true,planted:[0,1,2,3,4],countRound:3,rewardReceipts:['reward.star.ch01'],replayRound:null,legacyDemoBadge:false});
+  for(let round=0;round<3;round++)solo.answerJourney('journey.village.1',round,journeyQuestions('journey.village.1',solo.data.age,lessonQuestions)[round].answer);
+  solo.answerJourney('journey.village.2',0,journeyQuestions('journey.village.2',solo.data.age,lessonQuestions)[0].answer);
+  assert.equal((await req('PUT',`/profiles/${profile.id}/progress`,{revision:0,campaign:JSON.stringify(solo.data)},token)).statusCode,200);
+  const invitation=(await req('POST','/invites',{profileId:profile.id},token)).json();room=await new Client('http://127.0.0.1:26619').joinOrCreate('private-friend',{roomCode:invitation.roomCode,ticket:invitation.ticket});
+  let progress:any;room.onMessage('content-version',()=>{});room.onMessage('activities-state',()=>{});room.onMessage('progress-state',(value:any)=>progress=value);room.onMessage('storage-warning',()=>{});room.send('ready');await until(()=>!!progress);
+  const restored=new CampaignEngine();assert.equal(restored.restore(JSON.stringify(progress.campaign)),true);assert.equal(restored.xp,solo.xp);assert.equal(restored.level,solo.level);assert.equal(restored.stars,0);assert.equal(restored.journey.rounds['journey.village.2'],1);
+  assert.equal(room.state.players.get(room.sessionId).name,'Minh Anh');assert.equal(room.state.players.get(room.sessionId).age,'3-5');
+  for(const round of [1,2]){room.send('journey-answer',{id:'journey.village.2',round,index:journeyQuestions('journey.village.2','3-5',lessonQuestions)[round].answer});await until(()=>round===2?progress.campaign.journey.completed.includes('journey.village.2'):progress.campaign.journey.rounds['journey.village.2']===2);}
+  assert.deepEqual(progress.campaign.receipts,[]);for(let i=0;i<100;i++){const saved=await store.transaction(d=>d.progress[profile.id]?.trusted?.campaign as any);if(saved?.journey.completed.includes('journey.village.2'))break;await wait(20);}
+  const saved=(await req('GET',`/profiles/${profile.id}/play`,undefined,token)).json().progress.data;assert.ok(saved.journey.completed.includes('journey.village.2'));assert.deepEqual(saved.receipts,[]);
+ }finally{await room?.leave();await server.gracefullyShutdown(false);await api.close();}
+});
 const wait=(ms:number)=>new Promise(r=>setTimeout(r,ms));
 async function until(fn:()=>boolean){for(let i=0;i<150;i++){if(fn())return;await wait(30);}throw Error('Synchronization timeout');}
 test('private rooms enforce invitations, authoritative results, emotes and 10/16/20 client load',{timeout:90000},async()=>{
@@ -32,7 +55,10 @@ test('private rooms enforce invitations, authoritative results, emotes and 10/16
   const a=await client.joinOrCreate('private-friend',{roomCode:invitation.roomCode,ticket:invitation.ticket}),b=await client.joinOrCreate('private-friend',{roomCode:admitted.roomCode,ticket:admitted.ticket});rooms=[a,b];let progress:any,emotes=0,version='';a.onMessage('content-version',(v:string)=>version=v);b.onMessage('content-version',()=>{});
   a.onMessage('progress-state',v=>progress=v);a.onMessage('correction',()=>{});a.onMessage('storage-warning',()=>{});b.onMessage('progress-state',()=>{});b.onMessage('storage-warning',()=>{});b.onMessage('emote',()=>emotes++);a.onMessage('emote',()=>{});a.onMessage('blocked',()=>{});a.onMessage('report-sent',()=>{});
   a.send('ready');await until(()=>!!progress);assert.match(version,/^[a-f0-9]{8}$/);a.send('claim-star',{index:7});await wait(100);assert.equal(progress.campaign.receipts.length,1);
-  a.send('move',{x:999,y:999,direction:0,moving:true,seq:1});await wait(100);assert.equal(a.state.players.get(a.sessionId).x,0);a.send('portal',{id:'farm'});await wait(100);assert.equal(a.state.players.get(a.sessionId).x,0);for(let n=1;n<=8;n++){a.send('move',{x:-16*n,y:-640-8*n,direction:4,moving:true,seq:n+1});await wait(150);}a.send('portal',{id:'farm'});const farm=toWorld(worldZones.find(z=>z.id==='farm')!.spawn);await until(()=>a.state.players.get(a.sessionId).x===farm.x&&a.state.players.get(a.sessionId).y===farm.y);assert.equal(a.state.players.get(a.sessionId).y,farm.y);
+  a.send('journey-answer',{id:'journey.village.1',round:0,index:1});await wait(100);assert.equal(progress.campaign.journey.rounds['journey.village.1']??0,0);
+  for(const [round,index] of [0,2,1].entries()){a.send('journey-answer',{id:'journey.village.1',round,index});await until(()=>round===2?progress.campaign.journey.completed.includes('journey.village.1'):progress.campaign.journey.rounds['journey.village.1']===round+1);}
+  a.send('journey-answer',{id:'journey.village.1',round:2,index:1});await wait(100);assert.deepEqual(progress.campaign.journey.completed,['journey.village.1']);assert.equal(progress.campaign.receipts.length,1);
+  a.send('move',{x:999,y:999,direction:0,moving:true,seq:1});await wait(100);assert.equal(a.state.players.get(a.sessionId).x,0);a.send('portal',{id:'farm'});await wait(100);assert.equal(a.state.players.get(a.sessionId).x,0);for(let n=1;n<=8;n++){a.send('move',{x:-16*n,y:-640-8*n,direction:4,moving:true,seq:n+1});await wait(150);}a.send('portal',{id:'farm'});await wait(100);assert.equal(a.state.players.get(a.sessionId).x,-128,'Low-level players cannot use the locked farm portal');a.send('portal',{id:'home'});const farm=toWorld(worldZones.find(z=>z.id==='home')!.spawn);await until(()=>a.state.players.get(a.sessionId).x===farm.x&&a.state.players.get(a.sessionId).y===farm.y);assert.equal(a.state.players.get(a.sessionId).y,farm.y);
   a.send('start-game',{questId:'q.ch02.play-o-an-quan'});await until(()=>!!b.state.gameJson);assert.equal(a.state.gameJson,b.state.gameJson);a.send('pause-game',{paused:true});await until(()=>JSON.parse(a.state.gameJson).paused===true);const pausedClock=JSON.parse(a.state.gameJson).clock;await wait(250);assert.equal(JSON.parse(a.state.gameJson).clock,pausedClock);a.send('pause-game',{paused:false});await until(()=>JSON.parse(a.state.gameJson).paused===false);
   const feedback:any[]=[],peerFeedback:any[]=[];a.onMessage('game-feedback',v=>feedback.push(v));b.onMessage('game-feedback',v=>peerFeedback.push(v));
   const acceptedTrace=JSON.stringify(JSON.parse(a.state.gameJson).actions),beforeRejection=JSON.stringify(await store.transaction(d=>d.progress[profile.id]));

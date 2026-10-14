@@ -23,7 +23,7 @@ test('admin manages families without exposing credentials, resets sessions and a
  assert.equal((await request('POST','/sessions',{alias:'parent_renamed',password:'ParentPassword123!'})).statusCode,401);assert.equal((await request('POST','/sessions',{alias:'parent_renamed',password:'NewParentPassword123!'})).statusCode,200);
  const me=(await request('GET','/me',undefined,admin)).json();assert.equal((await request('PUT','/admin/accounts/'+me.id,{alias:'changed_admin'},admin)).statusCode,404);
  const audit=(await request('GET','/admin/audit',undefined,admin)).json();assert.ok(audit.some((a:any)=>a.action==='account.password-reset'));assert.ok(audit.some((a:any)=>a.action==='profile.admin-edit'));assert.equal(JSON.stringify(audit).includes('NewParentPassword123!'),false);
- const scene=(await request('GET','/admin/scene',undefined,admin)).json();assert.equal(scene.tiles.length,48*48);assert.ok(scene.assets.some((a:any)=>a.id==='expansion.garden'));assert.ok(scene.assets.some((a:any)=>a.region));
+ const scene=(await request('GET','/admin/scene',undefined,admin)).json();assert.equal(scene.tiles.length,72*72);assert.ok(scene.assets.some((a:any)=>a.id==='expansion.garden'));assert.ok(scene.assets.some((a:any)=>a.region));
  const image=await request('GET','/admin/asset-preview/expansion.garden',undefined,admin);assert.equal(image.statusCode,200);assert.equal(image.headers['content-type'],'image/png');assert.equal(image.rawPayload.subarray(1,4).toString(),'PNG');assert.equal((await request('GET','/admin/asset-preview/not-a-resource',undefined,admin)).statusCode,404);
  }finally{await app.close();}
 });

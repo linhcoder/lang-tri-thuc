@@ -8,7 +8,7 @@ import {contentVersion} from '../world/ContentVersion';
 import {PatrolPose} from '../world/NpcPatrol';
 import {ExpansionId,expansionActivities} from '../world/ExpansionActivities';
 import {AgeBand} from '../world/CampaignContent';
-export interface NetworkPlayer extends Point {direction:number;moving:boolean;name:string;avatar?:number;accessory?:number;hair?:number;skin?:number}
+export interface NetworkPlayer extends Point {direction:number;moving:boolean;name:string;age?:AgeBand;avatar?:number;accessory?:number;hair?:number;skin?:number}
 export class VillageNetwork {
     room:Room<any>|null=null;status='Chơi một mình';players=new Map<string,NetworkPlayer>();
     npcs=new Map<string,PatrolPose>();
@@ -39,7 +39,7 @@ export class VillageNetwork {
             if(this.disposed||!this.wantOnline){await room.leave();return;}this.room=room;this.paused=false;this.retry=0;this.status='Đã vào làng online';
             const snapshot=()=>{
                 if(this.room!==room)return;
-                this.players.clear();room.state.players?.forEach((p:NetworkPlayer,id:string)=>{if(id!==room.sessionId&&!this.blocked.has(id))this.players.set(id,{x:p.x,y:p.y,direction:p.direction,moving:p.moving,name:p.name,avatar:p.avatar??0,accessory:p.accessory??0,hair:p.hair??0,skin:p.skin??0});});
+                this.players.clear();room.state.players?.forEach((p:NetworkPlayer,id:string)=>{if(id!==room.sessionId&&!this.blocked.has(id))this.players.set(id,{x:p.x,y:p.y,direction:p.direction,moving:p.moving,name:p.name,...(p.age?{age:p.age}:{}),avatar:p.avatar??0,accessory:p.accessory??0,hair:p.hair??0,skin:p.skin??0});});
                 this.npcs.clear();room.state.npcs?.forEach((p:PatrolPose,id:string)=>{if([p.x,p.y,p.direction].every(Number.isFinite))this.npcs.set(id,{id,x:p.x,y:p.y,direction:p.direction,moving:p.moving});});
                 if(this.privateMode&&room.state.gameJson&&this.gameSnapshot!==room.state.gameJson){this.gameSnapshot=room.state.gameJson;try{const raw=JSON.parse(this.gameSnapshot),game=MiniGameRules.restore(raw);if(raw.paused)game.pause();this.onGame?.(game);}catch{this.status='Chưa đọc được trạng thái trò chơi online';}}
             };

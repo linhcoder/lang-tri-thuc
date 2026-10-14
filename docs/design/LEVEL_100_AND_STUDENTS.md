@@ -1,0 +1,53 @@
+# Hành trình 100 cấp và hồ sơ học sinh
+
+## Nhân vật bé trai áo đỏ sao vàng — 15/10/2026
+
+Release hiện tại `red-star-boy-d92c670c-20261015`, build `web-desktop`, contentVersion `d92c670c`. Bé trai nhóm 6–8 tuổi chọn avatar 0 có hình vẽ theo ảnh tham khảo và concept `docs/design/characters/boy-6-8-red-star-concept-v1.png`. Atlas `apps/game-client/web/characters/boy-red-star-6-8-v1.png` gồm tám hướng, một hàng đứng và hai hàng bước đi. Cắt hàng theo các rãnh thực tế, chuẩn hóa khung 96×128 và đặt chân cùng đường chuẩn; dùng chung trong làng, HUD và xem trước. Màn hồ sơ ghi “Áo đỏ sao vàng”. Giữ avatar ID cũ, không đổi cấu trúc dữ liệu. Hình painted dùng tóc/màu da mặc định; tùy chỉnh tóc hoặc da dùng fallback vẽ với áo đỏ sao vàng. Nhóm tuổi và avatar khác giữ hình hiện có.
+
+Overlay 15 file, SHA-256 `f4122498242f76f74ed8be75e359514d75e994e9b12be04db3bc4a2786d2759b`; checksum source/Web khớp. Backup `/opt/lang-tri-thuc/backups/database-20261014T184047Z.sql` đã phục hồi thử đạt. Giữ release `level100-students-d92c670c-20261015` để rollback. Hai API health MySQL đạt; CMS manifest và nội dung không thay đổi. QA local TypeScript, client logic/lifecycle và Cocos desktop/mobile đạt; kiểm 24 frame, hình xem trước, tên HUD và phân biệt tuổi/avatar, không có page error. Artifact local `apps/game-client/temp/red-star-qa/`.
+
+Luồng chơi web: đăng nhập tài khoản phụ huynh → chọn học sinh → hoàn thiện tên, nhóm tuổi, giới tính và trang phục nhân vật → vào làng. Hồ sơ cũ thiếu giới tính được đưa về màn hình chỉnh sửa. Mỗi tài khoản giữ tối đa tám hồ sơ theo giới hạn hiện có.
+
+## Tiến độ
+
+- Cấp bắt đầu: 1; cấp tối đa: 100; mỗi 100 XP tăng một cấp.
+- Nhiệm vụ truyện hoàn thành: 20 XP; sao truyện: 100 XP.
+- Trò luyện tập hoàn thành lần đầu: 50 XP; góc làng khám phá lần đầu: 20 XP; hoạt động mở rộng hoàn thành lần đầu: 100 XP.
+- Một thử thách hành trình gồm ba câu hỏi, thưởng 100 XP sau khi trả lời đúng cả ba. Đáp án sai và trả lời lại không tạo thêm XP.
+- 100 thử thách chia vào mười vùng. Độ khó câu hỏi theo nhóm tuổi 3–5, 6–8 hoặc 9–11. Bài toán thay đổi theo thử thách; các kỹ năng khác dùng ngân hàng bài học hiện có.
+- XP được suy ra từ thành tích đã lưu. Không lưu một trường XP tùy ý. Tám chương và tám sao truyện vẫn giữ nguyên.
+- Huy hiệu thử thách được ghi bằng danh sách hoàn thành. Cấp mới mở các tuyến thử thách và cổng vùng; chưa bổ sung bộ vật phẩm riêng cho từng cấp.
+
+## Bản đồ
+
+Hành trình gồm làng khởi đầu, trường học, nông trại, chợ quê, làng nghề, rừng, sông nước, đồi khoa học, phố văn hóa và đảo tri thức. Các tuyến lần lượt mở ở Lv.1, 11, 21, 31, 41, 51, 61, 71, 81 và 91.
+
+Bản đồ tăng từ 48×48 lên 72×72 ô; bổ sung bốn mốc cảnh quan, đường nối và biển tên tương tác cho rừng, đồi khoa học, phố văn hóa và đảo tri thức. Cảnh quan tái sử dụng nhà, đình và cây đã vẽ trong bộ hình của làng, kết hợp biểu tượng riêng cho từng vùng. Các tòa nhà mới có footprint cản di chuyển. Menu bản đồ và cổng chuyển vùng kiểm tra cấp; người chơi vẫn có thể đi bộ khám phá địa hình trước khi mở thử thách.
+
+## Hồ sơ và lưu trữ
+
+HUD lấy tên từ hồ sơ đang chọn. Nhân vật dùng bộ vẽ hiện có, với tỉ lệ và trang phục theo nhóm tuổi; lựa chọn trang phục được lọc theo giới tính nhân vật. Người chơi trong phòng riêng nhận tên và nhóm tuổi từ backend.
+
+Trang phục thay đổi trong game được đồng bộ riêng vào hồ sơ, giữ nguyên tên và nhóm tuổi.
+
+Lưu cục bộ tách theo mã học sinh. Phiên solo đồng bộ cả chương đầu và campaign về backend bằng revision; khi có xung đột, giữ bản trên máy và yêu cầu tải lại. Revision cục bộ cho phép tiếp tục bản lưu chưa kịp đồng bộ khi server chưa thay đổi. Bản lưu cũ được chuyển sang hệ thống cấp mới bằng cách tính XP từ các thành tích cũ. Với bản chơi chưa có tài khoản, màn hình chọn học sinh có lựa chọn nhập tiến độ cũ vào một hồ sơ chưa có tiến độ cloud; bản gốc vẫn được giữ. Backup trước khi tải bản cloud nằm ở hậu tố `.before-cloud`.
+
+Lịch sử học tập và hành trình đã lưu được mang theo khi vào phòng cùng bạn. XP lịch sử được ghi bằng mã thành tích hợp lệ và khử trùng lặp, giúp giữ cấp mà không trao lại sao cốt truyện. Các câu trả lời mới trong phòng riêng được game server kiểm tra. Sao cốt truyện của phòng riêng vẫn do server xác nhận; bản lưu solo không tự nhận sao trong phòng.
+
+## Kiểm tra
+
+`npm run check:client`, `npm run test:client`, `npm run test:api`, `npm run test:server`, `npm run web:build` và `npm run test:level-journey`.
+
+Bài kiểm tra hành trình mô phỏng đủ 100 thử thách cho cả ba nhóm tuổi, kiểm tra thưởng một lần, phục hồi tiến độ cũ, đường đi tới các vùng mới, quyền sở hữu và cách ly hồ sơ. Bài trình duyệt kiểm tra đăng nhập, tên trên HUD, hồ sơ tuổi/giới tính, tăng cấp, tải lại, đổi học sinh và bố cục desktop/ngang điện thoại.
+
+Đã phát hành lên VPS tại https://ltt.vui-hoc.xyz/game/; thông tin release bên dưới.
+
+## Triển khai VPS — 15/10/2026
+
+Release `/opt/lang-tri-thuc/releases/level100-students-d92c670c-20261015`, build `web-desktop`, contentVersion `d92c670c`, game https://ltt.vui-hoc.xyz/game/. Source working tree được đóng gói đầy đủ; 43 file khác release trước được tải bằng overlay sau khi đối chiếu SHA-256 từng file. Overlay SHA-256 `769465ccf15c78da1f29ffe832a4340a0b17fb676352fa29f8b675248fe81420`. `package-lock.json` được npm prune cập nhật trên Linux.
+
+Backup `/opt/lang-tri-thuc/backups/database-20261014T181651Z.sql` đã phục hồi thử và khớp dữ liệu. Giữ release `schoolyard-mobile-e5d974a-20261014` để rollback ứng dụng. Hai API và hai rooms active; cả hai API health MySQL/version đạt. CMS được nâng compatibility sang bản mới, NPC không thay đổi; manifest mới `9526d4b358c398958d5b83d7beb1a45fe8ad475c3eb6e3b5caf15ce3e060c1f4`.
+
+QA HTTPS quản trị/CMS, chặn API nội bộ và phòng không vé đạt. QA signed WebSocket đạt tên/tuổi/nhân vật, câu trả lời hành trình do server xác nhận và đọc lại tiến độ MySQL. Tài khoản QA đã xóa. Thông tin mật khẩu QA local là JSON string có dấu nháy; cần giải mã trước khi đăng nhập.
+
+QA trình duyệt HTTPS đã đạt đăng nhập bắt buộc, tên bé chính xác, ba nhóm tuổi/giới tính, thưởng cấp một lần, tiến độ MySQL và trang phục sau reload, cách ly học sinh, bốn khu mới, desktop/mobile ngang và logout; page errors rỗng. Báo cáo/ảnh local ignored `temp/deploy/qa/level100-live/`. Cleanup sau logout cần đăng nhập lại tài khoản fixture vì token cũ đã bị thu hồi; đã xác minh và tự xóa qua API.

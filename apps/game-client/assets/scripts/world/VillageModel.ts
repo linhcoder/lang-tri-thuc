@@ -1,10 +1,10 @@
 export interface Point { x: number; y: number }
 export type Terrain = 'grass' | 'road' | 'rice' | 'pond' | 'courtyard';
-export const SIZE = 48;
+export const SIZE = 72;
 export const farmerTile:Readonly<Point>={x:27,y:22};
 export const elderTile:Readonly<Point>={x:17,y:19};
 export const ricePlantingPlots:ReadonlyArray<Point>=[{x:26,y:18},{x:28,y:18},{x:30,y:18},{x:28,y:20},{x:32,y:17}];
-export const zoneSpawns={gate:{x:20,y:25},courtyard:{x:21,y:16},school:{x:4,y:29},farm:{x:29,y:21},market:{x:25,y:31},craft:{x:6,y:28},pond:{x:16,y:28},home:{x:29,y:15},banyan:{x:16,y:21},festival:{x:32,y:28},seasons:{x:43,y:22},riverside:{x:20,y:40},playground:{x:40,y:33}};
+export const zoneSpawns={gate:{x:20,y:25},courtyard:{x:21,y:16},school:{x:4,y:29},farm:{x:29,y:21},market:{x:25,y:31},craft:{x:6,y:28},pond:{x:16,y:28},home:{x:29,y:15},banyan:{x:16,y:21},festival:{x:32,y:28},seasons:{x:43,y:22},riverside:{x:20,y:40},playground:{x:40,y:33},forest:{x:55,y:18},science:{x:56,y:33},culture:{x:34,y:56},island:{x:56,y:56}};
 export interface NpcSpawn {id:string;name:string;x:number;y:number;chapter:number;color:[number,number,number]}
 export const storyNpcs:NpcSpawn[]=[
     {id:'ti-na',name:'Tí và Na',x:22,y:13,chapter:1,color:[230,129,80]},
@@ -46,6 +46,9 @@ export const villageDetails=[
 export const villageSolids=[{id:'market',x:23,y:29,radius:1},{id:'courtyard-lantern-left',x:20,y:16,radius:0},{id:'courtyard-lantern-right',x:22,y:17,radius:0},{id:'east-fence',x:34,y:21,radius:0},{id:'foreground-tree',x:35,y:34,radius:0}];
 /** Ground diamonds cover walls/stalls, not the tall roof/canopy above a walkable path. */
 export const landmarkFootprints=[
+    {id:'journey.science',x:53,y:30,halfWidth:110,halfDepth:36,lift:25},
+    {id:'journey.culture',x:31,y:53,halfWidth:125,halfDepth:22,lift:15},
+    {id:'journey.island',x:53,y:53,halfWidth:80,halfDepth:36,lift:25},
     {id:'dinh',x:19,y:13,halfWidth:145,halfDepth:50,lift:24},
     {id:'house',x:29,y:12,halfWidth:105,halfDepth:42,lift:18},
     {id:'house-west',x:2,y:34,halfWidth:95,halfDepth:40,lift:18},
@@ -70,6 +73,8 @@ export function toWorld(p: Point): Point { return { x: (p.x - p.y) * 32, y: -(p.
 export function toGrid(p: Point): Point { return { x: p.x / 64 - p.y / 32, y: -p.x / 64 - p.y / 32 }; }
 export function tileAt(p: Point): Point { const g = toGrid(p); return { x: Math.round(g.x), y: Math.round(g.y) }; }
 export function terrain(x: number, y: number): Terrain {
+    if((x>=51&&x<=61&&y>=30&&y<=36)||(x>=30&&x<=39&&y>=52&&y<=59)||(x>=52&&x<=61&&y>=52&&y<=60))return 'courtyard';
+    if((y===22&&x>=40&&x<=55)||(x===55&&y>=18&&y<=56)||(y===56&&x>=20&&x<=56)||(x===34&&y>=36&&y<=56))return 'road';
     if (x >= 12 && x <= 19 && y >= 39 && y <= 44) return 'pond';
     if (x >= 38 && x <= 44 && y >= 31 && y <= 36) return 'courtyard';
     if (y === 16 && x >= 34 || x === 40 && y >= 16 && y <= 33 || y === 36 && x >= 20 && x <= 40 || x === 20 && y >= 30 && y <= 40) return 'road';

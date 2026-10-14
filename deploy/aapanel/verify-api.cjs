@@ -1,5 +1,5 @@
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
-const origin='https://ltt.vui-hoc.xyz',access=fs.readFileSync(path.resolve(__dirname,'../../temp/deploy/access.txt'),'utf8'),password=/^Admin password: (.+)$/m.exec(access)?.[1];assert.ok(password);
+const origin='https://ltt.vui-hoc.xyz',access=fs.readFileSync(path.resolve(__dirname,'../../temp/deploy/access.txt'),'utf8'),storedPassword=/^Admin password: (.+)$/m.exec(access)?.[1];assert.ok(storedPassword);const password=storedPassword.startsWith('"')?JSON.parse(storedPassword):storedPassword;
 const request=(route,options={})=>fetch(origin+route,{...options,signal:AbortSignal.timeout(15000)});
 (async()=>{
  const health=await (await request('/api/health')).json();assert.equal(health.storage,'mysql');

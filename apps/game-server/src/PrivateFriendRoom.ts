@@ -28,9 +28,10 @@ export class PrivateFriendRoom extends VillageRoom {
             if(!m||typeof v?.id!=='string'||v.id.length>80||!v.snapshot||typeof v.snapshot!=='object')return;
             const raw=JSON.stringify(v.snapshot);if(raw.length>240000)return;
             const snapshot=JSON.stringify(restoreActivities(v.snapshot));
-            m.saveQueue=m.saveQueue.then(async()=>{const saved=await this.service('/internal/activities',{profileId:m.profileId,snapshot});m.activities=saved.snapshot;(client.auth as any).activities=saved.snapshot;client.send('activities-state',{id:v.id,snapshot:saved.snapshot});}).catch(()=>this.warn(client,'Hoạt động chưa đồng bộ được. Bản lưu trên máy vẫn còn.'));
+            m.saveQueue=m.saveQueue.then(async()=>{const saved=await this.service('/internal/activities',{profileId:m.profileId,snapshot});m.activities=saved.snapshot;Object.assign(m.campaign.data,restoreActivities(saved.snapshot));(client.auth as any).activities=saved.snapshot;client.send('activities-state',{id:v.id,snapshot:saved.snapshot});}).catch(()=>this.warn(client,'Hoạt động chưa đồng bộ được. Bản lưu trên máy vẫn còn.'));
         });
-        this.onMessage('portal',(client,value:unknown)=>{const p=this.state.players.get(client.sessionId),id=(value as any)?.id;if(!p||typeof id!=='string')return;const target=portalDestination(p,id);if(target)this.relocate(client,target);});
+        this.onMessage('journey-answer',(client,value:unknown)=>{const member=this.members.get(client.sessionId),v=value as any;if(!member||typeof v?.id!=='string'||!Number.isInteger(v.round)||!Number.isInteger(v.index))return;member.campaign.answerJourney(v.id,v.round,v.index);this.persist(client,member);});
+        this.onMessage('portal',(client,value:unknown)=>{const p=this.state.players.get(client.sessionId),id=(value as any)?.id;if(!p||typeof id!=='string')return;const target=portalDestination(p,id,this.members.get(client.sessionId)?.campaign.level??1);if(target)this.relocate(client,target);});
         this.onMessage('probe',(client,value:unknown)=>{if(typeof value==='number'&&Number.isFinite(value))client.send('probe',value);});
         this.onMessage('emote',(client,value:unknown)=>{
             const id=(value as any)?.id,m=this.members.get(client.sessionId);if(!m||!(approvedEmotes as readonly string[]).includes(id)||Date.now()-m.lastEmote<2000)return;m.lastEmote=Date.now();
@@ -56,7 +57,7 @@ export class PrivateFriendRoom extends VillageRoom {
             if(!group.game.choose(v.index as number)){client.send('expansion-feedback',{id:group.game.id,message:group.game.feedback});return;}
             for(const session of group.participants){const m=this.members.get(session);if(!m)continue;
                 const patch={profileId:m.profileId,id:group.game.id,step:group.game.ended?0:group.game.step,age:group.game.age,completed:group.game.ended};
-                m.saveQueue=m.saveQueue.then(async()=>{const saved=await this.service('/internal/expansion-progress',patch);m.activities=saved.snapshot;const peer=this.clients.find(c=>c.sessionId===session);if(peer){(peer.auth as any).activities=saved.snapshot;peer.send('activities-state',{snapshot:saved.snapshot});}}).catch(()=>{const peer=this.clients.find(c=>c.sessionId===session);if(peer)this.warn(peer,'Kết quả nhóm chưa lưu được. Hãy giữ trang mở và thử lại.');});
+                m.saveQueue=m.saveQueue.then(async()=>{const saved=await this.service('/internal/expansion-progress',patch);m.activities=saved.snapshot;Object.assign(m.campaign.data,restoreActivities(saved.snapshot));const peer=this.clients.find(c=>c.sessionId===session);if(peer){(peer.auth as any).activities=saved.snapshot;peer.send('activities-state',{snapshot:saved.snapshot});}}).catch(()=>{const peer=this.clients.find(c=>c.sessionId===session);if(peer)this.warn(peer,'Kết quả nhóm chưa lưu được. Hãy giữ trang mở và thử lại.');});
             }
             this.publishExpansion(group.game.id);
         });
@@ -88,7 +89,7 @@ export class PrivateFriendRoom extends VillageRoom {
         return profile;
     }
     onJoin(client:Client):void{
-        super.onJoin(client);const p=client.auth as any,first=new ChapterOneProgress(),campaign=new CampaignEngine();if(p.trusted){first.restore(JSON.stringify(p.trusted.chapterOne));campaign.restore(JSON.stringify(p.trusted.campaign));}campaign.data.age=p.age;campaign.syncChapterOne(first.data);
+        super.onJoin(client);const p=client.auth as any,first=new ChapterOneProgress(),campaign=new CampaignEngine();if(p.trusted){first.restore(JSON.stringify(p.trusted.chapterOne));campaign.restore(JSON.stringify(p.trusted.campaign));}campaign.data.age=p.age;if(p.avatar!==undefined)campaign.data.avatar=p.avatar;const player=this.state.players.get(client.sessionId);if(player){player.name=p.label;player.age=p.age;player.avatar=campaign.data.avatar;}campaign.syncChapterOne(first.data);campaign.preserveLearningFrom(p.backup);if(p.activities)Object.assign(campaign.data,restoreActivities(p.activities));
         this.members.set(client.sessionId,{profileId:p.id,parentId:p.parentId,age:p.age,blocked:p.blocked,first,campaign,lastEmote:0,activities:p.activities?restoreActivities(p.activities):null,saveQueue:Promise.resolve()});
     }
     async onLeave(client:Client,code?:number):Promise<void>{

@@ -3,7 +3,7 @@ import { schema, t } from '@colyseus/schema';
 import { Point, toWorld, VillageMap } from '../../game-client/assets/scripts/world/VillageModel.js';
 import {NpcPatrol} from '../../game-client/assets/scripts/world/NpcPatrol.js';
 
-export class PlayerState extends schema({x:t.number().default(0),y:t.number().default(-640),direction:t.uint8().default(6),moving:t.boolean().default(false),name:t.string().default(''),avatar:t.uint8().default(0),accessory:t.uint8().default(0),hair:t.uint8().default(0),skin:t.uint8().default(0)}) {}
+export class PlayerState extends schema({x:t.number().default(0),y:t.number().default(-640),direction:t.uint8().default(6),moving:t.boolean().default(false),name:t.string().default(''),age:t.string().default('3-5'),avatar:t.uint8().default(0),accessory:t.uint8().default(0),hair:t.uint8().default(0),skin:t.uint8().default(0)}) {}
 export class NpcState extends schema({x:t.number().default(0),y:t.number().default(0),direction:t.uint8().default(6),moving:t.boolean().default(false)}) {}
 export class VillageState extends schema({players:t.map(PlayerState),npcs:t.map(NpcState),gameJson:t.string().default(''),gameQuest:t.string().default('')}) {}
 export interface MovePacket extends Point { direction:number; moving:boolean; seq:number; avatar?:number; accessory?:number; hair?:number; skin?:number }

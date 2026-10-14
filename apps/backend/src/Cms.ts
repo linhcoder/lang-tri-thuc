@@ -11,7 +11,7 @@ export function registerCms(app:FastifyInstance,store:Repository,auth:(req:Fasti
   const s:CmsState=d.cms??(d.cms=emptyCms()),active=s.releases.find(r=>r.id===s.active),baseVersion=contentVersion();
   // Known navigation correction: retain approved NPC content and immutable history.
   // Unknown or newly obstructed manifests require manual review rather than rebasing.
-  if(active?.manifest.baseVersion==='785f4e7e'&&baseVersion!==active.manifest.baseVersion&&cmsErrors(active.manifest.npcs).length===0){
+  if(active&&['785f4e7e','818a32e3'].includes(active.manifest.baseVersion)&&baseVersion!==active.manifest.baseVersion&&cmsErrors(active.manifest.npcs).length===0){
    const npcs=structuredClone(active.manifest.npcs),version=createHash('sha256').update(JSON.stringify({baseVersion,npcs})).digest('hex');
    if(!s.releases.some(r=>r.id===version)){if(s.releases.length>=50)fail('CMS release limit reached during navigation upgrade',409);s.releases.push({id:version,created:Date.now(),note:'Navigation footprint compatibility upgrade; NPC content unchanged',manifest:{schema:1,baseVersion,version,npcs}});}
    s.active=version;s.revision++;d.audit.push({actor:'system',action:'cms.navigation.upgrade',entity:version,created:Date.now()});

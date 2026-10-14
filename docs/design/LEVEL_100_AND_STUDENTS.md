@@ -1,8 +1,8 @@
 # Hành trình 100 cấp và hồ sơ học sinh
 
-## Thiết kế mới toàn bộ cảnh vùng — bản local 15/10/2026
+## Thiết kế mới toàn bộ cảnh vùng — VPS 15/10/2026
 
-Mười vùng hành trình có mười ảnh cảnh chính mới, sinh độc lập, không dùng chung nhà/đình/cây đa để thay thế cảnh vùng khác. Bộ PNG alpha riêng nằm trong `assets/resources/village/journey-regions-v1/`; thông tin, prompt và checksum tại [JOURNEY_REGION_ASSETS](JOURNEY_REGION_ASSETS.md). Thay đổi này chưa triển khai lên VPS. Mục Bản đồ bên dưới mô tả lần mở rộng trước khi có bộ hình riêng.
+Mười vùng hành trình có mười ảnh cảnh chính mới, sinh độc lập, không dùng chung nhà/đình/cây đa để thay thế cảnh vùng khác. Bộ PNG alpha riêng nằm trong `assets/resources/village/journey-regions-v1/`; thông tin, prompt và checksum tại [JOURNEY_REGION_ASSETS](JOURNEY_REGION_ASSETS.md). Đã triển khai release `journey-regions-546c4ff-20261015`, source commit `546c4ff`, contentVersion `d92c670c`. QA HTTPS đủ 10 texture riêng trên desktop/mobile ngang, page errors rỗng; backup/restore và hai API MySQL đạt, tài khoản QA đã xóa. Mục Bản đồ bên dưới mô tả lần mở rộng trước khi có bộ hình riêng.
 
 ## Chọn nhân vật từ assets — VPS 15/10/2026
 

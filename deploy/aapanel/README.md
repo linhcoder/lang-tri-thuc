@@ -1,5 +1,9 @@
 # aaPanel staging: ltt.vui-hoc.xyz
 
+## Cảnh mới cho 10 vùng — 15/10/2026
+
+Release hiện tại `journey-regions-546c4ff-20261015`, source commit `546c4ff`, build `web-desktop`, contentVersion `d92c670c`. Mỗi vùng có một ảnh cảnh mới riêng. Overlay 66 file SHA-256 `a9083d2f9556f600a16972fbc97687a5a4edd8ef80bdd23e38c3f50f8e5a59c2`, checksum source/Web khớp. Backup `/opt/lang-tri-thuc/backups/database-20261014T231650Z.sql` phục hồi thử khớp dữ liệu; giữ release `character-assets-8eb9f85-20261015` để rollback. Hai API MySQL healthy, CMS giữ nguyên. QA HTTPS đủ mười texture riêng, 20 ảnh desktop/mobile ngang, không có page error; API/quyền phòng đạt và tài khoản QA đã xóa. Evidence local ignored: `temp/deploy/qa/journey-regions-live/`. Chi tiết tại [JOURNEY_REGION_ASSETS](../../docs/design/JOURNEY_REGION_ASSETS.md). Các release dưới đây là lịch sử.
+
 ## Chọn nhân vật từ assets — 15/10/2026
 
 Release hiện tại `character-assets-8eb9f85-20261015`, source commit `8eb9f85`, build `web-desktop`, contentVersion `d92c670c`. Chọn mẫu áo đỏ sao vàng hoặc xanh–trắng ở màn hồ sơ và trong game, dùng cùng atlas cho preview/HUD/đứng/đi tám hướng ở mọi nhóm tuổi. Overlay 12 file SHA-256 `a95878c515d9fd231fa252db3b65aa4c2f85ea48d1dc853ac2591251e9ac8d3a`; checksum source/Web khớp. Backup `/opt/lang-tri-thuc/backups/database-20261014T194401Z.sql` phục hồi thử đạt; bản `red-star-boy-d92c670c-20261015` giữ để rollback. Hai API MySQL healthy, CMS giữ nguyên. QA HTTPS avatar xanh–trắng/24 frame/HUD/hồ sơ MySQL/desktop/mobile ngang và API/quyền phòng đạt, page errors rỗng; tài khoản QA đã xóa. Evidence local ignored: `temp/deploy/qa/character-assets-live/`. Các release dưới đây là lịch sử.

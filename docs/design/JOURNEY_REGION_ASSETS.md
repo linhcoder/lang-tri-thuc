@@ -23,10 +23,14 @@ Registry có mười ID `journey.<region>`. `JourneyScenery.ts` tải từng ả
 
 Landmark nằm trong lớp actor để sắp độ sâu cùng NPC và đồ trang trí, có cơ chế mờ khi che người chơi. Trường học và làng nghề đặt trên đất ở gần NPC tương ứng; cây cũ bên đông được bỏ để không che nông trại mới.
 
-Đây là bản local, chưa phát hành lên VPS. Nội dung câu hỏi và phiên bản tương thích hiện là `d92c670c`. Bộ ảnh đang chờ duyệt mỹ thuật trong registry.
+Đã phát hành lên VPS ngày 15/10/2026 tại https://ltt.vui-hoc.xyz/game/. Release `journey-regions-546c4ff-20261015`, source commit `546c4ff`, build `web-desktop`, contentVersion `d92c670c`. Bộ ảnh đang chờ duyệt mỹ thuật trong registry.
+
+Overlay 66 file, SHA-256 `a9083d2f9556f600a16972fbc97687a5a4edd8ef80bdd23e38c3f50f8e5a59c2`; checksum source/Web khớp. Backup `/opt/lang-tri-thuc/backups/database-20261014T231650Z.sql` đã phục hồi thử khớp dữ liệu. Giữ release `character-assets-8eb9f85-20261015` để rollback. Hai API health MySQL đạt; CMS không đổi.
 
 ## Kiểm tra
 
 Đã kiểm tra mười ảnh có kênh alpha thực, mỗi ảnh có pixel trong suốt và đục hoàn toàn, mười checksum khác nhau. TypeScript, toàn bộ test client và build Cocos đạt. Bài trình duyệt `npm run test:level-journey` xác nhận đủ mười SpriteFrame với mười UUID texture khác nhau, đăng nhập/hồ sơ, thưởng cấp, lưu tiến độ và trang phục, cách ly học sinh, logout, desktop và mobile ngang; page errors rỗng. Ảnh từng vùng nằm ở thư mục ignored `apps/game-client/temp/level-journey-qa/region-*-landscape.png`. Đã xem cả mười ảnh và chỉnh vị trí trường/làng nghề về đất liền, bỏ cây cũ che cảnh nông trại.
 
 Bản cuối sau sửa thứ tự vẽ đã chạy `npm run test:journey-regions`: đủ mười texture riêng, chụp 20 ảnh ở 1440×900 và 844×390, không có page error. Ảnh/report local ignored tại `apps/game-client/temp/journey-regions-qa/`; đã xem mười cảnh trong ảnh mobile cuối. Test client và TypeScript vẫn đạt.
+
+QA HTTPS sau triển khai đạt đủ mười texture riêng với kích thước nguồn hợp lệ, thứ tự vẽ và 20 ảnh desktop/mobile ngang; page errors rỗng. Đã xem ảnh live nông trại và đảo tri thức. Kiểm tra API/quyền quản trị, chặn API nội bộ và phòng không vé đạt. Tài khoản QA đã tự xóa. Bằng chứng local ignored: `temp/deploy/qa/journey-regions-live/`.

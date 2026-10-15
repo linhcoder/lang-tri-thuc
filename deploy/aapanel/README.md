@@ -1,5 +1,9 @@
 # aaPanel staging: ltt.vui-hoc.xyz
 
+## Bác Nông Dân theo ảnh tham khảo — 15/10/2026
+
+Release hiện tại `farmer-reference-3626919-20261015`, source commit `3626919`, build `web-desktop`, contentVersion `d92c670c`. Atlas riêng cho Bác Nông Dân từ ảnh người dùng, 24 frame đứng/bước đi/vẫy chào theo tám hướng. Overlay 14 file SHA-256 `694a3e7d315d696c6a744f6e78b26ed5b3f66bdb123c75eb5aa6557553d2aa1e`; checksum source/Web khớp. Backup `/opt/lang-tri-thuc/backups/database-20261015T074244Z.sql` phục hồi thử đạt. Giữ `ground-materials-b08555b-20261015` để rollback. Hai API MySQL khỏe, CMS không đổi. QA HTTPS 24 frame/hướng đứng/vẫy chào, không lật ảnh, desktop/mobile ngang và API/quyền phòng đạt; page errors rỗng, tài khoản QA đã xóa. Evidence local ignored: `temp/deploy/qa/farmer-reference-live/`. Chi tiết tại [FARMER_REFERENCE](../../docs/design/FARMER_REFERENCE.md). Các release dưới đây là lịch sử.
+
 ## Texture cỏ/đất và ghi nhớ phiên — 15/10/2026
 
 Release hiện tại `ground-materials-b08555b-20261015`, build `web-desktop`, contentVersion `d92c670c`. Texture cỏ/đất mới từ commit `83a0812`; ghi nhớ đăng nhập/chuyển học sinh từ `43056e4`; sửa thời gian chờ mở hồ sơ từ `b08555b`. Overlay nền 29 file SHA-256 `8690bd5b27fce24b9ceb4ae27cdae12ab14ccde1989439c45f69561b0e0ad043`; overlay cuối ba file SHA-256 `b8159ced9b51027cedecfd1260f7420eb5f95289233d15feca6cc04415b999ba`. Checksum source/Web khớp; backup `/opt/lang-tri-thuc/backups/database-20261015T031737Z.sql` phục hồi thử đạt. Hai API MySQL khỏe, CMS giữ nguyên. QA HTTPS hai texture, mười cảnh desktop/mobile, phiên 30 ngày/reload/chuyển học sinh đạt; page errors rỗng, các fixture đã xóa. Release `ground-materials-83a0812-20261015` và `journey-regions-546c4ff-20261015` giữ để rollback. Chi tiết tại [GROUND_MATERIALS](../../docs/design/GROUND_MATERIALS.md). Các release dưới đây là lịch sử.

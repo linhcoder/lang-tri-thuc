@@ -1,5 +1,9 @@
 # Hành trình 100 cấp và hồ sơ học sinh
 
+## Bác Nông Dân theo ảnh tham khảo — VPS 15/10/2026
+
+Đã thay Bác Nông Dân bằng atlas riêng theo ảnh người dùng, giữ kính/tóc/áo khoác đặc trưng, đủ tám hướng và ba hàng đứng/bước đi/vẫy chào. Release `farmer-reference-3626919-20261015`, commit `3626919`, contentVersion `d92c670c`. QA HTTPS 24 frame và desktop/mobile ngang đạt, page errors rỗng; backup/restore và hai API MySQL đạt, tài khoản QA đã xóa. Ảnh, prompt và chi tiết tại [FARMER_REFERENCE](FARMER_REFERENCE.md).
+
 ## Ghi nhớ đăng nhập và chuyển học sinh — VPS 15/10/2026
 
 Game lưu phiên phụ huynh và học sinh đã chọn trên trình duyệt. Lần mở sau, API kiểm tra phiên và quyền sở hữu hồ sơ rồi tự vào học sinh gần nhất. Đăng nhập từ game xin phiên ghi nhớ tối đa 30 ngày; phiên cũ giữ hạn hết hiệu lực đã cấp. Phiên đăng nhập thông thường vẫn có hạn tám giờ. Đăng xuất thu hồi token trên máy chủ và xóa phiên/học sinh ghi nhớ trên cả localStorage và sessionStorage. Phiên bị thu hồi hoặc hết hạn chuyển về yêu cầu đăng nhập lại.

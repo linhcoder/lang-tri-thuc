@@ -1,5 +1,9 @@
 # Hành trình 100 cấp và hồ sơ học sinh
 
+## Sửa kéo đối tượng trong bản đồ admin — VPS 15/10/2026
+
+Release `scene-drag-84ae6b0-20261015`, source `84ae6b0`: nút chuyển NPC/vật thể nằm trong vùng toàn màn hình; kéo được đối tượng đang chọn dù ở chế độ kéo nền. Chọn từ danh sách tự bật chế độ chọn. Kiểm tra local và HTTPS desktop/mobile đạt. Chi tiết tại [ADMIN_SCENE_LAYOUT](ADMIN_SCENE_LAYOUT.md).
+
 ## Chỉnh vị trí và kích thước vật thể — VPS 15/10/2026
 
 Admin **Bản đồ NPC → Cây, nhà và sân chơi** hỗ trợ chọn/kéo vật thể, kéo góc đổi kích thước, nhập tọa độ/rộng/cao, giữ tỉ lệ, hoàn tác/làm lại, lưu bản nháp và xuất bố trí. Gói bố trí được kiểm tra lối đi trước khi dựng game/backend/rooms cùng nhau. Release `scene-layout-c379c7f-20261015`, source commit `c379c7f`; kiểm tra desktop/mobile và HTTPS đạt. Hướng dẫn tại [ADMIN_SCENE_LAYOUT](ADMIN_SCENE_LAYOUT.md).

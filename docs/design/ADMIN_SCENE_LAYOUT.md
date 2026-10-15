@@ -1,5 +1,11 @@
 # Chỉnh bố trí vật thể trong admin
 
+## Sửa thao tác kéo và toàn màn hình — 15/10/2026
+
+Nút chuyển **Nhân vật NPC / Cây, nhà và sân chơi** nằm trong vùng toàn màn hình, luôn có thể chuyển loại đối tượng. Chọn từ danh sách tự bật chế độ chọn. Khi đang kéo nền, vẫn có thể kéo NPC/vật thể đang chọn và nút đổi kích thước của nó. Bấm vật thể khác cần chuyển về chế độ chọn.
+
+Đã triển khai release `scene-drag-84ae6b0-20261015`, source `84ae6b0`; overlay tám file SHA-256 `961e76a9704f6788ffe60ee9f3be0db38154db3f5485d3e17b9db182efdcbcb2`. Backup `/opt/lang-tri-thuc/backups/database-20261015T145609Z.sql` phục hồi thử đạt; hai API MySQL healthy và CMS giữ nguyên. QA local tái hiện kéo NPC ở chế độ kéo nền, chuyển loại trong toàn màn hình và kéo vật thể/đổi kích thước đạt. QA HTTPS toàn màn hình, chuyển sang vật thể, đổi kích thước/hoàn tác và desktop/mobile đạt; bản nháp giữ nguyên, không page error. Evidence: `temp/deploy/qa/scene-drag-live/`.
+
 Mở **Bản đồ NPC → Cây, nhà và sân chơi**. Chọn vật thể từ danh sách hoặc bấm ảnh trên bản đồ. Có thể tìm theo tên/ID, kéo vị trí theo bước ¼ ô, nhập tọa độ và rộng/cao, giữ tỉ lệ hoặc kéo nút vuông ở góc phải dưới để đổi kích thước. Nút **Đến vật thể đang chọn** đưa camera đến vật thể. Kéo nền để xem quanh; có thu phóng và bật/tắt lưới.
 
 **Hoàn tác/Làm lại** áp dụng cho phiên chỉnh sửa; **Hoàn tác vật thể** trả vật thể về lần lưu gần nhất. Ghi chú cần ít nhất 12 ký tự. **Lưu bố trí vật thể** lưu toàn bộ thay đổi vào database bằng giao dịch và số phiên bản; phiên cũ bị từ chối để tránh ghi đè người khác. Bản nháp tồn tại sau khi tải lại trang và không sửa dữ liệu người chơi. Cầu qua ao được khóa vì gắn với đường đi trên mặt nước.

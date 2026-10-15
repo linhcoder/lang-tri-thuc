@@ -1,5 +1,9 @@
 # aaPanel staging: ltt.vui-hoc.xyz
 
+## Sửa kéo đối tượng và chuyển loại trong toàn màn hình — 15/10/2026
+
+Release hiện tại `scene-drag-84ae6b0-20261015`, source `84ae6b0`, contentVersion `d92c670c`. Overlay tám file SHA-256 `961e76a9704f6788ffe60ee9f3be0db38154db3f5485d3e17b9db182efdcbcb2`; source/game/admin checksum khớp. Backup `/opt/lang-tri-thuc/backups/database-20261015T145609Z.sql` phục hồi thử đạt, hai API MySQL healthy, CMS giữ nguyên. QA HTTPS toàn màn hình và chuyển sang chỉnh vật thể, đổi kích thước/hoàn tác, desktop/mobile đạt; bản nháp không thay đổi. Giữ release trước để rollback. Chi tiết tại [ADMIN_SCENE_LAYOUT](../../docs/design/ADMIN_SCENE_LAYOUT.md).
+
 ## Chỉnh bố trí vật thể — 15/10/2026
 
 Release hiện tại `scene-layout-c379c7f-20261015`, source commit `c379c7f`, contentVersion `d92c670c`. Trình chỉnh cây/nhà/sân chơi lưu bản nháp có revision, xuất gói và áp dụng đồng bộ hình ảnh/va chạm khi build game cùng backend/rooms. Admin build base `/` theo Nginx gốc domain; đã sửa index sau kiểm tra đầu tiên và tạo overlay cuối 28 file SHA-256 `4f8f4b6d4e6946d0f60d942716fa98603e6ba087f22569faabcd2e5b43740e02`. Backup `/opt/lang-tri-thuc/backups/database-20261015T130613Z.sql` phục hồi thử đạt. API MySQL và QA HTTPS admin desktop/mobile đạt; bản nháp live giữ nguyên. Chi tiết và cách áp dụng tại [ADMIN_SCENE_LAYOUT](../../docs/design/ADMIN_SCENE_LAYOUT.md). Các release dưới đây là lịch sử.

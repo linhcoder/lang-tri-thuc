@@ -1,5 +1,9 @@
 # Hành trình 100 cấp và hồ sơ học sinh
 
+## Chín nâng cấp game — VPS 16/10/2026
+
+Release `upgrades-3065cfd-20261016`, source `3065cfd`: xuất bản bản đồ/NPC trực tiếp, xem trước/cảnh báo/khôi phục, bài luyện theo tuổi và kỹ năng, hướng dẫn người mới, báo cáo tuần, cây thưởng theo tiến độ, hội thoại NPC, joystick lớn và phòng riêng có đồ trang trí. Chi tiết cách sử dụng, giới hạn lịch sử và kiểm tra tại [GAME_UPGRADES_2026_10](GAME_UPGRADES_2026_10.md).
+
 ## Cô Giáo Lan hiển thị trước sân trường — VPS 15/10/2026
 
 Release `teacher-depth-a2c06c8-20261015`, source `a2c06c8`: sửa mốc xếp lớp của ảnh trường có sân phía trước, tránh che cô giáo trên tuyến đi. Kiểm tra toàn tuyến và các điểm nội suy, desktop/mobile đạt. Chi tiết tại [TEACHER_LAN_REFERENCE](TEACHER_LAN_REFERENCE.md).

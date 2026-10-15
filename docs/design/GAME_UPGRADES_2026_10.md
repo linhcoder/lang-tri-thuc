@@ -1,5 +1,7 @@
 # Chín nâng cấp game — 16/10/2026
 
+Đã triển khai release `upgrades-3065cfd-20261016`, source `3065cfd`, contentVersion `0d971c1a`. Backup trước kích hoạt: `/opt/lang-tri-thuc/backups/database-20261015T175726Z.sql`, kiểm tra khôi phục đạt. CMS NPC và bố trí đã lưu của người dùng được giữ nguyên.
+
 Danh sách đề xuất ban đầu có tám mục. Phần xem trước, cảnh báo và khôi phục bản đồ được tách thành mục thứ chín.
 
 | Mục | Cách sử dụng và hành vi |
@@ -29,3 +31,5 @@ Danh sách đề xuất ban đầu có tám mục. Phần xem trước, cảnh b
 - Game đã build: bản đồ công bố thay đổi vị trí/kích thước/va chạm thật, hướng dẫn, bài luyện ghi báo cáo, phòng riêng qua tải lại và joystick lớn trên điện thoại.
 
 Kết quả kiểm tra: 25 API đạt, 1 fixture MySQL bỏ qua; 11 bài server và 6 bài mạng/khởi động đạt. `test:client` còn lỗi ở giả định cũ rằng mọi ô gốc NPC đều đi được: bố trí đang dùng đặt Chị Mai `(42,17)` trong vùng va chạm vườn. Đã xác nhận cùng lỗi với `VillageModel.ts` từ commit trước nâng cấp. Không đổi vị trí đã lưu của người dùng; trình kiểm tra xuất bản mới cảnh báo tình huống này.
+
+Kiểm tra HTTPS trên release cuối đạt: lưu và tải lại phòng riêng/hướng dẫn, bài luyện ghi vào báo cáo, nút điều khiển lớn trên mobile, xem trước bản đồ với kích thước nhà khác nhưng không đổi bản nháp hay bản đã công bố. Tài khoản gia đình kiểm tra đã xóa. Kiểm tra admin desktop/mobile đạt; xác nhận đủ 90 bài học, 12 NPC, 24 asset và các giới hạn truy cập vẫn hoạt động. Ảnh kiểm tra lưu cục bộ tại `temp/deploy/qa/upgrades-live/`. Bài kiểm tra riêng xác nhận nút đóng hướng dẫn cập nhật đúng hồ sơ khi dữ liệu online vừa thay thế bản trong bộ nhớ; API kiểm tra giữ đồ trang trí khi chưa có lần tải hoạt động đầu tiên.

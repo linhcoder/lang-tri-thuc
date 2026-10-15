@@ -1,5 +1,9 @@
 # aaPanel staging: ltt.vui-hoc.xyz
 
+## Chín nâng cấp game — 16/10/2026
+
+Release `upgrades-3065cfd-20261016`, source `3065cfd`, contentVersion `0d971c1a`. Overlay ban đầu 38 file; bản hoàn thiện gồm 11 file, SHA-256 `461921b977b7c142bdc665fe78fac58853e58921c0182c8c8fd975aad0e84a66`; toàn bộ checksum source/game/admin được đối chiếu trước kích hoạt. Backup `/opt/lang-tri-thuc/backups/database-20261015T175726Z.sql` đã phục hồi thử đạt. Hai API MySQL healthy; CMS NPC được giữ nguyên. Bản đồ công bố là dữ liệu riêng có lịch sử, không cần dựng game cho mỗi lần chỉnh. Chi tiết tại [GAME_UPGRADES_2026_10](../../docs/design/GAME_UPGRADES_2026_10.md).
+
 ## Sửa lớp ảnh trường che Cô Giáo Lan — 15/10/2026
 
 Release hiện tại `teacher-depth-a2c06c8-20261015`, source `a2c06c8`, contentVersion `0d971c1a`. Overlay năm file SHA-256 `33080e1acb2166c2220056a73c1f61654cd0f72943578e8e29689074deab6f6b`; source/game/admin checksum khớp. Backup `/opt/lang-tri-thuc/backups/database-20261015T162510Z.sql` phục hồi thử đạt, hai API MySQL healthy. Mốc xếp lớp trường tính theo chân tòa nhà thay vì đáy phần sân trong ảnh; bố trí/CMS giữ nguyên. Chi tiết tại [TEACHER_LAN_REFERENCE](../../docs/design/TEACHER_LAN_REFERENCE.md).

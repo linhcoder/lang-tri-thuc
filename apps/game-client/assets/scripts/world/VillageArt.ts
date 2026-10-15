@@ -23,6 +23,17 @@ export class VillageArt {
             const texture=new Texture2D();texture.image=new ImageAsset(canvas);this.generatedTextures.push(texture);this.paintedCharacters[id]=this.slice(texture,8,3);
         }catch{console.warn('Character art unavailable; keeping character fallback',asset.atlas);}
     }
+    private farmerFrames:SpriteFrame[]=[];
+    private installFarmerFrames(texture:Texture2D):void{
+        if(!Number.isFinite(texture.width)||!Number.isFinite(texture.height))return;
+        // Source row gutters measured against alpha; crop only empty horizontal bands.
+        for(const [top,bottom] of [[8,295],[306,574],[583,872]])for(let direction=0;direction<8;direction++){
+            const frame=new SpriteFrame();frame.texture=texture;
+            frame.rect=new Rect(direction*texture.width/8,top/887*texture.height,texture.width/8,(bottom-top)/887*texture.height);
+            this.farmerFrames.push(frame);
+        }
+    }
+    farmerFrame(direction:number,pose=0):SpriteFrame|null{return this.farmerFrames[pose*8+direction]??null;}
     child:SpriteFrame[]=[];environment:SpriteFrame[]=[];
     npcPoses:SpriteFrame[][]=[];
     npcDirections:SpriteFrame[][]=[];
@@ -87,7 +98,7 @@ export class VillageArt {
         const frame=(texture:Texture2D,id:string)=>assetFrame(texture,id);
         this.environment=[frame(temple,'dinh'),frame(temple,'dinh'),frame(banyan,'banyan'),frame(temple,'dinh'),frame(temple,'dinh'),frame(temple,'dinh'),frame(farmer,'character.farmer')];[0,2,6].forEach(index=>this.environmentLoaded.add(index));
         await Promise.all([this.loadRedStarBoy(),this.loadRedStarBoy(1),this.loadNpcPoses(),...(['elder','lotus','seedling'] as const).map(name=>this.ensureDecoration(name)),...villageDetails.filter(o=>assetResourceKey(o.id)!==assetResourceKey('bamboo')).map(o=>this.ensureObject(o.id,-1))]);
-        if(!this.disposed)onProgress(1);
+        if(!this.disposed){this.installFarmerFrames(farmer);onProgress(1);}
     }
     private async loadNpcPoses():Promise<void>{
         await Promise.all([
@@ -188,5 +199,5 @@ export class VillageArt {
         const image=new ImageAsset(canvas),texture=new Texture2D();texture.image=image;this.generatedTextures.push(texture);const frame=new SpriteFrame();frame.texture=texture;frame.rect=new Rect(0,0,canvas.width,canvas.height);this.environment.push(frame);
         const node=this.sprite(parent,'MeadowOutskirts',frame,6144,2880);node.getComponent(UITransform)!.setAnchorPoint(.5,.5);node.setPosition(0,-720);node.setSiblingIndex(0);return node;
     }
-    dispose():void{this.disposed=true;for(const frame of [...Array.from(this.objectFrames.values()),...Array.from(this.drawnCharacters.values()).flat(),...this.npcPoses.flat(),...this.npcDirections.flat(),...this.npcWalkSteps.flat(),...this.paintedCharacters.flat(),...this.scenery,...this.child,...this.details,...this.environment,...Object.values(this.decorations),...Object.values(this.avatarVariants).flat(),...Object.values(this.hairVariants).flat()])frame?.destroy();for(const texture of this.generatedTextures){const image=texture.image;texture.destroy();image?.destroy();}this.paintedCharacters=[];this.drawnCharacters.clear();this.objectFrames.clear();this.objectLoads.clear();this.environmentLoads.clear();this.environmentLoaded.clear();this.sceneryLoad=undefined;this.terrainFrames.clear();this.scenery=[];this.npcPoses=[];this.npcDirections=[];this.npcWalkSteps=[];this.child=[];this.details=[];this.environment=[];this.decorations={};this.avatarVariants={};this.hairVariants={};this.hairLoads.clear();this.avatarLoads.clear();this.decorationLoads.clear();this.generatedTextures=[];}
+    dispose():void{this.disposed=true;for(const frame of [...Array.from(this.objectFrames.values()),...Array.from(this.drawnCharacters.values()).flat(),...this.npcPoses.flat(),...this.npcDirections.flat(),...this.npcWalkSteps.flat(),...this.paintedCharacters.flat(),...this.farmerFrames,...this.scenery,...this.child,...this.details,...this.environment,...Object.values(this.decorations),...Object.values(this.avatarVariants).flat(),...Object.values(this.hairVariants).flat()])frame?.destroy();for(const texture of this.generatedTextures){const image=texture.image;texture.destroy();image?.destroy();}this.paintedCharacters=[];this.farmerFrames=[];this.drawnCharacters.clear();this.objectFrames.clear();this.objectLoads.clear();this.environmentLoads.clear();this.environmentLoaded.clear();this.sceneryLoad=undefined;this.terrainFrames.clear();this.scenery=[];this.npcPoses=[];this.npcDirections=[];this.npcWalkSteps=[];this.child=[];this.details=[];this.environment=[];this.decorations={};this.avatarVariants={};this.hairVariants={};this.hairLoads.clear();this.avatarLoads.clear();this.decorationLoads.clear();this.generatedTextures=[];}
 }

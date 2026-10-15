@@ -48,6 +48,9 @@ for(const asset of visualAssets){
     if(asset.id==='avatar.child')Object.assign(asset,{path:resource+'reference-child-v1.png',animationRows:[[27/887,283/887],[306/887,283/887],[583/887,283/887]],source:'OpenAI built-in imagegen; 8x3 layout preserved; docs/design/reference-completion-prompts.json'});
     if(asset.id==='banyan')Object.assign(asset,{path:resource+'reference-banyan-v1.png',cell:undefined,columns:undefined,rows:undefined,rowCuts:undefined,trim:true});
 }
+// Farmer identity comes from the user's portrait, with dedicated eight-view poses.
+const farmerAsset=visualAssets.find(asset=>asset.id==='character.farmer')!;
+Object.assign(farmerAsset,{path:resource+'farmer-reference-v1.png',cell:6,columns:8,rows:3,rowCuts:[300/887,578/887],trim:false,source:'OpenAI built-in image_gen; user portrait reference; docs/design/farmer-reference-v1.prompt.json'});
 /** Registry paths are the actual loader source; replacing a PNG keeps the stable ID. */
 export function assetResourceKey(id:string):string{const asset=visualAssets.find(a=>a.id===id);if(!asset||!asset.path.startsWith('assets/resources/')||!asset.path.endsWith('.png'))throw new Error('Not a texture resource: '+id);return asset.path.slice('assets/resources/'.length,-4);}
 export interface SceneryPlacement extends Point {id:string;cell:number;width:number;height:number;essential:boolean;}

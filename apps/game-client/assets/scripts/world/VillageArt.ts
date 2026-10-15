@@ -32,6 +32,15 @@ export class VillageArt {
         }
     }
     coTamFrame(direction:number,pose=0):SpriteFrame|null{return this.coTamFrames[pose*8+direction]??null;}
+    private marketLadyFrames:SpriteFrame[]=[];
+    private installMarketLadyFrames(texture:Texture2D):void{
+        for(const [top,bottom] of [[0,296],[296,592],[592,887]])for(let direction=0;direction<8;direction++){
+            const frame=new SpriteFrame();frame.texture=texture;
+            frame.rect=new Rect(direction*texture.width/8,top/887*texture.height,texture.width/8,(bottom-top)/887*texture.height);
+            this.marketLadyFrames.push(frame);
+        }
+    }
+    marketLadyFrame(direction:number,pose=0):SpriteFrame|null{return this.marketLadyFrames[pose*8+direction]??null;}
     private farmerFrames:SpriteFrame[]=[];
     private installFarmerFrames(texture:Texture2D):void{
         if(!Number.isFinite(texture.width)||!Number.isFinite(texture.height))return;
@@ -127,7 +136,7 @@ export class VillageArt {
         if(this.disposed)return Promise.resolve();const existing=this.decorationLoads.get(name);if(existing)return existing;
         const ids={seedling:'vegetation.seedling',elder:'character.elder',lotus:'water.lotus','co-tam':'character.co-tam',teacher:'character.co-giao-lan','market-lady':'character.ba-ban-hang',potter:'character.nghe-nhan-gom','ti-na':'character.ti-na','hang-cuoi':'character.chi-hang-cuoi'};
         const task=new Promise<void>(resolve=>resources.load(`${assetResourceKey(ids[name])}/texture`,Texture2D,(error,texture)=>{
-            if(!this.disposed&&!error){this.decorations[name]=assetFrame(texture,ids[name]);if(name==='co-tam')this.installCoTamFrames(texture);}
+            if(!this.disposed&&!error){this.decorations[name]=assetFrame(texture,ids[name]);if(name==='co-tam')this.installCoTamFrames(texture);if(name==='market-lady')this.installMarketLadyFrames(texture);}
             else if(error)console.warn(`Village decoration ${name} unavailable; keeping fallback`);resolve();
         }));this.decorationLoads.set(name,task);return task;
     }
@@ -208,5 +217,5 @@ export class VillageArt {
         const image=new ImageAsset(canvas),texture=new Texture2D();texture.image=image;this.generatedTextures.push(texture);const frame=new SpriteFrame();frame.texture=texture;frame.rect=new Rect(0,0,canvas.width,canvas.height);this.environment.push(frame);
         const node=this.sprite(parent,'MeadowOutskirts',frame,6144,2880);node.getComponent(UITransform)!.setAnchorPoint(.5,.5);node.setPosition(0,-720);node.setSiblingIndex(0);return node;
     }
-    dispose():void{this.disposed=true;for(const frame of [...Array.from(this.objectFrames.values()),...Array.from(this.drawnCharacters.values()).flat(),...this.npcPoses.flat(),...this.npcDirections.flat(),...this.npcWalkSteps.flat(),...this.paintedCharacters.flat(),...this.farmerFrames,...this.coTamFrames,...this.scenery,...this.child,...this.details,...this.environment,...Object.values(this.decorations),...Object.values(this.avatarVariants).flat(),...Object.values(this.hairVariants).flat()])frame?.destroy();for(const texture of this.generatedTextures){const image=texture.image;texture.destroy();image?.destroy();}this.paintedCharacters=[];this.farmerFrames=[];this.coTamFrames=[];this.drawnCharacters.clear();this.objectFrames.clear();this.objectLoads.clear();this.environmentLoads.clear();this.environmentLoaded.clear();this.sceneryLoad=undefined;this.terrainFrames.clear();this.scenery=[];this.npcPoses=[];this.npcDirections=[];this.npcWalkSteps=[];this.child=[];this.details=[];this.environment=[];this.decorations={};this.avatarVariants={};this.hairVariants={};this.hairLoads.clear();this.avatarLoads.clear();this.decorationLoads.clear();this.generatedTextures=[];}
+    dispose():void{this.disposed=true;for(const frame of [...Array.from(this.objectFrames.values()),...Array.from(this.drawnCharacters.values()).flat(),...this.npcPoses.flat(),...this.npcDirections.flat(),...this.npcWalkSteps.flat(),...this.paintedCharacters.flat(),...this.farmerFrames,...this.coTamFrames,...this.marketLadyFrames,...this.scenery,...this.child,...this.details,...this.environment,...Object.values(this.decorations),...Object.values(this.avatarVariants).flat(),...Object.values(this.hairVariants).flat()])frame?.destroy();for(const texture of this.generatedTextures){const image=texture.image;texture.destroy();image?.destroy();}this.paintedCharacters=[];this.farmerFrames=[];this.coTamFrames=[];this.marketLadyFrames=[];this.drawnCharacters.clear();this.objectFrames.clear();this.objectLoads.clear();this.environmentLoads.clear();this.environmentLoaded.clear();this.sceneryLoad=undefined;this.terrainFrames.clear();this.scenery=[];this.npcPoses=[];this.npcDirections=[];this.npcWalkSteps=[];this.child=[];this.details=[];this.environment=[];this.decorations={};this.avatarVariants={};this.hairVariants={};this.hairLoads.clear();this.avatarLoads.clear();this.decorationLoads.clear();this.generatedTextures=[];}
 }

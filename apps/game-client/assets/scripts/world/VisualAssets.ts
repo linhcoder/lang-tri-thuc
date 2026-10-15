@@ -52,6 +52,7 @@ for(const asset of visualAssets){
 const farmerAsset=visualAssets.find(asset=>asset.id==='character.farmer')!;
 Object.assign(farmerAsset,{path:resource+'farmer-workwear-v2.png',cell:6,columns:8,rows:3,rowCuts:[300/887,578/887],trim:false,source:'OpenAI built-in image_gen; user portrait reference; docs/design/farmer-workwear-v2.prompt.json'});
 Object.assign(visualAssets.find(asset=>asset.id==='character.co-tam')!,{path:resource+'co-tam-reference-v1.png',cell:6,columns:8,rows:3,rowCuts:[296/887,592/887],trim:false,source:'OpenAI built-in image_gen; docs/design/co-tam-reference-v1.prompt.json'});
+Object.assign(visualAssets.find(asset=>asset.id==='character.ba-ban-hang')!,{path:resource+'market-lady-reference-v1.png',cell:6,columns:8,rows:3,rowCuts:[296/887,592/887],trim:false,source:'OpenAI built-in image_gen; docs/design/market-lady-reference-v1.prompt.json'});
 /** Registry paths are the actual loader source; replacing a PNG keeps the stable ID. */
 export function assetResourceKey(id:string):string{const asset=visualAssets.find(a=>a.id===id);if(!asset||!asset.path.startsWith('assets/resources/')||!asset.path.endsWith('.png'))throw new Error('Not a texture resource: '+id);return asset.path.slice('assets/resources/'.length,-4);}
 export interface SceneryPlacement extends Point {id:string;cell:number;width:number;height:number;essential:boolean;}

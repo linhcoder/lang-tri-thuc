@@ -156,7 +156,7 @@ export class VillageBootstrap extends Component {
             const facing=walk&&(walk.direction===3||walk.direction===4||walk.direction===5)?-1:1;
             const sprite=state.sprite,poses=this.art.npcPoses[state.row],directions=this.art.npcDirections[state.row],steps=this.art.npcWalkSteps[state.row];
             const expansionBody=state.body.name.startsWith('ExpansionSprite-');
-            const authoredPortrait=state.body.name==='FarmerSprite'?this.art.farmerFrame(walk?.direction??6,moving?(state.gait.cycleFrame>=4?1:0):greeting>0?2:0):state.body.name==='CoTamSprite'?this.art.coTamFrame(walk?.direction??6,moving?(state.gait.cycleFrame>=4?1:0):greeting>0?2:0):null;
+            const authoredPortrait=state.body.name==='FarmerSprite'?this.art.farmerFrame(walk?.direction??6,moving?(state.gait.cycleFrame>=4?1:0):greeting>0?2:0):state.body.name==='CoTamSprite'?this.art.coTamFrame(walk?.direction??6,moving?(state.gait.cycleFrame>=4?1:0):greeting>0?2:0):state.body.name==='MarketLadySprite'?this.art.marketLadyFrame(walk?.direction??6,moving?(state.gait.cycleFrame>=4?1:0):greeting>0?2:0):null;
             const directional=!!authoredPortrait||expansionBody||!!directions&&(moving||greeting===0);
             const walkingFrames=moving&&steps&&state.gait.stepFrame===1?steps:directions;
             if(sprite&&state.body.name.startsWith('ExpansionSprite-'))sprite.spriteFrame=this.art.expansionCharacterFrame(node.name,walk?.direction??6,moving?state.gait.cycleFrame:-1)??this.art.npcCharacterFrame(Number(state.body.name.slice(16)),walk?.direction??6,moving?1+state.gait.cycleFrame:0,1,node.name==='chu-hai'?2:1);

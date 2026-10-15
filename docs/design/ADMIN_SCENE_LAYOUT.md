@@ -24,3 +24,13 @@ Công cụ kiểm tra ID, trùng lặp, tọa độ, kích thước và lối đ
 - `npm run check:client`, `npm run test:client`, build admin/API/server/Cocos.
 
 API riêng: `GET/PUT /admin/scene-layout`, danh sách vật thể nằm trong `GET /admin/scene`. Dữ liệu được lưu ở `BackendData.sceneLayout`; không cần đổi cấu trúc bảng MySQL.
+
+## VPS 15/10/2026
+
+Đã triển khai `scene-layout-c379c7f-20261015`, source commit `c379c7f`, contentVersion `d92c670c`. Chưa áp dụng thay đổi bố trí nào vào bản game mặc định. Backup `/opt/lang-tri-thuc/backups/database-20261015T130613Z.sql` phục hồi thử đạt. Hai API MySQL healthy; CMS giữ nguyên, bản `potter-1a05ffb-20261015` giữ để rollback.
+
+Admin được phục vụ ở gốc domain, build dùng base `/`. Đã sửa index sau khi kiểm tra phát hiện tiền tố `/admin/` không khớp Nginx. Gói overlay cuối gồm 28 file, SHA-256 `4f8f4b6d4e6946d0f60d942716fa98603e6ba087f22569faabcd2e5b43740e02`; manifest cuối kiểm tra lại toàn bộ source/game/admin.
+
+QA local: TypeScript, 64 nhóm test client và sáu lifecycle/startup; API 19 đạt, một MySQL fixture bỏ qua; build admin/API/rooms/Cocos đạt. Kiểm tra import chấp nhận sân bóng hợp lệ và từ chối nhà chặn điểm xuất hiện. Kiểm tra trình duyệt riêng xác nhận lưu/tải lại, kéo vị trí, kéo góc, giữ tỉ lệ, hoàn tác và desktop/mobile. Game Cocos với bố trí mặc định tiếp tục qua QA.
+
+QA HTTPS đăng nhập admin, tải ảnh cảnh, chọn sân bóng, đổi kích thước và hoàn tác, desktop/mobile đạt, không page error; bản nháp trên VPS trước/sau giống nhau và phiên QA đã thu hồi. Kiểm tra API/quyền phòng đạt. Evidence local: `apps/admin/temp/layout-qa/`; live: `temp/deploy/qa/scene-layout-live/`.

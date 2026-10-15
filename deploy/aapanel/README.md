@@ -1,5 +1,9 @@
 # aaPanel staging: ltt.vui-hoc.xyz
 
+## Chỉnh bố trí vật thể — 15/10/2026
+
+Release hiện tại `scene-layout-c379c7f-20261015`, source commit `c379c7f`, contentVersion `d92c670c`. Trình chỉnh cây/nhà/sân chơi lưu bản nháp có revision, xuất gói và áp dụng đồng bộ hình ảnh/va chạm khi build game cùng backend/rooms. Admin build base `/` theo Nginx gốc domain; đã sửa index sau kiểm tra đầu tiên và tạo overlay cuối 28 file SHA-256 `4f8f4b6d4e6946d0f60d942716fa98603e6ba087f22569faabcd2e5b43740e02`. Backup `/opt/lang-tri-thuc/backups/database-20261015T130613Z.sql` phục hồi thử đạt. API MySQL và QA HTTPS admin desktop/mobile đạt; bản nháp live giữ nguyên. Chi tiết và cách áp dụng tại [ADMIN_SCENE_LAYOUT](../../docs/design/ADMIN_SCENE_LAYOUT.md). Các release dưới đây là lịch sử.
+
 ## Nghệ Nhân Gốm theo ảnh tham chiếu — 15/10/2026
 
 Release hiện tại `potter-1a05ffb-20261015`, source commit `1a05ffb`, build `web-desktop`, contentVersion `d92c670c`. Nghệ Nhân Gốm dùng atlas riêng theo ảnh với áo nâu và tạp dề làm gốm. Overlay 14 file SHA-256 `5ab82c018e129cef9a2d70b46ac17117e4bc216e04ff766f9ca77c972eee82ee`; source/Web checksum khớp, backup `/opt/lang-tri-thuc/backups/database-20261015T084242Z.sql` phục hồi thử đạt. Hai API MySQL healthy, CMS giữ nguyên; release trước được giữ để rollback. Chi tiết tại [POTTER_REFERENCE](../../docs/design/POTTER_REFERENCE.md). Các release dưới đây là lịch sử.

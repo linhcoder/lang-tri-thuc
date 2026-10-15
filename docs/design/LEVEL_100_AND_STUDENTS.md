@@ -1,5 +1,9 @@
 # Hành trình 100 cấp và hồ sơ học sinh
 
+## Chỉnh vị trí và kích thước vật thể — VPS 15/10/2026
+
+Admin **Bản đồ NPC → Cây, nhà và sân chơi** hỗ trợ chọn/kéo vật thể, kéo góc đổi kích thước, nhập tọa độ/rộng/cao, giữ tỉ lệ, hoàn tác/làm lại, lưu bản nháp và xuất bố trí. Gói bố trí được kiểm tra lối đi trước khi dựng game/backend/rooms cùng nhau. Release `scene-layout-c379c7f-20261015`, source commit `c379c7f`; kiểm tra desktop/mobile và HTTPS đạt. Hướng dẫn tại [ADMIN_SCENE_LAYOUT](ADMIN_SCENE_LAYOUT.md).
+
 ## Nghệ Nhân Gốm theo ảnh — VPS 15/10/2026
 
 Nghệ Nhân Gốm giữ nét mặt, kính chữ nhật và tóc theo ảnh tham chiếu, mặc áo nâu xắn tay và tạp dề làm gốm. Nhân vật dùng atlas riêng khi đứng/đi/chào. Release hiện tại `potter-1a05ffb-20261015`, source commit `1a05ffb`, contentVersion `d92c670c`. Chi tiết tại [POTTER_REFERENCE](POTTER_REFERENCE.md).

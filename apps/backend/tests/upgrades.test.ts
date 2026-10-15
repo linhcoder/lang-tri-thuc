@@ -38,6 +38,8 @@ test('parent learning reports enforce profile ownership and admin reports enforc
   assert.equal((await app.inject({method:'GET',url:'/profiles/'+profile.id+'/learning-report',headers})).statusCode,200);
   assert.equal((await app.inject({method:'GET',url:'/profiles/'+profile.id+'/learning-report',headers})).json().answers,2);
   assert.equal((await app.inject({method:'GET',url:'/profiles/'+profile.id+'/play',headers})).json().progress.data.upgrades.events.length,2);
+  await store.transaction(d=>{const saved=d.progress[profile.id];const trusted=new CampaignEngine();trusted.data.upgrades=restoreUpgrades({room:{left:'plant'},events:(saved.data as any).upgrades.events});saved.source='online';saved.trusted={chapterOne:null,campaign:trusted.data};delete saved.activities;});
+  assert.equal((await app.inject({method:'GET',url:'/profiles/'+profile.id+'/play',headers})).json().progress.data.upgrades.room.left,'plant');
   assert.equal((await app.inject({method:'GET',url:'/profiles/not-owned/learning-report',headers})).statusCode,404);
   assert.equal((await app.inject({method:'GET',url:'/admin/students/'+profile.id+'/learning-report',headers})).statusCode,401);
  }finally{await app.close();}

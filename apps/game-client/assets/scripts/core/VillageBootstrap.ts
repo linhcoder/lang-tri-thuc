@@ -90,7 +90,7 @@ function animateGesture(state:AvatarGestureState,sprite:Sprite,scarf:Graphics,g:
 @disallowMultiple
 @requireComponent(UITransform)
 export class VillageBootstrap extends Component {
-    private guide=new FirstVisitGuide();private growth=new VillageGrowth();private guideStart?:Point;private guideElapsed=0;
+    private guide=new FirstVisitGuide(()=>this.hub?.campaign.data.upgrades);private growth=new VillageGrowth();private guideStart?:Point;private guideElapsed=0;
     private map = new VillageMap();
     private get compactScreen():boolean{return sys.isMobile||(game?.canvas?.clientWidth??1280)<900;}
     private uiClick=new UiClickSound();

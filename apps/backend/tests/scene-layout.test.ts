@@ -10,10 +10,10 @@ test('scene layouts persist atomically, reject invalid objects and stale edits, 
   const token=(await request('POST','/sessions',{alias:'admin',password:'SceneLayoutAdmin123!'})).json().token;
   const scene=(await request('GET','/admin/scene',undefined,token)).json();assert.ok(scene.layoutObjects.some((o:any)=>o.id==='schoolyard.dirt-pitch'));assert.ok(scene.layoutObjects.some((o:any)=>o.id==='journey.village'));
   const initial=(await request('GET','/admin/scene-layout',undefined,token)).json();
-  const pack={version:1,placements:[{id:'schoolyard.dirt-pitch',x:46.25,y:34,width:420,height:280}]},body={revision:initial.revision,pack,note:'Move and resize football pitch for layout test'};
+  const pack={version:1,placements:[{id:'schoolyard.dirt-pitch',x:46.25,y:34,width:420,height:280}]},body={revision:initial.revision,pack};
   assert.equal((await request('PUT','/admin/scene-layout',body,token)).statusCode,200);
   assert.equal((await request('PUT','/admin/scene-layout',body,token)).statusCode,409);
-  const persisted=(await request('GET','/admin/scene-layout',undefined,token)).json();assert.deepEqual(persisted.pack,pack);
+  const persisted=(await request('GET','/admin/scene-layout',undefined,token)).json();assert.deepEqual(persisted.pack,pack);assert.equal(persisted.note,'');
   for(const placements of [[{...pack.placements[0],width:-1}],[{...pack.placements[0],x:72}],[{...pack.placements[0],id:'not-real'}],[{...pack.placements[0],id:'bridge'}],[pack.placements[0],pack.placements[0]]]){
    assert.equal((await request('PUT','/admin/scene-layout',{...body,revision:persisted.revision,pack:{version:1,placements}},token)).statusCode,400);
   }

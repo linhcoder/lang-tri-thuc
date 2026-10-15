@@ -91,6 +91,7 @@ export async function createApi(options:ApiOptions={}){
         'Unknown catalog type':['INVALID_CATALOG_TYPE','Loại danh mục chưa được hỗ trợ.'],
         'CMS revision conflict; reload before saving':['CMS_CONFLICT','Bản nháp đã được sửa ở phiên khác. Tải lại CMS trước khi lưu.'],
         'Layout revision conflict; reload before saving':['LAYOUT_CONFLICT','Bố trí đã được sửa ở phiên khác. Tải lại trang trước khi lưu.'],
+        'NPC layout conflict; reload before saving':['NPC_LAYOUT_CONFLICT','Vị trí NPC đã được sửa ở phiên khác. Tải lại trang trước khi lưu.'],
         'CMS note must contain 12–500 characters':['CMS_NOTE','Ghi chú CMS cần từ 12 đến 500 ký tự.'],
         'Invalid review status':['CMS_REVIEW','Trạng thái kiểm duyệt không hợp lệ.'],
         'Approve before publishing':['CMS_APPROVAL','Cần kiểm tra và duyệt bản nháp trước khi xuất bản.'],
@@ -170,9 +171,22 @@ export async function createApi(options:ApiOptions={}){
         });
     });
     app.put<{Params:{id:string};Body:{label:string;age:'3-5'|'6-8'|'9-11'}}>('/admin/students/:id',{schema:{body:object({label:{type:'string',minLength:1,maxLength:40},age})}},async req=>{const admin=await auth(req,true);return store.transaction(d=>{const child=d.profiles[req.params.id];if(!child)throw Object.assign(Error('Not found'),{statusCode:404});const label=req.body.label.trim();if(!label)throw Object.assign(Error('Invalid profile label'),{statusCode:400});child.label=label;child.age=req.body.age;d.audit.push({actor:admin.id,action:'profile.admin-edit',entity:child.id,created:Date.now()});return {id:child.id,label:child.label,age:child.age};});});
+    app.put<{Body:{values:NpcText[];previous:NpcText[];note?:string}}>('/admin/npc-layout',{schema:{body:object({values:{type:'array',minItems:1,maxItems:40,items:object({id:{type:'string'},name:{type:'string',minLength:1,maxLength:50},x:{type:'integer'},y:{type:'integer'}})},previous:{type:'array',minItems:1,maxItems:40,items:object({id:{type:'string'},name:{type:'string'},x:{type:'integer'},y:{type:'integer'}})},note:{type:'string',maxLength:500}},['values','previous'])}},async req=>{
+        const actor=await auth(req,true);
+        return store.transaction(d=>{
+            const {values,previous}=req.body,known=shippedNpcs(),ids=new Set(values.map(n=>n.id));
+            if(ids.size!==values.length||previous.length!==values.length||new Set(previous.map(n=>n.id)).size!==values.length||values.some(n=>!known.some(k=>k.id===n.id)||!previous.some(p=>p.id===n.id)))throw Object.assign(Error('Invalid NPC layout batch'),{statusCode:400});
+            for(const before of previous){const current=d.npcs[before.id]??known.find(n=>n.id===before.id)!;if(current.name!==before.name||current.x!==before.x||current.y!==before.y)throw Object.assign(Error('NPC layout conflict; reload before saving'),{statusCode:409});}
+            const merged=known.map(n=>values.find(v=>v.id===n.id)??d.npcs[n.id]??n);
+            if(!applyNpcPack({version:1,npcs:merged},true))throw Object.assign(Error('Invalid or unreachable NPC spawn'),{statusCode:400});
+            const note=req.body.note?.trim()??'';
+            for(const value of values){d.npcs[value.id]={...value};d.review['npc:'+value.id]={status:'draft',reviewer:actor.alias,note,updated:Date.now()};d.audit.push({actor:actor.id,action:'npc.edit',entity:value.id,created:Date.now()});}
+            return {ok:true,count:values.length};
+        });
+    });
     app.get('/admin/scene-layout',async req=>{await auth(req,true);return store.transaction(d=>d.sceneLayout??{revision:0,pack:layoutPack,note:''});});
-    app.put<{Body:{revision:number;pack:any;note:string}}>('/admin/scene-layout',{schema:{body:object({revision:{type:'integer',minimum:0},pack:{type:'object'},note:{type:'string',minLength:12,maxLength:500}})}},async req=>{
-        const actor=await auth(req,true);return store.transaction(d=>{const current=d.sceneLayout?.revision??0;if(req.body.revision!==current)throw Object.assign(Error('Layout revision conflict; reload before saving'),{statusCode:409});const errors=layoutErrors(req.body.pack);if(errors.length)throw Object.assign(Error(errors.join(' ')),{statusCode:400});d.sceneLayout={revision:current+1,pack:structuredClone(req.body.pack),note:req.body.note.trim()};d.audit.push({actor:actor.id,action:'scene.layout.edit',entity:String(current+1),created:Date.now()});return d.sceneLayout;});
+    app.put<{Body:{revision:number;pack:any;note?:string}}>('/admin/scene-layout',{schema:{body:object({revision:{type:'integer',minimum:0},pack:{type:'object'},note:{type:'string',maxLength:500}},['revision','pack'])}},async req=>{
+        const actor=await auth(req,true);return store.transaction(d=>{const current=d.sceneLayout?.revision??0;if(req.body.revision!==current)throw Object.assign(Error('Layout revision conflict; reload before saving'),{statusCode:409});const errors=layoutErrors(req.body.pack);if(errors.length)throw Object.assign(Error(errors.join(' ')),{statusCode:400});d.sceneLayout={revision:current+1,pack:structuredClone(req.body.pack),note:req.body.note?.trim()??''};d.audit.push({actor:actor.id,action:'scene.layout.edit',entity:String(current+1),created:Date.now()});return d.sceneLayout;});
     });
     app.get('/admin/scene',async req=>{await auth(req,true);const map=new VillageMap();return {size:SIZE,assets:visualAssets.filter(a=>a.path.endsWith('.png')&&a.path.startsWith('assets/resources/')),tiles:Array.from({length:SIZE*SIZE},(_,i)=>({x:i%SIZE,y:Math.floor(i/SIZE),terrain:terrain(i%SIZE,Math.floor(i/SIZE)),walkable:map.walkableForNpc(i%SIZE,Math.floor(i/SIZE),'*')})),reserved:[elderTile,farmerTile,...plantingPlots,...worldZones.map(z=>z.spawn)],storyNpcs,objects:villageObjects,details:villageDetails,scenery:sceneryPlacements(),layoutObjects:sceneObjects(),fixedNpcs:[{id:'character.elder',...elderTile,width:65,height:100},{id:'character.farmer',...farmerTile,width:90,height:100}]};});
     app.get<{Params:{id:string}}>('/admin/asset-preview/:id',async(req,reply)=>{await auth(req,true);const id=req.params.id,asset=visualAssets.find(a=>a.id===id),legacy=assetCatalog().find(a=>a.id===id);const path=asset?.path??(legacy?'assets/resources/'+legacy.path:'');if(!path.startsWith('assets/resources/')||!path.endsWith('.png'))throw Object.assign(Error('Not found'),{statusCode:404});try{return reply.type('image/png').header('Cache-Control','private, max-age=300').send(await readFile(new URL('../../game-client/'+path,import.meta.url)));}catch{throw Object.assign(Error('Not found'),{statusCode:404});}});

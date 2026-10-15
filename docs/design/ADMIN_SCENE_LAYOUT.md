@@ -8,7 +8,9 @@ Nút chuyển **Nhân vật NPC / Cây, nhà và sân chơi** nằm trong vùng 
 
 Mở **Bản đồ NPC → Cây, nhà và sân chơi**. Chọn vật thể từ danh sách hoặc bấm ảnh trên bản đồ. Có thể tìm theo tên/ID, kéo vị trí theo bước ¼ ô, nhập tọa độ và rộng/cao, giữ tỉ lệ hoặc kéo nút vuông ở góc phải dưới để đổi kích thước. Nút **Đến vật thể đang chọn** đưa camera đến vật thể. Kéo nền để xem quanh; có thu phóng và bật/tắt lưới.
 
-**Hoàn tác/Làm lại** áp dụng cho phiên chỉnh sửa; **Hoàn tác vật thể** trả vật thể về lần lưu gần nhất. Ghi chú cần ít nhất 12 ký tự. **Lưu bố trí vật thể** lưu toàn bộ thay đổi vào database bằng giao dịch và số phiên bản; phiên cũ bị từ chối để tránh ghi đè người khác. Bản nháp tồn tại sau khi tải lại trang và không sửa dữ liệu người chơi. Cầu qua ao được khóa vì gắn với đường đi trên mặt nước.
+**Hoàn tác/Làm lại** áp dụng cho phiên chỉnh sửa; **Hoàn tác vật thể** trả vật thể về lần lưu gần nhất. Ghi chú không bắt buộc và không có độ dài tối thiểu. **Lưu bố trí vật thể** lưu toàn bộ thay đổi vào database bằng giao dịch và số phiên bản; phiên cũ bị từ chối để tránh ghi đè người khác. Bản nháp tồn tại sau khi tải lại trang và không sửa dữ liệu người chơi. Cầu qua ao được khóa vì gắn với đường đi trên mặt nước.
+
+Ở mục **Nhân vật NPC**, có thể chỉnh nhiều NPC rồi chọn **Lưu tất cả vị trí NPC**. Chuyển NPC giữ nguyên các thay đổi chưa lưu; dấu `*` và số lượng NPC chưa lưu giúp theo dõi. **Hoàn tác NPC** chỉ bỏ thay đổi của NPC đang chọn, **Hoàn tác tất cả NPC** bỏ toàn bộ thay đổi trong phiên. Hệ thống kiểm tra cả nhóm rồi lưu trong một giao dịch, hỗ trợ hoán đổi vị trí và từ chối toàn bộ nếu có vị trí sai hoặc một NPC đã được sửa bởi phiên khác. Ghi chú bố trí NPC cũng không bắt buộc.
 
 Bản đồ dùng các ảnh cảnh hiện có trong game, gồm cây đa, nhà, xưởng gốm, trường học, sân bóng, hàng rào, cây và các vật trang trí. Mỗi vật thể có ID riêng dù dùng cùng ảnh.
 

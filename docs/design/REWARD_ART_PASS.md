@@ -1,5 +1,7 @@
 # Hình ảnh phòng riêng và cây thưởng — 16/10/2026
 
+Đã triển khai release `reward-art-936d016-20261016`, source `936d016`, contentVersion giữ `0d971c1a`. Overlay 49 file có SHA-256 `585b2e38f3ed3480a8d254586b323b419f44baae2641e03caa9b5b9b4ebde116`. Backup `/opt/lang-tri-thuc/backups/database-20261015T183116Z.sql` đã kiểm tra khôi phục trước kích hoạt. Checksum source/game/admin khớp, hai API MySQL khỏe và CMS NPC giữ nguyên.
+
 Tạo mới bảy asset bằng **built-in image_gen**, thay hình khối minh họa trước đây. Phong cách tranh game làng Việt, gỗ màu mật ong, gốm và hoa lá tông ấm. Các ảnh được sao chép nguyên bản, giữ kênh alpha của sáu sprite. Phông phòng có nền kín.
 
 Tệp nằm trong `apps/game-client/assets/resources/village/`:
@@ -17,3 +19,5 @@ Toàn bộ prompt cuối cùng tại [reward-art-v1.final-prompts.json](reward-a
 Ảnh phòng và đồ chỉ tải khi mở phòng/chọn đồ; cây tải khi đạt mốc thưởng. Dùng chung bộ nhớ đệm và vòng đời texture của VillageArt. Cây là các node riêng trong nhóm xếp lớp nhân vật, không thêm va chạm. Lưu đồ, điều kiện mở khóa, số sao và vị trí bản đồ không đổi.
 
 Kiểm tra bằng TypeScript và bản build Cocos thật: năm món đồ, phông phòng, năm cây thưởng, desktop và mobile; không có lỗi JavaScript. Fixture hình ảnh dùng một chiến dịch hoàn thành hợp lệ trong API cục bộ riêng, không cấp thưởng cho người dùng thật. Chạy `npm run test:reward-art`. Ảnh kiểm tra trong `apps/game-client/temp/reward-art-qa/`.
+
+Kiểm tra trực tiếp HTTPS trên VPS đạt: đủ năm sprite đồ trang trí và phông phòng, năm cây trong nhóm xếp lớp nhân vật, giao diện mobile, giữ lựa chọn phòng/hướng dẫn sau tải lại và báo cáo lượt học. Bản nháp/bản đồ công bố giữ nguyên; tài khoản kiểm tra đã xóa. Ảnh tại `temp/deploy/qa/reward-art-live/`. Kiểm tra API xác nhận 90 bài học, 12 NPC, 24 asset trong danh mục nội dung và các giới hạn truy cập vẫn hoạt động.

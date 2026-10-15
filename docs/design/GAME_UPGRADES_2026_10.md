@@ -20,7 +20,7 @@ Danh sách đề xuất ban đầu có tám mục. Phần xem trước, cảnh b
 
 - Phòng bạn bè giữ ảnh chụp bản đồ lúc tạo phòng; người vào sau tải đúng phiên bản của phòng. Mỗi phòng có va chạm và tuyến NPC riêng, không bị thay đổi bởi bản đồ của phòng khác. Bản đồ mới áp dụng cho lần vào làng/phòng mới.
 - Báo cáo bắt đầu ghi từ bản nâng cấp này, không chuyển tiến độ lịch sử thành hoạt động mới. Tối đa 200 sự kiện gần nhất; giao diện báo khi chạm giới hạn, nên một tuần chơi nhiều có thể không đủ toàn bộ lịch sử. Đây là thống kê lượt luyện từ thiết bị, không phải nguồn xác thực sao online.
-- Giọng đọc phụ thuộc giọng tiếng Việt có trên thiết bị và chỉ tự đọc khi bật âm thanh. Đồ trong phòng và cây thưởng dùng hình vẽ trong game.
+- Giọng đọc phụ thuộc giọng tiếng Việt có trên thiết bị và chỉ tự đọc khi bật âm thanh. Đồ trong phòng và cây thưởng đã dùng bộ sprite mới cùng phông phòng gỗ; xem [REWARD_ART_PASS](REWARD_ART_PASS.md).
 - Bản xem trước không xuất bản và không thay đổi bản đồ của người khác. Khi offline hoặc API tạm lỗi, game dùng bản đồ đóng gói sẵn.
 
 ## Kiểm tra

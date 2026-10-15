@@ -1,5 +1,9 @@
 # aaPanel staging: ltt.vui-hoc.xyz
 
+## Hình ảnh phòng riêng và cây thưởng — 16/10/2026
+
+Release `reward-art-936d016-20261016`, source `936d016`, contentVersion `0d971c1a`. Tạo mới bảy ảnh và tích hợp sprite cho phòng riêng/cây thưởng, tải khi cần. Overlay 49 file SHA-256 `585b2e38f3ed3480a8d254586b323b419f44baae2641e03caa9b5b9b4ebde116`; backup `/opt/lang-tri-thuc/backups/database-20261015T183116Z.sql` khôi phục thử đạt. Hai API MySQL healthy; giữ dữ liệu NPC, bản đồ và hồ sơ. Chi tiết tại [REWARD_ART_PASS](../../docs/design/REWARD_ART_PASS.md).
+
 ## Chín nâng cấp game — 16/10/2026
 
 Release `upgrades-3065cfd-20261016`, source `3065cfd`, contentVersion `0d971c1a`. Overlay ban đầu 38 file; bản hoàn thiện gồm 11 file, SHA-256 `461921b977b7c142bdc665fe78fac58853e58921c0182c8c8fd975aad0e84a66`; toàn bộ checksum source/game/admin được đối chiếu trước kích hoạt. Backup `/opt/lang-tri-thuc/backups/database-20261015T175726Z.sql` đã phục hồi thử đạt. Hai API MySQL healthy; CMS NPC được giữ nguyên. Bản đồ công bố là dữ liệu riêng có lịch sử, không cần dựng game cho mỗi lần chỉnh. Chi tiết tại [GAME_UPGRADES_2026_10](../../docs/design/GAME_UPGRADES_2026_10.md).

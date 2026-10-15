@@ -1,5 +1,15 @@
 # Cô Giáo Lan theo ảnh tham chiếu
 
+## Sửa cô giáo bị ảnh trường che — 15/10/2026
+
+Ảnh `journey.school` có phần sân nằm dưới chân tòa nhà. Xếp lớp theo đáy toàn ảnh khiến cô giáo bị che khi đi về đầu tuyến. Đã dùng mốc sâu cao hơn đáy ảnh 30% chiều cao để xếp lớp trường và xác định che khuất nhất quán. Cô giáo đứng/đi trên sân được vẽ phía trước trường. Vị trí NPC và bố trí bản đồ giữ nguyên.
+
+Kiểm thử `npm run test:teacher-depth` kiểm tra tất cả điểm trên tuyến đi và mười vị trí nội suy mỗi đoạn, đối chiếu thứ tự vẽ thật trong Cocos; ảnh desktop/mobile và page errors đạt. TypeScript và build Cocos đạt. Evidence local: `apps/game-client/temp/teacher-depth-qa/`.
+
+Release `teacher-depth-a2c06c8-20261015`, source `a2c06c8`, contentVersion `0d971c1a`. Overlay năm file SHA-256 `33080e1acb2166c2220056a73c1f61654cd0f72943578e8e29689074deab6f6b`; backup `/opt/lang-tri-thuc/backups/database-20261015T162510Z.sql` phục hồi thử đạt. Hai API MySQL healthy; nội dung CMS và bố trí đã áp dụng giữ nguyên. Release trước giữ để rollback.
+
+QA HTTPS lặp lại kiểm tra thứ tự vẽ toàn tuyến/nội suy và ảnh desktop/mobile đạt, không page error; tài khoản game QA đã xóa. Evidence live: `temp/deploy/qa/teacher-depth-live/`.
+
 Asset được tạo bằng OpenAI built-in image_gen, giữ nét mặt, nụ cười, kính tròn và tóc tết theo ảnh người dùng cung cấp. Trang phục đổi thành áo dài xanh nhạt, quần trắng và giày kín phù hợp cô giáo.
 
 - PNG: `apps/game-client/assets/resources/village/teacher-lan-reference-v1.png`.

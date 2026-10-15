@@ -1,5 +1,9 @@
 # aaPanel staging: ltt.vui-hoc.xyz
 
+## Sửa lớp ảnh trường che Cô Giáo Lan — 15/10/2026
+
+Release hiện tại `teacher-depth-a2c06c8-20261015`, source `a2c06c8`, contentVersion `0d971c1a`. Overlay năm file SHA-256 `33080e1acb2166c2220056a73c1f61654cd0f72943578e8e29689074deab6f6b`; source/game/admin checksum khớp. Backup `/opt/lang-tri-thuc/backups/database-20261015T162510Z.sql` phục hồi thử đạt, hai API MySQL healthy. Mốc xếp lớp trường tính theo chân tòa nhà thay vì đáy phần sân trong ảnh; bố trí/CMS giữ nguyên. Chi tiết tại [TEACHER_LAN_REFERENCE](../../docs/design/TEACHER_LAN_REFERENCE.md).
+
 ## Áp dụng bố trí bản đồ revision 3 — 15/10/2026
 
 Release hiện tại `applied-layout-501aa6a-20261015`, source `501aa6a`, contentVersion `0d971c1a`. Game/rooms dùng đủ 23 vật thể đã lưu ở revision 3. Overlay 10 file SHA-256 `b0be1d8c9e7c845cbe584f435849496806018d13a3161b3da7fab8978cf143eb`; checksum source/game/admin khớp. Backup `/opt/lang-tri-thuc/backups/database-20261015T154600Z.sql` phục hồi thử đạt. Hai API MySQL healthy, nội dung NPC CMS đã xuất bản giữ nguyên và snapshot được nâng baseVersion; lịch sử bất biến giữ lại. Chi tiết tại [ADMIN_SCENE_LAYOUT](../../docs/design/ADMIN_SCENE_LAYOUT.md).

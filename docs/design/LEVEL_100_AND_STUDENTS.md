@@ -1,5 +1,9 @@
 # Hành trình 100 cấp và hồ sơ học sinh
 
+## Cô Giáo Lan hiển thị trước sân trường — VPS 15/10/2026
+
+Release `teacher-depth-a2c06c8-20261015`, source `a2c06c8`: sửa mốc xếp lớp của ảnh trường có sân phía trước, tránh che cô giáo trên tuyến đi. Kiểm tra toàn tuyến và các điểm nội suy, desktop/mobile đạt. Chi tiết tại [TEACHER_LAN_REFERENCE](TEACHER_LAN_REFERENCE.md).
+
 ## Áp dụng bản đồ đã lưu — VPS 15/10/2026
 
 Đã nhập đủ 23 vật thể từ bố trí revision 3 đã lưu trên VPS vào game và server. Release `applied-layout-501aa6a-20261015`, source `501aa6a`, contentVersion `0d971c1a`. Kiểm tra Cocos đối chiếu vị trí/kích thước từng node đạt; admin phân biệt bố trí đã áp dụng với bản nháp chờ áp dụng. Chi tiết tại [ADMIN_SCENE_LAYOUT](ADMIN_SCENE_LAYOUT.md).

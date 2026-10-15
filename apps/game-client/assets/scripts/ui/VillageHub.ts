@@ -1,3 +1,5 @@
+import {paintRoom} from './RoomDecor';
+import {restoreUpgrades,recordLearning,learningReport,furniture} from '../world/LearningUpgrades';
 import {journeyRegions,journeyTasks,journeyQuestions,journeyAvailable,regionForZone} from '../world/LevelJourney';
 import {FlowerCareView} from './FlowerCareView';
 import {DialoguePresentation} from './DialoguePresentation';
@@ -25,7 +27,7 @@ import {festivalDateLabel} from '../world/FestivalCalendar';
 import {folkPuzzleTile,folkPuzzlePiece,folkPuzzleReference,disposeFolkPuzzleArt} from './FolkPuzzleArt';
 import {careActivities,isCareId,PaintStroke,paintColors,paintBounds,maxPaintStrokes,maxPaintPoints} from '../world/VillageActivities';
 interface Button {node:Node;width:number;action:()=>void}
-type Mode='journey'|'journey-lesson'|'expansion'|'friend'|'expansion-game'|'skin'|'menu'|'gestures'|'achievements'|'settings'|'journal'|'chapter'|'lesson'|'game'|'gate'|'parent'|'age'|'quality'|'avatar'|'accessory'|'hair'|'activities'|'inventory'|'map'|'reset'|'help'|'online'|'home'|'explore'|'collection'|'care'|'painting'|'holidays'|'holiday';
+type Mode='personal'|'room'|'weekly'|'journey'|'journey-lesson'|'expansion'|'friend'|'expansion-game'|'skin'|'menu'|'gestures'|'achievements'|'settings'|'journal'|'chapter'|'lesson'|'game'|'gate'|'parent'|'age'|'quality'|'avatar'|'accessory'|'hair'|'activities'|'inventory'|'map'|'reset'|'help'|'online'|'home'|'explore'|'collection'|'care'|'painting'|'holidays'|'holiday';
 export class VillageHub {
     private flowerView?:FlowerCareView;private flowerCompact=false;
     configureFlowerLayout(compact:boolean){if(this.flowerCompact===compact)return;this.flowerCompact=compact;if(this.flowerCareActive)this.render();}
@@ -35,6 +37,10 @@ export class VillageHub {
     private presentation=new DialoguePresentation();
     key(code:number){if(this.flowerCareActive){this.flowerView?.key(code);return;}if(code===13||code===32){if(this.presentation.reveal())return;this.buttons.find(b=>b.node.name==='ChapterIntro'||b.node.name==='NextChapter')?.action();}}
 
+    private personalSkill='math';private personalRound=0;
+    private startPersonal():void{const report=learningReport(this.campaign.data.upgrades);this.personalSkill=report.skills.filter(s=>s.attempts>=2).sort((a,b)=>a.correct/a.attempts-b.correct/b.attempts)[0]?.id??'math';if(this.personalSkill==='story')this.personalSkill='math';this.personalRound=0;this.message='';this.mode='personal';this.render();}
+    onReplayGuide?:()=>void;private recordedCompleted=new Set<string>();private trackingLearning=false;
+    primeLearning():void{this.trackingLearning=true;this.recordedCompleted=new Set([...this.campaign.data.completed,...this.campaign.journey.completed]);}
     studentName='Bé học trò';studentGender?:'male'|'female';onStudentChange?:()=>void;onJourneyAnswer?:(id:string,round:number,index:number)=>boolean;private journeyRegion=0;private journeyTask='';private journeyPage=0;
     onGesture?:(id:AvatarGesture)=>void;
     onAvatarPreview?:(parent:Node,id:number,hair?:number,skin?:number)=>void;
@@ -119,7 +125,7 @@ export class VillageHub {
         const p=this.player.position,pin=this.make(map,'CurrentPosition',12,12);pin.setPosition(p.x*.07,(p.y+SIZE*16)*.07);const g=pin.addComponent(Graphics);g.fillColor=new Color(220,63,40);g.circle(0,0,5);g.fill();
         items.forEach((item,i)=>{const h=sys.isMobile?96:48;const n=this.button(item.id,item.label,(i%2-.5)*290,-35-Math.floor(i/2)*(h+9),280,item.action);n.getComponent(UITransform)!.setContentSize(280,h);const g=n.getComponent(Graphics)!;g.clear();g.fillColor=new Color(191,144,65);g.roundRect(-140,-h/2,280,h,8);g.fill();g.fillColor=new Color(251,237,194);g.roundRect(-137,-h/2+3,274,h-6,6);g.fill();const l=n.getChildByName('Text')!.getComponent(Label)!;l.node.getComponent(UITransform)!.setContentSize(268,h-4);l.fontSize=sys.isMobile?28:18;l.lineHeight=sys.isMobile?32:22;});
     }
-    private persist():void{if(this.practice&&this.game){const checkpoints=this.campaign.data.practiceResume??={};if(this.game.ended)delete checkpoints[this.game.id];else checkpoints[this.game.id]=this.game.save();}this.onActivitySave?.();this.save.save();}
+    private persist():void{if(this.trackingLearning)for(const id of [...this.campaign.data.completed,...this.campaign.journey.completed])if(!this.recordedCompleted.has(id)){recordLearning(this.campaign.data,'story',true,id,'complete');this.recordedCompleted.add(id);}if(this.practice&&this.game){const checkpoints=this.campaign.data.practiceResume??={};if(this.game.ended)delete checkpoints[this.game.id];else checkpoints[this.game.id]=this.game.save();}this.onActivitySave?.();this.save.save();}
     syncFirst():void{const d=this.first.progress.data,signature=[d.greeted,d.planted.length,d.countRound,d.rewardReceipts.length].join(':');if(signature!==this.syncSignature){this.syncSignature=signature;this.campaign.syncChapterOne(d);this.persist();}}
     get objective():string{const index=chapters.findIndex((c,i)=>this.campaign.unlocked(i)&&!this.campaign.data.receipts.includes(`reward.star.${c.id}`));if(index<0)return `Hành trình tri thức · Lv.${this.campaign.level}/100`;if(index===0)return this.first.progress.description;const c=chapters[index],q=c.quests.find(q=>!this.campaign.data.completed.includes(q.id));return `${c.title} • ${q?.title??'Về nhận sao'}`;}
     applyServerProgress():void{if(this.node.active&&this.mode!=='game'&&this.mode!=='lesson')this.render();}
@@ -139,7 +145,7 @@ export class VillageHub {
         this.message=message;this.render();
     }
     openJourneyRegion(id:string):void{const index=journeyRegions.findIndex(r=>r.id===id);if(index<0)return;this.journeyRegion=index;this.journeyPage=0;this.open('journey');}
-    open(mode:Mode='journal',chapter?:number):void{this.reset();this.game?.pause();if(chapter!==undefined)this.chapterIndex=chapter;this.mode=mode;this.message='';this.node.active=true;if(mode==='gate')this.gateAnswer=12+Math.floor(Math.random()*9);this.render();}
+    open(mode:Mode='journal',chapter?:number):void{this.reset();this.game?.pause();if(chapter!==undefined)this.chapterIndex=chapter;this.mode=mode;this.message='';this.node.active=true;if(mode==='gate')this.gateAnswer=12+Math.floor(Math.random()*9);this.render();if((mode==='chapter'||mode==='friend')&&this.campaign.data.sound)this.read();}
     close():void{if(this.pendingExpansion||this.expansionAttempt)this.onExpansionLeave?.();this.endExpansionOnline();this.cancelDrag();this.stopReading();this.game?.pause();if(!this.practice)this.onGamePause?.(true);if(!this.practice&&this.game&&this.questId)this.campaign.data.resume[this.questId]={kind:'game',data:this.game.save()};this.persist();this.node.active=false;}
     cancel():void{this.pendingNpc=null;this.pendingDetail=null;this.cancelDrag();this.stopReading();}
     beginDrag(point:Point):boolean{
@@ -263,7 +269,7 @@ export class VillageHub {
         // Cocos defers destruction until the end of the frame. Detach old children
         // now so name lookups below cannot style a stale, inactive title or notice.
         for(const n of [...this.node.children]){if(n===this.flowerView?.node)continue;n.active=false;n.removeFromParent();n.destroy();}this.buttons=[];this.gameBoard=undefined;this.indicator=undefined;this.lastRhythm=null;
-        const titles:Record<Mode,string>={journey:'HÀNH TRÌNH 100 CẤP','journey-lesson':'THỬ THÁCH TRI THỨC',expansion:'BA KHU VUI CHƠI MỚI',friend:storyNpcs.find(n=>n.id===this.selectedFriend)?.name??'BẠN MỚI','expansion-game':this.expansionGame?.activity.title??'CÙNG CHƠI',skin:'CHỌN MÀU DA',holidays:'SỔ NGÀY LỄ',holiday:'CÙNG VUI NGÀY LỄ',care:'CHĂM GÓC LÀNG',painting:'GÓC VẼ CỦA BÉ',collection:'SỔ KHÁM PHÁ VÀ NGÀY HỘI',explore:'KHÁM PHÁ LÀNG',gestures:'BI\u1ec2U C\u1ea2M',menu:'SỔ TAY CỦA BÉ',achievements:'THÀNH TÍCH CỦA BÉ',settings:'CÀI ĐẶT',activities:'HOẠT ĐỘNG MỞ RỘNG',hair:'CH\u1eccN KI\u1ec2U T\u00d3C',accessory:'KHĂN QUÀNG CỦA BÉ',home:'NHÀ CỦA BÉ',online:'BẠN BÈ • PHÒNG RIÊNG',journal:'SỔ LÀNG • TÁM CHƯƠNG',chapter:chapters[this.chapterIndex].title.toUpperCase(),lesson:'BÀI HỌC',game:this.game?gameNames[this.game.id]:'TRÒ CHƠI',gate:'GÓC PHỤ HUYNH',parent:'PHỤ HUYNH • BẢN THỬ',age:'MỨC HỌC',quality:'HÌNH ẢNH',avatar:'CHỌN NHÂN VẬT',inventory:'SAO VÀ BỘ SƯU TẬP',map:'BẢN ĐỒ LÀNG',reset:'XÁC NHẬN XÓA SỔ',help:'HƯỚNG DẪN TRÒ CHƠI'};
+        const titles:Record<Mode,string>={personal:'LUYỆN TẬP PHÙ HỢP VỚI BÉ',room:'PHÒNG RIÊNG CỦA BÉ',weekly:'BÁO CÁO 7 NGÀY',journey:'HÀNH TRÌNH 100 CẤP','journey-lesson':'THỬ THÁCH TRI THỨC',expansion:'BA KHU VUI CHƠI MỚI',friend:storyNpcs.find(n=>n.id===this.selectedFriend)?.name??'BẠN MỚI','expansion-game':this.expansionGame?.activity.title??'CÙNG CHƠI',skin:'CHỌN MÀU DA',holidays:'SỔ NGÀY LỄ',holiday:'CÙNG VUI NGÀY LỄ',care:'CHĂM GÓC LÀNG',painting:'GÓC VẼ CỦA BÉ',collection:'SỔ KHÁM PHÁ VÀ NGÀY HỘI',explore:'KHÁM PHÁ LÀNG',gestures:'BI\u1ec2U C\u1ea2M',menu:'SỔ TAY CỦA BÉ',achievements:'THÀNH TÍCH CỦA BÉ',settings:'CÀI ĐẶT',activities:'HOẠT ĐỘNG MỞ RỘNG',hair:'CH\u1eccN KI\u1ec2U T\u00d3C',accessory:'KHĂN QUÀNG CỦA BÉ',home:'NHÀ CỦA BÉ',online:'BẠN BÈ • PHÒNG RIÊNG',journal:'SỔ LÀNG • TÁM CHƯƠNG',chapter:chapters[this.chapterIndex].title.toUpperCase(),lesson:'BÀI HỌC',game:this.game?gameNames[this.game.id]:'TRÒ CHƠI',gate:'GÓC PHỤ HUYNH',parent:'PHỤ HUYNH • BẢN THỬ',age:'MỨC HỌC',quality:'HÌNH ẢNH',avatar:'CHỌN NHÂN VẬT',inventory:'SAO VÀ BỘ SƯU TẬP',map:'BẢN ĐỒ LÀNG',reset:'XÁC NHẬN XÓA SỔ',help:'HƯỚNG DẪN TRÒ CHƠI'};
         const heading=['chapter','activities','collection','explore','care','painting','holidays','holiday','game','friend','expansion-game'].includes(this.mode)?titles[this.mode]:this.message||titles[this.mode];
         const title=this.text(this.node,heading,0,this.mode==='game'?238:225,590,this.mode==='game'?32:65,this.mode==='game'?24:this.message&&heading===this.message?20:26);
         this.readingNotice=title.getComponent(Label)!;
@@ -277,7 +283,7 @@ export class VillageHub {
         }
         const close=this.button('HubClose',this.mode==='chapter'?'Về làng':'Đóng',this.mode==='chapter'?145:0,-235,this.mode==='chapter'?260:155,()=>this.close());
         if(this.mode==='chapter'){paintModalButton(close,'Continue');close.getChildByName('Text')!.getComponent(Label)!.color=modalButtonColor('Continue');}
-        if(this.mode==='expansion'){
+        if(this.mode==='personal'){const questions=lessonQuestions(this.personalSkill,this.campaign.data.age),q=questions[this.personalRound];if(!q){this.text(this.node,'Hoàn thành lượt luyện! Bé có thể nghỉ hoặc quay về nhiệm vụ. Lượt luyện được ghi vào báo cáo, không thay đổi sao cốt truyện.',0,60,530,220,23);this.button('PersonalAgain','Luyện lượt mới',0,-100,420,()=>this.startPersonal());}else{this.text(this.node,`${this.campaign.data.age} tuổi · ${this.personalRound+1}/${questions.length}\n${q.prompt}${q.illustration?'\n'+q.illustration:''}`,0,140,540,125,this.campaign.data.age==='3-5'?26:23);q.choices.forEach((choice,i)=>this.button('PersonalAnswer-'+i,choice,0,35-i*90,530,()=>{recordLearning(this.campaign.data,this.personalSkill,q.answer===i,'personal.'+q.id);if(q.answer===i){this.personalRound++;this.message='Đúng rồi!';}else this.message=q.hint;this.persist();this.render();}));this.button('PersonalHint','Gợi ý',210,-235,140,()=>{this.message=q.hint;this.render();});}}else if(this.mode==='expansion'){
             this.text(this.node,'Cùng gặp sáu người bạn mới • Chơi không giới hạn thời gian',0,165,550,44,20);
             worldZones.filter(z=>['seasons','riverside','playground'].includes(z.id)).forEach((z,i)=>{
                 const activities=expansionActivities.filter(a=>a.zone===z.id),done=activities.filter(a=>this.campaign.data.expansion?.includes(a.id)).length,y=105-i*92;
@@ -364,24 +370,24 @@ export class VillageHub {
             if(progress.completed.includes(this.journeyTask)){this.text(this.node,`Hoàn thành! +100 XP\nLv.${this.campaign.level}/100 · ${this.campaign.journey.completed.length}/100 thử thách\nPhần thưởng: huy hiệu thử thách trong hành trình.`,0,50,540,200,23);this.button('JourneyContinue','Tiếp tục hành trình',0,-110,400,()=>{this.mode='journey';this.render();});}
             else {const question=journeyQuestions(this.journeyTask,this.campaign.data.age,lessonQuestions)[round];if(!question){this.mode='journey';this.render();return;}
                 this.text(this.node,`${round+1}/3 · ${question.prompt}${question.illustration?'\n'+question.illustration:''}`,0,130,540,120,23);
-                question.choices.forEach((choice,index)=>this.button('JourneyAnswer-'+index,choice,0,30-index*82,530,()=>{if(question.answer!==index){this.message=question.hint;this.render();return;}if(this.onJourneyAnswer){if(!this.onJourneyAnswer(this.journeyTask,round,index))this.message='Đang kết nối, bé thử lại nhé.';else this.message='Đang kiểm tra đáp án…';}else if(this.campaign.answerJourney(this.journeyTask,round,index)){this.persist();this.message='Đúng rồi!';}this.render();}));
+                question.choices.forEach((choice,index)=>this.button('JourneyAnswer-'+index,choice,0,30-index*82,530,()=>{recordLearning(this.campaign.data,journeyTasks.find(t=>t.id===this.journeyTask)?.skill??'story',question.answer===index,this.journeyTask);this.persist();if(question.answer!==index){this.message=question.hint;this.render();return;}if(this.onJourneyAnswer){if(!this.onJourneyAnswer(this.journeyTask,round,index))this.message='Đang kết nối, bé thử lại nhé.';else this.message='Đang kiểm tra đáp án…';}else if(this.campaign.answerJourney(this.journeyTask,round,index)){this.persist();this.message='Đúng rồi!';}this.render();}));
                 this.button('JourneyHint','Gợi ý',210,-235,140,()=>{this.message=question.hint;this.render();});
             }
-        }else if(this.mode==='journal'){
+        }else if(this.mode==='journal'){this.button('PersonalSuggestion','Bài luyện gợi ý',-210,-235,170,()=>this.startPersonal());
             this.button('OpenJourney','Hành trình Lv.1–100',0,170,450,()=>{this.mode='journey';this.message='';this.render();});
             this.grid(chapters.map((c,i)=>({id:'Chapter-'+i,label:`${i+1}. ${c.title}${this.campaign.data.receipts.includes('reward.star.'+c.id)?' ★':this.campaign.unlocked(i)?'':' 🔒'}`,action:()=>{if(i===0){this.message='Chương 1 chơi cùng Ông Đồ và bác trong làng.';this.render();}else{this.chapterIndex=i;this.mode='chapter';this.render();}}})));
         }else if(this.mode==='chapter'){
             const person=storyNpcs.find(n=>n.chapter===this.chapterIndex);if(person)this.presentation.portrait(this.node,'character.'+person.id);
             const c=chapters[this.chapterIndex];
             if(!this.campaign.unlocked(this.chapterIndex))this.text(this.node,'Chương này mở sau khi nhận sao của chương trước. Cháu có thể luyện lại các chương đã mở.',0,65,550,235);
-            else if(!this.campaign.data.introduced.includes(c.id)){this.text(this.node,(storyNpcs.find(n=>n.chapter===this.chapterIndex)?.name??c.npc)+'\n'+c.intro,0,65,550,235);this.button('ChapterIntro','Bắt đầu',0,-110,350,()=>{this.campaign.introduce(this.chapterIndex);this.onChapterIntro?.(this.chapterIndex);this.persist();this.render();});}
+            else if(!this.campaign.data.introduced.includes(c.id)){this.text(this.node,(storyNpcs.find(n=>n.chapter===this.chapterIndex)?.name??c.npc)+'\n'+c.intro+'\n'+(this.campaign.data.age==='3-5'?'Cháu nghe hướng dẫn rồi chọn từng hình nhé.':this.campaign.data.age==='6-8'?'Cháu đọc đề, thử trả lời và dùng gợi ý khi cần nhé.':'Cháu thử giải thích cách làm trước khi chọn đáp án nhé.'),0,65,550,235);this.button('ChapterIntro','Bắt đầu',0,-110,350,()=>{this.campaign.introduce(this.chapterIndex);this.onChapterIntro?.(this.chapterIndex);this.persist();this.render();});}
             else if(c.quests.every(q=>this.campaign.data.completed.includes(q.id))){this.text(this.node,c.ending+`\nSao Tri Thức: ${this.campaign.stars}/8`,0,70,550,220);if(!this.campaign.data.receipts.includes('reward.star.'+c.id))this.button('ClaimStar','Nhận sao chương',0,-115,360,()=>{this.campaign.claim(this.chapterIndex);this.onClaim?.(this.chapterIndex);this.persist();this.render();});else this.button('NextChapter',this.chapterIndex<7?'Xem chương tiếp':'Cây đa đã sáng!',0,-115,360,()=>{if(this.chapterIndex<7){this.chapterIndex++;this.render();}else{this.mode='inventory';this.render();}});}
             else this.chapterTasks();
         }else if(this.mode==='lesson'&&this.lesson){
             const q=this.lesson.question;if(!q){this.finishQuest();return;}
-            this.text(this.node,q.prompt+(q.illustration?'\n'+q.illustration:''),0,145,550,105,24);
+            this.text(this.node,q.prompt+(q.illustration?'\n'+q.illustration:''),0,145,550,105,this.campaign.data.age==='3-5'?28:24);
             this.spokenParts.push(...q.choices.map((choice,i)=>`Lựa chọn ${i+1}: ${choice}`));
-            q.choices.forEach((s,i)=>this.button('LessonAnswer-'+i,s,0,40-i*92,550,()=>{const round=this.lesson!.round;if(this.lesson!.answer(i)){this.onLessonAnswer?.({questId:this.questId,round,index:i});this.campaign.data.resume[this.questId]={kind:'lesson',data:this.lesson!.round};this.persist();if(this.lesson!.complete){this.finishQuest();return;}this.message='Đúng rồi!';}else this.message=q.hint;this.render();if(this.lesson?.round===round)markModalAnswer(this.node.getChildByName('LessonAnswer-'+i)??undefined,false);}));
+            q.choices.forEach((s,i)=>this.button('LessonAnswer-'+i,s,0,40-i*92,550,()=>{const round=this.lesson!.round;recordLearning(this.campaign.data,chapters[this.chapterIndex].quests.find(q=>q.id===this.questId)?.lesson??'story',q.answer===i,this.questId);if(this.lesson!.answer(i)){this.onLessonAnswer?.({questId:this.questId,round,index:i});this.campaign.data.resume[this.questId]={kind:'lesson',data:this.lesson!.round};this.persist();if(this.lesson!.complete){this.finishQuest();return;}this.message='Đúng rồi!';}else {this.message=q.hint;this.persist();}this.render();if(this.lesson?.round===round)markModalAnswer(this.node.getChildByName('LessonAnswer-'+i)??undefined,false);}));
             this.button('LessonHint','Gợi ý',215,-235,140,()=>{this.message=q.hint;this.render();});
         }else if(this.mode==='game'&&this.game){
             if(this.practice||!this.onGameAction)this.game.resume();const game=this.game;
@@ -410,7 +416,7 @@ export class VillageHub {
             {id:'ChooseQuality',label:'Hình ảnh: '+this.campaign.data.quality,action:()=>{this.mode='quality';this.render();}},
             {id:'Sound',label:this.campaign.data.sound?'Âm thanh: bật':'Âm thanh: tắt',action:()=>{this.campaign.data.sound=!this.campaign.data.sound;this.persist();this.render();}},
             {id:'Avatar',label:'Chọn nhân vật',action:()=>{this.mode='avatar';this.render();}},
-            {id:'Export',label:'Xuất bản sao',action:()=>this.exportSave()},
+            {id:'WeeklyReport',label:'Báo cáo học tập tuần',action:()=>{this.mode='weekly';this.render();}},
             {id:'Reset',label:'Xóa sổ chương 2–8',action:()=>{this.mode='reset';this.render();}},
             {id:'Collection',label:'Sao / bộ sưu tập',action:()=>{this.mode='inventory';this.render();}},
             {id:'WorldMap',label:'Bản đồ làng',action:()=>{this.mode='map';this.render();}},
@@ -450,7 +456,9 @@ export class VillageHub {
             this.text(this.node,'Khăn được giữ khi đổi nhân vật và hiển thị với bạn cùng phòng.',0,-75,540,95,22);
             this.button('BackToAvatar','Chọn nhân vật',0,-165,350,()=>{this.mode='avatar';this.render();});
         }
-        else if(this.mode==='home'){this.grid(['Nhà mái ngói','Nhà xanh • 2 sao','Nhà tím • 4 sao','Nhà vàng • 8 sao'].map((label,i)=>({id:'Home-'+i,label,action:()=>{if(this.campaign.stars>=[0,2,4,8][i]){this.campaign.data.home=i;this.persist();this.message='Đã trang trí ngôi nhà.';}else this.message='Màu này mở khi có thêm sao.';this.render();}})));}
+        else if(this.mode==='room'){const data=this.campaign.data.upgrades??=restoreUpgrades(null);paintRoom(this.node,data,this.campaign.stars);this.text(this.node,'Chạm một vị trí để đổi đồ trang trí đã mở khóa.',0,175,530,45,19);['left','middle','right'].forEach((slot,i)=>this.button('RoomSlot-'+slot,(['Bên trái','Ở giữa','Bên phải'][i])+': '+(furniture.find(f=>f.id===data.room[slot])?.name??'Trống'),(i-1)*180,-80,170,()=>{const unlocked=['',...furniture.filter(f=>f.stars<=this.campaign.stars).map(f=>f.id)],index=unlocked.indexOf(data.room[slot]??'');data.room[slot]=unlocked[(index+1)%unlocked.length];this.persist();this.render();}));const next=furniture.find(f=>f.stars>this.campaign.stars);this.text(this.node,next?`Mở ${next.name.toLowerCase()} khi đạt ${next.stars} sao.`:'Đã mở đủ bộ sưu tập trang trí!',0,-165,520,50,17);}
+        else if(this.mode==='weekly'){this.button('SuggestedPractice','Luyện theo gợi ý',210,-235,170,()=>this.startPersonal());this.button('ExportReportSave','Xuất bản sao',-210,-235,160,()=>this.exportSave());const r=learningReport(this.campaign.data.upgrades);this.text(this.node,`${r.activeDays} ngày hoạt động · ${r.completed} nhiệm vụ mới\n${r.correct}/${r.answers} lượt trả lời đúng\n${r.skills.map(v=>v.name+': '+v.correct+'/'+v.attempts).join('\n')}\n\n${r.recommendation}`,0,25,530,330,21);this.text(this.node,'Ghi nhận từ khi nâng cấp; tối đa 200 sự kiện gần nhất.',0,-190,530,40,15);}
+        else if(this.mode==='home'){this.button('DecorateRoom','Trang trí phòng riêng',0,-165,450,()=>{this.mode='room';this.render();});this.grid(['Nhà mái ngói','Nhà xanh • 2 sao','Nhà tím • 4 sao','Nhà vàng • 8 sao'].map((label,i)=>({id:'Home-'+i,label,action:()=>{if(this.campaign.stars>=[0,2,4,8][i]){this.campaign.data.home=i;this.persist();this.message='Đã trang trí ngôi nhà.';}else this.message='Màu này mở khi có thêm sao.';this.render();}})));}
         else if(this.mode==='menu'){this.grid([
             {id:'MenuBag',label:'Hành trình 100 cấp',action:()=>{this.mode='journey';this.render();}},
             {id:'MenuBadges',label:'Thành tích',action:()=>{this.mode='achievements';this.render();}},
@@ -461,10 +469,11 @@ export class VillageHub {
         ]);this.button('MenuFestivals','Sổ ngày lễ',0,-156,550,()=>{this.mode='holidays';this.message='';this.render();});}
         else if(this.mode==='gestures')this.grid(avatarGestures.map(g=>({id:'Gesture-'+g.id,label:g.title,action:()=>{this.close();this.onGesture?.(g.id);}})));
         else if(this.mode==='settings'){
-            this.text(this.node,`${this.studentName} · ${this.campaign.data.age} tuổi · Lv.${this.campaign.level}\nHình ảnh và âm thanh`,0,135,550,70);if(this.onStudentChange)this.button('ChangeStudent','Đổi học sinh / hồ sơ',0,-235,240,()=>this.onStudentChange?.());
-            (['low','medium','high'] as const).forEach((quality,i)=>this.button('HudQuality-'+quality,(quality===this.campaign.data.quality?'✓ ':'')+quality,(i-1)*180,40,160,()=>{this.campaign.data.quality=quality;this.persist();this.render();}));
-            this.button('HudSound',this.campaign.data.sound?'Âm thanh: bật':'Âm thanh: tắt',0,-60,360,()=>{this.campaign.data.sound=!this.campaign.data.sound;this.stopReading();this.persist();this.render();});
-            this.button('HudParent','Góc người lớn',0,-160,360,()=>{this.mode='gate';this.gateAnswer=12+Math.floor(Math.random()*9);this.render();});
+            this.text(this.node,`${this.studentName} · ${this.campaign.data.age} tuổi · Lv.${this.campaign.level}\nHình ảnh và âm thanh`,0,180,550,40,19);if(this.onStudentChange)this.button('ChangeStudent','Đổi học sinh / hồ sơ',-145,-160,270,()=>this.onStudentChange?.());
+            (['low','medium','high'] as const).forEach((quality,i)=>this.button('HudQuality-'+quality,(quality===this.campaign.data.quality?'✓ ':'')+quality,(i-1)*180,110,160,()=>{this.campaign.data.quality=quality;this.persist();this.render();}));
+            this.button('HudSound',this.campaign.data.sound?'Âm thanh: bật':'Âm thanh: tắt',0,20,360,()=>{this.campaign.data.sound=!this.campaign.data.sound;this.stopReading();this.persist();this.render();});
+            const settings=this.campaign.data.upgrades??=restoreUpgrades(null);this.button('ControlSize',settings.largeControls?'Nút điều khiển: lớn':'Nút điều khiển: thường',-140,-70,265,()=>{settings.largeControls=!settings.largeControls;this.persist();this.render();});this.button('ReplayGuide','Xem hướng dẫn',140,-70,265,()=>{this.close();this.onReplayGuide?.();});
+            this.button('HudParent','Góc người lớn',145,-160,270,()=>{this.mode='gate';this.gateAnswer=12+Math.floor(Math.random()*9);this.render();});
         }
         else if(this.mode==='achievements'){
             this.text(this.node,`Lv.${this.campaign.level}/100 · ${this.campaign.xp} XP · ${this.campaign.journey.completed.length}/100 thử thách\n★ Sao Tri Thức: ${this.campaign.stars}/8\nLuyện tập: ${this.campaign.data.practice.length}/12 trò chơi\n${chapters.map(c=>(this.campaign.data.receipts.includes('reward.star.'+c.id)?'★ ':'○ ')+c.title).join('\n')}`,0,20,550,360,20);

@@ -22,8 +22,8 @@ export function validMove(map:VillageMap, from:Point, packet:unknown, budget:num
     return true;
 }
 export class VillageRoom extends Room<{state:VillageState}> {
-    private map = new VillageMap();
-    private patrol=new NpcPatrol();
+    protected map = new VillageMap();
+    private patrol=new NpcPatrol(this.map);
     private limits = new Map<string,{time:number;budget:number;seq:number}>();
     onCreate():void {
         this.maxClients=16;this.maxMessagesPerSecond=32;this.setState(new VillageState());this.setPatchRate(50);

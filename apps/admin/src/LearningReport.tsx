@@ -1,0 +1,6 @@
+import React,{useEffect,useState} from 'react';
+export default function LearningReport({id,call}:{id:string;call:(path:string)=>Promise<any>}){
+ const [data,setData]=useState<any>(),[error,setError]=useState('');useEffect(()=>{let active=true;setData(undefined);setError('');void call('/admin/students/'+id+'/learning-report').then(r=>{if(active)setData(r);}).catch(e=>{if(active)setError(e.message);});return()=>{active=false;};},[id]);
+ if(error)return <p role="alert">{error}</p>;if(!data)return <p role="status">Đang tải báo cáo tuần…</p>;
+ return <section aria-label="Báo cáo học tập 7 ngày"><h4>7 ngày gần nhất</h4><p>{data.activeDays} ngày hoạt động · {data.completed} nhiệm vụ hoàn thành · tuần trước {data.previousCompleted}</p><p>{data.correct}/{data.answers} lượt trả lời đúng</p>{data.skills.map((s:any)=><div className="learning-meter" key={s.id}><div><span>{s.name}</span><strong>{s.correct}/{s.attempts}</strong></div><progress aria-label={s.name+' trả lời đúng'} max={s.attempts} value={s.correct}/></div>)}<p>{data.recommendation}</p><small>Thống kê từ khi nâng cấp, tối đa 200 sự kiện gần nhất. {data.limited?'Lịch sử đã đạt giới hạn; số liệu tuần có thể chưa đầy đủ.':''} Dữ liệu lượt luyện do thiết bị ghi nhận.</small></section>;
+}

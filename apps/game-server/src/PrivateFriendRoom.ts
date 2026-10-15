@@ -16,13 +16,14 @@ import {ExpansionGame,ExpansionId,expansionActivities} from '../../game-client/a
 interface Member {profileId:string;parentId:string;age:AgeBand;blocked:string[];first:ChapterOneProgress;campaign:CampaignEngine;lastEmote:number;activities:ActivitySnapshot|null;cancelledExpansion?:ExpansionId;saveQueue:Promise<unknown>}
 export const approvedEmotes=[...avatarGestures.map(g=>g.id),'thanks','your-turn','need-help','bye'] as const;
 export class PrivateFriendRoom extends VillageRoom {
-    private secret='';private api='';private code='';private members=new Map<string,Member>();
+    private layoutSnapshot:any;private secret='';private api='';private code='';private members=new Map<string,Member>();
     private participants=new Set<string>();private game?:MiniGameRules;private gameOwner='';private attemptId='';private gameQuest='';
     private expansionGroups=new Map<ExpansionId,{game:ExpansionGame;attempt:string;participants:Set<string>}>();
-    onCreate(options:any={}):void{
+    async onCreate(options:any={}):Promise<void>{
+        if(options.apiUrl){const r=await fetch(options.apiUrl+'/content/layout',{signal:AbortSignal.timeout(5000)});if(!r.ok)throw Error('Layout unavailable');const layout=await r.json() as any;this.map.configureLayout(layout.pack.placements);if(layout.npcs)this.map.configureNpcs(layout.npcs);this.layoutSnapshot=layout;}
         super.onCreate();this.maxClients=20;this.secret=options.secret;this.api=options.apiUrl;this.code=options.roomCode;
         if(typeof this.secret!=='string'||this.secret.length<32||!/^[A-Z0-9]{8}$/.test(this.code))throw Error('Private room configuration invalid');
-        this.onMessage('ready',client=>{client.send('content-version',contentVersion());this.sendProgress(client);this.sendExpansionCancellation(client);for(const [id,group] of this.expansionGroups)if(group.participants.has(client.sessionId))this.publishExpansion(id);client.send('activities-state',{snapshot:this.members.get(client.sessionId)?.activities??null});});
+        this.onMessage('ready',client=>{if(this.layoutSnapshot)client.send('scene-layout',this.layoutSnapshot);client.send('content-version',contentVersion());this.sendProgress(client);this.sendExpansionCancellation(client);for(const [id,group] of this.expansionGroups)if(group.participants.has(client.sessionId))this.publishExpansion(id);client.send('activities-state',{snapshot:this.members.get(client.sessionId)?.activities??null});});
         this.onMessage('activities-save',(client,value:unknown)=>{
             const m=this.members.get(client.sessionId),v=value as {id?:unknown;snapshot?:unknown};
             if(!m||typeof v?.id!=='string'||v.id.length>80||!v.snapshot||typeof v.snapshot!=='object')return;
@@ -125,4 +126,4 @@ export class PrivateFriendRoom extends VillageRoom {
         const raw=JSON.stringify(body),signature=createHmac('sha256',this.secret).update(raw).digest('hex');const response=await fetch(this.api+path,{method:'POST',headers:{'content-type':'application/json','x-service-signature':signature},body:raw,signal:AbortSignal.timeout(5000)});if(!response.ok)throw Error('Parent service unavailable');return response.json();
     }
 }
-export class MiniGameRoom extends PrivateFriendRoom {onCreate(options:any={}):void{super.onCreate(options);this.maxClients=4;}}
+export class MiniGameRoom extends PrivateFriendRoom {async onCreate(options:any={}):Promise<void>{await super.onCreate(options);this.maxClients=4;}}

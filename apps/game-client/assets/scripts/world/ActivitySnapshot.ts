@@ -1,5 +1,6 @@
+import {restoreUpgrades} from './LearningUpgrades';
 import {CampaignData,CampaignEngine} from './CampaignEngine';
-const keys=['practice','practiceResume','explored','care','painting','holidayProgress','festivalProgress','expansion','expansionProgress'] as const;
+const keys=['upgrades','practice','practiceResume','explored','care','painting','holidayProgress','festivalProgress','expansion','expansionProgress'] as const;
 export type ActivitySnapshot=Pick<CampaignData,typeof keys[number]>;
 export function activitySnapshot(data:CampaignData):ActivitySnapshot{return Object.fromEntries(keys.map(key=>[key,data[key]])) as ActivitySnapshot;}
 export function restoreActivities(raw:unknown):ActivitySnapshot{
@@ -19,5 +20,6 @@ export function mergeActivities(remote:ActivitySnapshot,local:ActivitySnapshot):
     result.care={...remote.care,...result.care};
     const combined:Record<string,number>={...remote.holidayProgress};for(const [id,step] of Object.entries(result.holidayProgress??{}))combined[id]=Math.max(combined[id]??0,step);result.holidayProgress=combined;
     result.festivalProgress={...remote.festivalProgress};for(const [id,games] of Object.entries(local.festivalProgress??{}))result.festivalProgress[id]=Array.from(new Set([...(result.festivalProgress[id]??[]),...games]));
+    const remoteUpgrade=restoreUpgrades(remote.upgrades),localUpgrade=restoreUpgrades(local.upgrades);result.upgrades=restoreUpgrades({...localUpgrade,tutorial:[...remoteUpgrade.tutorial,...localUpgrade.tutorial],events:[...remoteUpgrade.events,...localUpgrade.events]});
     return restoreActivities(result);
 }

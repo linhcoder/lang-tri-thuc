@@ -10,6 +10,7 @@ import {ExpansionId,expansionActivities} from '../world/ExpansionActivities';
 import {AgeBand} from '../world/CampaignContent';
 export interface NetworkPlayer extends Point {direction:number;moving:boolean;name:string;age?:AgeBand;avatar?:number;accessory?:number;hair?:number;skin?:number}
 export class VillageNetwork {
+    onLayout?:(value:{revision:number})=>void;
     room:Room<any>|null=null;status='Chơi một mình';players=new Map<string,NetworkPlayer>();
     npcs=new Map<string,PatrolPose>();
     private disposed=false;private elapsed=0;private seq=0;private retry=0;private endpoint='';private paused=false;private contentReady=false;
@@ -44,6 +45,7 @@ export class VillageNetwork {
                 if(this.privateMode&&room.state.gameJson&&this.gameSnapshot!==room.state.gameJson){this.gameSnapshot=room.state.gameJson;try{const raw=JSON.parse(this.gameSnapshot),game=MiniGameRules.restore(raw);if(raw.paused)game.pause();this.onGame?.(game);}catch{this.status='Chưa đọc được trạng thái trò chơi online';}}
             };
             room.onStateChange(snapshot);snapshot();
+            room.onMessage('scene-layout',value=>{if(this.room===room&&Number.isSafeInteger(value?.revision)&&value.revision>=0)this.onLayout?.(value);});
             room.onMessage('correction',(p:Point)=>{if(this.room===room&&p&&Number.isFinite(p.x)&&Number.isFinite(p.y))this.correction=p;});
             if(this.privateMode){
                 room.onMessage('content-version',version=>{if(this.room!==room)return;if(version===contentVersion())this.contentReady=true;else{this.offline();this.lastMessage='Nội dung khác phiên bản. Mời người lớn tải lại game trước khi vào phòng.';this.status='Cần cập nhật game';}});

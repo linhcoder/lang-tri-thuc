@@ -71,7 +71,10 @@ export const environmentGuides=[
 for(const y of [15,16,19,20])villageSolids.push({id:'rice-fence-west-'+y,x:24,y,radius:0});
 for(const y of [14,17,20])villageSolids.push({id:'rice-fence-east-'+y,x:35,y,radius:0});
 // Apply authored layout before either client or server creates navigation maps.
-for(const override of layoutOverrides){
+const originalGeometry=JSON.stringify([villageObjects,villageDetails,villageSolids,landmarkFootprints]);
+export function applyLayoutGeometry(overrides=layoutOverrides):void{
+ const arrays=[villageObjects,villageDetails,villageSolids,landmarkFootprints],original=JSON.parse(originalGeometry);arrays.forEach((rows,i)=>rows.forEach((row,j)=>Object.assign(row,original[i][j])));
+for(const override of overrides){
     const linkedId=override.id==='journey.village'?'banyan':override.id==='journey.market'?'market':override.id;
     const object=[...villageObjects,...villageDetails].find(o=>o.id===linkedId);
     const footprint=landmarkFootprints.find(o=>o.id===linkedId);
@@ -81,6 +84,8 @@ for(const override of layoutOverrides){
     if(footprint)Object.assign(footprint,{x:override.x,y:override.y,halfWidth:footprint.halfWidth*sx,halfDepth:footprint.halfDepth*sy,lift:footprint.lift*sy});
     const solid=villageSolids.find(o=>o.id===linkedId);if(solid){solid.x=override.x;solid.y=override.y;}
 }
+}
+applyLayoutGeometry();
 export function bridgeTile(x:number,y:number):boolean{return y===23&&x>=1&&x<=5||y===28&&x>=11&&x<=15;}
 export function toWorld(p: Point): Point { return { x: (p.x - p.y) * 32, y: -(p.x + p.y) * 16 }; }
 export function toGrid(p: Point): Point { return { x: p.x / 64 - p.y / 32, y: -p.x / 64 - p.y / 32 }; }
@@ -100,6 +105,11 @@ export function terrain(x: number, y: number): Terrain {
     return 'grass';
 }
 export class VillageMap {
+    npcSpawns:readonly NpcSpawn[]=storyNpcs;
+    configureNpcs(npcs:readonly {id:string;name:string;x:number;y:number}[]):void{this.npcSpawns=storyNpcs.map(n=>({...n,...npcs.find(p=>p.id===n.id)}));this.layoutKey+=JSON.stringify(npcs);}
+    private geometry={details:villageDetails.map(o=>({...o})),objects:villageObjects.map(o=>({...o})),solids:villageSolids.map(o=>({...o})),footprints:landmarkFootprints.map(o=>({...o}))};
+    layoutKey=JSON.stringify(this.geometry);
+    configureLayout(placements:typeof layoutOverrides):void{try{applyLayoutGeometry(placements);this.geometry={details:villageDetails.map(o=>({...o})),objects:villageObjects.map(o=>({...o})),solids:villageSolids.map(o=>({...o})),footprints:landmarkFootprints.map(o=>({...o}))};this.layoutKey=JSON.stringify(this.geometry);}finally{applyLayoutGeometry();}}
     readonly npc: Point = {...farmerTile};
     npcPositions?:readonly Point[];
     walkable(x: number, y: number): boolean {
@@ -111,11 +121,11 @@ export class VillageMap {
         return Number.isInteger(x) && Number.isInteger(y) && x >= 0 && y >= 0 && x < SIZE && y < SIZE
             && (terrain(x, y) !== 'pond'||bridgeTile(x,y)) && !(x === this.npc.x && y === this.npc.y)
             && !(x===elderTile.x&&y===elderTile.y)
-            && !storyNpcs.some(npc=>ignoreNpc!=='*'&&npc.id!==ignoreNpc&&npc.x===x&&npc.y===y)
-            && !villageDetails.some(object=>object.blocked&&Math.abs(object.x-x)<=.5&&Math.abs(object.y-y)<=.5)
-            && !villageObjects.some(object=>Math.abs(x-object.x)<=Math.max(.5,object.radius)&&Math.abs(y-object.y)<=Math.max(.5,object.radius))
-            && !villageSolids.some(object=>Math.abs(x-object.x)<=Math.max(.5,object.radius)&&Math.abs(y-object.y)<=Math.max(.5,object.radius))
-            && !landmarkFootprints.some(object=>insideLandmark(toWorld({x,y}),object));
+            && !this.npcSpawns.some(npc=>ignoreNpc!=='*'&&npc.id!==ignoreNpc&&npc.x===x&&npc.y===y)
+            && !this.geometry.details.some(object=>object.blocked&&Math.abs(object.x-x)<=.5&&Math.abs(object.y-y)<=.5)
+            && !this.geometry.objects.some(object=>Math.abs(x-object.x)<=Math.max(.5,object.radius)&&Math.abs(y-object.y)<=Math.max(.5,object.radius))
+            && !this.geometry.solids.some(object=>Math.abs(x-object.x)<=Math.max(.5,object.radius)&&Math.abs(y-object.y)<=Math.max(.5,object.radius))
+            && !this.geometry.footprints.some(object=>insideLandmark(toWorld({x,y}),object));
     }
     canStand(p: Point): boolean {
         // Four samples provide a small physical footprint, rather than a point collider.
@@ -150,20 +160,20 @@ export class VillageMap {
     }
 }
 export interface NpcPatrolRoute{id:string;points:Point[]}
-let patrolCache:{key:string;routes:NpcPatrolRoute[]}|undefined;
+const patrolCache=new Map<string,NpcPatrolRoute[]>();
 /** Build disjoint short lanes, keeping mission plots and portal spawns clear. */
-export function npcPatrolRoutes():NpcPatrolRoute[]{
-    const key=JSON.stringify(storyNpcs.map(n=>[n.id,n.x,n.y]));if(patrolCache?.key===key)return patrolCache.routes;
-    const map=new VillageMap(),protectedTiles=[{x:20,y:20},...ricePlantingPlots,...Object.values(zoneSpawns)],reserved=new Set<string>(),routes:NpcPatrolRoute[]=[];
+export function npcPatrolRoutes(mapOverride?:VillageMap):NpcPatrolRoute[]{
+    const key=JSON.stringify(storyNpcs.map(n=>[n.id,n.x,n.y]))+(mapOverride?.layoutKey??JSON.stringify(layoutOverrides));const cached=patrolCache.get(key);if(cached)return cached;
+    const map=mapOverride??new VillageMap(),protectedTiles=[{x:20,y:20},...ricePlantingPlots,...Object.values(zoneSpawns)],reserved=new Set<string>(),routes:NpcPatrolRoute[]=[];
     const id=(p:Point)=>p.x+':'+p.y;
-    for(const npc of storyNpcs){
+    for(const npc of map.npcSpawns){
         let points:Point[]=[{x:npc.x,y:npc.y}];
         const directions=npc.id==='co-giao-lan'?[{x:-1,y:0},{x:0,y:-1},{x:1,y:0},{x:0,y:1}]:[{x:1,y:0},{x:0,y:1},{x:-1,y:0},{x:0,y:-1}];
         const safe=(p:Point)=>map.walkableForNpc(p.x,p.y,npc.id)&&!reserved.has(id(p))&&!protectedTiles.some(t=>t.x===p.x&&t.y===p.y)&&!ricePlantingPlots.some(t=>Math.abs(t.x-p.x)<=1&&Math.abs(t.y-p.y)<=1);
         for(const d of directions){const candidate=[1,2].map(i=>({x:npc.x+d.x*i,y:npc.y+d.y*i}));if(candidate.every(safe)){points.push(...candidate);break;}if(npc.id==='co-tam'&&safe(candidate[0])){points.push(candidate[0]);break;}}
         for(const p of points)reserved.add(id(p));routes.push({id:npc.id,points});
     }
-    patrolCache={key,routes};return routes;
+    if(patrolCache.size>=64)patrolCache.delete(patrolCache.keys().next().value!);patrolCache.set(key,routes);return routes;
 }
 export function inputAxis(keys: ReadonlySet<number>): Point {
     let x = Number(keys.has(68) || keys.has(39)) - Number(keys.has(65) || keys.has(37));

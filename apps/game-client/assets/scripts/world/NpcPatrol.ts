@@ -1,11 +1,11 @@
-import {Point,toWorld,npcPatrolRoutes,direction8} from './VillageModel';
+import {Point,VillageMap,toWorld,npcPatrolRoutes,direction8} from './VillageModel';
 export interface PatrolPose extends Point{id:string;moving:boolean;direction:number}
 interface Walker extends PatrolPose{points:Point[];index:number;forward:number;wait:number}
 /** Shared route simulation. Network rooms own their simulation; solo play uses the same rules. */
 export class NpcPatrol{
     readonly poses=new Map<string,Walker>();private key='';
-    constructor(){this.refresh();}
-    private refresh():void{const routes=npcPatrolRoutes(),key=JSON.stringify(routes);if(key===this.key)return;this.key=key;this.poses.clear();routes.forEach((route,i)=>this.poses.set(route.id,{id:route.id,...toWorld(route.points[0]),direction:6,moving:false,points:route.points.map(toWorld),index:0,forward:1,wait:2+i*.35}));}
+    constructor(private map?:VillageMap){this.refresh();}
+    private refresh():void{const routes=npcPatrolRoutes(this.map),key=JSON.stringify(routes);if(key===this.key)return;this.key=key;this.poses.clear();routes.forEach((route,i)=>this.poses.set(route.id,{id:route.id,...toWorld(route.points[0]),direction:6,moving:false,points:route.points.map(toWorld),index:0,forward:1,wait:2+i*.35}));}
     step(dt:number,people:readonly Point[]):void{
         this.refresh();const delta=Number.isFinite(dt)?Math.max(0,Math.min(dt,.1)):0;
         for(const p of this.poses.values()){

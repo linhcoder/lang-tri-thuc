@@ -74,7 +74,8 @@
     "test:mysql": "npm run api:build && node tools/test-mysql.cjs",
     "backup:sqlite": "node tools/backup-local.cjs",
     "test:expansion-coop": "node apps/game-client/tests/expansion-coop-web.cjs",
-    "test:load-live": "node deploy/aapanel/load-live.cjs"
+    "test:load-live": "node deploy/aapanel/load-live.cjs",
+    "test:upgrades": "node apps/game-client/tests/upgrades-web.cjs && node apps/admin/tests/publishing-web.cjs"
   },
   "devDependencies": {
     "playwright": "^1.62.1"

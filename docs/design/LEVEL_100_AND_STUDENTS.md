@@ -1,5 +1,9 @@
 # Hành trình 100 cấp và hồ sơ học sinh
 
+## Cô Tấm và Bác Nông Dân theo ảnh — VPS 15/10/2026
+
+Cô Tấm giữ nét mặt và tóc theo ảnh tham chiếu, mặc áo tứ thân và váy dân gian; Bác Nông Dân giữ bản áo nâu, quần lao động. Cả hai dùng atlas riêng khi đứng/đi/chào. Release hiện tại `co-tam-bfa9954-20261015`, source commit `bfa9954`, contentVersion `d92c670c`. Chi tiết tại [CO_TAM_REFERENCE](CO_TAM_REFERENCE.md).
+
 ## Bác Nông Dân theo ảnh tham khảo — VPS 15/10/2026
 
 Đã thay Bác Nông Dân bằng atlas riêng theo ảnh người dùng. Bản sửa v2 chỉ giữ mặt/kính/tóc từ ảnh, mặc áo nâu, quần tối màu và dép nông dân, đủ tám hướng và ba hàng đứng/bước đi/vẫy chào. Release `farmer-workwear-1bc07ed-20261015`, commit `1bc07ed`, contentVersion `d92c670c`. QA HTTPS 24 frame và desktop/mobile ngang đạt, page errors rỗng; backup/restore và hai API MySQL đạt, tài khoản QA đã xóa. Ảnh, prompt và chi tiết tại [FARMER_REFERENCE](FARMER_REFERENCE.md).

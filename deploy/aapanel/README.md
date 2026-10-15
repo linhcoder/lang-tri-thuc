@@ -1,5 +1,9 @@
 # aaPanel staging: ltt.vui-hoc.xyz
 
+## Cô Tấm theo ảnh tham chiếu — 15/10/2026
+
+Release hiện tại `co-tam-bfa9954-20261015`, source commit `bfa9954`, build `web-desktop`, contentVersion `d92c670c`. Cô Tấm dùng atlas riêng theo khuôn mặt tham chiếu với trang phục dân gian; Bác Nông Dân tiếp tục mặc đồ lao động nâu. Overlay 14 file SHA-256 `6296ab3c74c47794fa330c4310793481ef04aa225ce74135ba0ee74b2670185d`; source/Web checksum khớp, backup `/opt/lang-tri-thuc/backups/database-20261015T081413Z.sql` phục hồi thử đạt. Hai API MySQL healthy, CMS giữ nguyên; release trước được giữ để rollback. Chi tiết tại [CO_TAM_REFERENCE](../../docs/design/CO_TAM_REFERENCE.md). Các release dưới đây là lịch sử.
+
 ## Trang phục nông dân, giữ mặt tham khảo — 15/10/2026
 
 Release hiện tại `farmer-workwear-1bc07ed-20261015`, commit `1bc07ed`, build `web-desktop`, contentVersion `d92c670c`. Bác Nông Dân mặc áo nâu, quần tối màu và dép; giữ mặt/kính/tóc từ ảnh. Atlas mới đủ 24 frame, tám hướng đứng/đi/vẫy chào. Overlay 13 file SHA-256 `7970a711a537c2f6e9b7e019ba039cf29817730dd9abf1859d97ac9b57af84a9`, checksum source/Web khớp. Backup `/opt/lang-tri-thuc/backups/database-20261015T080024Z.sql` phục hồi thử đạt. Giữ `farmer-reference-3626919-20261015` để rollback. Hai API MySQL khỏe, CMS giữ nguyên. QA HTTPS desktop/mobile, 24 frame/hướng đứng/vẫy chào/không lật ảnh và API/quyền phòng đạt; page errors rỗng, tài khoản QA đã xóa. Evidence local ignored: `temp/deploy/qa/farmer-workwear-live/`. Chi tiết tại [FARMER_REFERENCE](../../docs/design/FARMER_REFERENCE.md). Các release dưới đây là lịch sử.

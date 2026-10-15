@@ -1,5 +1,9 @@
 # Hành trình 100 cấp và hồ sơ học sinh
 
+## Nghệ Nhân Gốm theo ảnh — VPS 15/10/2026
+
+Nghệ Nhân Gốm giữ nét mặt, kính chữ nhật và tóc theo ảnh tham chiếu, mặc áo nâu xắn tay và tạp dề làm gốm. Nhân vật dùng atlas riêng khi đứng/đi/chào. Release hiện tại `potter-1a05ffb-20261015`, source commit `1a05ffb`, contentVersion `d92c670c`. Chi tiết tại [POTTER_REFERENCE](POTTER_REFERENCE.md).
+
 ## Cô Giáo Lan theo ảnh — VPS 15/10/2026
 
 Cô Giáo Lan giữ nét mặt, kính tròn và tóc tết theo ảnh tham chiếu, mặc áo dài xanh nhạt và quần trắng. Nhân vật dùng atlas riêng khi đứng/đi/chào. Release hiện tại `teacher-lan-6870386-20261015`, source commit `6870386`, contentVersion `d92c670c`. Chi tiết tại [TEACHER_LAN_REFERENCE](TEACHER_LAN_REFERENCE.md).

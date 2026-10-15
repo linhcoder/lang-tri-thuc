@@ -1,5 +1,9 @@
 # aaPanel staging: ltt.vui-hoc.xyz
 
+## Nghệ Nhân Gốm theo ảnh tham chiếu — 15/10/2026
+
+Release hiện tại `potter-1a05ffb-20261015`, source commit `1a05ffb`, build `web-desktop`, contentVersion `d92c670c`. Nghệ Nhân Gốm dùng atlas riêng theo ảnh với áo nâu và tạp dề làm gốm. Overlay 14 file SHA-256 `5ab82c018e129cef9a2d70b46ac17117e4bc216e04ff766f9ca77c972eee82ee`; source/Web checksum khớp, backup `/opt/lang-tri-thuc/backups/database-20261015T084242Z.sql` phục hồi thử đạt. Hai API MySQL healthy, CMS giữ nguyên; release trước được giữ để rollback. Chi tiết tại [POTTER_REFERENCE](../../docs/design/POTTER_REFERENCE.md). Các release dưới đây là lịch sử.
+
 ## Cô Giáo Lan theo ảnh tham chiếu — 15/10/2026
 
 Release hiện tại `teacher-lan-6870386-20261015`, source commit `6870386`, build `web-desktop`, contentVersion `d92c670c`. Cô Giáo Lan dùng atlas riêng theo ảnh với kính tròn, tóc tết và áo dài xanh nhạt. Overlay 14 file SHA-256 `36423f260383e19d82efc8141b020a0209e9d92be99fb85e06755fdc4ab263ca`; source/Web checksum khớp, backup `/opt/lang-tri-thuc/backups/database-20261015T083242Z.sql` phục hồi thử đạt. Hai API MySQL healthy, CMS giữ nguyên; release trước được giữ để rollback. Chi tiết tại [TEACHER_LAN_REFERENCE](../../docs/design/TEACHER_LAN_REFERENCE.md). Các release dưới đây là lịch sử.

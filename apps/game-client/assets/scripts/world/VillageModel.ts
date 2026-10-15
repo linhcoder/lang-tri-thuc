@@ -1,3 +1,5 @@
+import {journeyPlacements} from './JourneyPlacements';
+import {layoutOverrides} from './LayoutOverrides';
 export interface Point { x: number; y: number }
 export type Terrain = 'grass' | 'road' | 'rice' | 'pond' | 'courtyard';
 export const SIZE = 72;
@@ -68,6 +70,17 @@ export const environmentGuides=[
 ] as const;
 for(const y of [15,16,19,20])villageSolids.push({id:'rice-fence-west-'+y,x:24,y,radius:0});
 for(const y of [14,17,20])villageSolids.push({id:'rice-fence-east-'+y,x:35,y,radius:0});
+// Apply authored layout before either client or server creates navigation maps.
+for(const override of layoutOverrides){
+    const linkedId=override.id==='journey.village'?'banyan':override.id==='journey.market'?'market':override.id;
+    const object=[...villageObjects,...villageDetails].find(o=>o.id===linkedId);
+    const footprint=landmarkFootprints.find(o=>o.id===linkedId);
+    const source=object??journeyPlacements.find(o=>'journey.'+o.id===override.id)??(override.id==='expansion.school'?{width:360,height:260}:override.id==='expansion.garden'?{width:280,height:220}:undefined);
+    const sx=source?override.width/source.width:1,sy=source?override.height/source.height:1;
+    if(object){if('radius' in object)object.radius*=Math.max(sx,sy);Object.assign(object,{x:override.x,y:override.y,width:override.width,height:override.height});}
+    if(footprint)Object.assign(footprint,{x:override.x,y:override.y,halfWidth:footprint.halfWidth*sx,halfDepth:footprint.halfDepth*sy,lift:footprint.lift*sy});
+    const solid=villageSolids.find(o=>o.id===linkedId);if(solid){solid.x=override.x;solid.y=override.y;}
+}
 export function bridgeTile(x:number,y:number):boolean{return y===23&&x>=1&&x<=5||y===28&&x>=11&&x<=15;}
 export function toWorld(p: Point): Point { return { x: (p.x - p.y) * 32, y: -(p.x + p.y) * 16 }; }
 export function toGrid(p: Point): Point { return { x: p.x / 64 - p.y / 32, y: -p.x / 64 - p.y / 32 }; }
@@ -99,9 +112,9 @@ export class VillageMap {
             && (terrain(x, y) !== 'pond'||bridgeTile(x,y)) && !(x === this.npc.x && y === this.npc.y)
             && !(x===elderTile.x&&y===elderTile.y)
             && !storyNpcs.some(npc=>ignoreNpc!=='*'&&npc.id!==ignoreNpc&&npc.x===x&&npc.y===y)
-            && !villageDetails.some(object=>object.blocked&&object.x===x&&object.y===y)
-            && !villageObjects.some(object=>Math.abs(x-object.x)<=object.radius&&Math.abs(y-object.y)<=object.radius)
-            && !villageSolids.some(object=>Math.abs(x-object.x)<=object.radius&&Math.abs(y-object.y)<=object.radius)
+            && !villageDetails.some(object=>object.blocked&&Math.abs(object.x-x)<=.5&&Math.abs(object.y-y)<=.5)
+            && !villageObjects.some(object=>Math.abs(x-object.x)<=Math.max(.5,object.radius)&&Math.abs(y-object.y)<=Math.max(.5,object.radius))
+            && !villageSolids.some(object=>Math.abs(x-object.x)<=Math.max(.5,object.radius)&&Math.abs(y-object.y)<=Math.max(.5,object.radius))
             && !landmarkFootprints.some(object=>insideLandmark(toWorld({x,y}),object));
     }
     canStand(p: Point): boolean {

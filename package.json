@@ -52,6 +52,7 @@
     "test:game-ui-regression": "node apps/game-client/tests/ui-regressions.cjs",
     "profile:game-ui": "node apps/game-client/tests/ui-profile.cjs",
     "test:cms": "node apps/admin/tests/cms-web.cjs",
+    "test:scene-layout": "node apps/game-client/tests/scene-layout.cjs && node apps/admin/tests/object-layout-web.cjs",
     "test:admin-workspace": "node apps/admin/tests/workspace-web.cjs",
     "test:admin": "node apps/admin/tests/admin-web.cjs",
     "test:backend-ui": "node apps/admin/tests/usability-web.cjs",

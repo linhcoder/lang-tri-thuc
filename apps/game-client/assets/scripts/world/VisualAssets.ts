@@ -1,3 +1,4 @@
+import {layoutPlacement,layoutOverrides} from './LayoutOverrides';
 import {flowerCareAtlasRects} from '../ui/FlowerCareAtlasRects';
 import { villageObjects, villageDetails, storyNpcs, Point, SIZE, VillageMap, terrain, bridgeTile,villageSolids,toWorld,npcPatrolRoutes } from './VillageModel';
 import { groundAssets, groundNoise } from './GroundPaths';
@@ -63,7 +64,7 @@ export function sceneryPlacements():SceneryPlacement[]{
     const patrolPoints=npcPatrolRoutes().flatMap(route=>route.points.map(toWorld));
     // Sparse repeatable foliage. Skip the interaction routes and all solid footprints.
     for(let y=3;y<38;y+=3)for(let x=2;x<38;x+=3){
-        if(terrain(x,y)!=='grass'||!map.walkable(x,y)||storyNpcs.some(n=>Math.hypot(n.x-x,n.y-y)<3)||villageObjects.some(o=>Math.hypot(o.x-x,o.y-y)<3)||Math.abs(x-16)<3||Math.abs(y-21)<3)continue;
+        if(!layoutOverrides.some(p=>p.id===`foliage-${x}-${y}`)&&(terrain(x,y)!=='grass'||!map.walkable(x,y)||storyNpcs.some(n=>Math.hypot(n.x-x,n.y-y)<3)||villageObjects.some(o=>Math.hypot(o.x-x,o.y-y)<3)||Math.abs(x-16)<3||Math.abs(y-21)<3))continue;
         const n=groundNoise(x,y,12),cell=n<.35?0:n<.6?1:n<.8?6:2;
         placements.push({id:`foliage-${x}-${y}`,cell,x,y,width:cell===2?65:95,height:cell===2?50:72,essential:false});
     }
@@ -75,23 +76,23 @@ export function sceneryPlacements():SceneryPlacement[]{
     // Layered, low planting along water, field and courtyard edges. These are
     // cosmetic skirts, never new obstacles; keep interaction tiles clear.
     const borders=[...Array.from({length:7},(_,i)=>({x:6,y:20+i})),...Array.from({length:6},(_,i)=>({x:25+i,y:21})),...Array.from({length:6},(_,i)=>({x:24,y:14+i})),{x:17,y:24},{x:21,y:24},{x:24,y:24},{x:8,y:19},{x:9,y:19}];
-    borders.forEach((p,i)=>{if(!map.walkable(p.x,p.y)||storyNpcs.some(n=>Math.hypot(n.x-p.x,n.y-p.y)<2)||Math.hypot(map.npc.x-p.x,map.npc.y-p.y)<2)return;placements.push({...p,id:'landscape-border-'+i,cell:i%3===0?1:0,width:72,height:42,essential:true});});
+    borders.forEach((p,i)=>{if(!layoutOverrides.some(o=>o.id==='landscape-border-'+i)&&(!map.walkable(p.x,p.y)||storyNpcs.some(n=>Math.hypot(n.x-p.x,n.y-p.y)<2)||Math.hypot(map.npc.x-p.x,map.npc.y-p.y)<2))return;placements.push({...p,id:'landscape-border-'+i,cell:i%3===0?1:0,width:72,height:42,essential:true});});
     // Low bank planting follows the pond without covering the bridge approach.
     for(let y=24;y<=31;y++)if(y!==28)placements.push({id:'pond-bank-'+y,cell:y%3===0?2:0,x:16,y,width:100,height:42,essential:true});
     for(const [i,p] of [{x:1,y:18},{x:9,y:31},{x:33,y:25},{x:36,y:15}].entries()){
-        if(map.walkable(p.x,p.y)&&!storyNpcs.some(n=>Math.hypot(n.x-p.x,n.y-p.y)<4))placements.push({...p,id:'village-grove-'+i,cell:5,width:160,height:180,essential:false});
+        if(layoutOverrides.some(o=>o.id==='village-grove-'+i)||map.walkable(p.x,p.y)&&!storyNpcs.some(n=>Math.hypot(n.x-p.x,n.y-p.y)<4))placements.push({...p,id:'village-grove-'+i,cell:5,width:160,height:180,essential:false});
     }
-    for(let y=12;y<=20;y++)for(let x=25;x<=34;x++){if(!map.walkable(x,y)||storyNpcs.some(n=>Math.hypot(n.x-x,n.y-y)<=1)||Math.hypot(x-30,y-12)<=2||[{x:29,y:15},{x:26,y:17}].some(p=>Math.hypot(p.x-x,p.y-y)<=1))continue;
+    for(let y=12;y<=20;y++)for(let x=25;x<=34;x++){if(!layoutOverrides.some(p=>p.id===`golden-rice-${x}-${y}`)&&(!map.walkable(x,y)||storyNpcs.some(n=>Math.hypot(n.x-x,n.y-y)<=1)||Math.hypot(x-30,y-12)<=2||[{x:29,y:15},{x:26,y:17}].some(p=>Math.hypot(p.x-x,p.y-y)<=1)))continue;
         // Reserve the full projected sprite footprint, not just its ground tile.
         const base=toWorld({x,y});
-        if(plantingPlots.some(p=>{const plot=toWorld(p);return Math.abs(plot.x-base.x)<76&&base.y<plot.y+62&&base.y+68>plot.y-22;}))continue;
+        if(!layoutOverrides.some(p=>p.id===`golden-rice-${x}-${y}`)&&plantingPlots.some(p=>{const plot=toWorld(p);return Math.abs(plot.x-base.x)<76&&base.y<plot.y+62&&base.y+68>plot.y-22;}))continue;
         placements.push({id:`golden-rice-${x}-${y}`,cell:8,x,y,width:86,height:68,essential:true});
     }
     for(const [id,title,x,y] of [['banyan','Cây Đa Tri Thức',12.5,18.5],['courtyard','Sân Đình',19,12],['well','Giếng Làng',16,23],['market','Chợ Quê',21.5,26.5],['home','Nhà Của Bé',27,9.5],['rice','Ruộng Lúa',28,21]] as const)placements.push({id:'sign-'+id,cell:9,x,y,width:id==='banyan'?132:100,height:id==='banyan'?68:48,essential:true});
     for(const item of placements)if(item.cell===0){item.width=Math.max(item.width,95);item.height=Math.min(item.height,45);}
     return placements.filter(item=>{
-        if(![0,1,6,8].includes(item.cell))return true;
+        if(layoutOverrides.some(p=>p.id===item.id)||![0,1,6,8].includes(item.cell))return true;
         const base=toWorld(item);
         return !plantingPlots.some(p=>{const plot=toWorld(p);return Math.abs(plot.x-base.x)<item.width/2+33&&base.y<plot.y+62&&base.y+item.height>plot.y-22;})&&(item.cell===8||!patrolPoints.some(p=>Math.abs(p.x-base.x)<item.width/2+24&&base.y<=p.y+2&&base.y+item.height>p.y-8));
-    });
+    }).map(layoutPlacement);
 }

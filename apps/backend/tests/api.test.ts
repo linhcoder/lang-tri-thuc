@@ -6,6 +6,22 @@ import {verifyTicket} from '../src/Auth';
 import {applyLessonPack,lessonCatalog} from '../../game-client/assets/scripts/world/LessonCatalog';
 const secret='test-only-room-secret-at-least-32-characters';
 
+test('remembered parent login lasts thirty days and remains revocable; admin stays at eight hours',async()=>{
+    const app=await createApi({store:new SqliteRepository(),roomSecret:secret,adminPassword:'TestAdminPassword123!'});
+    try{
+        await app.inject({method:'POST',url:'/parents',payload:{alias:'remember-parent',password:'RememberParent123!'}});
+        for(const [alias,password,remember,hours] of [['remember-parent','RememberParent123!',false,8],['remember-parent','RememberParent123!',true,720],['admin','TestAdminPassword123!',true,8]] as const){
+            const before=Date.now(),response=await app.inject({method:'POST',url:'/sessions',payload:{alias,password,remember}});
+            assert.equal(response.statusCode,200);const session=response.json();
+            assert.ok(session.expires>=before+hours*3600000&&session.expires<=Date.now()+hours*3600000);
+            const headers={authorization:'Bearer '+session.token};
+            assert.equal((await app.inject({method:'GET',url:'/profiles',headers})).statusCode,200);
+            assert.equal((await app.inject({method:'DELETE',url:'/sessions',headers})).statusCode,200);
+            assert.equal((await app.inject({method:'GET',url:'/profiles',headers})).statusCode,401);
+        }
+    }finally{await app.close();}
+});
+
 test('admin reads shipped lesson defaults before database drafts',async()=>{
     const row=lessonCatalog()[0],prompt='Nội dung từ gói đã build';
     assert.equal(applyLessonPack({version:1,lessons:[{...row,question:{...row.question,prompt}}]}),true);

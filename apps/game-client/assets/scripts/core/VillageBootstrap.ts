@@ -1,4 +1,4 @@
-import {chooseStudent,StudentSession,studentRequest} from '../network/StudentSession';
+import {chooseStudent,selectAnotherStudent,StudentSession,studentRequest} from '../network/StudentSession';
 import {createJourneyScenery,decorateJourneyScenery} from '../ui/JourneyScenery';
 import {beginModalPress,endModalPress} from '../ui/ModalTheme';
 import {UiClickSound} from '../ui/UiClickSound';
@@ -226,7 +226,7 @@ export class VillageBootstrap extends Component {
         if(this.chapter){
             if(this.student&&!this.student.useLocalBackup){try{for(const key of ['lang-tri-thuc.campaign.v1','lang-tri-thuc.chapter-one.v2']){const scoped=key+this.profileScope,raw=sys.localStorage.getItem(scoped);if(raw)sys.localStorage.setItem(scoped+'.before-cloud',raw);}}catch{}}
             this.hub=new VillageHub(this.root,this.actors,new CampaignSave(sys.localStorage,'lang-tri-thuc.campaign.v1'+this.profileScope),this.chapterSave!,this.player,()=>this.resetInput(),p=>this.showDestination(p));
-            if(this.student){const profile=this.student.profile;if(this.student.campaign&&!this.student.useLocalBackup)this.hub.campaign.restore(JSON.stringify(this.student.campaign));Object.assign(this.hub.campaign.data,{age:profile.age,avatar:profile.avatar});this.hub.studentName=profile.label;this.hub.studentGender=profile.gender;this.hub.onStudentChange=()=>location.reload();this.hub.campaign.syncChapterOne(this.chapterSave!.progress.data);this.hub.save.save();try{sys.localStorage.setItem('lang-tri-thuc.cloud-revision.'+profile.id,String(this.student.revision));}catch{}}
+            if(this.student){const profile=this.student.profile;if(this.student.campaign&&!this.student.useLocalBackup)this.hub.campaign.restore(JSON.stringify(this.student.campaign));Object.assign(this.hub.campaign.data,{age:profile.age,avatar:profile.avatar});this.hub.studentName=profile.label;this.hub.studentGender=profile.gender;this.hub.onStudentChange=()=>selectAnotherStudent();this.hub.campaign.syncChapterOne(this.chapterSave!.progress.data);this.hub.save.save();try{sys.localStorage.setItem('lang-tri-thuc.cloud-revision.'+profile.id,String(this.student.revision));}catch{}}
             let localActivityJson=JSON.stringify(activitySnapshot(this.hub.campaign.data));
             this.hub.onActivitySave=()=>{if(!this.hub)return;const current=JSON.stringify(activitySnapshot(this.hub.campaign.data));if(current!==localActivityJson){localActivityJson=current;this.hub.campaign.data.activitiesDirty=true;}};
             this.hub.onJourneyAnswer=undefined;this.hub.onPortal=id=>{const p=portalDestination(this.player.position,id,this.hub?.campaign.level??1);if(p){this.resetInput();this.player.position=p;}};

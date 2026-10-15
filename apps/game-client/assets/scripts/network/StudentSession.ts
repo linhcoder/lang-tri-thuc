@@ -4,13 +4,21 @@ import {characterAsset,characterAssetPreview} from '../world/RedStarBoy';
 export interface StudentProfile {id:string;label:string;age:AgeBand;gender:'male'|'female';avatar:number}
 export interface StudentSession {profile:StudentProfile;token:string;revision:number;useLocalBackup:boolean;campaign:unknown;first:unknown;api:string}
 const TOKEN_KEY='lang-tri-thuc.student-token.v1';
+const PROFILE_KEY='lang-tri-thuc.last-student.v1';
+function stored(key:string):string{try{const value=localStorage.getItem(key);if(value)return value;}catch{}try{return sessionStorage.getItem(key)??'';}catch{return '';}}
+function remember(key:string,value:string):void{for(const storage of ['localStorage','sessionStorage'] as const)try{window[storage].setItem(key,value);}catch{}}
+function forget(key:string):void{for(const storage of ['localStorage','sessionStorage'] as const)try{window[storage].removeItem(key);}catch{}}
+export function selectAnotherStudent():void{const url=new URL(location.href);url.searchParams.set('students','1');url.hash='';location.assign(url.href);}
 export async function studentRequest(api:string,token:string,path:string,method='GET',body?:unknown):Promise<any>{
     const response=await fetch(api+path,{method,headers:{...(body===undefined?{}:{'Content-Type':'application/json'}),...(token?{Authorization:'Bearer '+token}:{})},...(body===undefined?{}:{body:JSON.stringify(body)}),signal:AbortSignal.timeout(10000)});
     const value=await response.json();if(!response.ok)throw Object.assign(Error(value.message??'Chưa kết nối được máy chủ.'),{status:response.status});return value;
 }
 /** The game is not constructed until the API verifies ownership of a complete profile. */
 export function chooseStudent(signal:AbortSignal,requestedId?:string):Promise<StudentSession>{
-    const api=cmsApiUrl();let token='',importLegacy=false;try{token=sessionStorage.getItem(TOKEN_KEY)??'';}catch{}
+    const api=cmsApiUrl();let token=stored(TOKEN_KEY),importLegacy=false;
+    const url=new URL(location.href),forcePicker=url.searchParams.has('students');
+    if(forcePicker){url.searchParams.delete('students');history.replaceState(null,'',url.href);}
+    if(token)remember(TOKEN_KEY,token);
     const splash=document.getElementById('app-splash');if(splash)splash.hidden=true;
     const overlay=document.createElement('section');overlay.id='student-gate';overlay.setAttribute('aria-label','Đăng nhập và chọn học sinh');
     const style=document.createElement('style');style.textContent=`#student-gate{position:fixed;inset:0;z-index:10020;overflow:auto;background:linear-gradient(135deg,#174b38,#6b9561);display:grid;place-items:center;padding:20px;box-sizing:border-box;font:16px system-ui;color:#294b37}#student-gate *{box-sizing:border-box}#student-gate .student-card{width:min(540px,100%);background:#fff9e8;padding:24px;border-radius:22px;box-shadow:0 15px 60px #102d3766}#student-gate h1{font-size:26px;margin:0 0 10px}#student-gate p{line-height:1.5}#student-gate label{display:block;margin:12px 0}#student-gate input,#student-gate select{display:block;width:100%;padding:11px;margin-top:5px;border:1px solid #9eae85;border-radius:9px;font:inherit}#student-gate button{min-height:44px;padding:10px 16px;margin:8px 8px 0 0;border:0;border-radius:10px;background:#286b48;color:white;font:inherit;cursor:pointer}#student-gate button:disabled{opacity:.5;cursor:wait}#student-gate .student-list button{display:block;width:100%;text-align:left}#student-gate .student-error{color:#a53728}#student-gate svg{height:110px;display:block;margin:auto}#student-gate .student-meta{color:#597347;font-size:14px}`;
@@ -24,12 +32,12 @@ export function chooseStudent(signal:AbortSignal,requestedId?:string):Promise<St
         const select=(parent:HTMLElement,title:string,options:Array<[string,string]>,value='')=>{const label=text(parent,'label',title),input=document.createElement('select');for(const [key,name] of options){const option=document.createElement('option');option.value=key;option.textContent=name;input.append(option);}input.value=value;input.required=true;label.append(input);return input;};
         const button=(parent:HTMLElement,title:string,action:()=>void)=>{const b=document.createElement('button');b.type='button';b.textContent=title;b.onclick=action;parent.append(b);return b;};
         const request=(path:string,method='GET',body?:unknown)=>studentRequest(api,token,path,method,body);
-        const guarded=async(parent:HTMLElement,action:()=>Promise<void>)=>{const notice=parent.querySelector('.student-error');if(notice)notice.remove();parent.querySelectorAll('button').forEach(b=>b.disabled=true);try{await action();}catch(error){if(signal.aborted)return;const e=error as Error&{status?:number};text(parent,'p',e.message).className='student-error';if(e.status===401){token='';try{sessionStorage.removeItem(TOKEN_KEY);}catch{}button(parent,'Đăng nhập lại',()=>login());}}finally{parent.querySelectorAll('button').forEach(b=>b.disabled=false);}};
+        const guarded=async(parent:HTMLElement,action:()=>Promise<void>)=>{const notice=parent.querySelector('.student-error');if(notice)notice.remove();parent.querySelectorAll('button').forEach(b=>b.disabled=true);try{await action();}catch(error){if(signal.aborted)return;const e=error as Error&{status?:number};text(parent,'p',e.message).className='student-error';if(e.status===401){token='';forget(TOKEN_KEY);forget(PROFILE_KEY);button(parent,'Đăng nhập lại',()=>login());}}finally{parent.querySelectorAll('button').forEach(b=>b.disabled=false);}};
         const start=async(profile:StudentProfile)=>{
             const value=await request('/profiles/'+profile.id+'/play');if(signal.aborted)return;
             const p=value.progress;let useLocalBackup=false,campaign=p.data??p.trusted?.campaign??null,first=p.chapterOne??p.trusted?.chapterOne??null;
             try{useLocalBackup=localStorage.getItem('lang-tri-thuc.cloud-revision.'+profile.id)===String(p.revision);if(importLegacy&&!campaign){campaign=JSON.parse(localStorage.getItem('lang-tri-thuc.campaign.v1')??'null');first=JSON.parse(localStorage.getItem('lang-tri-thuc.chapter-one.v2')??'null');useLocalBackup=false;}}catch{}
-            cleanup();if(splash)splash.hidden=false;
+            remember(PROFILE_KEY,value.profile.id);cleanup();if(splash)splash.hidden=false;
             resolve({profile:value.profile,token,api,revision:p.revision,useLocalBackup,campaign,first});
         };
         const profileForm=(profile?:Partial<StudentProfile>)=>{
@@ -47,17 +55,17 @@ export function chooseStudent(signal:AbortSignal,requestedId?:string):Promise<St
             text(form,'p','Tên, độ tuổi và nhân vật này sẽ được dùng trong làng.').className='student-meta';
             const submit=button(form,'Lưu và vào làng',()=>{});submit.type='submit';form.onsubmit=event=>{event.preventDefault();void guarded(c,async()=>{const data={label:name.value.trim(),age:age.value,gender:gender.value,avatar:Number(appearance.value)};if(!data.label||!data.gender)throw Error('Nhập tên và chọn giới tính nhân vật.');const saved=await request(profile?.id?'/profiles/'+profile.id:'/profiles',profile?.id?'PUT':'POST',data);await start(saved);});};button(c,'Quay lại',()=>void profiles());
         };
-        const profiles=async()=>{
+        const profiles=async(resume=false)=>{
             const c=card();text(c,'h1','Chọn học sinh');text(c,'p','Mỗi bé có nhân vật và hành trình riêng.');
             try{if(localStorage.getItem('lang-tri-thuc.campaign.v1')||localStorage.getItem('lang-tri-thuc.chapter-one.v2')){const label=text(c,'label','Nhập tiến độ cũ trên máy vào học sinh được chọn (chỉ khi chưa có tiến độ trên tài khoản).'),checkbox=document.createElement('input');checkbox.type='checkbox';checkbox.checked=importLegacy;checkbox.style.width='auto';checkbox.onchange=()=>importLegacy=checkbox.checked;label.prepend(checkbox);}}catch{}
-            await guarded(c,async()=>{const list=await request('/profiles');const rows=document.createElement('div');rows.className='student-list';c.append(rows);for(const p of list){button(rows,`${p.label} · ${p.age} tuổi${p.gender?'':' · Cần hoàn thiện hồ sơ'}`,()=>void guarded(c,async()=>{if(!p.gender){profileForm(p);return;}await start(p);}));button(rows,'Sửa hồ sơ '+p.label,()=>profileForm(p));}if(list.length<8)button(c,'Thêm học sinh',()=>profileForm());button(c,'Đăng xuất',()=>void guarded(c,async()=>{await request('/sessions','DELETE');token='';try{sessionStorage.removeItem(TOKEN_KEY);}catch{}login();}));if(requestedId&&list.some((p:StudentProfile)=>p.id===requestedId))text(c,'p','Chọn hồ sơ được mời để vào phòng cùng bạn.');});
+            await guarded(c,async()=>{const list=await request('/profiles');if(signal.aborted)return;if(resume){const id=requestedId??stored(PROFILE_KEY),last=list.find((p:StudentProfile)=>p.id===id&&p.gender);if(last){try{await start(last);return;}catch(error){if((error as {status?:number}).status!==404)throw error;forget(PROFILE_KEY);}}}const rows=document.createElement('div');rows.className='student-list';c.append(rows);for(const p of list){button(rows,`${p.label} · ${p.age} tuổi${p.gender?'':' · Cần hoàn thiện hồ sơ'}`,()=>void guarded(c,async()=>{if(!p.gender){profileForm(p);return;}await start(p);}));button(rows,'Sửa hồ sơ '+p.label,()=>profileForm(p));}if(list.length<8)button(c,'Thêm học sinh',()=>profileForm());button(c,'Đăng xuất',()=>void guarded(c,async()=>{await request('/sessions','DELETE');token='';forget(TOKEN_KEY);forget(PROFILE_KEY);login();}));if(requestedId&&list.some((p:StudentProfile)=>p.id===requestedId))text(c,'p','Chọn hồ sơ được mời để vào phòng cùng bạn.');});
         };
         const login=(register=false)=>{
             const c=card();text(c,'h1',register?'Tạo tài khoản phụ huynh':'Chào mừng đến Làng Tri Thức');text(c,'p','Đăng nhập để chọn học sinh và tiếp tục hành trình.');
             const form=document.createElement('form');c.append(form);const alias=field(form,'Tên tài khoản');alias.autocomplete='username';alias.maxLength=40;
             const password=field(form,register?'Mật khẩu (ít nhất 12 ký tự)':'Mật khẩu','password');password.autocomplete=register?'new-password':'current-password';password.minLength=register?12:1;password.maxLength=128;
-            const submit=button(form,register?'Tạo tài khoản':'Đăng nhập',()=>{});submit.type='submit';form.onsubmit=event=>{event.preventDefault();void guarded(c,async()=>{const body={alias:alias.value.trim(),password:password.value};if(register)await request('/parents','POST',body);const value=await request('/sessions','POST',body);token=value.token;try{sessionStorage.setItem(TOKEN_KEY,token);}catch{}await profiles();});};button(c,register?'Đã có tài khoản':'Tạo tài khoản mới',()=>login(!register));alias.focus();
+            const submit=button(form,register?'Tạo tài khoản':'Đăng nhập',()=>{});submit.type='submit';form.onsubmit=event=>{event.preventDefault();void guarded(c,async()=>{const body={alias:alias.value.trim(),password:password.value};if(register)await request('/parents','POST',body);const value=await request('/sessions','POST',{...body,remember:true});token=value.token;forget(PROFILE_KEY);remember(TOKEN_KEY,token);await profiles();});};button(c,register?'Đã có tài khoản':'Tạo tài khoản mới',()=>login(!register));alias.focus();
         };
-        if(token)void profiles();else login();
+        if(token)void profiles(!forcePicker);else login();
     });
 }

@@ -127,9 +127,9 @@ export async function createApi(options:ApiOptions={}){
     app.post<{Body:{alias:string;password:string}}>('/parents',{schema:{body:object({alias:{type:'string',minLength:3,maxLength:40,pattern:'^[a-zA-Z0-9_-]+$'},password:{type:'string',minLength:12,maxLength:128}})}},async(req,reply)=>{
         const parent=await store.transaction(d=>{if(req.body.alias.toLowerCase()==='admin'||Object.values(d.parents).some(p=>p.alias===req.body.alias))throw Object.assign(Error('Alias unavailable'),{statusCode:409});const id=randomUUID(),p={id,alias:req.body.alias,passwordHash:passwordHash(req.body.password),role:'parent' as const};d.parents[id]=p;return {id,alias:p.alias};});return reply.code(201).send(parent);
     });
-    app.post<{Body:{alias:string;password:string}}>('/sessions',{schema:{body:object({alias:str,password:{type:'string',minLength:1,maxLength:128}})}},async req=>store.transaction(d=>{
+    app.post<{Body:{alias:string;password:string;remember?:boolean}}>('/sessions',{schema:{body:object({alias:str,password:{type:'string',minLength:1,maxLength:128},remember:{type:'boolean'}},['alias','password'])}},async req=>store.transaction(d=>{
         const p=Object.values(d.parents).find(p=>p.alias===req.body.alias);if(!p||!verifyPassword(req.body.password,p.passwordHash))throw Object.assign(Error('Invalid credentials'),{statusCode:401});
-        const now=Date.now();for(const [k,s] of Object.entries(d.sessions))if(s.expires<now)delete d.sessions[k];const token=randomBytes(32).toString('base64url');d.sessions[digest(token)]={parentId:p.id,expires:now+8*3600000};return {token,role:p.role,expires:now+8*3600000};
+        const now=Date.now();for(const [k,s] of Object.entries(d.sessions))if(s.expires<now)delete d.sessions[k];const token=randomBytes(32).toString('base64url'),expires=now+(req.body.remember&&p.role==='parent'?30*24:8)*3600000;d.sessions[digest(token)]={parentId:p.id,expires};return {token,role:p.role,expires};
     }));
     app.delete('/sessions',async req=>{await auth(req);return store.transaction(d=>{delete d.sessions[digest(req.headers.authorization!.replace(/^Bearer /,''))];return {ok:true};});});
     app.get('/profiles',async req=>{const p=await auth(req);return store.transaction(d=>Object.values(d.profiles).filter(c=>c.parentId===p.id));});

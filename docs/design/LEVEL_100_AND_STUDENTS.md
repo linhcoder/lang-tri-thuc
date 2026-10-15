@@ -1,5 +1,13 @@
 # Hành trình 100 cấp và hồ sơ học sinh
 
+## Ghi nhớ đăng nhập và chuyển học sinh — bản local
+
+Game lưu phiên phụ huynh và học sinh đã chọn trên trình duyệt. Lần mở sau, API kiểm tra phiên và quyền sở hữu hồ sơ rồi tự vào học sinh gần nhất. Đăng nhập từ game xin phiên ghi nhớ tối đa 30 ngày; phiên cũ giữ hạn hết hiệu lực đã cấp. Phiên đăng nhập thông thường vẫn có hạn tám giờ. Đăng xuất thu hồi token trên máy chủ và xóa phiên/học sinh ghi nhớ trên cả localStorage và sessionStorage. Phiên bị thu hồi hoặc hết hạn chuyển về yêu cầu đăng nhập lại.
+
+Trong game, mở **Cài đặt → Đổi học sinh / hồ sơ** để chọn bé khác, thêm hoặc sửa hồ sơ, hay đăng xuất. Chuyển học sinh mở danh sách thay vì tự vào lại bé cũ; học sinh được chọn tiếp theo trở thành lựa chọn cho lần mở sau. Tiến độ tiếp tục dùng khóa riêng theo mã hồ sơ và kiểm tra sở hữu từ API. Hồ sơ đã bị xóa hoặc chưa hoàn thiện không tự khởi động. Thay đổi này chưa triển khai lên VPS.
+
+Kiểm tra: API xác nhận phiên phụ huynh 30 ngày, phiên quản trị tám giờ và thu hồi token; `npm run test:student-session` kiểm tra mở context trình duyệt mới, tự vào bé gần nhất, chuyển A/B, reload nhớ B, đăng xuất và fallback khi phiên bị thu hồi. Test client, TypeScript và build Cocos đạt; QA hành trình đầy đủ kiểm tra lại luồng reload tự vào game.
+
 ## Thiết kế mới toàn bộ cảnh vùng — VPS 15/10/2026
 
 Mười vùng hành trình có mười ảnh cảnh chính mới, sinh độc lập, không dùng chung nhà/đình/cây đa để thay thế cảnh vùng khác. Bộ PNG alpha riêng nằm trong `assets/resources/village/journey-regions-v1/`; thông tin, prompt và checksum tại [JOURNEY_REGION_ASSETS](JOURNEY_REGION_ASSETS.md). Đã triển khai release `journey-regions-546c4ff-20261015`, source commit `546c4ff`, contentVersion `d92c670c`. QA HTTPS đủ 10 texture riêng trên desktop/mobile ngang, page errors rỗng; backup/restore và hai API MySQL đạt, tài khoản QA đã xóa. Mục Bản đồ bên dưới mô tả lần mở rộng trước khi có bộ hình riêng.

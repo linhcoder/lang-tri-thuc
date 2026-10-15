@@ -4,7 +4,10 @@ const output=path.resolve(__dirname,'../temp/layout-qa');fs.mkdirSync(output,{re
 try{await new Promise((resolve,reject)=>{const timer=setTimeout(()=>reject(Error('QA API timeout')),15000);server.stdout.on('data',data=>{if(String(data).includes('WORKSPACE_QA_READY')){clearTimeout(timer);resolve();}});server.on('error',reject);server.once('exit',code=>reject(Error('QA API exited '+code)));});browser=await chromium.launch({executablePath:require('../../../tools/browser-path.cjs')(),headless:true});page=await browser.newPage({viewport:{width:1600,height:1000}});const errors=[];page.on('pageerror',error=>errors.push(String(error)));await page.route('http://127.0.0.1:33000/**',async route=>{const response=await route.fetch({url:route.request().url().replace(':33000',':33002')});await route.fulfill({response});});await page.goto('http://127.0.0.1:35175/');await page.getByLabel('Bí danh tài khoản').fill('admin');await page.getByLabel('Mật khẩu',{exact:true}).fill('WorkspaceBrowserAdmin123!');await page.getByRole('button',{name:'Đăng nhập',exact:true}).click();
 await page.getByRole('img',{name:'Số thao tác quản trị trong 7 ngày'}).waitFor();await page.screenshot({path:path.join(output,'overview.png')});
 await page.getByRole('button',{name:'Bản đồ NPC',exact:true}).click();
+await page.getByLabel('Chọn NPC trên bản đồ').selectOption('anh-nam');await page.getByRole('button',{name:'Di chuyển bản đồ',exact:true}).click();await page.waitForTimeout(800);const nc=await page.getByLabel('Bản đồ làng kéo thả NPC').boundingBox();const nx=nc.x+806*nc.width/1100,ny=nc.y+359.36*nc.height/680;await page.mouse.move(nx,ny);await page.mouse.down();await page.mouse.move(nx-10.24*nc.width/1100,ny-5.12*nc.height/680,{steps:8});await page.mouse.up();assert.equal(await page.getByLabel('Ô X trên bản đồ').inputValue(),'38');await page.getByRole('button',{name:'Hoàn tác NPC',exact:true}).click();
+await page.getByRole('button',{name:'Toàn màn hình',exact:true}).click();await page.waitForFunction(()=>document.fullscreenElement?.classList.contains('scene-workspace'));await page.getByRole('button',{name:'Cây, nhà và sân chơi',exact:true}).waitFor();
 await page.getByRole('button',{name:'Cây, nhà và sân chơi',exact:true}).click();
+assert.ok(await page.evaluate(()=>document.fullscreenElement?.classList.contains('scene-workspace')));
 const canvas=page.getByLabel('Bản đồ kéo thả vật thể');await canvas.waitFor();await page.waitForTimeout(1500);
 await page.getByLabel('Chọn vật thể',{exact:true}).selectOption('schoolyard.dirt-pitch');
 await page.getByRole('button',{name:'Đến vật thể đang chọn',exact:true}).click();
@@ -12,11 +15,11 @@ await page.getByLabel('Chiều rộng vật thể').fill('420');assert.equal(Num
 await page.getByLabel('Vị trí vật thể X').fill('46.25');await page.getByLabel('Vị trí vật thể Y').fill('34.5');
 await page.getByLabel('Ghi chú bố trí vật thể').fill('Chỉnh vị trí sân bóng và kích thước theo tỉ lệ mới');
 await page.getByRole('button',{name:'Lưu bố trí vật thể',exact:true}).click();await page.getByText('Đã lưu bố trí vật thể.',{exact:true}).waitFor();
-await page.screenshot({path:path.join(output,'pitch-saved.png')});
+await page.screenshot({path:path.join(output,'pitch-saved.png')});await page.evaluate(()=>document.exitFullscreen());
 await page.reload();await page.getByRole('button',{name:'Bản đồ NPC',exact:true}).click();await page.getByRole('button',{name:'Cây, nhà và sân chơi',exact:true}).click();
 await page.getByLabel('Chọn vật thể',{exact:true}).selectOption('schoolyard.dirt-pitch');assert.equal(await page.getByLabel('Vị trí vật thể X').inputValue(),'46.25');assert.equal(await page.getByLabel('Chiều rộng vật thể').inputValue(),'420');
 await page.getByRole('button',{name:'Đến vật thể đang chọn',exact:true}).click();await page.waitForTimeout(400);
-const b=await canvas.boundingBox(),sx=b.width/1100,sy=b.height/680;
+await page.getByRole('button',{name:'Di chuyển bản đồ',exact:true}).click();const b=await canvas.boundingBox(),sx=b.width/1100,sy=b.height/680;
 await page.mouse.move(b.x+550*sx,b.y+340*sy);await page.mouse.down();await page.mouse.move(b.x+570.48*sx,b.y+350.24*sy,{steps:8});await page.mouse.up();
 assert.equal(await page.getByLabel('Vị trí vật thể X').inputValue(),'48.25');assert.equal(await page.getByLabel('Vị trí vật thể Y').inputValue(),'34.5');
 await page.getByRole('button',{name:'Hoàn tác',exact:true}).click();assert.equal(await page.getByLabel('Vị trí vật thể X').inputValue(),'46.25');

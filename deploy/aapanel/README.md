@@ -1,5 +1,9 @@
 # aaPanel staging: ltt.vui-hoc.xyz
 
+## Trang phục nông dân, giữ mặt tham khảo — 15/10/2026
+
+Release hiện tại `farmer-workwear-1bc07ed-20261015`, commit `1bc07ed`, build `web-desktop`, contentVersion `d92c670c`. Bác Nông Dân mặc áo nâu, quần tối màu và dép; giữ mặt/kính/tóc từ ảnh. Atlas mới đủ 24 frame, tám hướng đứng/đi/vẫy chào. Overlay 13 file SHA-256 `7970a711a537c2f6e9b7e019ba039cf29817730dd9abf1859d97ac9b57af84a9`, checksum source/Web khớp. Backup `/opt/lang-tri-thuc/backups/database-20261015T080024Z.sql` phục hồi thử đạt. Giữ `farmer-reference-3626919-20261015` để rollback. Hai API MySQL khỏe, CMS giữ nguyên. QA HTTPS desktop/mobile, 24 frame/hướng đứng/vẫy chào/không lật ảnh và API/quyền phòng đạt; page errors rỗng, tài khoản QA đã xóa. Evidence local ignored: `temp/deploy/qa/farmer-workwear-live/`. Chi tiết tại [FARMER_REFERENCE](../../docs/design/FARMER_REFERENCE.md). Các release dưới đây là lịch sử.
+
 ## Bác Nông Dân theo ảnh tham khảo — 15/10/2026
 
 Release hiện tại `farmer-reference-3626919-20261015`, source commit `3626919`, build `web-desktop`, contentVersion `d92c670c`. Atlas riêng cho Bác Nông Dân từ ảnh người dùng, 24 frame đứng/bước đi/vẫy chào theo tám hướng. Overlay 14 file SHA-256 `694a3e7d315d696c6a744f6e78b26ed5b3f66bdb123c75eb5aa6557553d2aa1e`; checksum source/Web khớp. Backup `/opt/lang-tri-thuc/backups/database-20261015T074244Z.sql` phục hồi thử đạt. Giữ `ground-materials-b08555b-20261015` để rollback. Hai API MySQL khỏe, CMS không đổi. QA HTTPS 24 frame/hướng đứng/vẫy chào, không lật ảnh, desktop/mobile ngang và API/quyền phòng đạt; page errors rỗng, tài khoản QA đã xóa. Evidence local ignored: `temp/deploy/qa/farmer-reference-live/`. Chi tiết tại [FARMER_REFERENCE](../../docs/design/FARMER_REFERENCE.md). Các release dưới đây là lịch sử.

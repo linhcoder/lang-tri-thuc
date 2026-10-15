@@ -1,5 +1,9 @@
 # Hành trình 100 cấp và hồ sơ học sinh
 
+## Cô Giáo Lan theo ảnh — VPS 15/10/2026
+
+Cô Giáo Lan giữ nét mặt, kính tròn và tóc tết theo ảnh tham chiếu, mặc áo dài xanh nhạt và quần trắng. Nhân vật dùng atlas riêng khi đứng/đi/chào. Release hiện tại `teacher-lan-6870386-20261015`, source commit `6870386`, contentVersion `d92c670c`. Chi tiết tại [TEACHER_LAN_REFERENCE](TEACHER_LAN_REFERENCE.md).
+
 ## Bà bán hàng theo ảnh — VPS 15/10/2026
 
 Bà bán hàng giữ nét mặt và tóc theo ảnh tham chiếu, mặc áo bà ba tím trầm, quần đen và tạp dề. Nhân vật dùng atlas riêng khi đứng/đi/chào. Release hiện tại `market-lady-fb92eda-20261015`, source commit `fb92eda`, contentVersion `d92c670c`. Chi tiết tại [MARKET_LADY_REFERENCE](MARKET_LADY_REFERENCE.md).

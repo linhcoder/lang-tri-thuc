@@ -1,5 +1,9 @@
 # aaPanel staging: ltt.vui-hoc.xyz
 
+## Cô Giáo Lan theo ảnh tham chiếu — 15/10/2026
+
+Release hiện tại `teacher-lan-6870386-20261015`, source commit `6870386`, build `web-desktop`, contentVersion `d92c670c`. Cô Giáo Lan dùng atlas riêng theo ảnh với kính tròn, tóc tết và áo dài xanh nhạt. Overlay 14 file SHA-256 `36423f260383e19d82efc8141b020a0209e9d92be99fb85e06755fdc4ab263ca`; source/Web checksum khớp, backup `/opt/lang-tri-thuc/backups/database-20261015T083242Z.sql` phục hồi thử đạt. Hai API MySQL healthy, CMS giữ nguyên; release trước được giữ để rollback. Chi tiết tại [TEACHER_LAN_REFERENCE](../../docs/design/TEACHER_LAN_REFERENCE.md). Các release dưới đây là lịch sử.
+
 ## Bà bán hàng theo ảnh tham chiếu — 15/10/2026
 
 Release hiện tại `market-lady-fb92eda-20261015`, source commit `fb92eda`, build `web-desktop`, contentVersion `d92c670c`. Bà bán hàng dùng atlas riêng theo khuôn mặt tham chiếu với áo bà ba và tạp dề. Overlay 14 file SHA-256 `140dca770cab988f1fb95a54d0f842c984c25c628c5a1408699b4f18179f3dae`; source/Web checksum khớp, backup `/opt/lang-tri-thuc/backups/database-20261015T082245Z.sql` phục hồi thử đạt. Hai API MySQL healthy, CMS giữ nguyên; release trước được giữ để rollback. Chi tiết tại [MARKET_LADY_REFERENCE](../../docs/design/MARKET_LADY_REFERENCE.md). Các release dưới đây là lịch sử.

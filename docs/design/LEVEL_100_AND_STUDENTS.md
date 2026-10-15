@@ -1,10 +1,10 @@
 # Hành trình 100 cấp và hồ sơ học sinh
 
-## Ghi nhớ đăng nhập và chuyển học sinh — bản local
+## Ghi nhớ đăng nhập và chuyển học sinh — VPS 15/10/2026
 
 Game lưu phiên phụ huynh và học sinh đã chọn trên trình duyệt. Lần mở sau, API kiểm tra phiên và quyền sở hữu hồ sơ rồi tự vào học sinh gần nhất. Đăng nhập từ game xin phiên ghi nhớ tối đa 30 ngày; phiên cũ giữ hạn hết hiệu lực đã cấp. Phiên đăng nhập thông thường vẫn có hạn tám giờ. Đăng xuất thu hồi token trên máy chủ và xóa phiên/học sinh ghi nhớ trên cả localStorage và sessionStorage. Phiên bị thu hồi hoặc hết hạn chuyển về yêu cầu đăng nhập lại.
 
-Trong game, mở **Cài đặt → Đổi học sinh / hồ sơ** để chọn bé khác, thêm hoặc sửa hồ sơ, hay đăng xuất. Chuyển học sinh mở danh sách thay vì tự vào lại bé cũ; học sinh được chọn tiếp theo trở thành lựa chọn cho lần mở sau. Tiến độ tiếp tục dùng khóa riêng theo mã hồ sơ và kiểm tra sở hữu từ API. Hồ sơ đã bị xóa hoặc chưa hoàn thiện không tự khởi động. Thay đổi này chưa triển khai lên VPS.
+Trong game, mở **Cài đặt → Đổi học sinh / hồ sơ** để chọn bé khác, thêm hoặc sửa hồ sơ, hay đăng xuất. Chuyển học sinh mở danh sách thay vì tự vào lại bé cũ; học sinh được chọn tiếp theo trở thành lựa chọn cho lần mở sau. Tiến độ tiếp tục dùng khóa riêng theo mã hồ sơ và kiểm tra sở hữu từ API. Hồ sơ đã bị xóa hoặc chưa hoàn thiện không tự khởi động. Đã triển khai trong release `ground-materials-b08555b-20261015`; QA HTTPS phiên 30 ngày, reload tự vào A, chuyển B và reload nhớ B đạt. Chi tiết tại [GROUND_MATERIALS](GROUND_MATERIALS.md).
 
 Kiểm tra: API xác nhận phiên phụ huynh 30 ngày, phiên quản trị tám giờ và thu hồi token; `npm run test:student-session` kiểm tra mở context trình duyệt mới, tự vào bé gần nhất, chuyển A/B, reload nhớ B, đăng xuất và fallback khi phiên bị thu hồi. Test client, TypeScript và build Cocos đạt; QA hành trình đầy đủ kiểm tra lại luồng reload tự vào game.
 

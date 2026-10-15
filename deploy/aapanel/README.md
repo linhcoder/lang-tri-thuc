@@ -1,5 +1,9 @@
 # aaPanel staging: ltt.vui-hoc.xyz
 
+## Texture cỏ/đất và ghi nhớ phiên — 15/10/2026
+
+Release hiện tại `ground-materials-b08555b-20261015`, build `web-desktop`, contentVersion `d92c670c`. Texture cỏ/đất mới từ commit `83a0812`; ghi nhớ đăng nhập/chuyển học sinh từ `43056e4`; sửa thời gian chờ mở hồ sơ từ `b08555b`. Overlay nền 29 file SHA-256 `8690bd5b27fce24b9ceb4ae27cdae12ab14ccde1989439c45f69561b0e0ad043`; overlay cuối ba file SHA-256 `b8159ced9b51027cedecfd1260f7420eb5f95289233d15feca6cc04415b999ba`. Checksum source/Web khớp; backup `/opt/lang-tri-thuc/backups/database-20261015T031737Z.sql` phục hồi thử đạt. Hai API MySQL khỏe, CMS giữ nguyên. QA HTTPS hai texture, mười cảnh desktop/mobile, phiên 30 ngày/reload/chuyển học sinh đạt; page errors rỗng, các fixture đã xóa. Release `ground-materials-83a0812-20261015` và `journey-regions-546c4ff-20261015` giữ để rollback. Chi tiết tại [GROUND_MATERIALS](../../docs/design/GROUND_MATERIALS.md). Các release dưới đây là lịch sử.
+
 ## Cảnh mới cho 10 vùng — 15/10/2026
 
 Release hiện tại `journey-regions-546c4ff-20261015`, source commit `546c4ff`, build `web-desktop`, contentVersion `d92c670c`. Mỗi vùng có một ảnh cảnh mới riêng. Overlay 66 file SHA-256 `a9083d2f9556f600a16972fbc97687a5a4edd8ef80bdd23e38c3f50f8e5a59c2`, checksum source/Web khớp. Backup `/opt/lang-tri-thuc/backups/database-20261014T231650Z.sql` phục hồi thử khớp dữ liệu; giữ release `character-assets-8eb9f85-20261015` để rollback. Hai API MySQL healthy, CMS giữ nguyên. QA HTTPS đủ mười texture riêng, 20 ảnh desktop/mobile ngang, không có page error; API/quyền phòng đạt và tài khoản QA đã xóa. Evidence local ignored: `temp/deploy/qa/journey-regions-live/`. Chi tiết tại [JOURNEY_REGION_ASSETS](../../docs/design/JOURNEY_REGION_ASSETS.md). Các release dưới đây là lịch sử.

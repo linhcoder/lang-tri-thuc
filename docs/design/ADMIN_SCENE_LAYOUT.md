@@ -1,5 +1,13 @@
 # Chỉnh bố trí vật thể trong admin
 
+## Lưu nhiều NPC và ghi chú tùy chọn — 15/10/2026
+
+Release hiện tại `npc-batch-c10b260-20261015`, source `c10b260`. Ghi chú vật thể và ghi chú bố trí NPC đều tùy chọn. Thay đổi nhiều NPC được giữ khi chuyển lựa chọn, hiển thị số lượng và dấu `*`, lưu nguyên tử qua `PUT /admin/npc-layout`. Gửi kèm giá trị cũ để tránh ghi đè phiên khác; kiểm tra toàn bộ nhóm cho phép hoán đổi ô và từ chối toàn bộ nhóm nếu có lỗi.
+
+Kiểm tra API: 20 đạt, một MySQL fixture bỏ qua. Kiểm tra trình duyệt riêng xác nhận hoán đổi hai NPC, lưu không ghi chú và tải lại đúng cả hai; lưu vật thể không ghi chú đạt. QA HTTPS xác nhận hai thay đổi NPC vẫn giữ khi chuyển lựa chọn, nút lưu hàng loạt và ghi chú tùy chọn, hoàn tác và desktop/mobile đạt; không ghi thay đổi kiểm thử vào bản nháp live, không page error. Build admin/API đạt.
+
+Overlay 13 file SHA-256 `bac86990492158a1afa560fb5b4276598de50ebce018861f157c78732e8a75a0`; source/game/admin checksum khớp. Backup `/opt/lang-tri-thuc/backups/database-20261015T152311Z.sql` phục hồi thử đạt; hai API MySQL healthy, CMS giữ nguyên và release trước giữ để rollback. Evidence live: `temp/deploy/qa/npc-batch-live/`.
+
 ## Sửa thao tác kéo và toàn màn hình — 15/10/2026
 
 Nút chuyển **Nhân vật NPC / Cây, nhà và sân chơi** nằm trong vùng toàn màn hình, luôn có thể chuyển loại đối tượng. Chọn từ danh sách tự bật chế độ chọn. Khi đang kéo nền, vẫn có thể kéo NPC/vật thể đang chọn và nút đổi kích thước của nó. Bấm vật thể khác cần chuyển về chế độ chọn.

@@ -1,5 +1,9 @@
 # Hành trình 100 cấp và hồ sơ học sinh
 
+## Lưu tất cả vị trí NPC — VPS 15/10/2026
+
+Release `npc-batch-c10b260-20261015`, source `c10b260`: ghi chú bố trí vật thể/NPC không bắt buộc; có thể đổi nhiều NPC và chọn **Lưu tất cả vị trí NPC**. Chuyển lựa chọn giữ các thay đổi; lưu trong một giao dịch và kiểm tra phiên chỉnh sửa cũ. Kiểm tra lưu/tải lại hai NPC, ghi chú trống và HTTPS desktop/mobile đạt. Chi tiết tại [ADMIN_SCENE_LAYOUT](ADMIN_SCENE_LAYOUT.md).
+
 ## Sửa kéo đối tượng trong bản đồ admin — VPS 15/10/2026
 
 Release `scene-drag-84ae6b0-20261015`, source `84ae6b0`: nút chuyển NPC/vật thể nằm trong vùng toàn màn hình; kéo được đối tượng đang chọn dù ở chế độ kéo nền. Chọn từ danh sách tự bật chế độ chọn. Kiểm tra local và HTTPS desktop/mobile đạt. Chi tiết tại [ADMIN_SCENE_LAYOUT](ADMIN_SCENE_LAYOUT.md).

@@ -1,5 +1,9 @@
 # aaPanel staging: ltt.vui-hoc.xyz
 
+## Lưu hàng loạt NPC, ghi chú bố trí tùy chọn — 15/10/2026
+
+Release hiện tại `npc-batch-c10b260-20261015`, source `c10b260`, contentVersion `d92c670c`. Overlay 13 file SHA-256 `bac86990492158a1afa560fb5b4276598de50ebce018861f157c78732e8a75a0`; source/game/admin checksum khớp. Backup `/opt/lang-tri-thuc/backups/database-20261015T152311Z.sql` phục hồi thử đạt, hai API MySQL healthy, CMS giữ nguyên. QA local lưu nguyên tử/hoán đổi hai NPC, ghi chú trống và reload đạt; HTTPS giữ nhiều thay đổi, ghi chú tùy chọn, hoàn tác và desktop/mobile đạt. Bản nháp live không bị thay đổi bởi QA; phiên QA thu hồi. Chi tiết tại [ADMIN_SCENE_LAYOUT](../../docs/design/ADMIN_SCENE_LAYOUT.md).
+
 ## Sửa kéo đối tượng và chuyển loại trong toàn màn hình — 15/10/2026
 
 Release hiện tại `scene-drag-84ae6b0-20261015`, source `84ae6b0`, contentVersion `d92c670c`. Overlay tám file SHA-256 `961e76a9704f6788ffe60ee9f3be0db38154db3f5485d3e17b9db182efdcbcb2`; source/game/admin checksum khớp. Backup `/opt/lang-tri-thuc/backups/database-20261015T145609Z.sql` phục hồi thử đạt, hai API MySQL healthy, CMS giữ nguyên. QA HTTPS toàn màn hình và chuyển sang chỉnh vật thể, đổi kích thước/hoàn tác, desktop/mobile đạt; bản nháp không thay đổi. Giữ release trước để rollback. Chi tiết tại [ADMIN_SCENE_LAYOUT](../../docs/design/ADMIN_SCENE_LAYOUT.md).

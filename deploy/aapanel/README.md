@@ -1,5 +1,9 @@
 # aaPanel staging: ltt.vui-hoc.xyz
 
+## Bà bán hàng theo ảnh tham chiếu — 15/10/2026
+
+Release hiện tại `market-lady-fb92eda-20261015`, source commit `fb92eda`, build `web-desktop`, contentVersion `d92c670c`. Bà bán hàng dùng atlas riêng theo khuôn mặt tham chiếu với áo bà ba và tạp dề. Overlay 14 file SHA-256 `140dca770cab988f1fb95a54d0f842c984c25c628c5a1408699b4f18179f3dae`; source/Web checksum khớp, backup `/opt/lang-tri-thuc/backups/database-20261015T082245Z.sql` phục hồi thử đạt. Hai API MySQL healthy, CMS giữ nguyên; release trước được giữ để rollback. Chi tiết tại [MARKET_LADY_REFERENCE](../../docs/design/MARKET_LADY_REFERENCE.md). Các release dưới đây là lịch sử.
+
 ## Cô Tấm theo ảnh tham chiếu — 15/10/2026
 
 Release hiện tại `co-tam-bfa9954-20261015`, source commit `bfa9954`, build `web-desktop`, contentVersion `d92c670c`. Cô Tấm dùng atlas riêng theo khuôn mặt tham chiếu với trang phục dân gian; Bác Nông Dân tiếp tục mặc đồ lao động nâu. Overlay 14 file SHA-256 `6296ab3c74c47794fa330c4310793481ef04aa225ce74135ba0ee74b2670185d`; source/Web checksum khớp, backup `/opt/lang-tri-thuc/backups/database-20261015T081413Z.sql` phục hồi thử đạt. Hai API MySQL healthy, CMS giữ nguyên; release trước được giữ để rollback. Chi tiết tại [CO_TAM_REFERENCE](../../docs/design/CO_TAM_REFERENCE.md). Các release dưới đây là lịch sử.

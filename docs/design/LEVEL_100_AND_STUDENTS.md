@@ -1,5 +1,9 @@
 # Hành trình 100 cấp và hồ sơ học sinh
 
+## Bà bán hàng theo ảnh — VPS 15/10/2026
+
+Bà bán hàng giữ nét mặt và tóc theo ảnh tham chiếu, mặc áo bà ba tím trầm, quần đen và tạp dề. Nhân vật dùng atlas riêng khi đứng/đi/chào. Release hiện tại `market-lady-fb92eda-20261015`, source commit `fb92eda`, contentVersion `d92c670c`. Chi tiết tại [MARKET_LADY_REFERENCE](MARKET_LADY_REFERENCE.md).
+
 ## Cô Tấm và Bác Nông Dân theo ảnh — VPS 15/10/2026
 
 Cô Tấm giữ nét mặt và tóc theo ảnh tham chiếu, mặc áo tứ thân và váy dân gian; Bác Nông Dân giữ bản áo nâu, quần lao động. Cả hai dùng atlas riêng khi đứng/đi/chào. Release hiện tại `co-tam-bfa9954-20261015`, source commit `bfa9954`, contentVersion `d92c670c`. Chi tiết tại [CO_TAM_REFERENCE](CO_TAM_REFERENCE.md).

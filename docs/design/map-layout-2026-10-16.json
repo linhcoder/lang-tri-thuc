@@ -1,0 +1,259 @@
+{
+  "version": 1,
+  "baseVersion": "0d971c1a",
+  "revision": 2,
+  "pack": {
+    "version": 1,
+    "placements": [
+      {
+        "id": "expansion.garden",
+        "x": 42.25,
+        "y": 16,
+        "width": 280,
+        "height": 220
+      },
+      {
+        "id": "house",
+        "x": 29,
+        "y": 12,
+        "width": 238,
+        "height": 211
+      },
+      {
+        "id": "back-canopy-1",
+        "x": 8.25,
+        "y": 7.25,
+        "width": 260,
+        "height": 240
+      },
+      {
+        "id": "dinh",
+        "x": 14,
+        "y": 11.25,
+        "width": 350,
+        "height": 210
+      },
+      {
+        "id": "back-canopy-2",
+        "x": 17.25,
+        "y": 4.25,
+        "width": 260,
+        "height": 240
+      },
+      {
+        "id": "courtyard-lantern-right",
+        "x": 16.5,
+        "y": 10,
+        "width": 65,
+        "height": 85
+      },
+      {
+        "id": "courtyard-lantern-left",
+        "x": 14.75,
+        "y": 12.5,
+        "width": 65,
+        "height": 85
+      },
+      {
+        "id": "sign-courtyard",
+        "x": 17.25,
+        "y": 11,
+        "width": 100,
+        "height": 48
+      },
+      {
+        "id": "journey.craft",
+        "x": 30,
+        "y": 41.5,
+        "width": 300,
+        "height": 220
+      },
+      {
+        "id": "journey.school",
+        "x": 0,
+        "y": 30.75,
+        "width": 441,
+        "height": 323
+      },
+      {
+        "id": "journey.island",
+        "x": 10.25,
+        "y": 44,
+        "width": 438,
+        "height": 283
+      },
+      {
+        "id": "schoolyard.dirt-pitch",
+        "x": 39.5,
+        "y": 38.25,
+        "width": 360,
+        "height": 240
+      },
+      {
+        "id": "foliage-35-3",
+        "x": 21.25,
+        "y": 13,
+        "width": 95,
+        "height": 45
+      },
+      {
+        "id": "journey.forest",
+        "x": 42.5,
+        "y": 1.5,
+        "width": 639,
+        "height": 361
+      },
+      {
+        "id": "journey.science",
+        "x": 28.75,
+        "y": 54.25,
+        "width": 438,
+        "height": 292
+      },
+      {
+        "id": "journey.farm",
+        "x": 5.75,
+        "y": 19.75,
+        "width": 369,
+        "height": 254
+      },
+      {
+        "id": "flower-border-0",
+        "x": 2.25,
+        "y": 32.25,
+        "width": 95,
+        "height": 45
+      },
+      {
+        "id": "sign-banyan",
+        "x": 14.5,
+        "y": 19.75,
+        "width": 132,
+        "height": 68
+      },
+      {
+        "id": "hen",
+        "x": 21.5,
+        "y": 16.75,
+        "width": 48,
+        "height": 55
+      },
+      {
+        "id": "gate-arch",
+        "x": 55.5,
+        "y": 23.25,
+        "width": 207,
+        "height": 167
+      },
+      {
+        "id": "journey.culture",
+        "x": 55.75,
+        "y": 17.25,
+        "width": 560,
+        "height": 333
+      },
+      {
+        "id": "house-west",
+        "x": 53.75,
+        "y": 40.75,
+        "width": 208,
+        "height": 190
+      },
+      {
+        "id": "journey.village",
+        "x": 44.75,
+        "y": 53.75,
+        "width": 490,
+        "height": 390
+      },
+      {
+        "id": "expansion.school",
+        "x": 40,
+        "y": 30,
+        "width": 360,
+        "height": 260
+      },
+      {
+        "id": "rice-fence-east-17",
+        "x": 35,
+        "y": 17,
+        "width": 110,
+        "height": 45
+      }
+    ]
+  },
+  "npcs": [
+    {
+      "id": "ti-na",
+      "name": "Tí và Na",
+      "x": 18,
+      "y": 12
+    },
+    {
+      "id": "ba-ban-hang",
+      "name": "Bà Bán Hàng",
+      "x": 25,
+      "y": 29
+    },
+    {
+      "id": "co-giao-lan",
+      "name": "Cô Giáo Lan",
+      "x": 4,
+      "y": 28
+    },
+    {
+      "id": "nghe-nhan-gom",
+      "name": "Nghệ Nhân Gốm",
+      "x": 43,
+      "y": 42
+    },
+    {
+      "id": "co-tam",
+      "name": "Cô Tấm",
+      "x": 27,
+      "y": 15
+    },
+    {
+      "id": "chi-hang-cuoi",
+      "name": "Chị Hằng • Chú Cuội",
+      "x": 36,
+      "y": 35
+    },
+    {
+      "id": "anh-nam",
+      "name": "Anh Nam",
+      "x": 44,
+      "y": 19
+    },
+    {
+      "id": "chi-mai",
+      "name": "Chị Mai",
+      "x": 43,
+      "y": 25
+    },
+    {
+      "id": "chu-hai",
+      "name": "Chú Hải",
+      "x": 21,
+      "y": 40
+    },
+    {
+      "id": "co-lan-song",
+      "name": "Cô Lan",
+      "x": 22,
+      "y": 42
+    },
+    {
+      "id": "be-minh",
+      "name": "Bé Minh",
+      "x": 39,
+      "y": 32
+    },
+    {
+      "id": "be-an",
+      "name": "Bé An",
+      "x": 42,
+      "y": 34
+    }
+  ]
+}

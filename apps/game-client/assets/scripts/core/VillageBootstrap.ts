@@ -517,8 +517,9 @@ export class VillageBootstrap extends Component {
         }
         for(const scenery of this.sceneryNodes){const bounds=scenery.getComponent(UITransform)!;scenery.active=(!this.optionalScenery.has(scenery)||this.hub?.campaign.data.quality!=='low')&&Math.abs(scenery.position.x+camera.x)<cameraWidth/2+bounds.width&&Math.abs(scenery.position.y+camera.y)<cameraHeight/2+bounds.height;}
         // Foliage/roofs fade when they would cover the local child's face. Collision is unchanged.
+        const depth=(node:Node)=>node.position.y+(node.name==='JourneyLandmark-school'?(node.getComponent(UITransform)?.height??0)*.3:0);
         const silhouettes=[this.player.position,...(this.hub?.npcNodes.map(n=>n.position)??[]),...(this.cms?.nodes.map(n=>n.position)??[])];
-        for(const scenery of this.sceneryNodes){const sprite=scenerySprite(scenery);if(!sprite||scenery.parent!==this.actors)continue;if(scenery.name==='dinh'||scenery.name==='house'||scenery.name==='house-west'||scenery.name==='Scenery-market'){if(sprite.color.a!==255){const c=sprite.color;sprite.color=new Color(c.r,c.g,c.b,255);}continue;}const bounds=scenery.getComponent(UITransform)!,covered=silhouettes.some(p=>p.y>scenery.position.y&&Math.abs(p.x-scenery.position.x)<bounds.width*.5&&p.y+58>scenery.position.y&&p.y+58<scenery.position.y+bounds.height),alpha=covered?92:255;if(sprite.color.a!==alpha){const color=sprite.color;sprite.color=new Color(color.r,color.g,color.b,alpha);}}
+        for(const scenery of this.sceneryNodes){const sprite=scenerySprite(scenery);if(!sprite||scenery.parent!==this.actors)continue;if(scenery.name==='dinh'||scenery.name==='house'||scenery.name==='house-west'||scenery.name==='Scenery-market'){if(sprite.color.a!==255){const c=sprite.color;sprite.color=new Color(c.r,c.g,c.b,255);}continue;}const bounds=scenery.getComponent(UITransform)!,covered=silhouettes.some(p=>p.y>depth(scenery)&&Math.abs(p.x-scenery.position.x)<bounds.width*.5&&p.y+58>scenery.position.y&&p.y+58<scenery.position.y+bounds.height),alpha=covered?92:255;if(sprite.color.a!==alpha){const color=sprite.color;sprite.color=new Color(color.r,color.g,color.b,alpha);}}
         for(const item of this.regionalScenery)if(item.node.active&&!item.pending){item.pending=true;void this.art.ensureObject(item.id,item.frame).then(frame=>{if(!this.isValid||!item.node.isValid||!frame)return;item.node.getComponent(Graphics)?.clear();const bounds=item.node.getComponent(UITransform)!;this.art.sprite(item.node,'RegionalArt',frame,bounds.width,bounds.height);});}
         for (const chunk of this.terrainChunks) {
             chunk.node.active = Math.abs(chunk.center.x + camera.x) < cameraWidth / 2 + 256
@@ -526,7 +527,9 @@ export class VillageBootstrap extends Component {
         }
         if (this.statusRemaining > 0) { this.statusRemaining -= dt; if (this.statusRemaining <= 0) this.status.string = this.objective; }
         else if(this.status.string!==this.objective)this.status.string=this.objective;
-        const sorted=[...this.actors.children].sort((a,b)=>b.position.y-a.position.y);
+        // The school illustration includes a deep courtyard below the building.
+        // Sort at the building's front edge so people in the yard remain visible.
+        const sorted=[...this.actors.children].sort((a,b)=>depth(b)-depth(a));
         for(let i=0;i<sorted.length;i++)if(sorted[i].getSiblingIndex()!==i)sorted[i].setSiblingIndex(i);
         this.namesTick+=dt;if(this.namesTick>=.1){this.namesTick=0;this.nameplates?.step(this.player.position,this.modalActive,{left:-camera.x-cameraWidth/2,right:-camera.x+cameraWidth/2,bottom:-camera.y-cameraHeight/2+75/this.worldScale,top:-camera.y+cameraHeight/2},{OngDo:this.chapterSave?.progress.stage==='return'?'?':this.chapterSave?.progress.stage==='greet'?'!':'',...(this.chapterSave?.progress.stage==='plant'||this.chapterSave?.progress.stage==='count'?{[this.farmer.node.name]:'!'}:{})});}
         if (this.lastDirection !== this.player.direction) {

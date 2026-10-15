@@ -156,13 +156,13 @@ export class VillageBootstrap extends Component {
             const facing=walk&&(walk.direction===3||walk.direction===4||walk.direction===5)?-1:1;
             const sprite=state.sprite,poses=this.art.npcPoses[state.row],directions=this.art.npcDirections[state.row],steps=this.art.npcWalkSteps[state.row];
             const expansionBody=state.body.name.startsWith('ExpansionSprite-');
-            const authoredFarmer=state.body.name==='FarmerSprite'?this.art.farmerFrame(walk?.direction??6,moving?(state.gait.cycleFrame>=4?1:0):greeting>0?2:0):null;
-            const directional=!!authoredFarmer||expansionBody||!!directions&&(moving||greeting===0);
+            const authoredPortrait=state.body.name==='FarmerSprite'?this.art.farmerFrame(walk?.direction??6,moving?(state.gait.cycleFrame>=4?1:0):greeting>0?2:0):state.body.name==='CoTamSprite'?this.art.coTamFrame(walk?.direction??6,moving?(state.gait.cycleFrame>=4?1:0):greeting>0?2:0):null;
+            const directional=!!authoredPortrait||expansionBody||!!directions&&(moving||greeting===0);
             const walkingFrames=moving&&steps&&state.gait.stepFrame===1?steps:directions;
             if(sprite&&state.body.name.startsWith('ExpansionSprite-'))sprite.spriteFrame=this.art.expansionCharacterFrame(node.name,walk?.direction??6,moving?state.gait.cycleFrame:-1)??this.art.npcCharacterFrame(Number(state.body.name.slice(16)),walk?.direction??6,moving?1+state.gait.cycleFrame:0,1,node.name==='chu-hai'?2:1);
-            else if(sprite&&authoredFarmer)sprite.spriteFrame=authoredFarmer;
+            else if(sprite&&authoredPortrait)sprite.spriteFrame=authoredPortrait;
             else if(sprite)sprite.spriteFrame=directional?(moving?this.art.npcCycleFrame(state.row,walk?.direction??6,state.gait.cycleFrame):walkingFrames[walk?.direction??6]):poses&&(moving||greeting>0)?poses[moving?state.gait.stepFrame:2]:state.idle;
-            state.transform.setContentSize((expansionBody||!!authoredFarmer)&&sprite?.spriteFrame?state.height*sprite.spriteFrame.rect.width/sprite.spriteFrame.rect.height:directional?state.height*directions[0].rect.width/directions[0].rect.height:state.width,state.height);
+            state.transform.setContentSize((expansionBody||!!authoredPortrait)&&sprite?.spriteFrame?state.height*sprite.spriteFrame.rect.width/sprite.spriteFrame.rect.height:directional?state.height*directions[0].rect.width/directions[0].rect.height:state.width,state.height);
             state.body.setPosition(state.gait.offsetX+state.gait.sway,state.baseY+state.gait.offsetY+state.gait.bob+Math.sin(state.time*1.8)*.65*(1-state.gait.weight)+greeting*3);
             state.body.setScale(state.scale*(directional?1:facing),state.scale*(state.gait.stretch+Math.sin(state.time*1.8)*.004*(1-state.gait.weight)),1);
             state.body.angle=state.gait.angle+greeting*Math.sin((1.4-state.greeting)*9)*3;

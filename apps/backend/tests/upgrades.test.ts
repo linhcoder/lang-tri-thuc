@@ -33,8 +33,11 @@ test('learning upgrades survive restore and activity merges without granting sto
 test('parent learning reports enforce profile ownership and admin reports enforce role',async()=>{
  const store=new SqliteRepository(),app=await createApi({store,adminPassword:'UpgradeReportsAdmin123!',roomSecret:'upgrade-report-test-secret-32-chars'});
  try{await app.inject({method:'POST',url:'/parents',payload:{alias:'report_parent',password:'ReportParentPassword123!'}});const session=(await app.inject({method:'POST',url:'/sessions',payload:{alias:'report_parent',password:'ReportParentPassword123!'}})).json();const headers={authorization:'Bearer '+session.token};
-  const profile=(await app.inject({method:'POST',url:'/profiles',headers,payload:{label:'Report student',age:'6-8'}})).json();
+  const profile=(await app.inject({method:'POST',url:'/profiles',headers,payload:{label:'Report student',age:'6-8',gender:'male',avatar:0}})).json();
+  await store.transaction(d=>{const engine=new CampaignEngine();recordLearning(engine.data,'math',false,'test.one');const activities=structuredClone(activitySnapshot(engine.data));recordLearning(engine.data,'math',true,'test.two');d.progress[profile.id]={revision:1,data:engine.data,receipts:[],source:'solo',activities};});
   assert.equal((await app.inject({method:'GET',url:'/profiles/'+profile.id+'/learning-report',headers})).statusCode,200);
+  assert.equal((await app.inject({method:'GET',url:'/profiles/'+profile.id+'/learning-report',headers})).json().answers,2);
+  assert.equal((await app.inject({method:'GET',url:'/profiles/'+profile.id+'/play',headers})).json().progress.data.upgrades.events.length,2);
   assert.equal((await app.inject({method:'GET',url:'/profiles/not-owned/learning-report',headers})).statusCode,404);
   assert.equal((await app.inject({method:'GET',url:'/admin/students/'+profile.id+'/learning-report',headers})).statusCode,401);
  }finally{await app.close();}

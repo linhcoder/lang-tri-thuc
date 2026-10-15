@@ -39,7 +39,7 @@ export class VillageArt {
     hairVariants:Partial<Record<number,SpriteFrame[]>>={};private decorationLoads=new Map<string,Promise<void>>();private avatarLoads=new Map<number,Promise<void>>();private hairLoads=new Map<number,Promise<void>>();private disposed=false;
     decorations:Partial<Record<'elder'|'co-tam'|'lotus'|'teacher'|'market-lady'|'potter'|'ti-na'|'hang-cuoi'|'seedling',SpriteFrame>>={};
     private tiles?:Texture2D;
-    private groundTexture?:Texture2D;
+    private groundTexture?:Texture2D;private dirtTexture?:Texture2D;
     private generatedTextures:Texture2D[]=[];
     readonly environmentLoaded=new Set<number>();private environmentLoads=new Map<number,Promise<void>>();
     private objectFrames=new Map<string,SpriteFrame>();private objectLoads=new Map<string,Promise<SpriteFrame|undefined>>();
@@ -73,14 +73,15 @@ export class VillageArt {
         const load=(id:string)=>new Promise<Texture2D>((resolve,reject)=>resources.load(`${assetResourceKey(id)}/texture`,Texture2D,(error,asset)=>{onProgress(Math.min(.7,++completed/10));error?reject(error):resolve(asset);}));
         // Start independent downloads together instead of adding network round trips.
         const optional=(id:string,message:string)=>load(id).catch(()=>{console.warn(message);return undefined;});
-        const [child,temple,banyan,farmer,tiles,ground,bamboo]=await Promise.all([
+        const [child,temple,banyan,farmer,tiles,ground,bamboo,dirt]=await Promise.all([
             load('avatar.child'),load('dinh'),load('banyan'),load('character.farmer'),load('ground.legacy'),
             optional('ground.meadow-texture','Ground texture unavailable; procedural terrain remains playable'),
             optional('bamboo','Village details unavailable; keeping base map'),
+            optional('ground.dirt-texture','Dirt texture unavailable; keeping painted path colors'),
         ]);
         if(this.disposed)return;
         this.child=animationFrames(child,'avatar.child');this.tiles=tiles;
-        this.groundTexture=ground;
+        this.groundTexture=ground;this.dirtTexture=dirt;
         if(bamboo)this.details=this.slice(bamboo,4,2);
         if(this.disposed)return;
         const frame=(texture:Texture2D,id:string)=>assetFrame(texture,id);
@@ -169,7 +170,7 @@ export class VillageArt {
             const context=canvas.getContext('2d');if(!context)return;
             page.forEach(({x:cx,y:cy},slot)=>{
                 context.save();context.translate((slot%cols)*514,Math.floor(slot/cols)*258);
-                paintGround(context,cx,cy,this.groundTexture?.image?.data as CanvasImageSource|undefined);paintWaterAndShadows(context,cx,cy);context.restore();
+                paintGround(context,cx,cy,this.groundTexture?.image?.data as CanvasImageSource|undefined,this.dirtTexture?.image?.data as CanvasImageSource|undefined);paintWaterAndShadows(context,cx,cy);context.restore();
             });
             const image=new ImageAsset(canvas),texture=new Texture2D();texture.image=image;this.generatedTextures.push(texture);
             page.forEach(({x,y},slot)=>{const frame=new SpriteFrame();frame.texture=texture;frame.rect=new Rect((slot%cols)*514+1,Math.floor(slot/cols)*258+1,512,256);this.environment.push(frame);this.terrainFrames.set(x+':'+y,frame);});

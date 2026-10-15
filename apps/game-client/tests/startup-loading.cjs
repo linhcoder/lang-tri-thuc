@@ -14,8 +14,8 @@ function fixture(){
 }
 test('startup launches ground and details before core downloads finish; optional failures preserve playable art',async()=>{
  const {art,requests}=fixture(),pending=art.load();
- assert.equal(requests.size,7);
- for(const [key,callback] of requests)callback(key.startsWith('ground.meadow')||key.startsWith('bamboo')?Error('offline'):null,{key});
+ assert.equal(requests.size,8);
+ for(const [key,callback] of requests)callback(key.startsWith('ground.meadow')||key.startsWith('ground.dirt')||key.startsWith('bamboo')?Error('offline'):null,{key});
  await pending;assert.equal(art.child.length,1);assert.equal(art.environmentLoaded.has(6),true);assert.equal(art.groundTexture,undefined);
 });
 test('disposing during parallel downloads prevents late frames from being installed',async()=>{

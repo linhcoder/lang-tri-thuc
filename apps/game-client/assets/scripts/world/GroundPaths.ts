@@ -40,7 +40,7 @@ export function paintMeadow(context:CanvasRenderingContext2D,left:number,top:num
 }
 
 /** Paint in global pixel coordinates so neighboring baked chunks share patterns. */
-export function paintGround(context:CanvasRenderingContext2D,cx:number,cy:number,grass?:CanvasImageSource):void {
+export function paintGround(context:CanvasRenderingContext2D,cx:number,cy:number,grass?:CanvasImageSource,dirt?:CanvasImageSource):void {
     const center=toWorld({x:cx+3.5,y:cy+3.5});
     // Rectangular chunks overlap with identical world-aligned paint. Transparent
     // diamond edges would otherwise leave diagonal antialias seams in the grass.
@@ -65,6 +65,7 @@ export function paintGround(context:CanvasRenderingContext2D,cx:number,cy:number
         for(let i=1;i<world.length-1;i++)context.quadraticCurveTo(world[i].x,world[i].y*2,(world[i].x+world[i+1].x)/2,world[i].y+world[i+1].y);
         const end=world[world.length-1];context.lineTo(end.x,end.y*2);context.lineCap='round';context.lineJoin='round';
         for(const [width,color] of [[83,'rgba(150,142,87,.06)'],[73,'rgba(190,164,113,.12)'],[65,'rgba(211,177,126,.25)'],[57,'rgba(222,185,137,.48)'],[49,'#e4bf8e'],[32,'rgba(246,213,160,.35)']] as const){context.lineWidth=width;context.strokeStyle=color;context.stroke();}
+        if(dirt){const pattern=context.createPattern(dirt,'repeat');if(pattern){if(typeof DOMMatrix!=='undefined')pattern.setTransform(new DOMMatrix().scale(.18,.18));context.save();context.globalAlpha=.82;context.lineWidth=45;context.strokeStyle=pattern;context.stroke();context.restore();}}
         context.restore();
         // Small paired wheel marks and verge tufts follow the same global path.
         for(let i=1;i<world.length;i++){

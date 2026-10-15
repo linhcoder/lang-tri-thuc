@@ -15,7 +15,7 @@ test('known navigation upgrade preserves published NPCs, immutable history and u
   await store.transaction(d=>{assert.equal(d.cms!.revision,6);assert.equal(d.cms!.status,'draft');assert.equal(d.cms!.npcs[0].name,'Draft name');assert.deepEqual(d.cms!.releases[0].manifest,old);assert.equal(d.cms!.releases.length,2);assert.equal(d.audit.filter(a=>a.action==='cms.navigation.upgrade').length,1);});
   assert.deepEqual((await app.inject({method:'GET',url:'/content/staging'})).json(),upgraded);await store.transaction(d=>assert.equal(d.cms!.revision,6));
   await store.transaction(d=>{d.cms!.releases[0].manifest.baseVersion='unknown1';d.cms!.active=old.version;});assert.equal((await app.inject({method:'GET',url:'/content/staging'})).json().baseVersion,'unknown1');
-  await store.transaction(d=>{const m=d.cms!.releases[0].manifest;m.baseVersion='785f4e7e';m.npcs[0].x=18;m.npcs[0].y=11;});assert.equal((await app.inject({method:'GET',url:'/content/staging'})).json().version,old.version);await store.transaction(d=>{assert.equal(d.cms!.revision,6);assert.equal(d.cms!.releases.length,2);});
+  await store.transaction(d=>{const m=d.cms!.releases[0].manifest;m.baseVersion='785f4e7e';m.npcs[0].x=12;m.npcs[0].y=25;});assert.equal((await app.inject({method:'GET',url:'/content/staging'})).json().version,old.version);await store.transaction(d=>{assert.equal(d.cms!.revision,6);assert.equal(d.cms!.releases.length,2);});
  }finally{await app.close();}
 });
 

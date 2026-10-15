@@ -1,5 +1,9 @@
 # aaPanel staging: ltt.vui-hoc.xyz
 
+## Áp dụng bố trí bản đồ revision 3 — 15/10/2026
+
+Release hiện tại `applied-layout-501aa6a-20261015`, source `501aa6a`, contentVersion `0d971c1a`. Game/rooms dùng đủ 23 vật thể đã lưu ở revision 3. Overlay 10 file SHA-256 `b0be1d8c9e7c845cbe584f435849496806018d13a3161b3da7fab8978cf143eb`; checksum source/game/admin khớp. Backup `/opt/lang-tri-thuc/backups/database-20261015T154600Z.sql` phục hồi thử đạt. Hai API MySQL healthy, nội dung NPC CMS đã xuất bản giữ nguyên và snapshot được nâng baseVersion; lịch sử bất biến giữ lại. Chi tiết tại [ADMIN_SCENE_LAYOUT](../../docs/design/ADMIN_SCENE_LAYOUT.md).
+
 ## Lưu hàng loạt NPC, ghi chú bố trí tùy chọn — 15/10/2026
 
 Release hiện tại `npc-batch-c10b260-20261015`, source `c10b260`, contentVersion `d92c670c`. Overlay 13 file SHA-256 `bac86990492158a1afa560fb5b4276598de50ebce018861f157c78732e8a75a0`; source/game/admin checksum khớp. Backup `/opt/lang-tri-thuc/backups/database-20261015T152311Z.sql` phục hồi thử đạt, hai API MySQL healthy, CMS giữ nguyên. QA local lưu nguyên tử/hoán đổi hai NPC, ghi chú trống và reload đạt; HTTPS giữ nhiều thay đổi, ghi chú tùy chọn, hoàn tác và desktop/mobile đạt. Bản nháp live không bị thay đổi bởi QA; phiên QA thu hồi. Chi tiết tại [ADMIN_SCENE_LAYOUT](../../docs/design/ADMIN_SCENE_LAYOUT.md).

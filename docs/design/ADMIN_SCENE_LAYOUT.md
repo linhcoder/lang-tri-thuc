@@ -1,5 +1,15 @@
 # Chỉnh bố trí vật thể trong admin
 
+## Áp dụng bố trí đã lưu vào game — 15/10/2026
+
+Đã lấy bản nháp revision 3 trên VPS và nhập đủ 23 vật thể bằng `tools/import-scene-layout.cjs`; kiểm tra điểm xuất hiện, ô nhiệm vụ và lối tiếp cận NPC đạt. Bố trí được ghi vào `SceneLayoutPack.ts`, dựng Cocos và API/rooms từ cùng nguồn. ContentVersion chuyển từ `d92c670c` sang `0d971c1a`. Kiểm tra Cocos local xác nhận cả 23 node có đúng vị trí và kích thước theo bản đã lưu; desktop/mobile không page error.
+
+Admin nhận thêm `appliedPack` qua API bố trí để phân biệt **Đã áp dụng trong game** với **Đã lưu, chờ áp dụng**. Lưu bản nháp tiếp theo vẫn cần dựng/phát hành để thay bản đồ game; trạng thái chờ áp dụng hiển thị rõ. Các NPC CMS đã xuất bản được giữ nguyên nội dung và tạo snapshot tương thích với phiên bản nền mới, lịch sử cũ giữ nguyên.
+
+Release `applied-layout-501aa6a-20261015`, source `501aa6a`. Overlay 10 file SHA-256 `b0be1d8c9e7c845cbe584f435849496806018d13a3161b3da7fab8978cf143eb`. Backup `/opt/lang-tri-thuc/backups/database-20261015T154600Z.sql` phục hồi thử đạt; hai API MySQL healthy ở contentVersion mới. Release trước giữ để rollback. API 20 test đạt, một MySQL fixture bỏ qua; build admin/API/client và QA admin HTTPS đạt.
+
+QA game HTTPS đối chiếu đủ 23 node thật với bản lưu revision 3: tồn tại, tọa độ và rộng/cao đều khớp; desktop 1440×900 và mobile ngang 844×390 không page error. Tài khoản game QA đã xóa. API/quyền phòng đạt ở `0d971c1a`. Evidence: `temp/deploy/qa/applied-layout-live/` và `temp/deploy/qa/applied-layout-admin-live/`.
+
 ## Lưu nhiều NPC và ghi chú tùy chọn — 15/10/2026
 
 Release hiện tại `npc-batch-c10b260-20261015`, source `c10b260`. Ghi chú vật thể và ghi chú bố trí NPC đều tùy chọn. Thay đổi nhiều NPC được giữ khi chuyển lựa chọn, hiển thị số lượng và dấu `*`, lưu nguyên tử qua `PUT /admin/npc-layout`. Gửi kèm giá trị cũ để tránh ghi đè phiên khác; kiểm tra toàn bộ nhóm cho phép hoán đổi ô và từ chối toàn bộ nhóm nếu có lỗi.

@@ -1,5 +1,9 @@
 # Hành trình 100 cấp và hồ sơ học sinh
 
+## Áp dụng bản đồ đã lưu — VPS 15/10/2026
+
+Đã nhập đủ 23 vật thể từ bố trí revision 3 đã lưu trên VPS vào game và server. Release `applied-layout-501aa6a-20261015`, source `501aa6a`, contentVersion `0d971c1a`. Kiểm tra Cocos đối chiếu vị trí/kích thước từng node đạt; admin phân biệt bố trí đã áp dụng với bản nháp chờ áp dụng. Chi tiết tại [ADMIN_SCENE_LAYOUT](ADMIN_SCENE_LAYOUT.md).
+
 ## Lưu tất cả vị trí NPC — VPS 15/10/2026
 
 Release `npc-batch-c10b260-20261015`, source `c10b260`: ghi chú bố trí vật thể/NPC không bắt buộc; có thể đổi nhiều NPC và chọn **Lưu tất cả vị trí NPC**. Chuyển lựa chọn giữ các thay đổi; lưu trong một giao dịch và kiểm tra phiên chỉnh sửa cũ. Kiểm tra lưu/tải lại hai NPC, ghi chú trống và HTTPS desktop/mobile đạt. Chi tiết tại [ADMIN_SCENE_LAYOUT](ADMIN_SCENE_LAYOUT.md).

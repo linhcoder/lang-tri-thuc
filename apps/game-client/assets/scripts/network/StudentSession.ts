@@ -10,7 +10,7 @@ function remember(key:string,value:string):void{for(const storage of ['localStor
 function forget(key:string):void{for(const storage of ['localStorage','sessionStorage'] as const)try{window[storage].removeItem(key);}catch{}}
 export function selectAnotherStudent():void{const url=new URL(location.href);url.searchParams.set('students','1');url.hash='';location.assign(url.href);}
 export async function studentRequest(api:string,token:string,path:string,method='GET',body?:unknown):Promise<any>{
-    const response=await fetch(api+path,{method,headers:{...(body===undefined?{}:{'Content-Type':'application/json'}),...(token?{Authorization:'Bearer '+token}:{})},...(body===undefined?{}:{body:JSON.stringify(body)}),signal:AbortSignal.timeout(10000)});
+    const response=await fetch(api+path,{method,headers:{...(body===undefined?{}:{'Content-Type':'application/json'}),...(token?{Authorization:'Bearer '+token}:{})},...(body===undefined?{}:{body:JSON.stringify(body)}),signal:AbortSignal.timeout(path.endsWith('/play')?30000:10000)});
     const value=await response.json();if(!response.ok)throw Object.assign(Error(value.message??'Chưa kết nối được máy chủ.'),{status:response.status});return value;
 }
 /** The game is not constructed until the API verifies ownership of a complete profile. */

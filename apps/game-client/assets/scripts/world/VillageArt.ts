@@ -27,7 +27,7 @@ export class VillageArt {
     private installFarmerFrames(texture:Texture2D):void{
         if(!Number.isFinite(texture.width)||!Number.isFinite(texture.height))return;
         // Source row gutters measured against alpha; crop only empty horizontal bands.
-        for(const [top,bottom] of [[8,295],[306,574],[583,872]])for(let direction=0;direction<8;direction++){
+        for(const [top,bottom] of [[5,300],[303,579],[580,873]])for(let direction=0;direction<8;direction++){
             const frame=new SpriteFrame();frame.texture=texture;
             frame.rect=new Rect(direction*texture.width/8,top/887*texture.height,texture.width/8,(bottom-top)/887*texture.height);
             this.farmerFrames.push(frame);

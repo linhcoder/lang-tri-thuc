@@ -170,7 +170,8 @@ export function npcPatrolRoutes(mapOverride?:VillageMap):NpcPatrolRoute[]{
         let points:Point[]=[{x:npc.x,y:npc.y}];
         const directions=npc.id==='co-giao-lan'?[{x:-1,y:0},{x:0,y:-1},{x:1,y:0},{x:0,y:1}]:[{x:1,y:0},{x:0,y:1},{x:-1,y:0},{x:0,y:-1}];
         const safe=(p:Point)=>map.walkableForNpc(p.x,p.y,npc.id)&&!reserved.has(id(p))&&!protectedTiles.some(t=>t.x===p.x&&t.y===p.y)&&!ricePlantingPlots.some(t=>Math.abs(t.x-p.x)<=1&&Math.abs(t.y-p.y)<=1);
-        for(const d of directions){const candidate=[1,2].map(i=>({x:npc.x+d.x*i,y:npc.y+d.y*i}));if(candidate.every(safe)){points.push(...candidate);break;}if(npc.id==='co-tam'&&safe(candidate[0])){points.push(candidate[0]);break;}}
+        // Preserve authored positions, but never walk out of a blocked spawn through scenery.
+        if(map.walkableForNpc(npc.x,npc.y,npc.id))for(const d of directions){const candidate=[1,2].map(i=>({x:npc.x+d.x*i,y:npc.y+d.y*i}));if(candidate.every(safe)){points.push(...candidate);break;}if(npc.id==='co-tam'&&safe(candidate[0])){points.push(candidate[0]);break;}}
         for(const p of points)reserved.add(id(p));routes.push({id:npc.id,points});
     }
     if(patrolCache.size>=64)patrolCache.delete(patrolCache.keys().next().value!);patrolCache.set(key,routes);return routes;

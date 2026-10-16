@@ -1,5 +1,11 @@
 # aaPanel staging: ltt.vui-hoc.xyz
 
+## Sửa điều hướng — 16/10/2026
+
+Release hiện tại `navigation-fix-35eb627f-20261016`, contentVersion `35eb627f`; đóng gói working tree gồm bản sửa điều hướng và nâng tương thích CMS. NPC không tạo tuyến tuần tra từ ô bị chặn; tiếp cận đồ vật ở tọa độ lẻ dùng ô lưới nguyên. Web/API/rooms đã triển khai đồng bộ. Overlay 15 file SHA-256 `8d7947419bef72d6de305607d2ef9faee78ba80e760c8fe5237f6531b60bb07a`, từng file khớp trước kích hoạt. Backup `/opt/lang-tri-thuc/backups/database-20261016T092156Z.sql` phục hồi thử trùng khớp; build Linux API/rooms và nginx -t đạt. Hai API MySQL healthy; giữ NPC CMS, bản đồ công bố và release `reward-art-936d016-20261016` để rollback ứng dụng.
+
+QA HTTPS/quyền truy cập và signed WebSocket/câu trả lời hành trình/lưu MySQL đạt. QA desktop 1600×900/mobile ngang 844×390 xác nhận tiếp cận con gà, tọa độ NPC trùng bản công bố và không có page error; tài khoản QA đã xóa. Ảnh/báo cáo local ignored: `temp/deploy/qa/navigation-live/`. Các release bên dưới là lịch sử.
+
 ## Hình ảnh phòng riêng và cây thưởng — 16/10/2026
 
 Release `reward-art-936d016-20261016`, source `936d016`, contentVersion `0d971c1a`. Tạo mới bảy ảnh và tích hợp sprite cho phòng riêng/cây thưởng, tải khi cần. Overlay 49 file SHA-256 `585b2e38f3ed3480a8d254586b323b419f44baae2641e03caa9b5b9b4ebde116`; backup `/opt/lang-tri-thuc/backups/database-20261015T183116Z.sql` khôi phục thử đạt. Hai API MySQL healthy; giữ dữ liệu NPC, bản đồ và hồ sơ. Chi tiết tại [REWARD_ART_PASS](../../docs/design/REWARD_ART_PASS.md).

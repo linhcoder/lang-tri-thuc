@@ -57,11 +57,11 @@ test('traditional festival save retains only known bounded steps without grantin
 });
 
 test('twelve short NPC lanes protect mission plots/portals and patrol pauses near players',()=>{
-    const {NpcPatrol}=load(path.join(scripts,'world/NpcPatrol.ts')),routes=m.npcPatrolRoutes(),patrol=new NpcPatrol();assert.equal(routes.length,12);assert.ok(routes.every(r=>r.points.length>=2&&r.points.length<=3));
-    const ids=new Set();for(const route of routes)for(const [i,p] of route.points.entries()){assert.ok(!ids.has(p.x+':'+p.y));ids.add(p.x+':'+p.y);assert.equal(map.walkable(p.x,p.y),i>0);assert.equal(map.walkableForNpc(p.x,p.y,route.id),true);if(i)assert.equal(Math.abs(p.x-route.points[i-1].x)+Math.abs(p.y-route.points[i-1].y),1);}
+    const {NpcPatrol}=load(path.join(scripts,'world/NpcPatrol.ts')),routes=m.npcPatrolRoutes(),patrol=new NpcPatrol();assert.equal(routes.length,12);assert.ok(routes.every(r=>r.points.length>=1&&r.points.length<=3));
+    const ids=new Set();for(const route of routes){const spawn=map.npcSpawns.find(n=>n.id===route.id),validSpawn=map.walkableForNpc(spawn.x,spawn.y,route.id);assert.deepEqual(route.points[0],{x:spawn.x,y:spawn.y});if(!validSpawn)assert.equal(route.points.length,1,'blocked NPC must remain stationary');for(const [i,p] of route.points.entries()){assert.ok(!ids.has(p.x+':'+p.y));ids.add(p.x+':'+p.y);assert.equal(map.walkable(p.x,p.y),i>0);assert.equal(map.walkableForNpc(p.x,p.y,route.id),validSpawn);if(i)assert.equal(Math.abs(p.x-route.points[i-1].x)+Math.abs(p.y-route.points[i-1].y),1);}}
     const movingMap=new m.VillageMap(),lane=routes[0].points;movingMap.npcPositions=[m.toWorld(lane[1])];assert.equal(movingMap.walkable(lane[0].x,lane[0].y),true);assert.equal(movingMap.canStand(m.toWorld(lane[1])),false);assert.equal(movingMap.walkable(lane[2].x,lane[2].y),true);
     for(const p of [...plantingPlots,...Object.values(m.zoneSpawns)])assert.ok(map.walkable(p.x,p.y));
-    const initial=Array.from(patrol.poses.values(),p=>({x:p.x,y:p.y})),moved=new Set();for(let i=0;i<200;i++){patrol.step(.05,[]);Array.from(patrol.poses.values()).forEach((p,j)=>{if(Math.hypot(p.x-initial[j].x,p.y-initial[j].y)>1)moved.add(p.id);});}assert.equal(moved.size,12);
+    const initial=Array.from(patrol.poses.values(),p=>({x:p.x,y:p.y})),moved=new Set();for(let i=0;i<200;i++){patrol.step(.05,[]);Array.from(patrol.poses.values()).forEach((p,j)=>{if(Math.hypot(p.x-initial[j].x,p.y-initial[j].y)>1)moved.add(p.id);});}assert.deepEqual([...moved].sort(),routes.filter(r=>r.points.length>1).map(r=>r.id).sort());
     const npc=patrol.poses.get('ti-na'),held={x:npc.x,y:npc.y};for(let i=0;i<40;i++)patrol.step(.05,[held]);assert.equal(npc.moving,false);assert.equal(npc.x,held.x);assert.equal(npc.y,held.y);
     for(let i=0;i<1000;i++){patrol.step(.05,[]);for(const [id,p] of patrol.poses){const tile=m.tileAt(p);assert.ok(routes.find(r=>r.id===id).points.some(t=>t.x===tile.x&&t.y===tile.y));}}
     const raw={x:npc.x,y:npc.y};patrol.step(NaN,[]);assert.equal(npc.x,raw.x);assert.equal(npc.y,raw.y);
@@ -308,8 +308,16 @@ test('practice checkpoint restoration validates traces without changing story re
 test('season calendar uses Vietnamese dates and preserves the winter year across January',()=>{
  const {seasonalActivities}=load(path.join(scripts,'world/CampaignContent.ts'));
  assert.equal(seasonalActivities(new Date('2026-10-11T00:00:00Z')).key,'2026-autumn');assert.equal(seasonalActivities(new Date('2027-01-15T00:00:00Z')).key,'2026-winter');assert.equal(seasonalActivities(new Date('2027-02-01T00:00:00Z')).key,'2027-spring');assert.equal(seasonalActivities(new Date('2026-04-30T18:00:00Z')).key,'2026-summer');
- for(const guide of m.environmentGuides){const target=m.villageDetails.find(d=>d.id===guide.id);assert.ok(target&&guide.body.length>20);assert.ok([{x:target.x+1,y:target.y},{x:target.x-1,y:target.y},{x:target.x,y:target.y+1},{x:target.x,y:target.y-1}].some(p=>map.path({x:20,y:20},p).length>0),'Each exploration target must have a reachable approach');}
+ for(const guide of m.environmentGuides){const target=m.villageDetails.find(d=>d.id===guide.id);assert.ok(target&&guide.body.length>20);assert.ok([{x:Math.round(target.x)+1,y:Math.round(target.y)},{x:Math.round(target.x)-1,y:Math.round(target.y)},{x:Math.round(target.x),y:Math.round(target.y)+1},{x:Math.round(target.x),y:Math.round(target.y)-1}].some(p=>map.path({x:20,y:20},p).length>0),'Each exploration target must have a reachable approach');}
 });
+test('fractional scene details navigate to reachable integer tiles',()=>{
+ const {VillageHub}=load(path.join(scripts,'ui/VillageHub.ts')),hub=Object.create(VillageHub.prototype),goals=[];
+ hub.player={position:m.toWorld({x:20,y:20}),goTo(goal){assert.ok(Number.isInteger(goal.x)&&Number.isInteger(goal.y));if(!map.path({x:20,y:20},goal).length)return false;goals.push(goal);return true;}};
+ hub.destination=()=>{};hub.pendingNpc='old';
+ for(const guide of m.environmentGuides){assert.equal(hub.approachDetail(guide.id),true,guide.id);assert.equal(hub.pendingDetail,guide.id);assert.equal(hub.pendingNpc,null);}
+ assert.equal(goals.length,m.environmentGuides.length);
+});
+
 test('lessons validate arithmetic at all three age levels and reject draft publication',()=>{
     for(const age of ['3-5','6-8','9-11']){const questions=lessonQuestions('math',age),e=new EducationEngine(questions);for(const q of questions){const match=q.prompt.match(/(\d+) ([+×−÷]) (\d+)/);assert.ok(match);const a=+match[1],b=+match[3],expected=match[2]==='+'?a+b:match[2]==='−'?a-b:match[2]==='÷'?a/b:a*b;assert.equal(+q.choices[q.answer],expected);assert.equal(e.answer(-1),false);assert.equal(e.answer(q.answer),true);}assert.equal(e.complete,true);}
     assert.throws(()=>new EducationEngine(lessonQuestions('math','3-5'),0,true));
@@ -535,12 +543,12 @@ test('asset registry covers ten groups and every local source exists with usable
  for(const asset of visualAssets){assert.ok(asset.size.every(n=>n>0));assert.ok(asset.anchor.every(n=>n>=0&&n<=1));assert.ok(asset.source.length>0);if(!asset.path.startsWith('procedural://'))assert.ok(fs.existsSync(path.resolve(__dirname,'..',asset.path)),asset.path);}
 });
 test('compatibility hash follows mission plots/navigation and ignores cosmetic dimensions',()=>{
- const {contentVersion}=load(path.join(scripts,'world/ContentVersion.ts')),original=contentVersion(),solid=m.villageSolids[0],radius=solid.radius,width=m.villageObjects[0].width,plotX=plantingPlots[0].x;
+ const versionFile=path.join(scripts,'world/ContentVersion.ts'),contentVersion=()=>{cache.delete(path.resolve(versionFile));return load(versionFile).contentVersion();},original=contentVersion(),solid=m.villageSolids.find(s=>s.id==='east-fence'),radius=solid.radius,width=m.villageObjects[0].width,plotX=plantingPlots[0].x;
  try{solid.radius=4;assert.notEqual(contentVersion(),original);solid.radius=radius;m.villageObjects[0].width+=10;assert.equal(contentVersion(),original);plantingPlots[0].x+=1;assert.notEqual(contentVersion(),original);}finally{solid.radius=radius;m.villageObjects[0].width=width;plantingPlots[0].x=plotX;}
 });
 
 test('landmark ground footprints stop wall/stall traversal while missions and CMS approaches remain reachable',()=>{
- const map=new m.VillageMap();for(const tile of [{x:18,y:11},{x:21,y:31},{x:40,y:30},{x:42,y:20}]){assert.equal(map.walkable(tile.x,tile.y),false);assert.equal(map.canStand(m.toWorld(tile)),false);assert.equal(map.path({x:20,y:20},tile).length,0);}
+ const map=new m.VillageMap();for(const tile of m.landmarkFootprints.map(f=>({x:Math.round(f.x),y:Math.round(f.y)}))){assert.equal(map.walkable(tile.x,tile.y),false);assert.equal(map.canStand(m.toWorld(tile)),false);assert.equal(map.path({x:20,y:20},tile).length,0);}
  for(const tile of [...plantingPlots,...Object.values(m.zoneSpawns),{x:23,y:27}]){assert.equal(map.walkable(tile.x,tile.y),true);assert.ok(map.path({x:20,y:20},tile).length>0);}
  for(const footprint of m.landmarkFootprints){const base=m.toWorld(footprint);assert.equal(map.canStand({x:base.x,y:base.y+footprint.lift}),false);}
 });

@@ -1,5 +1,17 @@
 # Hành trình 100 cấp và hồ sơ học sinh
 
+## Chốt rà soát — 17/10/2026
+
+Bản sửa điều hướng và nâng tương thích CMS đã được rà soát lại; TypeScript client, 65 nhóm logic, 6 bài mạng/khởi động, 26 API, 11 bài server và build API/server đạt. Test dùng `tsx` cần chạy ngoài sandbox Windows do lỗi `uv_os_get_passwd ENOMEM`. Fixture MySQL tự bỏ qua khi chưa có `MYSQL_TEST_URL` trỏ tới cơ sở dữ liệu riêng có tên kết thúc bằng `_test`.
+
+Phạm vi hành trình 100 cấp và hồ sơ học sinh đã hoàn tất theo các release/QA ghi bên dưới. Các hạng mục mở rộng còn lại: bộ vật phẩm riêng theo từng cấp và lưu lịch sử báo cáo vượt giới hạn 200 sự kiện. Đây là phần mở rộng chưa triển khai; không tính là đã hoàn thành trong lần chốt này. Kết quả QA VPS bên dưới thuộc lần triển khai 16/10, không phải lần xác minh trực tiếp mới ngày 17/10.
+
+## Sửa điều hướng — VPS 16/10/2026
+
+NPC có điểm xuất phát bị vật cản che (Chị Mai trong bố trí đóng gói dự phòng) giữ nguyên vị trí đã lưu và đứng yên, không tạo tuyến tuần tra xuyên vật cản. Muốn NPC đi lại cần chỉnh vị trí hoặc vật cản qua admin và kiểm tra trước xuất bản. Bản đồ công bố trên VPS đã có vị trí Chị Mai hợp lệ `(43,25)` và được giữ nguyên. Điểm tiếp cận đồ vật được làm tròn về ô lưới, sửa trường hợp con gà đặt ở tọa độ lẻ không thể điều hướng tới.
+
+Kiểm tra local: `test:client` đạt 65 nhóm logic và 6 bài mạng/khởi động; `check:client` và `server:build` đạt. Cập nhật kiểm thử theo cache contentVersion và footprint của bố trí hiện hành. `test:server` đạt 11/11 sau khi chạy ngoài sandbox (lỗi `uv_os_get_passwd ENOMEM` chỉ xảy ra trong sandbox Windows). Build Web Cocos 3.8.8 đạt. QA bản build thật bằng `node apps/game-client/tests/navigation-layout-web.cjs` đạt desktop 1600×900 và mobile ngang 844×390: Chị Mai đứng yên khi spawn bị chặn, tiếp cận con gà tọa độ lẻ qua ô lưới hợp lệ; không có page error. API và hồ sơ QA tạm riêng, không dùng dữ liệu thật; ảnh/báo cáo ở `apps/game-client/temp/navigation-layout-qa/`. Đã triển khai đồng bộ Web/API/rooms trong release `navigation-fix-35eb627f-20261016`, contentVersion `35eb627f`. Overlay 15 file SHA-256 `8d7947419bef72d6de305607d2ef9faee78ba80e760c8fe5237f6531b60bb07a`; checksum từng file đã đối chiếu trước kích hoạt. Backup `/opt/lang-tri-thuc/backups/database-20261016T092156Z.sql` phục hồi thử trùng khớp. CMS nâng tương thích theo cặp phiên bản đã biết, giữ NPC đã duyệt, bản nháp và lịch sử; 26 API test đạt, một fixture MySQL bỏ qua. Hai API MySQL healthy, bản đồ công bố giữ nguyên; QA HTTPS/quyền truy cập và signed WebSocket/câu trả lời hành trình/lưu MySQL đạt. Giữ release `reward-art-936d016-20261016` để rollback ứng dụng.
+
 ## Hình ảnh phòng riêng và cây thưởng — 16/10/2026
 
 Bộ bảy asset mới gồm chậu cây, bình gốm, kệ sách, đèn lồng, cúp, cây thưởng và phông phòng gỗ. Ảnh tải khi cần, cây xếp lớp cùng nhân vật; giữ nguyên đồ đã chọn và điều kiện mở khóa. Chi tiết ảnh, prompt và kiểm tra tại [REWARD_ART_PASS](REWARD_ART_PASS.md).

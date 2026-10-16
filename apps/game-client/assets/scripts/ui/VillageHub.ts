@@ -91,7 +91,7 @@ export class VillageHub {
     }
     private approachDetail(id:string):boolean{
         const detail=villageDetails.find(d=>d.id===id);if(!detail)return false;
-        const candidates=[{x:detail.x+1,y:detail.y},{x:detail.x-1,y:detail.y},{x:detail.x,y:detail.y+1},{x:detail.x,y:detail.y-1}];
+        const candidates=[{x:Math.round(detail.x)+1,y:Math.round(detail.y)},{x:Math.round(detail.x)-1,y:Math.round(detail.y)},{x:Math.round(detail.x),y:Math.round(detail.y)+1},{x:Math.round(detail.x),y:Math.round(detail.y)-1}];
         candidates.sort((a,b)=>{const pa=toWorld(a),pb=toWorld(b);return Math.hypot(pa.x-this.player.position.x,pa.y-this.player.position.y)-Math.hypot(pb.x-this.player.position.x,pb.y-this.player.position.y);});
         for(const goal of candidates)if(this.player.goTo(goal)){this.pendingDetail=detail.id;this.pendingNpc=null;this.destination(goal);return true;}return false;
     }

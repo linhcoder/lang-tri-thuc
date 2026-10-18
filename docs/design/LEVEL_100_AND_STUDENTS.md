@@ -9,9 +9,9 @@
 - TypeScript, 70 nhóm logic, 11 bài mạng/khởi động/cache/retry, ba kiểm tra optimizer và build Web đạt. QA năm nhà ở tuổi 6–8 trên desktop/mobile đạt; fixture server đã cấp quà nhưng trả 504 lần đầu xác nhận UI tự gửi lại đúng một lần, không cấp trùng. Đã xem ảnh WebP và nội thất; PNG fallback được kiểm tra bằng cách tắt tính năng WebP trong engine.
 - QA offline tuổi 3–5 trên desktop đạt: cả hai lần gửi nhận quà đều lỗi mạng thì không mở quà chưa xác thực; khi nối lại, Nhận quà thủ công phục hồi đúng và reload giữ tiến độ.
 - QA mạng dùng server fixture giới hạn tổng băng thông game HTTP 1,6 Mbps, trễ 80 ms, bao gồm fetch của service worker (API fixture không giới hạn, server không gzip). Mobile 844×390: tải lạnh 95.180 ms; sau khi cache được điền đủ, mở lại 24.659 ms và ba texture nền lớn không phát sinh request server mới. Đây là giả lập, chưa phải kiểm thử điện thoại thật/4G thực tế. Báo cáo và ảnh ở `apps/game-client/temp/web-images-qa/`.
-- Thay đổi mới đang ở local, chưa commit hoặc triển khai VPS. Bản VPS bên dưới là bản trước tối ưu WebP/retry.
+- Mã tối ưu đã commit `dc1bdb2`. Chưa triển khai VPS: hai lần kết nối SSH đều timeout, kiểm tra HTTPS từ môi trường thực thi cũng thất bại; chưa thực hiện upload/activate. Bản build và QA local sẵn sàng, cần kiểm tra lại baseline VPS khi kết nối phục hồi. Bản VPS bên dưới là bản đã xác minh trước tối ưu WebP/retry.
 
-**Bản đang chạy trên VPS: `fullscreen-loading-35eb627f-20261018`, source commit `ba14f3b`, contentVersion `35eb627f`.** Đã triển khai nội thất toàn màn hình và tải dần; backup/restore drill, checksum 14 file, build Linux, hai API MySQL và QA HTTPS đạt ngày 18/10/2026. Giữ `interior-art-35eb627f-20261018` để rollback; bản đồ/CMS/NPC và ba hồ sơ thật giữ nguyên.
+**Bản VPS đã xác minh gần nhất: `fullscreen-loading-35eb627f-20261018`, source commit `ba14f3b`, contentVersion `35eb627f`.** Đã triển khai nội thất toàn màn hình và tải dần; backup/restore drill, checksum 14 file, build Linux, hai API MySQL và QA HTTPS đạt ngày 18/10/2026. Giữ `interior-art-35eb627f-20261018` để rollback; bản đồ/CMS/NPC và ba hồ sơ thật giữ nguyên.
 
 ### Cảnh nội thất toàn màn hình — 18/10/2026
 

@@ -22,6 +22,8 @@ async function start(args,ready,env={}){const p=spawn(process.execPath,args,{cwd
    await page.evaluate(async()=>{window.cc=await System.import('cc');window.v=cc.director.getScene().getChildByName('Canvas').getComponent('VillageBootstrap');v.chapter.close();v.hub.close();v.update(.05);window.roomTick=()=>{const size=v.node.getComponent(cc.UITransform);v.interior.update(.05,size.width,size.height);};});
    await page.waitForFunction(()=>v.houseArtCount===5,undefined,{timeout:60000});
    const offline=width===1600&&age==='3-5';if(offline)await page.route('**/houses/home/claim',route=>route.abort());
+   let transientClaimAttempts=0;const lostClaimResponse=!liveOrigin&&width===1600&&age==='6-8';
+   if(lostClaimResponse)await page.route('**/houses/home/claim',async route=>{const response=await route.fetch({url:route.request().url().replace(':33000',':'+apiPort)});if(++transientClaimAttempts===1){assert.ok(response.ok());await route.fulfill({status:504,json:{message:'Gateway timeout fixture after server grant'}});}else await route.fulfill({response});});
    async function point(area,x=0,y=0){return page.evaluate(({area,x,y})=>{const n=area.startsWith('House')||area==='PotteryStudio'?v.interior.node.getChildByName(area):area==='sculpt'?v.interior.studio.drawing:area==='studio'?v.interior.studio.node:area==='item'?v.interior.task.item:area==='task'?v.interior.task.node:v.interior.node,w=n.getComponent(cc.UITransform).convertToWorldSpaceAR(new cc.Vec3(x,y,0)),s=v.node.getComponent(cc.Canvas).cameraComponent.worldToScreen(w),c=cc.game.canvas,r=c.getBoundingClientRect();return {x:r.left+s.x/c.width*r.width,y:r.top+(c.height-s.y)/c.height*r.height};},{area,x,y});}
    const houses=['home','tam','farm','pottery','books'];
    for(const id of houses){
@@ -51,6 +53,7 @@ async function start(args,ready,env={}){const p=spawn(process.execPath,args,{cwd
     }
     if(id==='home'&&offline){await page.waitForFunction(()=>!v.interior.rewardBusy);assert.equal(await page.evaluate(()=>v.hub.houseRewards.includes('tidy-mat')),false);await page.unroute('**/houses/home/claim');await page.evaluate(()=>v.interior.claimReward());}
      try{await page.waitForFunction(id=>v.hub.houseRewards.includes(({home:'tidy-mat',tam:'flower-basket',farm:'seed-planter',pottery:'painted-vase',books:'reading-lamp'})[id]),id);}catch(error){console.error(await page.evaluate(()=>({house:v.interior.house.id,run:v.interior.run,busy:v.interior.rewardBusy,message:v.interior.rewardMessage,rewards:v.hub.houseRewards})));throw error;}
+     if(id==='home'&&lostClaimResponse){assert.equal(transientClaimAttempts,2,'One automatic retry recovers a response lost after the server grant');await page.unroute('**/houses/home/claim');}
      assert.deepEqual(await page.evaluate(()=>({...v.player.position})),entered.outside);
      if(id==='pottery'&&age==='6-8'){
       async function tapAt(area,x,y){const p=await point(area,x,y);if(width<1000)await page.touchscreen.tap(p.x,p.y);else await page.mouse.click(p.x,p.y);}

@@ -1,5 +1,16 @@
 # Hành trình 100 cấp và hồ sơ học sinh
 
+### Giảm dữ liệu ảnh và phục hồi nhận quà — 18/10/2026
+
+- Build Web chạy thêm `tools/optimize-web-images.py` (Python + Pillow hỗ trợ WebP). 83 ảnh có bản WebP bên cạnh PNG dự phòng; Cocos `ImageAsset.fmt=4_0` tự chọn WebP khi hỗ trợ. Không ghi đè ảnh nguồn, không đổi kích thước hoặc tọa độ atlas; mọi alpha được so byte sau giải mã. 80 ảnh nhân vật/UI/atlas và các cảnh không đạt ngưỡng dùng lossless; ba tranh cảnh dùng quality 90, PSNR vùng nhìn thấy ở kích thước gốc và preview 768 px đều tối thiểu 34 dB, giữ ICC profile.
+- Tổng WebP của 83 ảnh là 105.680.580 byte so với PNG tương ứng 153.291.375 byte (giảm khoảng 31% dữ liệu ảnh được chọn). Giữ PNG để thiết bị không hỗ trợ vẫn chơi được nên dung lượng thư mục build tăng, không phải giảm. Manifest/checksum/chính sách ở `build/web-desktop/image-optimization.json`; manifest cũng tham gia fingerprint service worker, tránh cache cũ khi chỉ ảnh thay đổi.
+- Đo local cùng fixture: dữ liệu nhận trước khi chơi giảm từ 23.546.767 xuống 15.339.545 byte, khoảng 35%. Đây là dung lượng tải tới `assetsReady`, không phải cam kết thời gian WAN. Không giảm độ phân giải theo thiết bị trong bản này; giữ nguyên kích thước để bảo vệ sprite/frame hiện có.
+- Nhận quà tự thử lại tối đa một lần sau 700 ms với lỗi mạng/timeout hoặc HTTP 408/500/502/503/504. Có trạng thái kết nối chậm; giữ nút Nhận quà thủ công nếu vẫn lỗi. Không tự gửi lại khi sai quyền/phiên/tuổi/đáp án hoặc HTTP 429. Server vẫn xác thực và cấp quà một lần.
+- TypeScript, 70 nhóm logic, 11 bài mạng/khởi động/cache/retry, ba kiểm tra optimizer và build Web đạt. QA năm nhà ở tuổi 6–8 trên desktop/mobile đạt; fixture server đã cấp quà nhưng trả 504 lần đầu xác nhận UI tự gửi lại đúng một lần, không cấp trùng. Đã xem ảnh WebP và nội thất; PNG fallback được kiểm tra bằng cách tắt tính năng WebP trong engine.
+- QA offline tuổi 3–5 trên desktop đạt: cả hai lần gửi nhận quà đều lỗi mạng thì không mở quà chưa xác thực; khi nối lại, Nhận quà thủ công phục hồi đúng và reload giữ tiến độ.
+- QA mạng dùng server fixture giới hạn tổng băng thông game HTTP 1,6 Mbps, trễ 80 ms, bao gồm fetch của service worker (API fixture không giới hạn, server không gzip). Mobile 844×390: tải lạnh 95.180 ms; sau khi cache được điền đủ, mở lại 24.659 ms và ba texture nền lớn không phát sinh request server mới. Đây là giả lập, chưa phải kiểm thử điện thoại thật/4G thực tế. Báo cáo và ảnh ở `apps/game-client/temp/web-images-qa/`.
+- Thay đổi mới đang ở local, chưa commit hoặc triển khai VPS. Bản VPS bên dưới là bản trước tối ưu WebP/retry.
+
 **Bản đang chạy trên VPS: `fullscreen-loading-35eb627f-20261018`, source commit `ba14f3b`, contentVersion `35eb627f`.** Đã triển khai nội thất toàn màn hình và tải dần; backup/restore drill, checksum 14 file, build Linux, hai API MySQL và QA HTTPS đạt ngày 18/10/2026. Giữ `interior-art-35eb627f-20261018` để rollback; bản đồ/CMS/NPC và ba hồ sơ thật giữ nguyên.
 
 ### Cảnh nội thất toàn màn hình — 18/10/2026

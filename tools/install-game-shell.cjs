@@ -2,6 +2,7 @@ const fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypt
 module.exports=function installGameShell(build){
  const source=path.resolve(__dirname,'../apps/game-client/web');fs.cpSync(source,build,{recursive:true});
  const digest=crypto.createHash('sha256').update(fs.readFileSync(path.join(build,'assets/main/index.js'))).update(fs.readFileSync(path.join(build,'src/settings.json')));
+ const optimized=path.join(build,'image-optimization.json');if(fs.existsSync(optimized))digest.update(fs.readFileSync(optimized));
  for(const file of fs.readdirSync(source,{recursive:true}).sort()){const entry=path.join(source,file);if(fs.statSync(entry).isFile())digest.update(file).update(fs.readFileSync(entry));}
  const hash=digest.digest('hex').slice(0,16);
  fs.writeFileSync(path.join(build,'sw.js'),fs.readFileSync(path.join(source,'sw.js'),'utf8').replace('__BUILD_HASH__',hash));

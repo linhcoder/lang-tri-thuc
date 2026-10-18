@@ -11,6 +11,7 @@ import {HouseTaskView} from './HouseTaskView';
 import {PotteryWorkshopView} from './PotteryWorkshopView';
 import {InteriorFurniture} from './InteriorFurniture';
 import {hudLayout,readSafeInsets} from './ResponsiveHudLayout';
+import {requestHouseReward} from './HouseRewardRequest';
 export interface HouseRewardService {load():Promise<string[]>;claim(id:HouseId,age:HouseAge,answers:number[]):Promise<string[]>}
 
 /** Interior coordinates never replace the outdoor multiplayer position. */
@@ -62,7 +63,7 @@ export class HouseInteriorView {
  async refreshRewards():Promise<void>{try{if(this.service){const received=await this.service.load();this.hub.houseRewards=Array.from(new Set([...this.hub.houseRewards,...received]));}}catch{/* Local play remains available; no unverified reward is unlocked. */}}
  async claimReward():Promise<void>{if(this.rewardBusy)return;const run=this.run;if(!run||run.age!==this.age||run.answers.length!==5){this.rewardMessage='Chọn Chơi lại để hoàn thành bài mới và nhận quà.';return;}if(!this.service){this.rewardMessage='Bài đã lưu. Kết nối tài khoản để nhận quà.';return;}
   this.rewardBusy=true;const id=this.house.id,age=run.age,answers=[...run.answers];this.rewardMessage='Đang kiểm tra phần thưởng…';
-  try{const received=await this.service.claim(id,age,answers);this.hub.houseRewards=Array.from(new Set([...this.hub.houseRewards,...received]));if(this.house.id===id)this.rewardMessage='Đã mở đồ trang trí! Xem trong Trang trí nhà bé.';}catch(error){if(this.house.id===id)this.rewardMessage=(error as {status?:number}).status===422?'Nhóm tuổi của hồ sơ đã đổi. Tải lại và chơi bài theo tuổi mới nhé!':'Chưa kết nối được. Bài đã lưu; chạm Nhận quà để thử lại.';}finally{this.rewardBusy=false;this.decorStamp='';}
+  try{const received=await requestHouseReward(()=>this.service!.claim(id,age,answers),()=>{if(this.house.id===id)this.rewardMessage='Kết nối chậm. Đang thử nhận quà lại…';});this.hub.houseRewards=Array.from(new Set([...this.hub.houseRewards,...received]));if(this.house.id===id)this.rewardMessage='Đã mở đồ trang trí! Xem trong Trang trí nhà bé.';}catch(error){if(this.house.id===id){const status=(error as {status?:number}).status;this.rewardMessage=status===422?'Nhóm tuổi của hồ sơ đã đổi. Tải lại và chơi bài theo tuổi mới nhé!':status===429?'Máy chủ đang bận. Bài đã lưu; đợi một chút rồi chạm Nhận quà.':'Chưa kết nối được. Bài đã lưu; chạm Nhận quà để thử lại.';}}finally{this.rewardBusy=false;this.decorStamp='';}
  }
  private showDecor():void{this.board.children.filter(n=>n.name.startsWith('HomeDecor-')).forEach(n=>n.destroy());if(this.house.id!=='home')return;['left','middle','right'].forEach((slot,i)=>{const item=furniture.find(f=>f.id===this.hub.campaign.data.upgrades?.room[slot]&&furnitureUnlocked(f,this.hub.campaign.stars,this.hub.houseRewards));if(!item)return;const holder=this.make(this.board,'HomeDecor-'+slot,60,80),p=toWorld({x:2+i*3,y:1});holder.setPosition(p.x,p.y+10);if(item.reward){paintHouseItem(holder.addComponent(Graphics),item.id,50);return;}void this.art.ensureObject('reward.'+item.id,-1).then(frame=>{if(holder.isValid&&frame)this.art.sprite(holder,'Collectible',frame,50,50*frame.rect.height/frame.rect.width);});});}
  close():void{this.stop();this.task.close();this.studio.close();this.node.active=false;this.exit();}

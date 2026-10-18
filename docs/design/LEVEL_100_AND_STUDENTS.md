@@ -1,5 +1,13 @@
 # Hành trình 100 cấp và hồ sơ học sinh
 
+### Điều chỉnh tỷ lệ nhân vật và công trình — 18/10/2026
+
+- Bà Bán Hàng tăng chiều cao sprite 105 → 140 (+33%); Ông Đồ giảm 140 → 115 (−18%); Bác Nông Dân giảm 145 → 120 (−17%). Giữ tỷ lệ ảnh, chân tại mặt đất và hoạt ảnh; cập nhật nhãn tên dự phòng theo chiều cao mới. Source `03bf5e1`.
+- Bản đồ xuất bản revision 6 tăng Chợ quê lên 390×286 (+30%), nhà Cô Tấm lên 270×247 (khoảng +30%). Giữ tọa độ công trình; Cô Tấm dịch sang (51,44) để nhà lớn không che người. Nghệ nhân và các NPC khác giữ nguyên.
+- TypeScript, 70 nhóm logic và 11 bài mạng/khởi động/cache/retry đạt. Kiểm tra toàn bộ 12 NPC và đường tiếp cận của revision 6 đạt. QA Cocos desktop 1600×900/mobile 844×390 xác nhận kích thước sprite, tranh công trình và đi từ điểm xuất phát vào nhà Cô Tấm; đã xem ảnh ở `temp/deploy/qa/size-*.png`.
+- Đã triển khai release `npc-sizing-35eb627f-20261018`, contentVersion `35eb627f`. Backup/restore MySQL, checksum bốn file, build Linux và health hai API đạt; giữ nguyên bản đồ/CMS/NPC đã xuất bản và ba hồ sơ thật khi chuyển release. Rollback ứng dụng: `region-signs-35eb627f-20261018`.
+- QA JavaScript/asset qua HTTPS sau deploy đạt cả desktop/mobile với API fixture riêng: đủ năm thay đổi kích thước và vào nhà Cô Tấm được, không có page error. API thật xác nhận đúng revision 6 và hai kích thước công trình mới.
+
 ### Nghệ nhân đứng cạnh xưởng — 18/10/2026
 
 - Bản đồ xuất bản revision 5 đưa riêng Nghệ Nhân Gốm từ (43,42) về (29,45), bên trái phía trước xưởng tại (30,41.5). Đã kiểm tra đường tiếp cận và va chạm, xem ảnh để tránh biển cửa che nhân vật. Giữ nguyên công trình, Cô Tấm và các NPC còn lại.
@@ -25,7 +33,7 @@
 - QA mạng dùng server fixture giới hạn tổng băng thông game HTTP 1,6 Mbps, trễ 80 ms, bao gồm fetch của service worker (API fixture không giới hạn, server không gzip). Mobile 844×390: tải lạnh 95.180 ms; sau khi cache được điền đủ, mở lại 24.659 ms và ba texture nền lớn không phát sinh request server mới. Đây là giả lập, chưa phải kiểm thử điện thoại thật/4G thực tế. Báo cáo và ảnh ở `apps/game-client/temp/web-images-qa/`.
 - Mã tối ưu đã commit `dc1bdb2`. Kết nối VPS đã phục hồi; WebP/retry đã triển khai cùng release `region-signs-35eb627f-20261018` sau khi kiểm tra lại baseline và sao lưu dữ liệu.
 
-**Bản VPS đang chạy: `region-signs-35eb627f-20261018`, source commit `149eb12`, contentVersion `35eb627f`.** Bao gồm nội thất toàn màn hình, tải dần, WebP/retry và sửa biển khu vực. Bản đồ hiện tại revision 5: Cô Tấm cạnh nhà, Nghệ Nhân Gốm cạnh xưởng; ba hồ sơ thật và các bố trí khác giữ nguyên.
+**Bản VPS đang chạy: `npc-sizing-35eb627f-20261018`, source commit `03bf5e1`, contentVersion `35eb627f`.** Bao gồm nội thất toàn màn hình, tải dần, WebP/retry, sửa biển khu vực và tỷ lệ nhân vật. Bản đồ hiện tại revision 6: chợ quê/nhà Cô Tấm lớn hơn, Cô Tấm cạnh nhà và Nghệ Nhân Gốm cạnh xưởng; ba hồ sơ thật giữ nguyên.
 
 ### Cảnh nội thất toàn màn hình — 18/10/2026
 

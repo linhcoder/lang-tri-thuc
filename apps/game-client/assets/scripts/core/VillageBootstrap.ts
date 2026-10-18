@@ -290,12 +290,12 @@ export class VillageBootstrap extends Component {
             const body=ui(this.player.node,'ActorBody');body.setScale(actorScale,actorScale,1);this.playerVisual=undefined;this.childSprite=this.art.sprite(body,'ChildSprite',this.art.child[6],90,110).getComponent(Sprite)!;this.accessoryGraphic=ui(body,'Scarf').addComponent(Graphics);this.gestureGraphic=ui(body,'Gesture').addComponent(Graphics);
             this.childSprite.node.setPosition(0,-7);
             if(this.hub){this.hub.onGesture=id=>{if(this.networkStarted&&this.network.privateMode&&!this.network.offlineMode){this.network.emote(id);}else this.gesture.start(id);};this.network.onEmote=(sessionId,id)=>{if(!isAvatarGesture(id))return;const state=sessionId===this.network.room?.sessionId?this.gesture:this.remoteActors.get(sessionId)?.gesture;state?.start(id as AvatarGesture);};this.hub.onAvatarPreview=(parent,id,hair=this.hub?.campaign.data.hair??0,skin=this.hub?.campaign.data.skin??0)=>{const n=this.art.sprite(parent,'AvatarPreview',this.art.avatarFrame(id,0,6,hair,skin,this.hub?.campaign.data.age),55,70);n.setPosition(-100,-35);void Promise.all([this.art.ensureAvatar(id),hair===1?this.art.ensureHair(id):Promise.resolve()]).then(()=>{if(n.isValid)n.getComponent(Sprite)!.spriteFrame=this.art.avatarFrame(id,0,6,hair,skin,this.hub?.campaign.data.age);});};this.hub.applyServerProgress();}
-            this.farmer.node.getComponent(Graphics)!.clear();const farmerFrame=this.art.environment[6],farmerSprite=this.art.sprite(this.farmer.node,'FarmerSprite',farmerFrame,145*farmerFrame.rect.width/farmerFrame.rect.height,145);farmerSprite.setPosition(0,-5);farmerSprite.setScale(actorScale,actorScale,1);
-            this.farmer.node.getChildByName('FarmerName')!.setPosition(0,104);this.npcHitHeight=110;
+            this.farmer.node.getComponent(Graphics)!.clear();const farmerFrame=this.art.environment[6],farmerSprite=this.art.sprite(this.farmer.node,'FarmerSprite',farmerFrame,120*farmerFrame.rect.width/farmerFrame.rect.height,120);farmerSprite.setPosition(0,-5);farmerSprite.setScale(actorScale,actorScale,1);
+            this.farmer.node.getChildByName('FarmerName')!.setPosition(0,86);this.npcHitHeight=110;
             this.registerNpcMotion(this.farmer.node,farmerSprite);
             const elderFrame=this.art.decorations.elder;
             if(this.chapter&&elderFrame){
-                const elder=this.chapter.elder,body=this.art.sprite(elder,'ElderSprite',elderFrame,140*elderFrame.rect.width/elderFrame.rect.height,140);body.setPosition(0,-5);body.setScale(actorScale,actorScale,1);elder.getComponent(Graphics)!.clear();const name=elder.getChildByName('Text');if(name){name.setPosition(0,104);const l=name.getComponent(Label)!;l.fontSize=18;l.lineHeight=24;}
+                const elder=this.chapter.elder,body=this.art.sprite(elder,'ElderSprite',elderFrame,115*elderFrame.rect.width/elderFrame.rect.height,115);body.setPosition(0,-5);body.setScale(actorScale,actorScale,1);elder.getComponent(Graphics)!.clear();const name=elder.getChildByName('Text');if(name){name.setPosition(0,82);const l=name.getComponent(Label)!;l.fontSize=18;l.lineHeight=24;}
             }
             const lotus=this.art.decorations.lotus;
             const elderBody=this.chapter?.elder.getChildByName('ElderSprite');if(elderBody)this.registerNpcMotion(this.chapter!.elder,elderBody);
@@ -554,7 +554,7 @@ export class VillageBootstrap extends Component {
             const node=this.hub?.npcNodes.find(n=>n.name===id);if(!node||this.npcDecorated.has(id)||Math.abs(node.position.x+camera.x)>cameraWidth/2+150||Math.abs(node.position.y+camera.y)>cameraHeight/2+150)continue;
             this.npcDecorated.add(id);void this.art.ensureDecoration(asset).then(()=>{
                 const frame=this.art.decorations[asset];if(!this.isValid||!node.isValid||!frame)return;
-                const height=id==='ti-na'?90:id==='ba-ban-hang'?105:140,width=height*frame.rect.width/frame.rect.height,body=this.art.sprite(node,name,frame,width,height);body.setPosition(0,-5);body.setScale(actorScale,actorScale,1);node.getComponent(Graphics)!.clear();node.getComponent(UITransform)!.setContentSize(Math.max(96,width),110);node.getChildByName('Text')?.setPosition(0,95);
+                const height=id==='ti-na'?90:140,width=height*frame.rect.width/frame.rect.height,body=this.art.sprite(node,name,frame,width,height);body.setPosition(0,-5);body.setScale(actorScale,actorScale,1);node.getComponent(Graphics)!.clear();node.getComponent(UITransform)!.setContentSize(Math.max(96,width),110);node.getChildByName('Text')?.setPosition(0,id==='ba-ban-hang'?110:95);
                 this.registerNpcMotion(node,body);
             });
         }

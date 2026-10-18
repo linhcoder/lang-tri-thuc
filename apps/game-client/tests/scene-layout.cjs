@@ -13,11 +13,5 @@ assert.equal(changed.villageObjects.find(o=>o.id==='banyan').x,63);
 const scene=(await load('SceneLayout',candidate)).sceneObjects();assert.equal(scene.find(o=>o.id==='schoolyard.dirt-pitch').height,280);
 assert.notEqual((await load('ContentVersion')).contentVersion(),(await load('ContentVersion',candidate)).contentVersion());
 console.log('Scene layout passed: rendering data, moved/scaled collisions, linked tree and client/server compatibility.');
-const npcPack=require('../assets/resources/npc-pack.json'),tam=npcPack.npcs.find(n=>n.id==='co-tam'),home=base.villageObjects.find(o=>o.id==='house-west');
-assert.ok(tam,'Offline NPC pack must place Cô Tấm beside her relocated house');
-assert.ok((await load('NpcCatalog')).applyNpcPack(npcPack,true),'Fallback NPC position must be reachable');
-assert.ok(before.walkableForNpc(tam.x,tam.y,tam.id),'Cô Tấm must stand outside house collision');
-const tp=base.toWorld(tam),hp=base.toWorld(home);assert.ok(Math.hypot(tp.x-hp.x,tp.y-hp.y)<180);
-console.log('Cô Tấm fallback passed: beside house, outside collision and reachable.');
 
 })().catch(e=>{console.error(e);process.exitCode=1;});

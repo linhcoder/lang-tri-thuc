@@ -1,5 +1,6 @@
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),{spawn}=require('node:child_process'),{chromium}=require('playwright');
 const root=path.resolve(__dirname,'../../..'),children=[],liveOrigin=process.env.JOURNEY_QA_ORIGIN;
+let preview='';if(liveOrigin){assert.equal(liveOrigin,'https://ltt.vui-hoc.xyz');const value=/^Preview password: (.+)$/m.exec(fs.readFileSync(path.join(root,'temp/deploy/access.txt'),'utf8'))[1];preview=value.startsWith('"')?JSON.parse(value):value;}
 async function start(args,ready,env={}){const child=spawn(process.execPath,args,{cwd:root,env:{...process.env,...env},windowsHide:true,stdio:['ignore','pipe','pipe']});children.push(child);await new Promise((resolve,reject)=>{child.stdout.on('data',d=>String(d).includes(ready)&&resolve());child.on('error',reject);child.on('exit',code=>reject(Error('Fixture exited '+code)));child.stderr.on('data',d=>process.stderr.write(d));});}
 (async()=>{let browser;try{
  if(!liveOrigin)await start(['tools/serve-web.cjs'],'Game web:',{WEB_PORT:'8153'});
@@ -12,7 +13,7 @@ async function start(args,ready,env={}){const child=spawn(process.execPath,args,
  layout.npcs=layout.npcs.map(n=>n.id==='co-tam'?{...n,x:52,y:42}:n);
  browser=await chromium.launch({executablePath:require('../../../tools/browser-path.cjs')(),headless:true,args:['--enable-webgl','--use-angle=d3d11']});
  for(const [width,height] of [[1600,900],[844,390]]){
-  const context=await browser.newContext({viewport:{width,height},hasTouch:width<1000,isMobile:width<1000,serviceWorkers:'block'}),page=await context.newPage(),errors=[];
+  const context=await browser.newContext({viewport:{width,height},hasTouch:width<1000,isMobile:width<1000,serviceWorkers:'block',...(liveOrigin?{httpCredentials:{username:'staging',password:preview,origin:liveOrigin}}:{})}),page=await context.newPage(),errors=[];
   page.on('pageerror',e=>errors.push(e.message));
   await context.addInitScript(({token,id})=>{localStorage.setItem('lang-tri-thuc.student-token.v1',token);localStorage.setItem('lang-tri-thuc.last-student.v1',id);},{token:session.token,id:profile.id});
   await page.route(liveOrigin?liveOrigin+'/api/**':'http://127.0.0.1:33000/**',async route=>{const url=new URL(route.request().url()),pathname=url.pathname.replace(/^\/api/,'');if(pathname==='/content/layout')return route.fulfill({json:layout});const response=await route.fetch({url:'http://127.0.0.1:33123'+pathname+url.search});await route.fulfill({response});});

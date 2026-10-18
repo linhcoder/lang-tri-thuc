@@ -166,7 +166,7 @@ export class VillageHub {
     moveDrag(point:Point):void{if(this.paintStroke){const p=this.paintingPoint(point),last=this.paintStroke.points[this.paintStroke.points.length-1];if(p&&Math.hypot(p.x-last.x,p.y-last.y)>=2&&this.paintStroke.points.length<maxPaintPoints){this.paintStroke.points.push(p);this.drawPainting();}}if(this.dragPiece){const p=this.node.getComponent(UITransform)!.convertToNodeSpaceAR(new Vec3(point.x,point.y));this.dragPiece.node.active=true;this.dragPiece.node.setPosition(p.x,p.y);}}
     cancelDrag():void{if(this.paintStroke){this.paintStroke=undefined;this.drawPainting();}if(this.dragPiece){this.dragPiece.node.active=false;this.dragPiece.node.destroy();this.dragPiece=undefined;}}
     endDrag(point:Point,dragged:boolean):boolean{
-        if(this.node.active&&this.mode==='painting'){if(this.paintStroke){this.moveDrag(point);(this.campaign.data.painting??=[]).push(this.paintStroke);this.paintStroke=undefined;this.clearedPainting=undefined;this.persist();this.render();}return true;}
+        if(this.node.active&&this.mode==='painting'){if(this.paintStroke){this.moveDrag(point);(this.campaign.data.painting??=[]).push(this.paintStroke);this.paintStroke=undefined;this.clearedPainting=undefined;this.message='';this.persist();this.render();}return true;}
         const piece=this.dragPiece;this.cancelDrag();if(!piece||!dragged)return false;
         const p=this.node.getComponent(UITransform)!.convertToNodeSpaceAR(new Vec3(point.x,point.y));
         if(piece.puzzle){

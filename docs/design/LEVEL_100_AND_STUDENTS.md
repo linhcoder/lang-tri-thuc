@@ -1,5 +1,11 @@
 # Hành trình 100 cấp và hồ sơ học sinh
 
+### Nghệ nhân đứng cạnh xưởng — 18/10/2026
+
+- Bản đồ xuất bản revision 5 đưa riêng Nghệ Nhân Gốm từ (43,42) về (29,45), bên trái phía trước xưởng tại (30,41.5). Đã kiểm tra đường tiếp cận và va chạm, xem ảnh để tránh biển cửa che nhân vật. Giữ nguyên công trình, Cô Tấm và các NPC còn lại.
+- QA HTTPS thật đạt ở desktop 1600×900 và mobile 844×390: nghệ nhân ở cạnh xưởng, bấm cửa vào đúng nội thất xưởng gốm, không có page error. Tài khoản kiểm thử đã xóa; ảnh tại `temp/deploy/qa/artisan-1600.png` và `artisan-844.png`.
+- Cập nhật qua bản đồ xuất bản nên không cần build/deploy lại; release tiếp tục là `region-signs-35eb627f-20261018`, contentVersion `35eb627f`.
+
 ### Biển khu vực và vị trí Cô Tấm — 18/10/2026
 
 - Biển Rừng khám phá, Đồi khoa học, Làng văn hóa và Đảo tri thức bám tọa độ công trình trong layout đã xuất bản, thay vì vị trí spawn cũ. Dùng asset biển gỗ chung; có biển gỗ vẽ dự phòng trong lúc tải ảnh.
@@ -19,7 +25,7 @@
 - QA mạng dùng server fixture giới hạn tổng băng thông game HTTP 1,6 Mbps, trễ 80 ms, bao gồm fetch của service worker (API fixture không giới hạn, server không gzip). Mobile 844×390: tải lạnh 95.180 ms; sau khi cache được điền đủ, mở lại 24.659 ms và ba texture nền lớn không phát sinh request server mới. Đây là giả lập, chưa phải kiểm thử điện thoại thật/4G thực tế. Báo cáo và ảnh ở `apps/game-client/temp/web-images-qa/`.
 - Mã tối ưu đã commit `dc1bdb2`. Kết nối VPS đã phục hồi; WebP/retry đã triển khai cùng release `region-signs-35eb627f-20261018` sau khi kiểm tra lại baseline và sao lưu dữ liệu.
 
-**Bản VPS đang chạy: `region-signs-35eb627f-20261018`, source commit `149eb12`, contentVersion `35eb627f`.** Bao gồm nội thất toàn màn hình, tải dần, WebP/retry và sửa biển khu vực. Cô Tấm đã chuyển cạnh nhà qua bản đồ revision 3; ba hồ sơ thật và các bố trí khác giữ nguyên.
+**Bản VPS đang chạy: `region-signs-35eb627f-20261018`, source commit `149eb12`, contentVersion `35eb627f`.** Bao gồm nội thất toàn màn hình, tải dần, WebP/retry và sửa biển khu vực. Bản đồ hiện tại revision 5: Cô Tấm cạnh nhà, Nghệ Nhân Gốm cạnh xưởng; ba hồ sơ thật và các bố trí khác giữ nguyên.
 
 ### Cảnh nội thất toàn màn hình — 18/10/2026
 

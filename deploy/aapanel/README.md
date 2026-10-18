@@ -1,5 +1,13 @@
 # aaPanel staging: ltt.vui-hoc.xyz
 
+## Nội thất toàn màn hình và tải dần — VPS 18/10/2026
+
+Release đang chạy `fullscreen-loading-35eb627f-20261018`, source commit `ba14f3b`, contentVersion `35eb627f`. Phòng phủ kín Canvas, camera theo nhân vật, HUD/joystick theo bố cục chung; ảnh khu xa, chuyển động NPC và nội thất tải dần. Overlay 14 file SHA-256 `5fe3520f14f7c74feaa6bbd7c8976ac769d5ac1df6afa38efc6f79cd0a4b7372`; checksum từng file khớp sau khi phục hồi lockfile nguồn bị npm prune viết lại. Build Linux API/rooms và nginx -t đạt.
+
+Backup `/opt/lang-tri-thuc/backups/database-20261018T110357Z.sql` phục hồi thử khớp. Hai API MySQL healthy; checksum bản đồ công bố, bản nháp, CMS và NPC giữ nguyên; sau cleanup còn đúng ba hồ sơ thật. Giữ `interior-art-35eb627f-20261018` để rollback. Metadata local ignored: `temp/deploy/fullscreen-loading-deploy-state.json`.
+
+QA HTTPS năm nhà, tuổi 6–8, trên desktop 1600×900/mobile 844×390 đạt fullscreen, vị trí nút, joystick, tương tác hai ngón, kéo thả, quà, nặn/vẽ và reload. Một lượt mobile gặp lỗi kết nối nhận quà khi chạy các bài WAN đồng thời; chạy riêng lại đạt. QA tải dần trên cả hai viewport đạt khi cố tình giữ request chuyển động NPC: vẫn đi được, nội thất tải khi vào nhà và đảo tải khi tới gần. API/quyền truy cập và signed WebSocket/lưu MySQL/cách ly học sinh đạt; tài khoản QA tự xóa. Ảnh/báo cáo ở `temp/deploy/qa/houses-live/` và `temp/deploy/qa/fullscreen-progressive-*`; trường byte trong báo cáo live chỉ cộng Content-Length có sẵn, không đại diện tổng dung lượng WAN.
+
 ## Sprite nội thất — VPS 18/10/2026
 
 Release đang chạy `interior-art-35eb627f-20261018`, contentVersion `35eb627f`, bổ sung 20 sprite nội thất vẽ tay cho năm nhà. Overlay 18 file SHA-256 `3a635323d9af7bff0825aa53adbc79bd1381c541e7e3c8621516479d528b918b`; checksum từng file khớp trước kích hoạt, build Linux API/rooms và nginx -t đạt. Backup `/opt/lang-tri-thuc/backups/database-20261018T100915Z.sql` phục hồi thử khớp.

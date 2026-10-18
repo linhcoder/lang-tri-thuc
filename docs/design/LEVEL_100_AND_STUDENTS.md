@@ -1,11 +1,13 @@
 # Hành trình 100 cấp và hồ sơ học sinh
 
+**Bản đang chạy trên VPS: `fullscreen-loading-35eb627f-20261018`, source commit `ba14f3b`, contentVersion `35eb627f`.** Đã triển khai nội thất toàn màn hình và tải dần; backup/restore drill, checksum 14 file, build Linux, hai API MySQL và QA HTTPS đạt ngày 18/10/2026. Giữ `interior-art-35eb627f-20261018` để rollback; bản đồ/CMS/NPC và ba hồ sơ thật giữ nguyên.
+
 ### Cảnh nội thất toàn màn hình — 18/10/2026
 
 - Khi vào nhà, nền nội thất phủ kín Canvas, không còn khung modal hoặc viền để lộ làng. Phòng được phóng lớn theo màn hình, camera theo nhân vật trong giới hạn phòng. Cỡ chữ nhãn đồ vật độc lập với độ phóng cảnh.
 - HUD dùng `hudLayout` và safe area chung: tên nhà/mục tiêu phía trên, Ra sân góc phải trên, Tương tác tròn bên phải, joystick vòng/cần kéo như ngoài làng (mobile bên trái, desktop bên phải). Trang trí và Nặn gốm nằm ở thanh dưới; Chơi lại và quà thu gọn. Nút toàn màn hình của thiết bị tiếp tục dùng được.
 - Hit test theo vị trí/kích thước node thực thay cho tọa độ modal cố định. Nút tương tác dừng thao tác đi bộ trước khi tới mục tiêu; hỗ trợ ngón thứ hai chạm Tương tác khi giữ joystick. Bài nhiệm vụ/xưởng gốm tự co theo viewport; Ra sân vẫn thoát được khi bài đang mở.
-- TypeScript, 70 nhóm logic, 8 bài mạng/khởi động/cache và build Web đạt. Đây là thay đổi local, chưa triển khai VPS.
+- TypeScript, 70 nhóm logic, 8 bài mạng/khởi động/cache và build Web đạt. Đã triển khai trong release `fullscreen-loading-35eb627f-20261018`.
 - QA bản cuối đạt năm nhà ở tuổi 6–8 trên desktop 1600×900 và mobile 844×390: Canvas phủ kín với scale 1, nút nằm trong viewport, joystick chuột/cảm ứng, tương tác hai ngón, kéo thả, nặn/vẽ, quà và reload. Ra sân thoát được giữa bài; không có page error. Đã xem ảnh desktop/mobile ở `apps/game-client/temp/house-interior-qa/`.
 
 ### Tải dần để vào làng sớm — 18/10/2026
@@ -13,8 +15,9 @@
 - Bỏ chờ ảnh khu hành trình, sân trường, cảnh đồng quê, động vật và atlas chuyển động NPC trước khi mở màn chơi. Khu hành trình tải khi gần camera; các nhóm ảnh phụ tải nền lần lượt sau khung hình đầu tiên. Dữ liệu va chạm, nhiệm vụ và vị trí CMS vẫn có sẵn ngay từ đầu.
 - Atlas nội thất chỉ yêu cầu khi mở nhà. Service worker dùng ảnh/font/binary đã cache ngay trong cache của bản build; code, cấu hình và điều hướng tiếp tục kiểm tra server. Cache được tách theo bản build.
 - Đo local cùng fixture, desktop 1600×900: trước tối ưu 17.601 ms, 114 response, 83.522.598 byte tới lúc `assetsReady`; sau tối ưu 2.765 ms, 58 response, 23.546.767 byte. Giảm khoảng 72% dữ liệu trước khi chơi. Đây là số đo local, không phải cam kết tốc độ WAN; tổng ảnh vẫn tải dần khi cần.
-- TypeScript, 70 nhóm logic và 8 bài mạng/khởi động/cache đạt; build Web đạt. `test:progressive-loading` đạt desktop 1600×900 và mobile 844×390: giữ request atlas NPC vẫn di chuyển được, nội thất tải khi vào nhà, đảo tải khi tới gần vị trí CMS, không có page error. Báo cáo/ảnh ở `apps/game-client/temp/progressive-loading-*`; baseline ở `temp/loading-*.json`. Thay đổi tải dần chưa triển khai VPS.
+- TypeScript, 70 nhóm logic và 8 bài mạng/khởi động/cache đạt; build Web đạt. `test:progressive-loading` đạt desktop 1600×900 và mobile 844×390: giữ request atlas NPC vẫn di chuyển được, nội thất tải khi vào nhà, đảo tải khi tới gần vị trí CMS, không có page error. Báo cáo/ảnh ở `apps/game-client/temp/progressive-loading-*`; baseline ở `temp/loading-*.json`. Đã triển khai trong release `fullscreen-loading-35eb627f-20261018`.
 - Hồi quy năm nhà ở tuổi 6–8 trên desktop/mobile đạt: kéo thả, mang đồ, quà, nặn/vẽ gốm, trang trí và checkpoint sau reload.
+- QA HTTPS bản mới đạt năm nhà ở tuổi 6–8 trên desktop/mobile, gồm fullscreen, joystick hai ngón, nhiệm vụ, quà, gốm và reload; một lượt nhận quà lỗi kết nối, chạy riêng lại mobile đạt. QA tải dần với request NPC bị giữ, API/quyền truy cập và signed WebSocket/MySQL/cách ly học sinh đều đạt. Tài khoản QA đã xóa; báo cáo ở `temp/deploy/qa/houses-live/` và `temp/deploy/qa/fullscreen-progressive-*`.
 
 ### Bộ sprite nội thất vẽ tay — 18/10/2026
 

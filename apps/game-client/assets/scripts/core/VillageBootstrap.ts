@@ -5,7 +5,7 @@ import {direction8} from '../world/VillageModel';
 import {loadedLayoutRevision} from '../world/LiveLayout';
 import {applyLiveNpcs,loadPublishedLayout} from '../world/LiveLayout';
 import {chooseStudent,selectAnotherStudent,StudentSession,studentRequest} from '../network/StudentSession';
-import {createJourneyScenery,decorateJourneyScenery} from '../ui/JourneyScenery';
+import {createJourneyScenery,decorateJourneyScenery,journeyScenery} from '../ui/JourneyScenery';
 import {beginModalPress,endModalPress} from '../ui/ModalTheme';
 import {UiClickSound} from '../ui/UiClickSound';
 import {CmsActors} from '../ui/CmsActors';
@@ -182,6 +182,7 @@ export class VillageBootstrap extends Component {
     private cms?:CmsActors;
     private hudTick=0;private namesTick=0;
     private assetsReady=false;private sceneryNodes:Node[]=[];private npcDecorated=new Set<string>();private loadingLabel?:Label;private loadingPanel?:Node;
+    private journeyDecorated=new Set<string>();
     private sceneryPending=false;private sceneryReady=false;private optionalScenery=new Set<Node>();
     private nameplates?:VillageNameplates;
     private hud?:VillageHUD;
@@ -275,7 +276,6 @@ export class VillageBootstrap extends Component {
             const loadPack=(name:string)=>new Promise<JsonAsset>((resolve,reject)=>resources.load(name,JsonAsset,(error,asset)=>{packCount++;progress();error?reject(error):resolve(asset);}));
             const [,pack,lessons,npcPack]=await Promise.all([this.art.load(value=>{artProgress=value;progress();}),loadPack('chapter-pack'),loadPack('lesson-pack'),loadPack('npc-pack')]);
             if(!this.isValid)return;
-            await decorateJourneyScenery(this.actors,this.art);if(!this.isValid)return;
             this.sceneryNodes.push(...this.actors.children.filter(n=>n.name.startsWith('JourneyLandmark-')));
             this.cms=new CmsActors(this.root,this.actors,this.art,this.player,id=>{const index=chapters.findIndex(c=>c.quests.some(q=>q.id===id));if(index===0){this.hub?.close();this.chapter?.open(['q.ch01.plant','q.ch01.count'].includes(id)?'farmer':'elder');}else if(index>0)this.hub?.open('chapter',index);});void this.cms.load();
             if(!applyChapterText(pack.json))console.warn('Invalid chapter text pack: using built-in content');
@@ -313,11 +313,11 @@ export class VillageBootstrap extends Component {
                 label(node,'Thu hoạch',100,25,16).setPosition(0,80);node.active=this.learning.data.collected.indexOf(i)<0;this.bundleNodes.push(node);
             }
             this.reportLoading(92,'Đang đón các bạn trong làng…');
-            await Promise.all([createExpansionScenery(this.actors,this.world,this.art),this.art.ensureExpansionCharacters(),this.countryside.create(this.world,this.actors,this.art)]);
-            for(const friend of expansionFriends){const node=this.hub?.npcNodes.find(n=>n.name===friend.id);if(!node)continue;node.getComponent(Graphics)!.clear();const height=friend.id.startsWith('be-')?100:130,body=this.art.sprite(node,'ExpansionSprite-'+friend.avatar,this.art.avatarFrame(friend.avatar,0,6,1,friend.id==='chu-hai'?2:1),height*.75,height);body.setScale(actorScale,actorScale,1);this.registerNpcMotion(node,body);}
             this.nameplates=new VillageNameplates(this.world,this.actors);
             if(this.hub){this.hud=new VillageHUD(this.root,mode=>this.hub?.open(mode),()=>this.interactNearest(),id=>{this.resetInput();this.player.cancel();this.hub?.onGesture?.(id);},()=>{this.desktopJoystick=!this.desktopJoystick;this.releaseStick();},()=>this.navigateQuest());this.hud.onClick=()=>{if(this.hub?.campaign.data.sound)this.uiClick.play();};if(this.questButton)this.hud.bindQuestTarget(this.questButton,()=>this.navigateQuest());this.header.active=false;this.networkBadge!.node.active=false;this.status.node.active=false;}
             void decorateHouseExteriors(this.actors,this.art).then(count=>{if(this.isValid)this.houseArtCount=count;});this.assetsReady=true;this.reportLoading(100,'Ngôi làng đã sẵn sàng!');if(this.loadingPanel)this.loadingPanel.active=false;
+            // Let the first playable frame render before optional art competes for bandwidth.
+            this.scheduleOnce(()=>{void this.loadBackgroundArt();},.5);
             if(sys.isBrowser){const requested=new URLSearchParams(window.location.search).get('server');
                 if(requested){let endpoint:URL;try{endpoint=new URL(requested);}catch{throw new Error('Địa chỉ server không hợp lệ');}
                     if(['http:','https:','ws:','wss:'].indexOf(endpoint.protocol)<0)throw new Error('Giao thức server không hợp lệ');
@@ -349,6 +349,15 @@ export class VillageBootstrap extends Component {
                 }
             }
         }catch(error){this.reportLoading(0,'Chưa mở được làng. Thử tải lại nhé!',true);if(this.loadingPanel)this.loadingPanel.active=false;this.statusRemaining=10;this.status.string='Chưa tải được hình. Nhờ người lớn mở lại giúp bé nhé!';console.warn('Village art:',error);}
+    }
+    private async loadBackgroundArt():Promise<void>{
+        const optional=async(load:()=>Promise<unknown>)=>{if(!this.isValid)return;try{await load();}catch(error){console.warn('Optional village art:',error);}};
+        await optional(()=>this.art.ensureMotion());
+        await optional(()=>this.art.ensureExpansionCharacters());
+        if(!this.isValid)return;
+        for(const friend of expansionFriends){const node=this.hub?.npcNodes.find(n=>n.name===friend.id);if(!node)continue;node.getComponent(Graphics)!.clear();const height=friend.id.startsWith('be-')?100:130,body=this.art.sprite(node,'ExpansionSprite-'+friend.avatar,this.art.avatarFrame(friend.avatar,0,6,1,friend.id==='chu-hai'?2:1),height*.75,height);body.setScale(actorScale,actorScale,1);this.registerNpcMotion(node,body);}
+        await optional(()=>createExpansionScenery(this.actors,this.world,this.art));
+        await optional(()=>this.countryside.create(this.world,this.actors,this.art));
     }
     private enableSolo():void{
         this.network.onGameFeedback=undefined;
@@ -537,6 +546,10 @@ export class VillageBootstrap extends Component {
         if(this.player.moving)this.freeCameraOffset=undefined;
         const camera = cameraOffset(this.freeCameraOffset?{x:-this.freeCameraOffset.x,y:-this.freeCameraOffset.y}:focus, cameraWidth, cameraHeight); this.world.setPosition(camera.x * this.worldScale, camera.y * this.worldScale);
         this.animateNpcs(dt,camera,cameraWidth,cameraHeight);
+        if(this.assetsReady)for(const item of journeyScenery){
+            const node=this.actors.getChildByName('JourneyLandmark-'+item.id);if(!node||this.journeyDecorated.has(item.id)||Math.abs(node.position.x+camera.x)>cameraWidth/2+item.width||Math.abs(node.position.y+camera.y)>cameraHeight/2+item.width)continue;
+            this.journeyDecorated.add(item.id);void decorateJourneyScenery(this.actors,this.art,candidate=>candidate.id===item.id).catch(error=>{if(this.isValid)this.journeyDecorated.delete(item.id);console.warn('Landmark art unavailable:',error);});
+        }
         if(this.assetsReady)for(const [id,asset,name] of npcArt){
             const node=this.hub?.npcNodes.find(n=>n.name===id);if(!node||this.npcDecorated.has(id)||Math.abs(node.position.x+camera.x)>cameraWidth/2+150||Math.abs(node.position.y+camera.y)>cameraHeight/2+150)continue;
             this.npcDecorated.add(id);void this.art.ensureDecoration(asset).then(()=>{
@@ -671,7 +684,7 @@ export class VillageBootstrap extends Component {
     private touchStart(e: EventTouch): void {if(!this.joystick)return;if(this.loadingPanel?.active)return;
         const id=e.getID();if(id===null)return;
         const point=e.getUILocation(), start={x:point.x,y:point.y};
-        if(this.interior?.node.active&&!this.hub?.node.active){if(this.interiorPointer===null){this.interiorPointer=id;this.interior.beginPointer(point);}return;}
+        if(this.interior?.node.active&&!this.hub?.node.active){if(this.interiorPointer===null){this.interiorPointer=id;this.interior.beginPointer(point);}else this.interior.secondaryPointer(point);return;}
         // A modal owns one pointer; a second finger must not replace a drawing stroke or tap a button.
         if(this.modalActive&&this.touches.size){this.touches.set(id,{start,current:start,dragged:false,blocked:true,control:true});return;}
         if(this.hub?.node.active)this.hub.beginPress?.(point);

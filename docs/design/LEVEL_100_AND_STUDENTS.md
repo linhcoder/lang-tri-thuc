@@ -1,5 +1,29 @@
 # Hành trình 100 cấp và hồ sơ học sinh
 
+### Cảnh nội thất toàn màn hình — 18/10/2026
+
+- Khi vào nhà, nền nội thất phủ kín Canvas, không còn khung modal hoặc viền để lộ làng. Phòng được phóng lớn theo màn hình, camera theo nhân vật trong giới hạn phòng. Cỡ chữ nhãn đồ vật độc lập với độ phóng cảnh.
+- HUD dùng `hudLayout` và safe area chung: tên nhà/mục tiêu phía trên, Ra sân góc phải trên, Tương tác tròn bên phải, joystick vòng/cần kéo như ngoài làng (mobile bên trái, desktop bên phải). Trang trí và Nặn gốm nằm ở thanh dưới; Chơi lại và quà thu gọn. Nút toàn màn hình của thiết bị tiếp tục dùng được.
+- Hit test theo vị trí/kích thước node thực thay cho tọa độ modal cố định. Nút tương tác dừng thao tác đi bộ trước khi tới mục tiêu; hỗ trợ ngón thứ hai chạm Tương tác khi giữ joystick. Bài nhiệm vụ/xưởng gốm tự co theo viewport; Ra sân vẫn thoát được khi bài đang mở.
+- TypeScript, 70 nhóm logic, 8 bài mạng/khởi động/cache và build Web đạt. Đây là thay đổi local, chưa triển khai VPS.
+- QA bản cuối đạt năm nhà ở tuổi 6–8 trên desktop 1600×900 và mobile 844×390: Canvas phủ kín với scale 1, nút nằm trong viewport, joystick chuột/cảm ứng, tương tác hai ngón, kéo thả, nặn/vẽ, quà và reload. Ra sân thoát được giữa bài; không có page error. Đã xem ảnh desktop/mobile ở `apps/game-client/temp/house-interior-qa/`.
+
+### Tải dần để vào làng sớm — 18/10/2026
+
+- Bỏ chờ ảnh khu hành trình, sân trường, cảnh đồng quê, động vật và atlas chuyển động NPC trước khi mở màn chơi. Khu hành trình tải khi gần camera; các nhóm ảnh phụ tải nền lần lượt sau khung hình đầu tiên. Dữ liệu va chạm, nhiệm vụ và vị trí CMS vẫn có sẵn ngay từ đầu.
+- Atlas nội thất chỉ yêu cầu khi mở nhà. Service worker dùng ảnh/font/binary đã cache ngay trong cache của bản build; code, cấu hình và điều hướng tiếp tục kiểm tra server. Cache được tách theo bản build.
+- Đo local cùng fixture, desktop 1600×900: trước tối ưu 17.601 ms, 114 response, 83.522.598 byte tới lúc `assetsReady`; sau tối ưu 2.765 ms, 58 response, 23.546.767 byte. Giảm khoảng 72% dữ liệu trước khi chơi. Đây là số đo local, không phải cam kết tốc độ WAN; tổng ảnh vẫn tải dần khi cần.
+- TypeScript, 70 nhóm logic và 8 bài mạng/khởi động/cache đạt; build Web đạt. `test:progressive-loading` đạt desktop 1600×900 và mobile 844×390: giữ request atlas NPC vẫn di chuyển được, nội thất tải khi vào nhà, đảo tải khi tới gần vị trí CMS, không có page error. Báo cáo/ảnh ở `apps/game-client/temp/progressive-loading-*`; baseline ở `temp/loading-*.json`. Thay đổi tải dần chưa triển khai VPS.
+- Hồi quy năm nhà ở tuổi 6–8 trên desktop/mobile đạt: kéo thả, mang đồ, quà, nặn/vẽ gốm, trang trí và checkpoint sau reload.
+
+### Bộ sprite nội thất vẽ tay — 18/10/2026
+
+- Tạo atlas `interior-furniture-v1.png` bằng built-in image_gen, giữ alpha gốc, gồm 20 sprite riêng cho năm nhà: bàn học/kệ sách, giỏ rau/tủ bát, bàn gieo hạt/khay hạt, bàn xoay/bảng men và bàn đọc/giỏ truyện. Prompt và SHA-256 ở `docs/design/interior-furniture-v1.*`.
+- Atlas tải bất đồng bộ một lần; lỗi tải vẫn dùng Graphics dự phòng. Cắt sprite theo khoảng trống đã đo, giữ đồ vật nhiệm vụ và dấu hoàn thành ở lớp riêng; không đổi vị trí hay va chạm. Bài QA nhà kiểm tra đủ bốn sprite mỗi phòng và giới hạn cắt ảnh.
+- TypeScript client, 70 nhóm logic, 6 bài mạng/khởi động và build Web đạt. Đã triển khai VPS trong release `interior-art-35eb627f-20261018`; contentVersion `35eb627f`, giữ release nhà trước để rollback. Backup/restore drill, build Linux, checksum 18 file và hai API MySQL đạt; bản đồ/CMS/NPC giữ nguyên.
+- QA HTTPS đủ năm nhà × ba tuổi trên desktop/mobile đạt, không có page error; signed WebSocket xác nhận checkpoint/tác phẩm lưu MySQL và cách ly hồ sơ. Toàn bộ tài khoản QA đã xóa; báo cáo ở `temp/deploy/qa/houses-live/`. Kiểm thử chờ API xác nhận lưu checkpoint trước reload qua WAN.
+- QA bản build cuối đạt năm nhà × ba nhóm tuổi trên desktop 1600 × 900 và mobile 844 × 390: đủ sprite, kéo thả, nhận quà, thử lại khi mất mạng, nặn/vẽ gốm và reload; không có page error. Đã xem ảnh nội thất desktop/mobile ở `apps/game-client/temp/house-interior-qa/`.
+
 ### Nâng cấp hình ảnh nội thất — 18/10/2026
 
 - Bổ sung viền sàn có chiều sâu, đường ghép sàn, cửa sổ khung gỗ và ánh sáng, thảm viền dệt với màu riêng cho cả năm nhà. Bàn tương tác có chân, cạnh gỗ, bóng đổ và vòng sáng khi là mục tiêu hiện tại.

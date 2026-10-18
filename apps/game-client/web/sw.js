@@ -9,6 +9,9 @@ self.addEventListener('fetch',event=>{
  if(request.mode!=='navigate'&&!/\.(?:js|json|bin|txt|css|png|jpg|jpeg|webp|svg|wasm|ttf|woff2?|webmanifest|ico)$/.test(url.pathname))return;
  event.respondWith((async()=>{
   const cache=await caches.open(CACHE),key=request.mode==='navigate'?ROOT:request;
+  // Art dominates transfer size. Reuse it immediately within this build's cache.
+  // Code/config and navigation still check the server for release changes.
+  if(/\.(?:png|jpg|jpeg|webp|svg|ttf|woff2?|bin|wasm)$/.test(url.pathname)){const saved=await cache.match(key);if(saved)return saved;}
   try{const response=await fetch(request);if(response.ok&&response.type==='basic')try{await cache.put(key,response.clone());}catch{}return response;}
   catch{const saved=await cache.match(key);return saved||Response.error();}
  })());

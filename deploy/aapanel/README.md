@@ -1,5 +1,13 @@
 # aaPanel staging: ltt.vui-hoc.xyz
 
+## Sprite nội thất — VPS 18/10/2026
+
+Release đang chạy `interior-art-35eb627f-20261018`, contentVersion `35eb627f`, bổ sung 20 sprite nội thất vẽ tay cho năm nhà. Overlay 18 file SHA-256 `3a635323d9af7bff0825aa53adbc79bd1381c541e7e3c8621516479d528b918b`; checksum từng file khớp trước kích hoạt, build Linux API/rooms và nginx -t đạt. Backup `/opt/lang-tri-thuc/backups/database-20261018T100915Z.sql` phục hồi thử khớp.
+
+Hai API MySQL healthy; checksum bản đồ công bố, bản nháp, CMS và NPC giữ nguyên, ba hồ sơ trước deploy không đổi. Giữ `houses-35eb627f-20261018` để rollback. HTTPS/API/quyền truy cập đạt. Metadata local ignored: `temp/deploy/interior-art-deploy-state.json`.
+
+QA HTTPS bản mới đạt năm nhà × ba nhóm tuổi trên desktop 1600×900/mobile 844×390, đủ 20 sprite, kéo thả, nhận quà, thử lại khi mất mạng, nặn/vẽ và reload; không có page error. QA chờ API xác nhận checkpoint trước reload để tránh race WAN. Signed WebSocket hai hồ sơ xác nhận lưu MySQL và cách ly học sinh; toàn bộ gia đình QA tự xóa. Ảnh/báo cáo: `temp/deploy/qa/houses-live/`.
+
 ## Nhà riêng và xưởng gốm — VPS 18/10/2026
 
 Release đang chạy `houses-35eb627f-20261018`, contentVersion `35eb627f`; Web/API/rooms đồng bộ. Năm nhà có ảnh ngoại thất riêng, nội thất đi lại được, nhiệm vụ theo tuổi, quà trang trí có xác nhận server và xưởng nặn/vẽ gốm tự do lưu theo học sinh. Chi tiết tại [LEVEL_100_AND_STUDENTS](../../docs/design/LEVEL_100_AND_STUDENTS.md).

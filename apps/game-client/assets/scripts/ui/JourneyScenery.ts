@@ -26,12 +26,12 @@ export function createJourneyScenery(world:Node,actors:Node):void{
     }
 }
 
-export async function decorateJourneyScenery(actors:Node,art:VillageArt):Promise<void>{
-    await Promise.all(journeyScenery.map(async item=>{
+export async function decorateJourneyScenery(actors:Node,art:VillageArt,include:(item:typeof journeyScenery[number])=>boolean=()=>true):Promise<void>{
+    await Promise.all(journeyScenery.filter(include).map(async item=>{
         const frame=await art.ensureObject('journey.'+item.id,-1);
         if(!actors.isValid||!frame)return;
         const node=actors.getChildByName('JourneyLandmark-'+item.id);
-        if(!node||node.getChildByName('PaintedLandmark'))return;
+        if(!node||node.getChildByName('PaintedLandmark')||node.getChildByName('PrivateHouseArt'))return;
         const placement=layoutPlacement({...item,id:'journey.'+item.id,height:item.width*frame.rect.height/frame.rect.width});art.sprite(node,'PaintedLandmark',frame,placement.width,placement.height);node.getComponent(UITransform)!.setContentSize(placement.width,placement.height);
     }));
 }

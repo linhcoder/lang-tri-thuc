@@ -55,19 +55,23 @@ export function paintHouseRoom(g:Graphics,id:HouseId,wall:string):void{
  if(id==='farm'){for(let i=0;i<4;i++){g.fillColor=new Color('#d1ad68');g.roundRect(50+i*39,7-i*19,25,32,3);g.fill();g.fillColor=new Color('#6d8c50');g.circle(62+i*39,22-i*19,5);g.fill();}}
  if(id==='books'){for(let i=0;i<9;i++){g.fillColor=new Color(['#799b92','#c99478','#cfb66e'][i%3]);g.roundRect(50+i*22,8-i*11,16,34,2);g.fill();}}
 }
-export function paintStation(g:Graphics,house:HouseId,index:number,done:boolean,highlight:boolean):void{
+export function paintStation(g:Graphics,house:HouseId,index:number,done:boolean,highlight:boolean,painted=false):void{
  g.clear();
  g.fillColor=new Color('#33291e35');g.ellipse(3,-20,44,14);g.fill();
  if(highlight){g.strokeColor=new Color('#ffe5a0');g.lineWidth=3;g.ellipse(0,-19,49,21);g.stroke();}
+ if(!painted){
  g.strokeColor=new Color('#79563c');g.lineWidth=7;g.moveTo(-28,-2);g.lineTo(-28,-20);g.moveTo(28,-2);g.lineTo(28,-20);g.stroke();
  g.fillColor=new Color('#8b6346');g.ellipse(0,-4,43,19);g.fill();
  g.fillColor=new Color(highlight?'#e0c17f':house==='farm'?'#b2a071':house==='pottery'?'#c89b79':'#cba677');g.ellipse(0,2,43,19);g.fill();
  g.strokeColor=new Color('#f3d5a0');g.lineWidth=2;g.moveTo(-30,9);g.lineTo(-6,17);g.lineTo(23,12);g.stroke();
+ }
  const symbols:Record<HouseId,string[]>={home:['table','basket','shelf','pens'],tam:['table','leaf','colander','bowl'],farm:['soil','seed','soil','water'],pottery:['vase','clay','wheel','paint'],books:['book','basket','shelf','card']};
  let symbol=symbols[house][index];
  if(done&&(index===1||index===3))symbol='basket';
  if(done&&index===2)symbol=({home:'book',tam:'leaf',farm:'plant',pottery:'vase',books:'tree-book'} as const)[house];
  if(done&&index===0)symbol=({home:'pens',tam:'bowl',farm:'plant',pottery:'painted-vase',books:'tree-book'} as const)[house];
- paintHouseItem(g,symbol,36);
+ // Painted sources already show their contents; collected items leave an empty
+ // surface and a completion mark instead of a second basket pasted on the art.
+ if(!painted||(!done||index!==1&&index!==3)&&symbol!=='table')paintHouseItem(g,symbol,painted?27:36);
  if(done){g.strokeColor=new Color('#5e8b54');g.lineWidth=4;g.moveTo(25,9);g.lineTo(31,3);g.lineTo(42,17);g.stroke();}
 }

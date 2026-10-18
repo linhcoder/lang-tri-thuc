@@ -133,8 +133,13 @@ export class VillageArt {
         if(this.disposed)return;
         const frame=(texture:Texture2D,id:string)=>assetFrame(texture,id);
         this.environment=[frame(temple,'dinh'),frame(temple,'dinh'),frame(banyan,'banyan'),frame(temple,'dinh'),frame(temple,'dinh'),frame(temple,'dinh'),frame(farmer,'character.farmer')];[0,2,6].forEach(index=>this.environmentLoaded.add(index));
-        await Promise.all([this.loadRedStarBoy(),this.loadRedStarBoy(1),this.loadNpcPoses(),...(['elder','lotus','seedling'] as const).map(name=>this.ensureDecoration(name)),...villageDetails.filter(o=>assetResourceKey(o.id)!==assetResourceKey('bamboo')).map(o=>this.ensureObject(o.id,-1))]);
+        await Promise.all([...(['elder','lotus','seedling'] as const).map(name=>this.ensureDecoration(name)),...villageDetails.filter(o=>assetResourceKey(o.id)!==assetResourceKey('bamboo')).map(o=>this.ensureObject(o.id,-1))]);
         if(!this.disposed){this.installFarmerFrames(farmer);onProgress(1);}
+    }
+    private motionLoad?:Promise<void>;
+    ensureMotion():Promise<void>{
+        if(this.disposed)return Promise.resolve();
+        return this.motionLoad??=Promise.all([this.loadRedStarBoy(),this.loadRedStarBoy(1),this.loadNpcPoses()]).then(()=>{});
     }
     private async loadNpcPoses():Promise<void>{
         await Promise.all([

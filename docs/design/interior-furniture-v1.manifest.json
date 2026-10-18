@@ -1,0 +1,32 @@
+﻿{
+    "tool":  "built-in image_gen",
+    "asset":  "apps/game-client/assets/resources/village/interior-furniture-v1.png",
+    "sha256":  "de1a58fb9dd3cb0158aea881f0dcd6a2916b21abcfb9758c6f7e93e32c6bb340",
+    "bytes":  1862662,
+    "columns":  4,
+    "rows":  5,
+    "houses":  [
+                   "home",
+                   "tam",
+                   "farm",
+                   "pottery",
+                   "books"
+               ],
+    "prompt":  "docs/design/interior-furniture-v1.prompt.txt",
+    "alpha":  "preserved from generated original",
+    "columnCuts":  [
+                       0,
+                       0.277,
+                       0.5,
+                       0.75,
+                       1
+                   ],
+    "rowCuts":  [
+                    0,
+                    0.214,
+                    0.4,
+                    0.585,
+                    0.78,
+                    1
+                ]
+}

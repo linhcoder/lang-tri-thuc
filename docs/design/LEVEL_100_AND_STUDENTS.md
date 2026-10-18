@@ -1,5 +1,12 @@
 # Hành trình 100 cấp và hồ sơ học sinh
 
+### Tách hai nút trong bảng Thành tích — 18/10/2026
+
+- Source `63936a0` đặt “Luyện tập nhận huy hiệu” và “Đóng” cạnh nhau trên cùng hàng dưới, thay vì hai hàng chỉ cách nhau 30 px trong khi nút cao 76 px. Giữ nội dung thành tích; nút luyện tập rộng 350 px bên trái, nút đóng bên phải, có khoảng trống 47.5 px giữa hai hitbox.
+- TypeScript và build Web đạt. QA desktop 1600×900/mobile 844×390 xác nhận hai hitbox không giao nhau, nằm trong viewport, bấm luyện tập mở hoạt động và bấm đóng thoát bảng; đã xem ảnh ở `temp/deploy/qa/achievements-*.png`.
+- Đã kích hoạt `achievements-footer-35eb627f-20261018`, contentVersion `35eb627f`. Backup/restore MySQL, checksum bốn file, build Linux và health hai API đạt; bản đồ revision 7, CMS/NPC và ba hồ sơ thật giữ nguyên. Rollback ứng dụng: `house-swap-35eb627f-20261018`.
+- QA JavaScript/asset qua HTTPS sau deploy đạt cả desktop/mobile với API fixture riêng: hai nút nằm trong màn hình, có khoảng cách và bấm đúng chức năng; không có page error.
+
 ### Hoán đổi hai nhà và biển gỗ lối vào — 18/10/2026
 
 - Bản đồ xuất bản revision 7 hoán đổi vị trí nhà của bé và nhà Bác Nông Dân: `house` từ (29,12) sang (5.75,19.75), `journey.farm` sang (29,12). Giữ kích thước riêng của mỗi nhà. Biển trang trí `sign-home` chuyển tới (3.75,17.25) cùng nhà, tránh ghi nhầm tên trên nhà nông dân. Giữ nguyên toàn bộ NPC và các công trình khác.
@@ -41,7 +48,7 @@
 - QA mạng dùng server fixture giới hạn tổng băng thông game HTTP 1,6 Mbps, trễ 80 ms, bao gồm fetch của service worker (API fixture không giới hạn, server không gzip). Mobile 844×390: tải lạnh 95.180 ms; sau khi cache được điền đủ, mở lại 24.659 ms và ba texture nền lớn không phát sinh request server mới. Đây là giả lập, chưa phải kiểm thử điện thoại thật/4G thực tế. Báo cáo và ảnh ở `apps/game-client/temp/web-images-qa/`.
 - Mã tối ưu đã commit `dc1bdb2`. Kết nối VPS đã phục hồi; WebP/retry đã triển khai cùng release `region-signs-35eb627f-20261018` sau khi kiểm tra lại baseline và sao lưu dữ liệu.
 
-**Bản VPS đang chạy: `house-swap-35eb627f-20261018`, source commit `d6c3f30`, contentVersion `35eb627f`.** Bao gồm nội thất toàn màn hình, tải dần, WebP/retry, biển gỗ và tỷ lệ nhân vật. Bản đồ hiện tại revision 7: nhà của bé/nhà nông dân đã hoán đổi, chợ quê/nhà Cô Tấm lớn hơn, Cô Tấm cạnh nhà và Nghệ Nhân Gốm cạnh xưởng; ba hồ sơ thật giữ nguyên.
+**Bản VPS đang chạy: `achievements-footer-35eb627f-20261018`, source commit `63936a0`, contentVersion `35eb627f`.** Bao gồm nội thất toàn màn hình, tải dần, WebP/retry, biển gỗ, tỷ lệ nhân vật và sửa nút bảng Thành tích. Bản đồ hiện tại revision 7: nhà của bé/nhà nông dân đã hoán đổi, chợ quê/nhà Cô Tấm lớn hơn, Cô Tấm cạnh nhà và Nghệ Nhân Gốm cạnh xưởng; ba hồ sơ thật giữ nguyên.
 
 ### Cảnh nội thất toàn màn hình — 18/10/2026
 

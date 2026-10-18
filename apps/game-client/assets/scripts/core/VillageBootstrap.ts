@@ -36,13 +36,16 @@ import {applyLessonPack} from '../world/LessonCatalog';
 import { applyChapterText } from '../world/ContentPack';
 import { portalDestination } from '../world/WorldZones';
 import { VillageHub } from '../ui/VillageHub';
+import {HouseInteriorView} from '../ui/HouseInteriorView';
+import {decorateHouseExteriors} from '../ui/HouseExteriors';
+import {homeApproach,enterableHouses,EnterableHouse} from '../world/HouseInterior';
 import {VillageNameplates} from '../ui/VillageNameplates';
 import {VillageHUD} from '../ui/VillageHUD';
 import {chapters} from '../world/CampaignContent';
 const { ccclass, disallowMultiple, requireComponent } = _decorator;
 const npcArt=[['co-tam','co-tam','CoTamSprite'],['co-giao-lan','teacher','TeacherSprite'],['ba-ban-hang','market-lady','MarketLadySprite'],['nghe-nhan-gom','potter','PotterSprite'],['ti-na','ti-na','FriendsSprite'],['chi-hang-cuoi','hang-cuoi','FestivalSprite']] as const;
 const actorScale=0.78;
-function scenerySprite(node:Node):Sprite|null{return node.getComponent(Sprite)??node.getChildByName('RegionalArt')?.getComponent(Sprite)??null;}
+function scenerySprite(node:Node):Sprite|null{return node.getChildByName('PrivateHouseArt')?.getComponent(Sprite)??node.getComponent(Sprite)??node.getChildByName('RegionalArt')?.getComponent(Sprite)??null;}
 function ui(parent: Node, name: string, width = 1, height = 1): Node {
     const n = new Node(name); n.layer = Layers.Enum.UI_2D; parent.addChild(n);
     n.addComponent(UITransform).setContentSize(width, height); return n;
@@ -191,7 +194,13 @@ export class VillageBootstrap extends Component {
     private questButton?:Node;
     private journalButton?:Node;private parentButton?:Node;
     private privateJoin?:{roomCode:string;ticket:string};private profileScope='';private hub?:VillageHub;private homeStyle=-1;private starCount=-1;private treeLights?:Graphics;private qualityStyle='';
-    private get modalActive():boolean{return !!this.cms?.dialog.active||this.dialog.active||!!this.hub?.node.active;}
+    private interior?:HouseInteriorView;
+    private houseArtCount=0;
+    private interiorPointer:number|null=null;
+    private homeDoor?:Node;
+    private homeGoal?:Point;
+    private houseDoors:Array<{house:EnterableHouse;node:Node;goal:Point}>=[];
+    private get modalActive():boolean{return !!this.interior?.node.active||!!this.cms?.dialog.active||this.dialog.active||!!this.hub?.node.active;}
     private get objective():string{return this.hub?.objective??this.chapterSave?.progress.description??this.learning.description;}
     private student?:StudentSession;private studentAbort=new AbortController();private initialized=false;private cloudElapsed=0;private cloudBusy=false;private cloudSignature='';private cloudConflict=false;private authElapsed=0;private appearanceBusy=false;private appearanceWait=0;
     onLoad():void{
@@ -308,7 +317,7 @@ export class VillageBootstrap extends Component {
             for(const friend of expansionFriends){const node=this.hub?.npcNodes.find(n=>n.name===friend.id);if(!node)continue;node.getComponent(Graphics)!.clear();const height=friend.id.startsWith('be-')?100:130,body=this.art.sprite(node,'ExpansionSprite-'+friend.avatar,this.art.avatarFrame(friend.avatar,0,6,1,friend.id==='chu-hai'?2:1),height*.75,height);body.setScale(actorScale,actorScale,1);this.registerNpcMotion(node,body);}
             this.nameplates=new VillageNameplates(this.world,this.actors);
             if(this.hub){this.hud=new VillageHUD(this.root,mode=>this.hub?.open(mode),()=>this.interactNearest(),id=>{this.resetInput();this.player.cancel();this.hub?.onGesture?.(id);},()=>{this.desktopJoystick=!this.desktopJoystick;this.releaseStick();},()=>this.navigateQuest());this.hud.onClick=()=>{if(this.hub?.campaign.data.sound)this.uiClick.play();};if(this.questButton)this.hud.bindQuestTarget(this.questButton,()=>this.navigateQuest());this.header.active=false;this.networkBadge!.node.active=false;this.status.node.active=false;}
-            this.assetsReady=true;this.reportLoading(100,'Ngôi làng đã sẵn sàng!');if(this.loadingPanel)this.loadingPanel.active=false;
+            void decorateHouseExteriors(this.actors,this.art).then(count=>{if(this.isValid)this.houseArtCount=count;});this.assetsReady=true;this.reportLoading(100,'Ngôi làng đã sẵn sàng!');if(this.loadingPanel)this.loadingPanel.active=false;
             if(sys.isBrowser){const requested=new URLSearchParams(window.location.search).get('server');
                 if(requested){let endpoint:URL;try{endpoint=new URL(requested);}catch{throw new Error('Địa chỉ server không hợp lệ');}
                     if(['http:','https:','ws:','wss:'].indexOf(endpoint.protocol)<0)throw new Error('Giao thức server không hợp lệ');
@@ -409,6 +418,19 @@ export class VillageBootstrap extends Component {
     }
     update(dt: number): void {
         if(!this.player)return;
+        if(this.hub&&this.assetsReady&&!this.interior)this.interior=new HouseInteriorView(this.root,this.hub,this.art,()=>this.resetInput(),{
+            load:async()=>{const s=this.student;if(!s)throw Error('No student session');return (await studentRequest(s.api,s.token,'/profiles/'+s.profile.id+'/houses')).rewards;},
+            claim:async(id,age,answers)=>{const s=this.student;if(!s)throw Error('No student session');return (await studentRequest(s.api,s.token,'/profiles/'+s.profile.id+'/houses/'+id+'/claim','POST',{age,answers})).rewards;}
+        });
+        if(this.interior?.node.active){const size=this.node.getComponent(UITransform)!;this.interior.update(dt,size.width,size.height);}
+        this.guide?.setModal(this.modalActive);
+        if(this.hub&&this.assetsReady&&!this.modalActive){
+            for(const config of enterableHouses){if(this.houseDoors.some(d=>d.house.id===config.id))continue;const exterior=this.actors.getChildByName(config.node);if(!exterior)continue;const goal=homeApproach(this.map,tileAt(this.player.position),tileAt(exterior.position));if(!goal)continue;const node=ui(this.world,'HouseEntrance-'+config.id,180,44),p=toWorld(goal);node.setPosition(p.x,p.y+35);const g=node.addComponent(Graphics);g.fillColor=new Color('#547044');g.roundRect(-90,-22,180,44,8);g.fill();const caption=label(node,config.name,175,42,17);caption.getComponent(Label)!.color=new Color('#fff4da');this.houseDoors.push({house:config,node,goal});if(config.id==='home'){this.homeDoor=node;this.homeGoal=goal;}}
+            const house=this.actors.getChildByName('house');
+            if(house&&!this.homeDoor){this.homeGoal=homeApproach(this.map,tileAt(this.player.position),tileAt(house.position));if(this.homeGoal){this.homeDoor=ui(this.world,'HomeEntrance',160,50);const p=toWorld(this.homeGoal);this.homeDoor.setPosition(p.x,p.y+35);const g=this.homeDoor.addComponent(Graphics);g.fillColor=new Color('#547044');g.roundRect(-80,-25,160,50,9);g.fill();label(this.homeDoor,'Nhà của bé',155,45,20);}}
+            if(this.homeDoor&&this.homeGoal){const p=toWorld(this.homeGoal);this.homeDoor.children[0].getComponent(Label)!.string=Math.hypot(p.x-this.player.position.x,p.y-this.player.position.y)<12?'Vào nhà →':'Nhà của bé';}
+            for(const door of this.houseDoors){const p=toWorld(door.goal);door.node.children[0].getComponent(Label)!.string=Math.hypot(p.x-this.player.position.x,p.y-this.player.position.y)<12?'Vào nhà →':door.house.name;}
+        }
         this.syncStudent(dt);
         if(this.hub&&this.assetsReady){this.growth.update(this.actors,this.hub.campaign,this.art);this.guideElapsed+=dt;if(this.guideElapsed>.4){this.guideElapsed=0;this.guideStart??={...this.player.position};const data=this.hub.campaign.data.upgrades??=restoreUpgrades(null);this.guide.update(data,{move:Math.hypot(this.player.position.x-this.guideStart.x,this.player.position.y-this.guideStart.y)>30,talk:this.chapterSave?.progress.data.greeted===true,reward:this.hub.campaign.stars>0,modal:this.modalActive},()=>{this.hub!.onActivitySave?.();this.hub!.save.save();},()=>this.chapter?.navigateObjective());}}
         const orientationGate=sys.isBrowser?document.getElementById('rotate-device'):null;
@@ -531,7 +553,7 @@ export class VillageBootstrap extends Component {
         const depth=(node:Node)=>node.position.y+(node.name==='JourneyLandmark-school'?(node.getComponent(UITransform)?.height??0)*.3:0);
         const silhouettes=[this.player.position,...(this.hub?.npcNodes.map(n=>n.position)??[]),...(this.cms?.nodes.map(n=>n.position)??[])];
         for(const scenery of this.sceneryNodes){const sprite=scenerySprite(scenery);if(!sprite||scenery.parent!==this.actors)continue;if(scenery.name==='dinh'||scenery.name==='house'||scenery.name==='house-west'||scenery.name==='Scenery-market'){if(sprite.color.a!==255){const c=sprite.color;sprite.color=new Color(c.r,c.g,c.b,255);}continue;}const bounds=scenery.getComponent(UITransform)!,covered=silhouettes.some(p=>p.y>depth(scenery)&&Math.abs(p.x-scenery.position.x)<bounds.width*.5&&p.y+58>scenery.position.y&&p.y+58<scenery.position.y+bounds.height),alpha=covered?92:255;if(sprite.color.a!==alpha){const color=sprite.color;sprite.color=new Color(color.r,color.g,color.b,alpha);}}
-        for(const item of this.regionalScenery)if(item.node.active&&!item.pending){item.pending=true;void this.art.ensureObject(item.id,item.frame).then(frame=>{if(!this.isValid||!item.node.isValid||!frame)return;item.node.getComponent(Graphics)?.clear();const bounds=item.node.getComponent(UITransform)!;this.art.sprite(item.node,'RegionalArt',frame,bounds.width,bounds.height);});}
+        for(const item of this.regionalScenery)if(item.node.active&&!item.pending){if(item.node.getChildByName('PrivateHouseArt')){item.pending=true;continue;}item.pending=true;void this.art.ensureObject(item.id,item.frame).then(frame=>{if(!this.isValid||!item.node.isValid||!frame||item.node.getChildByName('PrivateHouseArt'))return;item.node.getComponent(Graphics)?.clear();const bounds=item.node.getComponent(UITransform)!;this.art.sprite(item.node,'RegionalArt',frame,bounds.width,bounds.height);});}
         for (const chunk of this.terrainChunks) {
             chunk.node.active = Math.abs(chunk.center.x + camera.x) < cameraWidth / 2 + 256
                 && Math.abs(chunk.center.y + camera.y) < cameraHeight / 2 + 128;
@@ -569,6 +591,7 @@ export class VillageBootstrap extends Component {
     }
     private local(p: Point, node = this.root): Vec3 { return node.getComponent(UITransform)!.convertToNodeSpaceAR(new Vec3(p.x, p.y, 0)); }
     private select(p: Point): void {
+        if(this.interior?.node.active&&!this.hub?.node.active){this.interior.handle(p);return;}
         if(this.cms?.dialog.active){this.cms.handle(p);return;}
         if(this.hub?.node.active){this.hub.handle(p);return;}
         if (this.dialog.active) {
@@ -587,6 +610,13 @@ export class VillageBootstrap extends Component {
         this.selectWorld(this.local(p,this.world));
     }
     private selectWorld(world:Point):void{
+        const entrance=this.houseDoors?.find(d=>Math.abs(world.x-d.node.position.x)<90&&Math.abs(world.y-d.node.position.y)<22);
+        if(entrance&&this.interior){const p=toWorld(entrance.goal);this.resetInput();if(Math.hypot(p.x-this.player.position.x,p.y-this.player.position.y)<12)this.interior.open(entrance.house);else if(this.player.goTo(entrance.goal))this.showDestination(entrance.goal);return;}
+        const house=this.interior?this.actors.getChildByName('house'):null;
+        const door=this.homeDoor;
+        if(this.interior&&this.homeGoal&&((door&&Math.abs(world.x-door.position.x)<80&&Math.abs(world.y-door.position.y)<25)||(house&&Math.abs(world.x-house.position.x)<100&&world.y>house.position.y&&world.y<house.position.y+180))){
+            const p=toWorld(this.homeGoal);if(Math.hypot(p.x-this.player.position.x,p.y-this.player.position.y)<12){this.resetInput();this.interior.open();}else{this.resetInput();this.player.goTo(this.homeGoal);this.showDestination(this.homeGoal);}return;
+        }
         const sign=this.world?.children?.find(n=>n.name.startsWith('JourneySign-')&&Math.abs(n.position.x-world.x)<140&&Math.abs(n.position.y-world.y)<26);if(sign){this.hub?.openJourneyRegion(sign.name.slice(12));return;}
         if(this.cms?.select(world)){this.chapter?.cancel();this.hub?.cancel();this.pendingNpc=false;this.pendingBundle=null;return;}
         world=this.nameplates?.target(world)??world;
@@ -628,6 +658,7 @@ export class VillageBootstrap extends Component {
     private changeZoom(value:number):void{this.zoom.set(value);this.zoomSaveDelay=0.3;}
     private handleWheel=(event:WheelEvent):void=>{if(!this.player)return;if(event.ctrlKey||this.modalActive||this.loadingPanel?.active||this.pinchIds||event.target!==game.canvas)return;event.preventDefault();this.changeZoom(this.zoom.wheel(event.deltaY));};
     private keyDown(e: EventKeyboard): void {if(!this.dialog)return;if(this.loadingPanel?.active)return;
+        if(this.interior?.node.active&&!this.hub?.node.active){this.interior.key(e.keyCode,true);return;}
         if (e.keyCode === 27) { this.hud?.closeEmotion?.(); this.cms?.close();this.hub?.close();this.chapter?.close();this.dialog.active = false; this.resetInput(); return; }
         if(e.keyCode===69&&!this.modalActive){this.interactNearest();return;}
         if(this.cms?.dialog.active){this.cms.key(e.keyCode);return;}
@@ -635,11 +666,12 @@ export class VillageBootstrap extends Component {
         if(this.hub?.node.active){this.hub.key(e.keyCode);return;}
         if (!this.modalActive) this.keys.add(e.keyCode);
     }
-    private keyUp(e: EventKeyboard): void { this.keys.delete(e.keyCode); }
+    private keyUp(e: EventKeyboard): void { this.keys.delete(e.keyCode);this.interior?.key(e.keyCode,false); }
     // Cocos 3.8.8 converts left mouse events to touch events. One shared handler avoids double clicks.
     private touchStart(e: EventTouch): void {if(!this.joystick)return;if(this.loadingPanel?.active)return;
         const id=e.getID();if(id===null)return;
         const point=e.getUILocation(), start={x:point.x,y:point.y};
+        if(this.interior?.node.active&&!this.hub?.node.active){if(this.interiorPointer===null){this.interiorPointer=id;this.interior.beginPointer(point);}return;}
         // A modal owns one pointer; a second finger must not replace a drawing stroke or tap a button.
         if(this.modalActive&&this.touches.size){this.touches.set(id,{start,current:start,dragged:false,blocked:true,control:true});return;}
         if(this.hub?.node.active)this.hub.beginPress?.(point);
@@ -656,6 +688,7 @@ export class VillageBootstrap extends Component {
         this.stick = length < 7 ? { x: 0, y: 0 } : { x: p.x / scale, y: p.y / scale }; this.knob.setPosition(this.stick.x * 45, this.stick.y * 45);
     }
     private touchMove(e: EventTouch): void {if(!this.joystick)return;
+        if(this.interior?.node.active&&!this.hub?.node.active){if(e.getID()===this.interiorPointer)this.interior.movePointer(e.getUILocation());return;}
         const id=e.getID();if(id===null)return;
         const gesture=this.touches.get(id),p=e.getUILocation();
         if(gesture)gesture.current={x:p.x,y:p.y};
@@ -665,6 +698,8 @@ export class VillageBootstrap extends Component {
         if(gesture?.hubDrag&&gesture.dragged)this.hub?.moveDrag(p);if (id === this.stickId) this.updateStick(e);
     }
     private touchEnd(e: EventTouch): void {if(!this.joystick)return;if(this.loadingPanel?.active)return;
+        if(e.getID()===this.interiorPointer&&this.interiorPointer!==null){this.interiorPointer=null;this.interior?.endPointer(e.getUILocation());return;}
+        this.interior?.release();
         this.hub?.endPress?.();endModalPress();
         const id=e.getID();if(id===null)return;
         const gesture=this.touches.get(id);this.touches.delete(id);
@@ -674,10 +709,10 @@ export class VillageBootstrap extends Component {
         if(gesture?.hubDrag&&this.hub?.endDrag(p,gesture.dragged))return;
         if(gesture&&!gesture.blocked&&!gesture.dragged&&Math.hypot(p.x-gesture.start.x,p.y-gesture.start.y)<=this.tapThreshold())this.select(p);
     }
-    private touchCancel(e: EventTouch): void {this.hub?.endPress?.();endModalPress(); const id=e.getID();if(id===null)return;if(this.touches.get(id)?.hubDrag)this.hub?.cancelDrag();this.touches.delete(id);if(this.pinchIds){this.pinchIds=undefined;this.zoom.endPinch();this.touches.forEach(g=>g.blocked=true);} if (id === this.stickId) this.releaseStick(); }
+    private touchCancel(e: EventTouch): void {if(e.getID()===this.interiorPointer){this.interiorPointer=null;this.interior?.cancelPointer();}this.interior?.release();this.hub?.endPress?.();endModalPress(); const id=e.getID();if(id===null)return;if(this.touches.get(id)?.hubDrag)this.hub?.cancelDrag();this.touches.delete(id);if(this.pinchIds){this.pinchIds=undefined;this.zoom.endPinch();this.touches.forEach(g=>g.blocked=true);} if (id === this.stickId) this.releaseStick(); }
     private releaseStick(): void { this.stickId = null; this.stick = { x: 0, y: 0 }; this.knob?.setPosition(0, 0); }
-    private resetInput(): void {this.hub?.endPress?.();endModalPress(); this.keys.clear(); this.freeCameraOffset=undefined;this.releaseStick();this.pinchIds=undefined;this.zoom.endPinch();this.touches.clear();this.player?.cancel();this.pendingNpc=false;this.pendingBundle=null;this.chapter?.cancel();this.hub?.cancel(); }
-    private handleBlur = (): void => { this.resetInput(); };
+    private resetInput(): void {this.interiorPointer=null;this.interior?.stop();this.hub?.endPress?.();endModalPress(); this.keys.clear(); this.freeCameraOffset=undefined;this.releaseStick();this.pinchIds=undefined;this.zoom.endPinch();this.touches.clear();this.player?.cancel();this.pendingNpc=false;this.pendingBundle=null;this.chapter?.cancel();this.hub?.cancel(); }
+    private handleBlur = (): void => { this.interior?.stop();this.resetInput(); };
     // Full-screen CSS keeps frame style strings constant; explicitly reapply the
     // public policy so Creator updates its backing canvas after viewport rotation.
     private handleResize = ():void=>{

@@ -1,0 +1,72 @@
+{
+  "tool": "built-in image_gen",
+  "date": "2026-10-18",
+  "prompts": "docs/design/enterable-houses-v1.prompts.json",
+  "assets": [
+    {
+      "id": "home",
+      "path": "apps/game-client/assets/resources/village/enterable-houses-v1/home.png",
+      "size": [
+        1333,
+        1180
+      ],
+      "sha256": "d7d074ddaa6936231e448089cc3ada79e8f2cfd21862d6ce8f2296d3990cb702",
+      "alphaRange": [
+        0,
+        255
+      ]
+    },
+    {
+      "id": "tam",
+      "path": "apps/game-client/assets/resources/village/enterable-houses-v1/tam-v3.png",
+      "size": [
+        1774,
+        887
+      ],
+      "sha256": "edc0a223d2cca0ac43bd986f5cacfc407e2f40683316a61d153a9f066d4fcc0b",
+      "alphaRange": [
+        0,
+        255
+      ]
+    },
+    {
+      "id": "farm",
+      "path": "apps/game-client/assets/resources/village/enterable-houses-v1/farm.png",
+      "size": [
+        1335,
+        1178
+      ],
+      "sha256": "247f0aa7336dab132b7eb2f57908cf39c5fd10b4cfba130f3901e30f71b10998",
+      "alphaRange": [
+        0,
+        255
+      ]
+    },
+    {
+      "id": "pottery",
+      "path": "apps/game-client/assets/resources/village/enterable-houses-v1/pottery.png",
+      "size": [
+        1420,
+        1108
+      ],
+      "sha256": "8339e938d4b43635d4c27dbb797e3e2f5c80e8593916c89d3ea369980cca7fb3",
+      "alphaRange": [
+        0,
+        255
+      ]
+    },
+    {
+      "id": "books",
+      "path": "apps/game-client/assets/resources/village/enterable-houses-v1/books.png",
+      "size": [
+        1496,
+        1051
+      ],
+      "sha256": "f4fc721d12be626bea8571e9ec9d08775e784007a7f0dc486f485117c899ef8d",
+      "alphaRange": [
+        0,
+        255
+      ]
+    }
+  ]
+}

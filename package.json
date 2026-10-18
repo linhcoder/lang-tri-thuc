@@ -76,7 +76,8 @@
     "test:expansion-coop": "node apps/game-client/tests/expansion-coop-web.cjs",
     "test:load-live": "node deploy/aapanel/load-live.cjs",
     "test:upgrades": "node --test apps/game-client/tests/guide-state.cjs && node apps/game-client/tests/upgrades-web.cjs && node apps/admin/tests/publishing-web.cjs",
-    "test:reward-art": "node apps/game-client/tests/reward-art-web.cjs"
+    "test:reward-art": "node apps/game-client/tests/reward-art-web.cjs",
+    "test:houses": "node apps/game-client/tests/house-interior-web.cjs"
   },
   "devDependencies": {
     "playwright": "^1.62.1"

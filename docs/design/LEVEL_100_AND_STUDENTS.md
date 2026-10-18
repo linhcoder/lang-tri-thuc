@@ -1,5 +1,97 @@
 # Hành trình 100 cấp và hồ sơ học sinh
 
+### Nâng cấp hình ảnh nội thất — 18/10/2026
+
+- Bổ sung viền sàn có chiều sâu, đường ghép sàn, cửa sổ khung gỗ và ánh sáng, thảm viền dệt với màu riêng cho cả năm nhà. Bàn tương tác có chân, cạnh gỗ, bóng đổ và vòng sáng khi là mục tiêu hiện tại.
+- Tiếp tục dùng Graphics có sẵn; không thêm lượt tải ảnh, không đổi vị trí đồ vật, lưới va chạm hoặc tiến độ nhiệm vụ.
+- Kiểm tra local: TypeScript client, 70 nhóm logic, 6 bài mạng/khởi động, hồi quy hướng dẫn, build API/Web đạt; API 27 đạt, một fixture MySQL bỏ qua khi chưa cấu hình. Không triển khai VPS trong lần nâng cấp này.
+- QA Web bản mới đạt cả năm nhà × ba nhóm tuổi trên desktop 1600 × 900 và mobile ngang 844 × 390; kéo thả, mang đồ, nhận quà, thử lại khi mất mạng và tải lại tiến độ đều đạt, không có page error. Đã xem ảnh nội thất desktop/mobile; báo cáo và ảnh ở `apps/game-client/temp/house-interior-qa/`.
+
+## Thiết kế nhà có thể vào làm nhiệm vụ — 18/10/2026
+
+**Trạng thái: đã triển khai VPS trong release `houses-35eb627f-20261018`, kiểm tra HTTPS đạt ngày 18/10/2026.** Bé đi từ đường làng tới cửa, vào nhà, di chuyển trong phòng và tương tác với đồ vật để làm nhiệm vụ. Trước bản này, phòng trang trí chỉ trưng bày ba món đồ; bản mới bổ sung không gian nội thất có lối đi, va chạm và cửa ra.
+
+### Hoàn thiện hình nhà và xưởng gốm — 18/10/2026
+
+- Năm ảnh ngoại thất riêng được tạo bằng built-in image_gen, giữ alpha và sao chép vào `apps/game-client/assets/resources/village/enterable-houses-v1/`: `home.png`, `tam-v3.png`, `farm.png`, `pottery.png`, `books.png`. Prompt cuối ở `docs/design/enterable-houses-v1.prompts.json`; kích thước/SHA-256 ở `docs/design/enterable-houses-v1.manifest.json`. Ảnh tải riêng, giữ tỉ lệ, dùng đúng vị trí/kích thước đã công bố; lỗi tải vẫn có hình dự phòng. Không thêm vật cản hoặc đổi vị trí NPC.
+- Xưởng gốm có nút Nặn gốm tự do. Kéo hai bên để đổi dáng bình, chọn men, chuyển Vẽ hoa văn và kéo để vẽ nét, xóa nét cuối hoặc lưu tác phẩm. Bản nháp `upgrades.potteryDraft` lưu theo học sinh, đồng bộ theo thời điểm mới nhất và được giữ sau reload; có giới hạn kích thước để không làm phình dữ liệu lưu. Chế độ sáng tạo không cấp sao hoặc thay đổi bằng chứng nhận quà.
+- Đã bổ sung kiểm tra hình nhà tải đủ, nặn/vẽ bằng chuột và cảm ứng, lưu rồi tải lại tác phẩm. Xóa hồ sơ hoặc tài khoản cũng xóa dữ liệu quà nhà tương ứng.
+- Đã triển khai đồng bộ Web/API/rooms trong release `houses-35eb627f-20261018`, contentVersion `35eb627f`. Overlay 70 file SHA-256 `9e301e86da0145062c8ac50af9d45a015d9a799b89aaad6869a40a8ea5a2e888`; checksum từng file khớp trước kích hoạt. Backup `/opt/lang-tri-thuc/backups/database-20261017T184349Z.sql` đã phục hồi thử trùng khớp. Hai API MySQL healthy; checksum bản đồ công bố, bản nháp, CMS và NPC giữ nguyên. Release trước `navigation-fix-35eb627f-20261016` được giữ để rollback ứng dụng.
+
+- Xác minh cuối: TypeScript, 70 nhóm logic, 6 bài mạng/khởi động và bài hồi quy ẩn hướng dẫn đạt; API 27 đạt, một fixture MySQL riêng bỏ qua khi chưa cấu hình. Build Cocos/admin/backend/rooms đạt; build Linux và nginx -t đạt. QA local đủ năm nhà × ba tuổi trên desktop 1600 × 900 và Android ngang 844 × 390 đạt. QA HTTPS hai kích thước đạt đủ ảnh, nhiệm vụ, nhận quà, trang trí, nặn/vẽ và reload; signed WebSocket hai hồ sơ xác nhận checkpoint nhà/tác phẩm gốm lưu MySQL và cách ly học sinh. Không có page error. Toàn bộ gia đình QA đã xóa, ba hồ sơ thật giữ nguyên. Báo cáo ở `apps/game-client/temp/house-interior-qa/` và `temp/deploy/qa/houses-live/`.
+
+### Lịch sử nâng cấp nội thất và nhiệm vụ — 18/10/2026
+
+- Năm nội thất có vị trí đồ vật, màu tường, nền và trang trí riêng: góc học tập, gian bếp, góc gieo hạt, xưởng gốm và phòng đọc. Đồ được vẽ bằng Graphics, không cần tải bộ ảnh mới. Khi lấy đồ, nhân vật hiển thị sách/rau/hạt/đất sét hoặc dụng cụ đang mang; nguồn đồ vơi đi, nơi nhận đồ thay hình và có dấu hoàn thành.
+- Thay chuỗi chạm tự hoàn thành bằng 25 bước thử thách: chọn đồ, kéo thả vào nơi phù hợp, đếm bát/bút/hạt, chọn hình và màu gốm, chọn diễn biến tiếp theo của truyện. Có ba nhóm tuổi 3–5, 6–8, 9–11; nhóm lớn thêm phép tính và quy luật. Nút Nghe lại tuân theo cài đặt âm thanh, tùy giọng tiếng Việt trên thiết bị; gợi ý và hình ảnh luôn dùng được. Sai đáp án không mất tiến độ hoặc sao.
+- Chạm đồ vật có dấu mục tiêu để đi tới và mở bài. Kéo món đồ vào một ô hoặc chạm đáp án; bàn phím 1/2/3 chọn đáp án, Escape đóng bài, Escape tiếp theo ra sân. Nút Ra sân dùng được cả khi bài đang mở. Mỗi nhà có thể Chơi lại sau khi hoàn thành; lượt đang luyện lưu riêng qua `upgrades.houseRuns`, không làm mất mốc hoàn thành cũ.
+- Năm quà mới: Thảm gọn gàng, Giỏ hoa Cô Tấm, Chậu mầm xanh, Bình gốm hoa văn và Đèn góc đọc sách. API `POST /profiles/:id/houses/:house/claim` kiểm tra quyền hồ sơ, nhóm tuổi và đủ năm đáp án đúng. Quà ghi trong dữ liệu `houseRewards` của repository, tách khỏi tiến độ do client gửi; hai yêu cầu đồng thời chỉ mở quà một lần. `GET /profiles/:id/houses` trả bộ quà đã xác nhận. Không cộng sao hoặc cấp hành trình.
+- Quà đã xác nhận được chọn ở Trang trí nhà bé và hiển thị trong phòng. Mất mạng vẫn làm bài và lưu chứng cứ đáp án trên máy; sau đó chọn Nhận quà để thử lại. Tải lại nạp quà từ API; khi chưa kết nối được, lựa chọn đồ mới vẫn được giữ nhưng quà cần xác nhận lại trước khi hiển thị. Tiến độ cũ không bị chuyển thành chứng cứ nhận quà: chọn Chơi lại để hoàn thành bài mới.
+- Giới hạn còn lại: ngoại thất tận dụng công trình hiện có; đồ trong phòng dùng hình vẽ chương trình, chưa có bộ ảnh minh họa riêng. Nhiệm vụ gốm dùng chọn hình/màu/thứ tự, chưa có thao tác nặn tự do. Đọc thoại phụ thuộc thiết bị. Chưa triển khai VPS.
+
+- Xác minh nâng cấp: TypeScript client, build backend/rooms và build Web Cocos 3.8.8 đạt; 69 nhóm logic, 6 bài mạng/khởi động đạt. API 27 bài đạt, một fixture MySQL bỏ qua. QA đủ năm nhà × ba nhóm tuổi trên desktop 1600 × 900 và mobile ngang 844 × 390 đạt, gồm kéo thả chuột/cảm ứng thật, vật đang mang, không tự tiến khi sai, thưởng qua API, thử lại sau lỗi mạng và tải lại lượt luyện. Kiểm tra bổ sung chọn quà mới trong trình trang trí và giữ lựa chọn sau reload đạt. Báo cáo/ảnh ở `apps/game-client/temp/house-interior-qa/`; chạy lại bằng `npm run test:houses` sau khi build backend/Web. Khi phát hành cần đồng bộ Web, API và rooms; chưa triển khai VPS.
+
+### Lịch sử bản đầu — 18/10/2026
+
+- Năm biển cửa: Nhà của bé (`house`), Nhà Cô Tấm (`house-west`), Nhà Bác Nông Dân (`JourneyLandmark-farm`), Xưởng Gốm (`JourneyLandmark-craft`) và Nhà sách (`JourneyLandmark-school`). Tận dụng công trình hiện có và vị trí CMS, không tự di chuyển NPC. Chạm biển để tới cửa, chạm lại khi đã đến để vào.
+- Có phòng nhìn chéo cắt mái, nhân vật theo hồ sơ, tìm đường và va chạm đồ đạc; đi bằng chạm sàn, bàn phím hoặc bảng điều hướng cảm ứng. Chạm đồ vật để tới gần và thực hiện bước nhiệm vụ. Ra bằng cửa, nút Ra sân hoặc Escape.
+- Mỗi nhà có chuỗi năm thao tác riêng theo chủ đề; lưu bước qua `upgrades.houseSteps`, giữ tương thích `homeStep` của Nhà của bé. Bước mang đồ được suy ra từ checkpoint. Hoàn thành hiện kỷ niệm trong phòng và ghi hoạt động, không cấp sao/cấp hành trình. Đồng bộ checkpoint qua luồng hoạt động/API hiện có, hợp nhất theo bước cao nhất.
+- Nhà của bé hiển thị đồ trang trí đã chọn, có nút mở trình trang trí hiện tại. Trong lúc chơi nội thất, nhân vật ngoài làng đứng ở cửa; tọa độ nội thất không gửi vào phòng bạn bè.
+- Giới hạn bản đầu: năm nhà dùng chung bố cục phòng và hình đồ vật vẽ bằng Graphics, khác nhãn/nhiệm vụ; chưa có bộ ngoại thất/nội thất riêng, bài đếm/ghép chữ, quà đồ trang trí mới hoặc chơi lại nhiệm vụ đã hoàn thành. Kỷ niệm chỉ phản ánh checkpoint hoạt động, không phải phần thưởng có xác thực máy chủ. Các mục này thuộc thiết kế đích, chưa tính hoàn tất.
+- Kiểm tra: TypeScript client, build backend, 67 nhóm logic và 6 bài mạng/khởi động đạt; API 26 đạt, một fixture MySQL bỏ qua. Build Cocos 3.8.8 và QA bản Web desktop 1600 × 900/mobile ngang 844 × 390 đạt: đủ năm cửa có đường đi, nhiệm vụ đúng thứ tự và độc lập, ra/vào, bàn phím, mở trang trí, tải lại. Lệnh `npm run test:houses`; ảnh và báo cáo ở `apps/game-client/temp/house-interior-qa/`. Chưa triển khai VPS.
+
+### Các căn nhà
+
+Giữ phong cách làng Việt nhìn chéo: mái ngói, tường vôi, hiên gỗ, sân gạch và ánh sáng ấm. Mỗi nhà có màu mái, biển hình và nội thất riêng. Bên trong dùng góc nhìn cắt mái, bỏ tường phía trước để không che nhân vật; đồ vật tách lớp, không dùng một ảnh nền chứa sẵn mọi thứ.
+
+| Nhà | Hình ảnh và nội thất | Nhiệm vụ mẫu | Quà lần đầu |
+| --- | --- | --- | --- |
+| Nhà của bé | Ngói đỏ, giàn hoa; thảm, bàn học, kệ sách, giỏ đồ | Dọn góc học tập: tìm sách, đưa lên kệ, đặt bút vào hộp | Huy hiệu Gọn gàng, mẫu thảm |
+| Nhà Cô Tấm | Mái nâu, hàng cau; bàn tre, gian bếp, giỏ rau | Chuẩn bị bữa cơm: chọn rau, đếm bát theo số khách, bày mâm | Giỏ hoa |
+| Nhà Bác Nông Dân | Mái rơm, giàn bầu; hạt giống, giỏ nông sản | Phân loại rau/củ/quả, đếm đủ hạt cho luống trồng | Chậu mầm |
+| Xưởng Nghệ Nhân Gốm | Ngói cam, biển bình gốm; bàn xoay, bàn màu, kệ trưng bày | Chọn hình khối, sắp thứ tự làm gốm, tô và trưng bày bình | Bình có họa tiết |
+| Nhà sách Cô Giáo Lan | Mái xanh rêu, biển sách; bàn đọc và kệ sách thấp | Tìm sách theo gợi ý, ghép chữ hoặc xếp tranh thành truyện | Tranh chữ cái |
+
+Nhà của bé dùng đối tượng `house` hiện có. Các nhà khác cần đối tượng ngoại thất và ID riêng; chốt vị trí sau khi kiểm tra bản đồ CMS đang công bố. Có thể dùng `house-west` để thử cơ chế cửa, chưa mặc định gán chủ nhà. NPC trong nhà là vai diễn theo cảnh, không tự thay vị trí NPC ngoài làng đã lưu.
+
+### Luồng vào và ra
+
+1. Chạm nhà hoặc biển nhà để tìm đường tới ô trước cửa. Nhân vật không đi xuyên chân tường. Nhà có nhiệm vụ hiện biểu tượng cuộn giấy; nhà khác vẫn cho tham quan.
+2. Đứng cách cửa tối đa một ô mới hiện **Vào nhà**. Chạm từ xa chỉ dẫn đường; cần xác nhận tại cửa để tránh chuyển cảnh khi đi ngang.
+3. Tải nội thất, chuyển cảnh mờ ngắn rồi đặt nhân vật phía trong cửa. Bé tiếp tục dùng chạm để đi hoặc joystick; có thể đi tới từng đồ vật trong phòng.
+4. Chạm đồ vật để tới ô tương tác gần nhất; đến nơi mới hiện **Xem**, **Lấy**, **Đặt**, **Nói chuyện**. Đồ liên quan nhiệm vụ có viền sáng nhẹ.
+5. Cửa ở cạnh dưới phòng và nút **Ra sân** luôn nhìn thấy. Ra đúng căn nhà vừa vào, phục hồi camera làng; chỉ cho vào lại khi bé rời vùng cửa hoặc chủ động bấm Vào nhà.
+
+Tải phòng lỗi thì giữ bé ngoài cửa và cho thử lại. Ô ra bị chặn sau khi đổi bố trí thì tìm ô đi được gần cửa, có đường về đường làng; không tìm được thì về điểm xuất phát an toàn. Ra sân được cả khi đang làm bài hoặc mất mạng; giữ bước đang làm, quà online chờ máy chủ xác nhận.
+
+### Bố trí nội thất
+
+Phòng mẫu dùng lưới logic 12 × 10 ô, hiển thị theo phối cảnh chéo hiện có. Kệ sách và bàn học ở tường sau, giỏ đồ bên trái, bàn nhỏ bên phải, thảm ở giữa, cửa ra ở cạnh dưới. Chừa lối chính rộng hai ô từ cửa vào giữa phòng và một ô đứng trước mỗi đồ vật tương tác.
+
+Bàn, kệ, tủ chặn theo chân đồ vật; thảm không chặn. Xếp lớp theo vị trí chân để nhân vật đi trước/sau đồ đúng hình. Trang trí chỉ đặt tại vị trí định sẵn, không chiếm cửa hoặc ô nhiệm vụ. Ánh xạ ba vị trí `left/middle/right` đã lưu thành ba vị trí trưng bày trong Nhà của bé, giữ ID đồ và điều kiện mở khóa cũ.
+
+### Nhiệm vụ trong nhà
+
+Mỗi nhà có một nhiệm vụ giới thiệu khoảng 3–5 phút: **Nhận việc → Tìm và thao tác → Kiểm tra, nhận quà**. Chỉ ghim một mục tiêu ngắn, ví dụ “Tìm 3 quyển sách”. Hoàn thành bước nào thì đồ vật đổi trạng thái ngay: sách xuất hiện trên kệ, bát lên bàn, bình lên giá. Rời nhà giữa chừng rồi quay lại vẫn làm tiếp.
+
+Ví dụ Nhà của bé: tới bàn học nhận việc; lấy sách trong giỏ rồi mang tới kệ; lấy bút đặt vào hộp trên bàn; quay lại bàn để kiểm tra. HUD hiển thị món đang mang và nơi cần đặt. Đặt sai thì giữ đồ và hiện gợi ý, không trừ sao. Nhóm tuổi nhỏ dùng hình và giọng đọc; nhóm lớn thêm đọc từ, đếm và sắp thứ tự theo hồ sơ hiện có.
+
+Quà nhà là bộ sưu tập riêng, không tự cộng sao hoặc cấp hành trình 100 cấp. Bản đầu mở cả năm nhà, độ khó theo nhóm tuổi. Chỉ nhận quà lần đầu; chơi lại ghi lượt luyện. Muốn gắn sao/cấp sau này cần bổ sung quy tắc xác thực server trước khi bật.
+
+### Dữ liệu và tích hợp dự kiến
+
+- Cấu hình nhà gồm `houseId`, `exteriorObjectId`, cửa tương đối với ngoại thất, ô tiếp cận, `interiorId`, điểm xuất hiện và nhiệm vụ. Cửa đi theo vị trí/kích thước nhà khi admin chỉnh CMS; không gắn tọa độ tuyệt đối vào ảnh.
+- Nội thất có lưới đi, vật cản, ô tương tác và cửa thoát riêng. Đổi cảnh phải hủy đường đi cũ, xóa trạng thái joystick, khóa thao tác cho tới khi đặt nhân vật xong.
+- Lưu theo học sinh và nhiệm vụ: phiên bản, bước hoàn thành, vật đang mang, lựa chọn đã đặt, trạng thái nhận quà. Server kiểm tra quyền hồ sơ, thứ tự bước và cấp quà một lần; tải lại hoặc gửi lại không nhân đôi quà. Giữ tiến độ chưa đồng bộ để gửi lại.
+- Phòng bạn bè dùng nội thất riêng của từng bé trong bản đầu. Thông điệp vị trí có ngữ cảnh làng/nhà để người ngoài không thấy nhân vật trong phòng chạy trên đường làng. Trở ra dùng đúng phiên bản bản đồ của phòng.
+- Tái sử dụng bộ trang trí từ `RoomDecor.ts` và `LearningUpgrades.ts`; thêm cấu hình nhà và điều khiển nội thất riêng. Không suy ra hoàn thành nhiệm vụ từ lịch sử báo cáo giới hạn 200 sự kiện.
+
+### Thực hiện và nghiệm thu
+
+Làm Nhà của bé trước: cửa thật, nội thất đi lại được, nhiệm vụ dọn bàn và lưu tiếp tục. Sau đó mở Nhà Cô Tấm, Xưởng Gốm, Nhà Bác Nông Dân và Nhà sách. Mỗi nhà cần ngoại thất, nền nội thất không có nhân vật, đồ vật tách lớp và trạng thái trước/sau nhiệm vụ.
+
+Kiểm tra bản Web Cocos thật trên desktop 1600 × 900 và mobile ngang 844 × 390: đi tới cửa; không xuyên tường/đồ; vào/ra đúng sau khi CMS đổi vị trí và kích thước nhà; thoát giữa nhiệm vụ; tải lại giữ bước và vật đang mang; cách ly hai hồ sơ; không nhận quà trùng; mất mạng hoặc lỗi tải không gây kẹt; vị trí trong phòng bạn bè đúng ngữ cảnh; nút Ra sân, joystick và xếp lớp hoạt động đúng.
+
 ## Chốt rà soát — 17/10/2026
 
 Bản sửa điều hướng và nâng tương thích CMS đã được rà soát lại; TypeScript client, 65 nhóm logic, 6 bài mạng/khởi động, 26 API, 11 bài server và build API/server đạt. Test dùng `tsx` cần chạy ngoài sandbox Windows do lỗi `uv_os_get_passwd ENOMEM`. Fixture MySQL tự bỏ qua khi chưa có `MYSQL_TEST_URL` trỏ tới cơ sở dữ liệu riêng có tên kết thúc bằng `_test`.

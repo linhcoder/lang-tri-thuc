@@ -2,6 +2,7 @@ import {LearningUpgrades} from '../world/LearningUpgrades';
 export class FirstVisitGuide{
  constructor(private current?:()=>LearningUpgrades|undefined){}
  private node?:HTMLElement;private last='';private replayTutorial?:string[];
+ setModal(active:boolean):void{if(this.node)this.node.hidden=active;}
  update(data:LearningUpgrades,signals:{move:boolean;talk:boolean;reward:boolean;modal:boolean},save:()=>void,navigate:()=>void):void{
   if(typeof document==='undefined')return;const tutorial=this.replayTutorial??data.tutorial;for(const key of ['move','talk','reward'] as const)if(signals[key]&&!tutorial.includes(key)){tutorial.push(key);save();}
   if(tutorial.includes('done')){this.dispose();return;}

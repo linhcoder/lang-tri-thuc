@@ -564,4 +564,37 @@ test('framed desktop camera holds the village composition, follows edge exits an
  assert.deepEqual(referenceCameraFocus({x:200,y:-700},390,844,true,160),{x:200,y:-540});
 });
 
+test('interior routes reach every task object without crossing furniture and reject room bounds',()=>{
+ const {InteriorMap,homeObjects,homeApproach}=load(path.join(scripts,'world/HouseInterior.ts')),room=new InteriorMap(),start={x:6,y:7};
+ assert.equal(room.walkable(0,0),false);assert.equal(room.walkable(11,8),false);
+ for(const object of homeObjects){assert.equal(room.walkable(object.x,object.y),false);const goal=homeApproach(room,start,object);assert.ok(goal);const route=room.path(start,goal);assert.ok(route.length);assert.ok(route.every(p=>room.walkable(p.x,p.y)));}
+ const blocked=new InteriorMap();blocked.walkable=()=>false;assert.equal(homeApproach(blocked,start,{x:3,y:2}),undefined);
+});
+test('home task checkpoints sanitize malformed data and merge without losing completed steps',()=>{
+ const {restoreUpgrades}=load(path.join(scripts,'world/LearningUpgrades.ts')),{mergeActivities,restoreActivities}=load(path.join(scripts,'world/ActivitySnapshot.ts'));
+ for(const homeStep of [-1,6,NaN,'5',1.5])assert.equal(restoreUpgrades({homeStep}).homeStep,0);
+ assert.equal(restoreUpgrades({homeStep:4,room:{left:'plant'}}).homeStep,4);
+ const merged=mergeActivities(restoreActivities({upgrades:{homeStep:5}}),restoreActivities({upgrades:{homeStep:2}}));assert.equal(merged.upgrades.homeStep,5);
+ const perHouse=mergeActivities(restoreActivities({upgrades:{houseSteps:{home:5,farm:1,pottery:50}}}),restoreActivities({upgrades:{houseSteps:{home:2,farm:3,tam:4}}}));assert.deepEqual(perHouse.upgrades.houseSteps,{home:5,tam:4,farm:3,pottery:0,books:0});
+});
+test('five distinct interior layouts keep every station reachable with no blocked spawn or exit',()=>{
+ const {InteriorMap,houseObjects}=load(path.join(scripts,'world/HouseInterior.ts')),{houseIds}=load(path.join(scripts,'world/HouseTasks.ts')),layouts=new Set();
+ for(const id of houseIds){const room=new InteriorMap(id),objects=houseObjects(id),start={x:6,y:7};assert.ok(room.walkable(6,7));assert.ok(room.walkable(6,8));layouts.add(JSON.stringify(objects.map(o=>[o.x,o.y])));for(const o of objects){assert.equal(room.walkable(o.x,o.y),false);assert.ok([{x:o.x+1,y:o.y},{x:o.x-1,y:o.y},{x:o.x,y:o.y+1},{x:o.x,y:o.y-1}].some(p=>room.walkable(p.x,p.y)&&room.path(start,p).length));}}
+ assert.equal(layouts.size,5);
+});
+test('house challenge proofs require all correct age-specific answers and replay checkpoints survive merges',()=>{
+ const {houseIds,houseChallenge,validHouseProof,restoreHouseRuns,mergeHouseRuns}=load(path.join(scripts,'world/HouseTasks.ts'));
+ for(const id of houseIds)for(const age of ['3-5','6-8','9-11']){const answers=Array.from({length:5},(_,s)=>houseChallenge(id,s,age).answer);assert.ok(validHouseProof(id,age,answers));assert.equal(validHouseProof(id,age,answers.slice(1)),false);assert.equal(validHouseProof(id,age,answers.map(a=>(a+1)%3)),false);}
+ assert.notEqual(houseChallenge('tam',3,'3-5').prompt,houseChallenge('tam',3,'9-11').prompt);
+ const old={home:{age:'6-8',answers:[1,1,0,2,1],updated:10}},replay={home:{age:'6-8',answers:[],updated:11}};assert.equal(mergeHouseRuns(old,replay).home.answers.length,0);assert.equal(mergeHouseRuns(replay,old).home.answers.length,0);
+ assert.deepEqual(restoreHouseRuns({home:{age:'6-8',answers:[0],updated:1}}),{});assert.deepEqual(restoreHouseRuns({home:{age:'adult',answers:[],updated:1}}),{});
+ const {furniture,furnitureUnlocked}=load(path.join(scripts,'world/LearningUpgrades.ts')),mat=furniture.find(f=>f.id==='tidy-mat');assert.equal(furnitureUnlocked(mat,100,[]),false);assert.equal(furnitureUnlocked(mat,0,['tidy-mat']),true);
+});
+test('free pottery shaping stays bounded, clips paint to the vase and preserves the latest student artwork',()=>{
+ const {restorePotteryDraft,shapePottery,insidePottery,mergePotteryDraft}=load(path.join(scripts,'world/PotteryDraft.ts')),draft=restorePotteryDraft(null),before=[...draft.radii];
+ assert.ok(shapePottery(draft,95,0));assert.notDeepEqual(draft.radii,before);shapePottery(draft,10000,0);assert.ok(draft.radii.every(n=>n>=18&&n<=100));assert.equal(shapePottery(draft,NaN,0),false);assert.equal(shapePottery(draft,30,200),false);assert.ok(insidePottery(draft,{x:0,y:0}));assert.equal(insidePottery(draft,{x:200,y:0}),false);
+ const invalid=restorePotteryDraft({radii:[Infinity],strokes:[{color:500,points:[{x:0,y:0}]},{color:1,points:[{x:999,y:0}]}]});assert.equal(invalid.radii.length,12);assert.deepEqual(invalid.strokes,[]);
+ const newest={...draft,updated:20,strokes:[{color:2,points:[{x:3.25,y:8.14}]}]},older={...draft,updated:10};assert.equal(mergePotteryDraft(newest,older).updated,20);assert.deepEqual(restorePotteryDraft(newest).strokes[0].points,[{x:3,y:8}]);
+ const {restoreActivities,mergeActivities}=load(path.join(scripts,'world/ActivitySnapshot.ts'));const merged=mergeActivities(restoreActivities({upgrades:{potteryDraft:newest}}),restoreActivities({upgrades:{potteryDraft:older}}));assert.equal(merged.upgrades.potteryDraft.updated,20);
+});
 console.log(`${checks} test groups passed`);

@@ -1,11 +1,21 @@
+import {restoreHouseSteps} from './HouseInterior';
+import {HouseRun,HouseId,restoreHouseRuns} from './HouseTasks';
+import {PotteryDraft,restorePotteryDraft} from './PotteryDraft';
 export interface LearningEvent {id:string;at:number;skill:string;correct:boolean;kind:'answer'|'complete';target:string}
-export interface LearningUpgrades {tutorial:string[];events:LearningEvent[];room:Record<string,string>;largeControls:boolean}
-export const furniture=[{id:'plant',name:'Chậu cây',stars:0,color:'#68a34c'},{id:'pottery',name:'Bình gốm',stars:1,color:'#bb784f'},{id:'books',name:'Kệ sách',stars:2,color:'#568dcc'},{id:'lantern',name:'Đèn lồng',stars:4,color:'#db6556'},{id:'trophy',name:'Cúp tri thức',stars:8,color:'#e8b635'}];
+export interface LearningUpgrades {tutorial:string[];events:LearningEvent[];room:Record<string,string>;largeControls:boolean;homeStep?:number;houseSteps?:Record<string,number>;houseRuns?:Partial<Record<HouseId,HouseRun>>;potteryDraft?:PotteryDraft}
+export interface Furniture {id:string;name:string;stars:number;color:string;reward?:string}
+export const furniture:Furniture[]=[{id:'plant',name:'Chậu cây',stars:0,color:'#68a34c'},{id:'pottery',name:'Bình gốm',stars:1,color:'#bb784f'},{id:'books',name:'Kệ sách',stars:2,color:'#568dcc'},{id:'lantern',name:'Đèn lồng',stars:4,color:'#db6556'},{id:'trophy',name:'Cúp tri thức',stars:8,color:'#e8b635'},
+ {id:'tidy-mat',name:'Thảm gọn gàng',stars:0,color:'#ad765d',reward:'tidy-mat'},
+ {id:'flower-basket',name:'Giỏ hoa Cô Tấm',stars:0,color:'#d39088',reward:'flower-basket'},
+ {id:'seed-planter',name:'Chậu mầm xanh',stars:0,color:'#83a061',reward:'seed-planter'},
+ {id:'painted-vase',name:'Bình gốm hoa văn',stars:0,color:'#bc7d57',reward:'painted-vase'},
+ {id:'reading-lamp',name:'Đèn góc đọc sách',stars:0,color:'#dab975',reward:'reading-lamp'}];
+export function furnitureUnlocked(item:Furniture,stars:number,rewards:readonly string[]=[]):boolean{return item.reward?rewards.includes(item.reward):stars>=item.stars;}
 export function restoreUpgrades(raw:unknown):LearningUpgrades{
  const v=raw as Partial<LearningUpgrades>|null;
  const events:LearningEvent[]=[],seen=new Set<string>();for(const e of Array.isArray(v?.events)?v!.events:[]){if(!e||typeof e.id!=='string'||e.id.length>90||seen.has(e.id)||!Number.isFinite(e.at)||e.at<0||e.at>Date.now()+86400000||typeof e.skill!=='string'||e.skill.length>40||typeof e.target!=='string'||e.target.length>100||typeof e.correct!=='boolean'||!['answer','complete'].includes(e.kind))continue;seen.add(e.id);events.push({...e});}
  const room:Record<string,string>={};for(const [slot,id]of Object.entries(v?.room??{}))if(['left','middle','right'].includes(slot)&&furniture.some(f=>f.id===id))room[slot]=id;
- return {tutorial:Array.isArray(v?.tutorial)?Array.from(new Set(v!.tutorial.filter(id=>['move','talk','reward','done'].includes(id)))):[],events:events.sort((a,b)=>a.at-b.at).slice(-200),room,largeControls:v?.largeControls===true};
+ return {tutorial:Array.isArray(v?.tutorial)?Array.from(new Set(v!.tutorial.filter(id=>['move','talk','reward','done'].includes(id)))):[],events:events.sort((a,b)=>a.at-b.at).slice(-200),room,largeControls:v?.largeControls===true,houseSteps:restoreHouseSteps(v?.houseSteps),houseRuns:restoreHouseRuns(v?.houseRuns),potteryDraft:restorePotteryDraft(v?.potteryDraft),homeStep:Number.isInteger(v?.homeStep)&&v!.homeStep!>=0&&v!.homeStep!<=5?v!.homeStep:0};
 }
 export function recordLearning(data:{upgrades?:LearningUpgrades},skill:string,correct:boolean,target:string,kind:LearningEvent['kind']='answer'):void{
  const v=data.upgrades??=restoreUpgrades(null);if(kind==='complete'&&v.events.some(e=>e.kind===kind&&e.target===target))return;

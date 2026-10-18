@@ -1,6 +1,6 @@
 import type {VillageArt} from '../world/VillageArt';
 import {paintRoom} from './RoomDecor';
-import {restoreUpgrades,recordLearning,learningReport,furniture} from '../world/LearningUpgrades';
+import {restoreUpgrades,recordLearning,learningReport,furniture,furnitureUnlocked} from '../world/LearningUpgrades';
 import {journeyRegions,journeyTasks,journeyQuestions,journeyAvailable,regionForZone} from '../world/LevelJourney';
 import {FlowerCareView} from './FlowerCareView';
 import {DialoguePresentation} from './DialoguePresentation';
@@ -59,6 +59,7 @@ export class VillageHub {
     }
     applyExpansionFeedback(id:ExpansionId,message:string,cancelled=false):void{if(this.pendingExpansion===id||this.expansionAttempt&&this.expansionGame?.id===id){if(cancelled){this.endExpansionOnline();this.mode='friend';}this.message=message;this.render();}}
     endExpansionOnline():void{this.pendingExpansion=undefined;this.expansionAttempt='';this.expansionPlayers=0;}
+    houseRewards:string[]=[];
     onActivitySave?:()=>void;
     onPortal?:(id:string)=>void;private usePortal=false;onOnline?:(action:string,id?:string)=>void;onlinePeers?:()=>Array<{id:string;name:string}>;private mapPage=0;private peerIndex=0;readonly node:Node;readonly npcNodes:Node[]=[];
     readonly campaign:CampaignEngine;
@@ -458,7 +459,7 @@ export class VillageHub {
             this.text(this.node,'Khăn được giữ khi đổi nhân vật và hiển thị với bạn cùng phòng.',0,-75,540,95,22);
             this.button('BackToAvatar','Chọn nhân vật',0,-165,350,()=>{this.mode='avatar';this.render();});
         }
-        else if(this.mode==='room'){const data=this.campaign.data.upgrades??=restoreUpgrades(null);paintRoom(this.node,data,this.campaign.stars,this.rewardArt);this.text(this.node,'Chạm một vị trí để đổi đồ trang trí đã mở khóa.',0,175,530,45,19);['left','middle','right'].forEach((slot,i)=>this.button('RoomSlot-'+slot,(['Bên trái','Ở giữa','Bên phải'][i])+': '+(furniture.find(f=>f.id===data.room[slot])?.name??'Trống'),(i-1)*180,-80,170,()=>{const unlocked=['',...furniture.filter(f=>f.stars<=this.campaign.stars).map(f=>f.id)],index=unlocked.indexOf(data.room[slot]??'');data.room[slot]=unlocked[(index+1)%unlocked.length];this.persist();this.render();}));const next=furniture.find(f=>f.stars>this.campaign.stars);this.text(this.node,next?`Mở ${next.name.toLowerCase()} khi đạt ${next.stars} sao.`:'Đã mở đủ bộ sưu tập trang trí!',0,-165,520,50,17);}
+        else if(this.mode==='room'){const data=this.campaign.data.upgrades??=restoreUpgrades(null);paintRoom(this.node,data,this.campaign.stars,this.rewardArt,this.houseRewards);this.text(this.node,'Chạm một vị trí để đổi đồ trang trí đã mở khóa.',0,175,530,45,19);['left','middle','right'].forEach((slot,i)=>this.button('RoomSlot-'+slot,(['Bên trái','Ở giữa','Bên phải'][i])+': '+(furniture.find(f=>f.id===data.room[slot])?.name??'Trống'),(i-1)*180,-80,170,()=>{const unlocked=['',...furniture.filter(f=>furnitureUnlocked(f,this.campaign.stars,this.houseRewards)).map(f=>f.id)],index=unlocked.indexOf(data.room[slot]??'');data.room[slot]=unlocked[(index+1)%unlocked.length];this.persist();this.render();}));const next=furniture.find(f=>!f.reward&&f.stars>this.campaign.stars);this.text(this.node,next?`Mở ${next.name.toLowerCase()} khi đạt ${next.stars} sao.`:'Đã mở đủ bộ sưu tập trang trí!',0,-165,520,50,17);}
         else if(this.mode==='weekly'){this.button('SuggestedPractice','Luyện theo gợi ý',210,-235,170,()=>this.startPersonal());this.button('ExportReportSave','Xuất bản sao',-210,-235,160,()=>this.exportSave());const r=learningReport(this.campaign.data.upgrades);this.text(this.node,`${r.activeDays} ngày hoạt động · ${r.completed} nhiệm vụ mới\n${r.correct}/${r.answers} lượt trả lời đúng\n${r.skills.map(v=>v.name+': '+v.correct+'/'+v.attempts).join('\n')}\n\n${r.recommendation}`,0,25,530,330,21);this.text(this.node,'Ghi nhận từ khi nâng cấp; tối đa 200 sự kiện gần nhất.',0,-190,530,40,15);}
         else if(this.mode==='home'){this.button('DecorateRoom','Trang trí phòng riêng',0,-165,450,()=>{this.mode='room';this.render();});this.grid(['Nhà mái ngói','Nhà xanh • 2 sao','Nhà tím • 4 sao','Nhà vàng • 8 sao'].map((label,i)=>({id:'Home-'+i,label,action:()=>{if(this.campaign.stars>=[0,2,4,8][i]){this.campaign.data.home=i;this.persist();this.message='Đã trang trí ngôi nhà.';}else this.message='Màu này mở khi có thêm sao.';this.render();}})));}
         else if(this.mode==='menu'){this.grid([

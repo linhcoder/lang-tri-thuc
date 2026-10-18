@@ -1,5 +1,13 @@
 # aaPanel staging: ltt.vui-hoc.xyz
 
+## Nhà riêng và xưởng gốm — VPS 18/10/2026
+
+Release đang chạy `houses-35eb627f-20261018`, contentVersion `35eb627f`; Web/API/rooms đồng bộ. Năm nhà có ảnh ngoại thất riêng, nội thất đi lại được, nhiệm vụ theo tuổi, quà trang trí có xác nhận server và xưởng nặn/vẽ gốm tự do lưu theo học sinh. Chi tiết tại [LEVEL_100_AND_STUDENTS](../../docs/design/LEVEL_100_AND_STUDENTS.md).
+
+Overlay 70 file, SHA-256 `9e301e86da0145062c8ac50af9d45a015d9a799b89aaad6869a40a8ea5a2e888`; từng file đã đối chiếu trước kích hoạt. `npm prune` viết lại metadata lockfile trên Linux; lockfile nguồn được phục hồi đúng từ archive sau build rồi kiểm tra SHA lại. Backup `/opt/lang-tri-thuc/backups/database-20261017T184349Z.sql` phục hồi thử khớp; build Linux API/rooms và nginx -t đạt. Hai API MySQL healthy. Bản đồ công bố, bản nháp, CMS và NPC giữ nguyên checksum; ba hồ sơ thật không đổi. Giữ `navigation-fix-35eb627f-20261016` để rollback ứng dụng.
+
+QA local đủ ba tuổi trên desktop/Android đạt; HTTPS desktop 1600×900 và Android 844×390 đạt năm ảnh/nhà, kéo thả, quà, trang trí, nặn/vẽ và reload MySQL, page errors rỗng. Signed WebSocket hai hồ sơ đạt lưu checkpoint/tác phẩm và cách ly học sinh. Gia đình QA đã được xóa. Báo cáo/ảnh local ignored: `temp/deploy/qa/houses-live/`; metadata triển khai `temp/deploy/houses-deploy-state.json`. Các release bên dưới là lịch sử.
+
 ## Sửa điều hướng — 16/10/2026
 
 Release hiện tại `navigation-fix-35eb627f-20261016`, contentVersion `35eb627f`; đóng gói working tree gồm bản sửa điều hướng và nâng tương thích CMS. NPC không tạo tuyến tuần tra từ ô bị chặn; tiếp cận đồ vật ở tọa độ lẻ dùng ô lưới nguyên. Web/API/rooms đã triển khai đồng bộ. Overlay 15 file SHA-256 `8d7947419bef72d6de305607d2ef9faee78ba80e760c8fe5237f6531b60bb07a`, từng file khớp trước kích hoạt. Backup `/opt/lang-tri-thuc/backups/database-20261016T092156Z.sql` phục hồi thử trùng khớp; build Linux API/rooms và nginx -t đạt. Hai API MySQL healthy; giữ NPC CMS, bản đồ công bố và release `reward-art-936d016-20261016` để rollback ứng dụng.

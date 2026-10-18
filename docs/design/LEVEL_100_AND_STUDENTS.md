@@ -1,5 +1,13 @@
 # Hành trình 100 cấp và hồ sơ học sinh
 
+### Biển khu vực và vị trí Cô Tấm — 18/10/2026
+
+- Biển Rừng khám phá, Đồi khoa học, Làng văn hóa và Đảo tri thức bám tọa độ công trình trong layout đã xuất bản, thay vì vị trí spawn cũ. Dùng asset biển gỗ chung; có biển gỗ vẽ dự phòng trong lúc tải ảnh.
+- Bản đồ xuất bản revision 3 chuyển riêng Cô Tấm từ (27,15) về (52,42), cạnh nhà ở (53.75,40.75). Đã kiểm tra va chạm và đường tiếp cận; giữ nguyên toàn bộ công trình và 11 NPC còn lại. Tọa độ này lưu trong bản đồ xuất bản, không sửa NPC pack nền để giữ tương thích client/API/rooms.
+- Source `0112ffa` và `149eb12`. TypeScript, 70 nhóm logic, 11 bài mạng/khởi động/cache/retry và QA Cocos desktop 1600×900/mobile 844×390 đạt. Kiểm tra biển theo tọa độ CMS phân số, asset công trình tải dần và Cô Tấm cạnh nhà tại `apps/game-client/tests/journey-signs-web.cjs`.
+- Đã kích hoạt `region-signs-35eb627f-20261018`, contentVersion `35eb627f`; gồm cả WebP và retry nhận quà bên dưới. Backup MySQL đã thử khôi phục; build API/rooms Linux, checksum candidate và health hai API đạt. Lần kích hoạt đầu tự rollback do NPC pack làm đổi phiên bản nội dung; đã bỏ thay đổi pack, kiểm tra health candidate riêng rồi kích hoạt thành công. Giữ `fullscreen-loading-35eb627f-20261018` để rollback.
+- QA asset/JavaScript qua HTTPS đạt ở desktop/mobile với API fixture riêng, không tạo hồ sơ thật; đã xem ảnh biển và Cô Tấm. API HTTPS thật xác nhận revision 3, 90 bài học/12 NPC/24 asset và phiên bản `35eb627f`; các kiểm tra phân quyền đạt. Trạng thái xuất bản/draft/CMS/NPC giữ nguyên sau chuyển release.
+
 ### Giảm dữ liệu ảnh và phục hồi nhận quà — 18/10/2026
 
 - Build Web chạy thêm `tools/optimize-web-images.py` (Python + Pillow hỗ trợ WebP). 83 ảnh có bản WebP bên cạnh PNG dự phòng; Cocos `ImageAsset.fmt=4_0` tự chọn WebP khi hỗ trợ. Không ghi đè ảnh nguồn, không đổi kích thước hoặc tọa độ atlas; mọi alpha được so byte sau giải mã. 80 ảnh nhân vật/UI/atlas và các cảnh không đạt ngưỡng dùng lossless; ba tranh cảnh dùng quality 90, PSNR vùng nhìn thấy ở kích thước gốc và preview 768 px đều tối thiểu 34 dB, giữ ICC profile.
@@ -9,9 +17,9 @@
 - TypeScript, 70 nhóm logic, 11 bài mạng/khởi động/cache/retry, ba kiểm tra optimizer và build Web đạt. QA năm nhà ở tuổi 6–8 trên desktop/mobile đạt; fixture server đã cấp quà nhưng trả 504 lần đầu xác nhận UI tự gửi lại đúng một lần, không cấp trùng. Đã xem ảnh WebP và nội thất; PNG fallback được kiểm tra bằng cách tắt tính năng WebP trong engine.
 - QA offline tuổi 3–5 trên desktop đạt: cả hai lần gửi nhận quà đều lỗi mạng thì không mở quà chưa xác thực; khi nối lại, Nhận quà thủ công phục hồi đúng và reload giữ tiến độ.
 - QA mạng dùng server fixture giới hạn tổng băng thông game HTTP 1,6 Mbps, trễ 80 ms, bao gồm fetch của service worker (API fixture không giới hạn, server không gzip). Mobile 844×390: tải lạnh 95.180 ms; sau khi cache được điền đủ, mở lại 24.659 ms và ba texture nền lớn không phát sinh request server mới. Đây là giả lập, chưa phải kiểm thử điện thoại thật/4G thực tế. Báo cáo và ảnh ở `apps/game-client/temp/web-images-qa/`.
-- Mã tối ưu đã commit `dc1bdb2`. Chưa triển khai VPS: hai lần kết nối SSH đều timeout, kiểm tra HTTPS từ môi trường thực thi cũng thất bại; chưa thực hiện upload/activate. Bản build và QA local sẵn sàng, cần kiểm tra lại baseline VPS khi kết nối phục hồi. Bản VPS bên dưới là bản đã xác minh trước tối ưu WebP/retry.
+- Mã tối ưu đã commit `dc1bdb2`. Kết nối VPS đã phục hồi; WebP/retry đã triển khai cùng release `region-signs-35eb627f-20261018` sau khi kiểm tra lại baseline và sao lưu dữ liệu.
 
-**Bản VPS đã xác minh gần nhất: `fullscreen-loading-35eb627f-20261018`, source commit `ba14f3b`, contentVersion `35eb627f`.** Đã triển khai nội thất toàn màn hình và tải dần; backup/restore drill, checksum 14 file, build Linux, hai API MySQL và QA HTTPS đạt ngày 18/10/2026. Giữ `interior-art-35eb627f-20261018` để rollback; bản đồ/CMS/NPC và ba hồ sơ thật giữ nguyên.
+**Bản VPS đang chạy: `region-signs-35eb627f-20261018`, source commit `149eb12`, contentVersion `35eb627f`.** Bao gồm nội thất toàn màn hình, tải dần, WebP/retry và sửa biển khu vực. Cô Tấm đã chuyển cạnh nhà qua bản đồ revision 3; ba hồ sơ thật và các bố trí khác giữ nguyên.
 
 ### Cảnh nội thất toàn màn hình — 18/10/2026
 

@@ -480,7 +480,8 @@ export class VillageHub {
         }
         else if(this.mode==='achievements'){
             this.text(this.node,`Lv.${this.campaign.level}/100 · ${this.campaign.xp} XP · ${this.campaign.journey.completed.length}/100 thử thách\n★ Sao Tri Thức: ${this.campaign.stars}/8\nLuyện tập: ${this.campaign.data.practice.length}/12 trò chơi\n${chapters.map(c=>(this.campaign.data.receipts.includes('reward.star.'+c.id)?'★ ':'○ ')+c.title).join('\n')}`,0,20,550,360,20);
-            this.button('Practice','Luyện tập nhận huy hiệu',0,-205,400,()=>{this.mode='activities';this.render();});
+            this.button('Practice','Luyện tập nhận huy hiệu',-95,-235,350,()=>{this.mode='activities';this.render();});
+            close.setPosition(205,-235);
         }
         else if(this.mode==='inventory'){
             this.text(this.node,`Lv.${this.campaign.level}/100 · ${this.campaign.xp} XP · ${this.campaign.journey.completed.length}/100 thử thách\n★ Sao Tri Thức: ${this.campaign.stars}/8\nLuyện tập: ${this.campaign.data.practice.length}/12 trò\nKhám phá: ${this.campaign.data.explored?.length??0}/6 góc làng`,0,100,540,110,22);

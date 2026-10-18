@@ -56,6 +56,17 @@ function label(parent: Node, text: string, width: number, height: number, size =
     l.color = new Color(48, 48, 35); return n;
 }
 function circle(g: Graphics, x: number, y: number, radius: number, color: Color): void { g.fillColor = color; g.circle(x, y, radius); g.fill(); }
+function houseSign(world:Node,art:VillageArt,name:string,title:string):Node{
+    const node=ui(world,name,220,64),fallback=ui(node,'WoodFallback'),g=fallback.addComponent(Graphics);
+    g.fillColor=new Color('#614028');g.rect(-78,-32,9,26);g.rect(69,-32,9,26);g.fill();
+    g.fillColor=new Color('#996638');g.roundRect(-110,-20,220,40,5);g.fill();
+    g.strokeColor=new Color('#d3a466');g.lineWidth=2;for(const y of [-15,15]){g.moveTo(-103,y);g.lineTo(103,y);}g.stroke();
+    const caption=label(node,title,184,28,14);caption.name='Caption';const text=caption.getComponent(Label)!;text.color=new Color('#fff4cd');text.overflow=Label.Overflow.SHRINK;text.enableWrapText=false;text.lineHeight=19;
+    void art.ensureObject('scenery.wood-sign',-1).then(frame=>{
+        if(!node.isValid||!frame)return;const wood=art.sprite(node,'WoodenSign',frame,220,64);wood.setPosition(0,-32);wood.setSiblingIndex(0);fallback.destroy();
+    }).catch(()=>{/* The drawn wooden sign remains usable while offline. */});
+    return node;
+}
 // Code-native scarf attached to the neck in every direction.
 function drawAccessory(g:Graphics,id:number,direction:number,row:number):void {
     const signature=id+':'+direction+':'+row;
@@ -434,11 +445,11 @@ export class VillageBootstrap extends Component {
         if(this.interior?.node.active){const size=this.node.getComponent(UITransform)!;this.interior.update(dt,size.width,size.height);}
         this.guide?.setModal(this.modalActive);
         if(this.hub&&this.assetsReady&&!this.modalActive){
-            for(const config of enterableHouses){if(this.houseDoors.some(d=>d.house.id===config.id))continue;const exterior=this.actors.getChildByName(config.node);if(!exterior)continue;const goal=homeApproach(this.map,tileAt(this.player.position),tileAt(exterior.position));if(!goal)continue;const node=ui(this.world,'HouseEntrance-'+config.id,180,44),p=toWorld(goal);node.setPosition(p.x,p.y+35);const g=node.addComponent(Graphics);g.fillColor=new Color('#547044');g.roundRect(-90,-22,180,44,8);g.fill();const caption=label(node,config.name,175,42,17);caption.getComponent(Label)!.color=new Color('#fff4da');this.houseDoors.push({house:config,node,goal});if(config.id==='home'){this.homeDoor=node;this.homeGoal=goal;}}
+            for(const config of enterableHouses){if(this.houseDoors.some(d=>d.house.id===config.id))continue;const exterior=this.actors.getChildByName(config.node);if(!exterior)continue;const goal=homeApproach(this.map,tileAt(this.player.position),tileAt(exterior.position));if(!goal)continue;const node=houseSign(this.world,this.art,'HouseEntrance-'+config.id,config.name),p=toWorld(goal);node.setPosition(p.x,p.y+35);this.houseDoors.push({house:config,node,goal});if(config.id==='home'){this.homeDoor=node;this.homeGoal=goal;}}
             const house=this.actors.getChildByName('house');
-            if(house&&!this.homeDoor){this.homeGoal=homeApproach(this.map,tileAt(this.player.position),tileAt(house.position));if(this.homeGoal){this.homeDoor=ui(this.world,'HomeEntrance',160,50);const p=toWorld(this.homeGoal);this.homeDoor.setPosition(p.x,p.y+35);const g=this.homeDoor.addComponent(Graphics);g.fillColor=new Color('#547044');g.roundRect(-80,-25,160,50,9);g.fill();label(this.homeDoor,'Nhà của bé',155,45,20);}}
-            if(this.homeDoor&&this.homeGoal){const p=toWorld(this.homeGoal);this.homeDoor.children[0].getComponent(Label)!.string=Math.hypot(p.x-this.player.position.x,p.y-this.player.position.y)<12?'Vào nhà →':'Nhà của bé';}
-            for(const door of this.houseDoors){const p=toWorld(door.goal);door.node.children[0].getComponent(Label)!.string=Math.hypot(p.x-this.player.position.x,p.y-this.player.position.y)<12?'Vào nhà →':door.house.name;}
+            if(house&&!this.homeDoor){this.homeGoal=homeApproach(this.map,tileAt(this.player.position),tileAt(house.position));if(this.homeGoal){this.homeDoor=houseSign(this.world,this.art,'HomeEntrance','Nhà của bé');const p=toWorld(this.homeGoal);this.homeDoor.setPosition(p.x,p.y+35);}}
+            if(this.homeDoor&&this.homeGoal){const p=toWorld(this.homeGoal);this.homeDoor.getChildByName('Caption')!.getComponent(Label)!.string=Math.hypot(p.x-this.player.position.x,p.y-this.player.position.y)<12?'Vào nhà →':'Nhà của bé';}
+            for(const door of this.houseDoors){const p=toWorld(door.goal);door.node.getChildByName('Caption')!.getComponent(Label)!.string=Math.hypot(p.x-this.player.position.x,p.y-this.player.position.y)<12?'Vào nhà →':door.house.name;}
         }
         this.syncStudent(dt);
         if(this.hub&&this.assetsReady){this.growth.update(this.actors,this.hub.campaign,this.art);this.guideElapsed+=dt;if(this.guideElapsed>.4){this.guideElapsed=0;this.guideStart??={...this.player.position};const data=this.hub.campaign.data.upgrades??=restoreUpgrades(null);this.guide.update(data,{move:Math.hypot(this.player.position.x-this.guideStart.x,this.player.position.y-this.guideStart.y)>30,talk:this.chapterSave?.progress.data.greeted===true,reward:this.hub.campaign.stars>0,modal:this.modalActive},()=>{this.hub!.onActivitySave?.();this.hub!.save.save();},()=>this.chapter?.navigateObjective());}}
@@ -623,11 +634,11 @@ export class VillageBootstrap extends Component {
         this.selectWorld(this.local(p,this.world));
     }
     private selectWorld(world:Point):void{
-        const entrance=this.houseDoors?.find(d=>Math.abs(world.x-d.node.position.x)<90&&Math.abs(world.y-d.node.position.y)<22);
+        const entrance=this.houseDoors?.find(d=>Math.abs(world.x-d.node.position.x)<110&&Math.abs(world.y-d.node.position.y)<32);
         if(entrance&&this.interior){const p=toWorld(entrance.goal);this.resetInput();if(Math.hypot(p.x-this.player.position.x,p.y-this.player.position.y)<12)this.interior.open(entrance.house);else if(this.player.goTo(entrance.goal))this.showDestination(entrance.goal);return;}
         const house=this.interior?this.actors.getChildByName('house'):null;
         const door=this.homeDoor;
-        if(this.interior&&this.homeGoal&&((door&&Math.abs(world.x-door.position.x)<80&&Math.abs(world.y-door.position.y)<25)||(house&&Math.abs(world.x-house.position.x)<100&&world.y>house.position.y&&world.y<house.position.y+180))){
+        if(this.interior&&this.homeGoal&&((door&&Math.abs(world.x-door.position.x)<110&&Math.abs(world.y-door.position.y)<32)||(house&&Math.abs(world.x-house.position.x)<100&&world.y>house.position.y&&world.y<house.position.y+180))){
             const p=toWorld(this.homeGoal);if(Math.hypot(p.x-this.player.position.x,p.y-this.player.position.y)<12){this.resetInput();this.interior.open();}else{this.resetInput();this.player.goTo(this.homeGoal);this.showDestination(this.homeGoal);}return;
         }
         const sign=this.world?.children?.find(n=>n.name.startsWith('JourneySign-')&&Math.abs(n.position.x-world.x)<140&&Math.abs(n.position.y-world.y)<26);if(sign){this.hub?.openJourneyRegion(sign.name.slice(12));return;}

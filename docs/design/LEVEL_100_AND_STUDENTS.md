@@ -1,5 +1,13 @@
 # Hành trình 100 cấp và hồ sơ học sinh
 
+### Hoàn thành vẽ tự do — 18/10/2026
+
+- Vẽ tự do trước đây chỉ tự lưu nét, chưa có thao tác kết thúc. Source `c57cb49`/`94ce5d3` thêm nút **Hoàn thành**: tranh có nét được giữ lại, ghi một sự kiện hoàn thành `painting.free` vào báo cáo sáng tạo rồi quay về menu với thông báo thành công. Tranh trống được nhắc vẽ trước; lời nhắc tự xóa khi có nét mới. Ghi nhận hoàn thành không lặp lại khi bấm nhiều lần; không cấp sao cốt truyện hoặc cộng vào 12 trò luyện tập.
+- Các ô màu có swatch riêng nằm trên nền nút, không còn bị skin che thành ô trắng. Hàng dưới gồm Lùi nét, Trang mới, Hoàn thành, Đóng với hitbox tách nhau. Tranh đã có vẫn có thể hoàn thành, mở lại chỉnh sửa, tải ảnh hoặc đổi trang.
+- TypeScript, 70 nhóm logic và 11 bài mạng/khởi động/cache/retry đạt. Kiểm thử `apps/game-client/tests/free-painting-web.cjs` đạt desktop 1600×900/mobile 844×390: vẽ chuột/cảm ứng hai màu, tranh trống không hoàn thành, sự kiện chỉ ghi một lần, tranh và sự kiện giữ sau reload, tiến độ cốt truyện không đổi. Đã xem ảnh `apps/game-client/temp/free-painting-*.png`.
+- Release `free-painting-35eb627f-20261018`, contentVersion `35eb627f` đã kích hoạt. Backup/restore MySQL, checksum sáu file, build Linux và health hai API đạt; bản đồ/draft/CMS/NPC và ba hồ sơ thật giữ nguyên. Rollback ứng dụng: `achievements-footer-35eb627f-20261018`.
+- QA JavaScript/asset qua HTTPS sau deploy với API fixture riêng đạt cả desktop/mobile: hoàn thành đúng một lần, hai màu hiển thị/vẽ được, reload giữ tranh và sự kiện, không đổi cốt truyện và không có page error.
+
 ### Tách hai nút trong bảng Thành tích — 18/10/2026
 
 - Source `63936a0` đặt “Luyện tập nhận huy hiệu” và “Đóng” cạnh nhau trên cùng hàng dưới, thay vì hai hàng chỉ cách nhau 30 px trong khi nút cao 76 px. Giữ nội dung thành tích; nút luyện tập rộng 350 px bên trái, nút đóng bên phải, có khoảng trống 47.5 px giữa hai hitbox.
@@ -48,7 +56,7 @@
 - QA mạng dùng server fixture giới hạn tổng băng thông game HTTP 1,6 Mbps, trễ 80 ms, bao gồm fetch của service worker (API fixture không giới hạn, server không gzip). Mobile 844×390: tải lạnh 95.180 ms; sau khi cache được điền đủ, mở lại 24.659 ms và ba texture nền lớn không phát sinh request server mới. Đây là giả lập, chưa phải kiểm thử điện thoại thật/4G thực tế. Báo cáo và ảnh ở `apps/game-client/temp/web-images-qa/`.
 - Mã tối ưu đã commit `dc1bdb2`. Kết nối VPS đã phục hồi; WebP/retry đã triển khai cùng release `region-signs-35eb627f-20261018` sau khi kiểm tra lại baseline và sao lưu dữ liệu.
 
-**Bản VPS đang chạy: `achievements-footer-35eb627f-20261018`, source commit `63936a0`, contentVersion `35eb627f`.** Bao gồm nội thất toàn màn hình, tải dần, WebP/retry, biển gỗ, tỷ lệ nhân vật và sửa nút bảng Thành tích. Bản đồ hiện tại revision 7: nhà của bé/nhà nông dân đã hoán đổi, chợ quê/nhà Cô Tấm lớn hơn, Cô Tấm cạnh nhà và Nghệ Nhân Gốm cạnh xưởng; ba hồ sơ thật giữ nguyên.
+**Bản VPS đang chạy: `free-painting-35eb627f-20261018`, source commit `793480f` (gồm sửa UI `c57cb49`/`94ce5d3`), contentVersion `35eb627f`.** Bao gồm hoàn thành vẽ tự do, nội thất toàn màn hình, tải dần, WebP/retry, biển gỗ, tỷ lệ nhân vật và sửa nút bảng Thành tích. Bản đồ hiện tại revision 7: nhà của bé/nhà nông dân đã hoán đổi, chợ quê/nhà Cô Tấm lớn hơn, Cô Tấm cạnh nhà và Nghệ Nhân Gốm cạnh xưởng; ba hồ sơ thật giữ nguyên.
 
 ### Cảnh nội thất toàn màn hình — 18/10/2026
 

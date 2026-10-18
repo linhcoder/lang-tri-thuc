@@ -1,5 +1,11 @@
 # Hành trình 100 cấp và hồ sơ học sinh
 
+### Bác Kể Chuyện không bị chợ che — 18/10/2026
+
+- NPC CMS `cms-95001b11` trước ở (23,27), phía sau tranh chợ lớn nên chỉ thấy biển tên. Đã chuyển riêng bác tới (24,32), phía trước chợ và có đường đi từ điểm xuất phát. Giữ nguyên ảnh, lời thoại, nhiệm vụ liên kết và các NPC khác.
+- Kiểm tra CMS với cả bản đồ nền và layout đang xuất bản đạt; lưu/review/approve/publish qua API có kiểm tra revision, không ghi đè draft khác. Manifest mới `fc0d04cff0111118f389cf69948d70cf2eb5724a473315afb3849f5c3f27ed08`, bản trước `b0bce93c337aa2bb22b1e4d1adb7a888a5f8557d0813b6df49ed477a15ae363e` được giữ trong lịch sử CMS.
+- QA HTTPS thật desktop 1600×900/mobile 844×390 đạt: sprite hiển thị trước chợ, có đường tới bác và bấm nhân vật mở hội thoại. Đã xem ảnh `temp/deploy/qa/storyteller-*.png`; tài khoản kiểm thử đã xóa. Đây là cập nhật CMS, không cần build/deploy lại; release vẫn `free-painting-35eb627f-20261018`, layout revision 7.
+
 ### Hoàn thành vẽ tự do — 18/10/2026
 
 - Vẽ tự do trước đây chỉ tự lưu nét, chưa có thao tác kết thúc. Source `c57cb49`/`94ce5d3` thêm nút **Hoàn thành**: tranh có nét được giữ lại, ghi một sự kiện hoàn thành `painting.free` vào báo cáo sáng tạo rồi quay về menu với thông báo thành công. Tranh trống được nhắc vẽ trước; lời nhắc tự xóa khi có nét mới. Ghi nhận hoàn thành không lặp lại khi bấm nhiều lần; không cấp sao cốt truyện hoặc cộng vào 12 trò luyện tập.

@@ -36,6 +36,6 @@ async function start(args,ready,env={}){const child=spawn(process.execPath,args,
   await page.reload();await page.waitForFunction(()=>!!window.System);await page.evaluate(async()=>window.cc=await System.import('cc'));await page.waitForFunction(()=>cc.director.getScene()?.getChildByName('Canvas')?.getComponent('VillageBootstrap')?.assetsReady,undefined,{timeout:90000});await page.evaluate(()=>window.v=cc.director.getScene().getChildByName('Canvas').getComponent('VillageBootstrap'));
   assert.equal(await page.evaluate(()=>JSON.stringify(v.hub.campaign.data.painting)),drawing);assert.equal(await page.evaluate(()=>v.hub.campaign.data.upgrades.events.filter(e=>e.target==='painting.free').length),1);assert.equal(await page.evaluate(()=>JSON.stringify({receipts:v.hub.campaign.data.receipts,completed:v.hub.campaign.data.completed,practice:v.hub.campaign.data.practice})),story);
   console.log(JSON.stringify({width,height,emptyRejected:true,twoColors:true,completedOnce:true,reloadPreserved:true,storyUnchanged:true}));
-  assert.deepEqual(errors,[]);console.log('PASS free painting completion:',width,height);await context.close();
+  assert.deepEqual(errors,[]);console.log('PASS free painting completion:',width,height);await page.unrouteAll({behavior:'ignoreErrors'});await context.close();
  }
-}finally{await browser?.close();children.forEach(child=>child.kill());}})().catch(e=>{console.error(e);process.exitCode=1;});
+}finally{for(const context of browser?.contexts()??[])for(const page of context.pages())await page.unrouteAll({behavior:'ignoreErrors'});await browser?.close();children.forEach(child=>child.kill());}})().catch(e=>{console.error(e);process.exitCode=1;});

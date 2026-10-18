@@ -1,5 +1,13 @@
 # Hành trình 100 cấp và hồ sơ học sinh
 
+### Hoán đổi hai nhà và biển gỗ lối vào — 18/10/2026
+
+- Bản đồ xuất bản revision 7 hoán đổi vị trí nhà của bé và nhà Bác Nông Dân: `house` từ (29,12) sang (5.75,19.75), `journey.farm` sang (29,12). Giữ kích thước riêng của mỗi nhà. Biển trang trí `sign-home` chuyển tới (3.75,17.25) cùng nhà, tránh ghi nhầm tên trên nhà nông dân. Giữ nguyên toàn bộ NPC và các công trình khác.
+- Source `d6c3f30` thay nền xanh của cả năm biển vào nhà bằng asset biển gỗ chung, chữ sáng một dòng tự co. Biển gỗ vẽ dự phòng hiển thị khi ảnh đang tải hoặc lỗi mạng. Hitbox 220×64 khớp biển mới; caption được tìm theo tên node để vẫn đổi thành “Vào nhà →” sau khi thêm ảnh.
+- TypeScript, 70 nhóm logic và 11 bài mạng/khởi động/cache/retry đạt. Đối chiếu bản đồ đang xuất bản xác nhận không chặn thêm đường nhiệm vụ/spawn; 12 NPC và đường tiếp cận đều hợp lệ. QA Cocos desktop 1600×900/mobile 844×390: hai nhà đúng tọa độ mới, cả năm biển gỗ tải được, bấm mép biển vào đúng năm nội thất; đã xem ảnh `temp/deploy/qa/house-swap-*.png`.
+- Release `house-swap-35eb627f-20261018`, contentVersion `35eb627f` đã kích hoạt; backup/restore MySQL, checksum năm file, build Linux và health hai API đạt. Trạng thái bản đồ/draft/CMS/NPC và ba hồ sơ thật được giữ nguyên khi chuyển release. Rollback ứng dụng: `npc-sizing-35eb627f-20261018`.
+- QA asset/JavaScript HTTPS sau deploy đạt cả desktop/mobile với API fixture riêng: vào đúng cả năm nhà bằng mép biển gỗ, không có page error. API thật xác nhận revision 7 và đúng tọa độ hai nhà/biển nhỏ; đã xem ảnh mobile, biển “Nhà Của Bé” không còn nằm trên nhà nông dân.
+
 ### Điều chỉnh tỷ lệ nhân vật và công trình — 18/10/2026
 
 - Bà Bán Hàng tăng chiều cao sprite 105 → 140 (+33%); Ông Đồ giảm 140 → 115 (−18%); Bác Nông Dân giảm 145 → 120 (−17%). Giữ tỷ lệ ảnh, chân tại mặt đất và hoạt ảnh; cập nhật nhãn tên dự phòng theo chiều cao mới. Source `03bf5e1`.
@@ -33,7 +41,7 @@
 - QA mạng dùng server fixture giới hạn tổng băng thông game HTTP 1,6 Mbps, trễ 80 ms, bao gồm fetch của service worker (API fixture không giới hạn, server không gzip). Mobile 844×390: tải lạnh 95.180 ms; sau khi cache được điền đủ, mở lại 24.659 ms và ba texture nền lớn không phát sinh request server mới. Đây là giả lập, chưa phải kiểm thử điện thoại thật/4G thực tế. Báo cáo và ảnh ở `apps/game-client/temp/web-images-qa/`.
 - Mã tối ưu đã commit `dc1bdb2`. Kết nối VPS đã phục hồi; WebP/retry đã triển khai cùng release `region-signs-35eb627f-20261018` sau khi kiểm tra lại baseline và sao lưu dữ liệu.
 
-**Bản VPS đang chạy: `npc-sizing-35eb627f-20261018`, source commit `03bf5e1`, contentVersion `35eb627f`.** Bao gồm nội thất toàn màn hình, tải dần, WebP/retry, sửa biển khu vực và tỷ lệ nhân vật. Bản đồ hiện tại revision 6: chợ quê/nhà Cô Tấm lớn hơn, Cô Tấm cạnh nhà và Nghệ Nhân Gốm cạnh xưởng; ba hồ sơ thật giữ nguyên.
+**Bản VPS đang chạy: `house-swap-35eb627f-20261018`, source commit `d6c3f30`, contentVersion `35eb627f`.** Bao gồm nội thất toàn màn hình, tải dần, WebP/retry, biển gỗ và tỷ lệ nhân vật. Bản đồ hiện tại revision 7: nhà của bé/nhà nông dân đã hoán đổi, chợ quê/nhà Cô Tấm lớn hơn, Cô Tấm cạnh nhà và Nghệ Nhân Gốm cạnh xưởng; ba hồ sơ thật giữ nguyên.
 
 ### Cảnh nội thất toàn màn hình — 18/10/2026
 

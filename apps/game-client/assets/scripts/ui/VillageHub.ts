@@ -338,9 +338,14 @@ export class VillageHub {
             this.text(this.node,this.message||'Chọn màu rồi vẽ. Tranh tự lưu.',-75,175,360,42,18);
             const exportButton=this.button('PaintExport','Lưu ảnh',210,180,180,()=>{try{downloadPainting(this.campaign.data.painting??[]);this.message='Đã gửi tranh tới trình duyệt để lưu.';}catch{this.message='Chưa lưu được ảnh. Tranh vẫn còn trong sổ.';}this.render();});exportButton.setScale(.65,.65,1);
             const canvas=this.make(this.node,'PaintingCanvas',540,250);canvas.setPosition(0,30);this.paintingGraphic=canvas.addComponent(Graphics);this.drawPainting();
-            paintColors.forEach((color,i)=>{const n=this.button('PaintColor-'+i,this.paintColor===i?'✓':'',(i-2.5)*88,-145,76,()=>{this.paintColor=i;this.clearPainting=false;this.render();});const g=n.getComponent(Graphics)!;g.clear();g.fillColor=new Color(...color);g.roundRect(-38,-30,76,60,10);g.fill();n.getChildByName('Text')!.getComponent(Label)!.color=new Color(255,255,235);this.spokenParts.push(['Đỏ','Vàng','Xanh lá','Xanh dương','Tím','Nâu'][i]);});
-            this.button('PaintUndo','Lùi nét',-215,-235,180,()=>{const strokes=this.campaign.data.painting??=[];if(strokes.length)strokes.pop();else if(this.clearedPainting){this.campaign.data.painting=this.clearedPainting;this.clearedPainting=undefined;}this.clearPainting=false;this.persist();this.render();});
-            this.button('PaintClear',this.clearPainting?'Xóa tranh?':'Trang mới',215,-235,180,()=>{if(this.clearPainting){this.clearedPainting=this.campaign.data.painting??[];this.campaign.data.painting=[];this.persist();}this.clearPainting=!this.clearPainting;this.render();});
+            paintColors.forEach((color,i)=>{const n=this.button('PaintColor-'+i,this.paintColor===i?'✓':'',(i-2.5)*88,-145,76,()=>{this.paintColor=i;this.clearPainting=false;this.render();});const swatch=this.make(n,'ColorSwatch',48,44);swatch.setSiblingIndex(0);const g=swatch.addComponent(Graphics);g.fillColor=new Color(...color);g.roundRect(-24,-22,48,44,9);g.fill();n.getChildByName('Text')!.getComponent(Label)!.color=new Color(255,255,235);this.spokenParts.push(['Đỏ','Vàng','Xanh lá','Xanh dương','Tím','Nâu'][i]);});
+            this.button('PaintUndo','Lùi nét',-235,-235,140,()=>{const strokes=this.campaign.data.painting??=[];if(strokes.length)strokes.pop();else if(this.clearedPainting){this.campaign.data.painting=this.clearedPainting;this.clearedPainting=undefined;}this.clearPainting=false;this.persist();this.render();});
+            this.button('PaintClear',this.clearPainting?'Xóa tranh?':'Trang mới',-85,-235,140,()=>{if(this.clearPainting){this.clearedPainting=this.campaign.data.painting??[];this.campaign.data.painting=[];this.persist();}this.clearPainting=!this.clearPainting;this.render();});
+            this.button('PaintFinish','Hoàn thành',65,-235,140,()=>{
+                if(!(this.campaign.data.painting?.length)){this.message='Vẽ vài nét trước khi hoàn thành nhé.';this.render();return;}
+                recordLearning(this.campaign.data,'clay',true,'painting.free','complete');this.persist();this.mode='menu';this.message='Đã hoàn thành tranh!';this.render();
+            });
+            close.setPosition(225,-235);
             if((this.campaign.data.painting?.length??0)>=maxPaintStrokes)this.text(this.node,'Trang đã đầy. Lùi nét hoặc mở trang mới để vẽ tiếp.',0,-194,540,30,17);
         }else if(this.mode==='care'&&isCareId(this.selectedDetail)){
             const id=this.selectedDetail,activity=careActivities[id],step=this.campaign.data.care?.[id]??0;

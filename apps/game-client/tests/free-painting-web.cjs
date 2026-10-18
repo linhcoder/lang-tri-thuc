@@ -1,0 +1,40 @@
+const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),{spawn}=require('node:child_process'),{chromium}=require('playwright');
+const root=path.resolve(__dirname,'../../..'),children=[],liveOrigin=process.env.PAINTING_QA_ORIGIN;
+let preview='';if(liveOrigin){assert.equal(liveOrigin,'https://ltt.vui-hoc.xyz');const value=/^Preview password: (.+)$/m.exec(fs.readFileSync(path.join(root,'temp/deploy/access.txt'),'utf8'))[1];preview=value.startsWith('"')?JSON.parse(value):value;}
+async function start(args,ready,env={}){const child=spawn(process.execPath,args,{cwd:root,env:{...process.env,...env},windowsHide:true,stdio:['ignore','pipe','pipe']});children.push(child);await new Promise((resolve,reject)=>{child.stdout.on('data',d=>String(d).includes(ready)&&resolve());child.on('error',reject);child.on('exit',code=>reject(Error('Fixture exited '+code)));child.stderr.on('data',d=>process.stderr.write(d));});}
+(async()=>{let browser;try{
+ if(!liveOrigin)await start(['tools/serve-web.cjs'],'Game web:',{WEB_PORT:'8153'});
+ await start(['--input-type=module','-e',"const {createApi}=await import('./apps/backend/dist/main.js');const {SqliteRepository}=await import('./apps/backend/dist/Store.js');const app=await createApi({store:new SqliteRepository(),roomSecret:'journey-signs-fixture-secret-32-characters',adminPassword:'JourneySignsAdmin123!',origin:['http://127.0.0.1:8153']});await app.listen({host:'127.0.0.1',port:33123});console.log('READY');"],'READY');
+ const post=async(route,body,token)=>{const r=await fetch('http://127.0.0.1:33123'+route,{method:'POST',headers:{'Content-Type':'application/json',...(token?{Authorization:'Bearer '+token}:{})},body:JSON.stringify(body)});assert.ok(r.ok,await r.clone().text());return r.json();};
+ await post('/parents',{alias:'painting_qa',password:'PaintingQa123!'});const session=await post('/sessions',{alias:'painting_qa',password:'PaintingQa123!'});
+ const layout=await (await fetch('http://127.0.0.1:33123/content/layout')).json();
+ browser=await chromium.launch({executablePath:require('../../../tools/browser-path.cjs')(),headless:true,args:['--enable-webgl','--use-angle=d3d11']});
+ for(const [width,height] of [[1600,900],[844,390]]){
+  const profile=await post('/profiles',{label:'Painting QA '+width,age:'6-8',gender:'male',avatar:0},session.token);
+  const context=await browser.newContext({viewport:{width,height},hasTouch:width<1000,isMobile:width<1000,serviceWorkers:'block',...(liveOrigin?{httpCredentials:{username:'staging',password:preview,origin:liveOrigin}}:{})}),page=await context.newPage(),errors=[];
+  page.on('pageerror',e=>errors.push(e.message));
+  await context.addInitScript(({token,id})=>{localStorage.setItem('lang-tri-thuc.student-token.v1',token);localStorage.setItem('lang-tri-thuc.last-student.v1',id);},{token:session.token,id:profile.id});
+  await page.route(liveOrigin?liveOrigin+'/api/**':'http://127.0.0.1:33000/**',async route=>{const url=new URL(route.request().url()),pathname=url.pathname.replace(/^\/api/,'');if(pathname==='/content/layout')return route.fulfill({json:layout});const response=await route.fetch({url:'http://127.0.0.1:33123'+pathname+url.search});await route.fulfill({response});});
+  await page.goto(liveOrigin?liveOrigin+'/game/':'http://127.0.0.1:8153/');await page.waitForFunction(()=>!!window.System);await page.evaluate(async()=>{window.cc=await System.import('cc');});
+  await page.waitForFunction(()=>cc.director.getScene()?.getChildByName('Canvas')?.getComponent('VillageBootstrap')?.assetsReady,undefined,{timeout:90000});
+  await page.evaluate(()=>{window.v=cc.director.getScene().getChildByName('Canvas').getComponent('VillageBootstrap');v.hub.close();v.chapter.close();v.guide.dispose();v.guide.update=()=>{};});
+  const story=await page.evaluate(()=>JSON.stringify({receipts:v.hub.campaign.data.receipts,completed:v.hub.campaign.data.completed,practice:v.hub.campaign.data.practice}));
+  await page.evaluate(()=>v.hub.open('painting'));
+  async function point(id,x=0,y=0){return page.evaluate(({id,x,y})=>{const n=v.hub.node.getChildByName(id),w=n.getComponent(cc.UITransform).convertToWorldSpaceAR(new cc.Vec3(x,y,0)),s=v.node.getComponent(cc.Canvas).cameraComponent.worldToScreen(w),c=cc.game.canvas,r=c.getBoundingClientRect();return {x:r.left+s.x/c.width*r.width,y:r.top+(c.height-s.y)/c.height*r.height};},{id,x,y});}
+  async function tap(id){const p=await point(id);if(width<1000)await page.touchscreen.tap(p.x,p.y);else await page.mouse.click(p.x,p.y);await page.waitForTimeout(100);}
+  const footer=await page.evaluate(()=>['PaintUndo','PaintClear','PaintFinish','HubClose'].map(id=>{const n=v.hub.node.getChildByName(id),t=n.getComponent(cc.UITransform);return {left:n.position.x-t.width/2,right:n.position.x+t.width/2};}));for(let i=1;i<footer.length;i++)assert.ok(footer[i].left>footer[i-1].right,'Footer hitboxes must not overlap');
+  await tap('PaintFinish');assert.equal(await page.evaluate(()=>v.hub.mode),'painting');assert.equal(await page.evaluate(()=>v.hub.campaign.data.upgrades?.events.filter(e=>e.target==='painting.free').length??0),0);
+  const cdp=width<1000?await context.newCDPSession(page):null;
+  async function stroke(points){const screen=await Promise.all(points.map(([x,y])=>point('PaintingCanvas',x,y)));if(cdp){await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{id:1,...screen[0]}]});for(const p of screen.slice(1))await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{id:1,...p}]});await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});}else{await page.mouse.move(screen[0].x,screen[0].y);await page.mouse.down();for(const p of screen.slice(1))await page.mouse.move(p.x,p.y,{steps:4});await page.mouse.up();}await page.waitForTimeout(150);}
+  await stroke([[-160,-60],[-80,60],[0,-60],[80,60],[160,-60]]);await tap('PaintColor-3');await stroke([[-140,0],[140,0]]);
+  assert.equal(await page.evaluate(()=>v.hub.campaign.data.painting.length),2);assert.equal(await page.evaluate(()=>v.hub.campaign.data.painting[1].color),3);assert.equal(await page.evaluate(()=>v.hub.node.getChildByName('PaintColor-3').getChildByName('ColorSwatch').getComponent(cc.Graphics).fillColor.b),183);
+  const drawing=await page.evaluate(()=>JSON.stringify(v.hub.campaign.data.painting));
+  await page.screenshot({path:path.join(root,`apps/game-client/temp/free-painting-${width}.png`)});
+  await tap('PaintFinish');assert.equal(await page.evaluate(()=>v.hub.mode),'menu');assert.equal(await page.evaluate(()=>v.hub.campaign.data.upgrades.events.filter(e=>e.target==='painting.free'&&e.kind==='complete').length),1);assert.equal(await page.evaluate(()=>JSON.stringify(v.hub.campaign.data.painting)),drawing);
+  await page.evaluate(()=>v.hub.open('painting'));await tap('PaintFinish');assert.equal(await page.evaluate(()=>v.hub.campaign.data.upgrades.events.filter(e=>e.target==='painting.free').length),1);
+  await page.reload();await page.waitForFunction(()=>!!window.System);await page.evaluate(async()=>window.cc=await System.import('cc'));await page.waitForFunction(()=>cc.director.getScene()?.getChildByName('Canvas')?.getComponent('VillageBootstrap')?.assetsReady,undefined,{timeout:90000});await page.evaluate(()=>window.v=cc.director.getScene().getChildByName('Canvas').getComponent('VillageBootstrap'));
+  assert.equal(await page.evaluate(()=>JSON.stringify(v.hub.campaign.data.painting)),drawing);assert.equal(await page.evaluate(()=>v.hub.campaign.data.upgrades.events.filter(e=>e.target==='painting.free').length),1);assert.equal(await page.evaluate(()=>JSON.stringify({receipts:v.hub.campaign.data.receipts,completed:v.hub.campaign.data.completed,practice:v.hub.campaign.data.practice})),story);
+  console.log(JSON.stringify({width,height,emptyRejected:true,twoColors:true,completedOnce:true,reloadPreserved:true,storyUnchanged:true}));
+  assert.deepEqual(errors,[]);console.log('PASS free painting completion:',width,height);await context.close();
+ }
+}finally{await browser?.close();children.forEach(child=>child.kill());}})().catch(e=>{console.error(e);process.exitCode=1;});

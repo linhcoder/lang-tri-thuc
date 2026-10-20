@@ -1,6 +1,12 @@
 # Hành trình 100 cấp và hồ sơ học sinh
 
-## Bổ sung ngày 20/10/2026 — source local, chưa phát hành
+## Bổ sung ngày 20/10/2026 — đã phát hành VPS
+
+Release `regional-checkpoint-4b4ce2e5-20261020`, source commit `aaecb6c`, giữ contentVersion `4b4ce2e5`. Overlay 13 file SHA-256 `76d7f55d513358b4781715c68be3dfd35a98d0b165d1eb39f9fe96e52b5de72d`; kiểm checksum từng file, build API/rooms Linux và nginx -t đạt. Backup `/opt/lang-tri-thuc/backups/database-20261020T034325Z.sql` đã phục hồi thử khớp trong DB tạm. Giữ `game-six-4b4ce2e5-20261019` để rollback, không cần đổi manifest CMS vì cùng contentVersion.
+
+Hai API MySQL healthy, cả bốn dịch vụ active. Signed WebSocket xác nhận checkpoint giỏ/đường mòn được lưu MySQL và cách ly học sinh; gia đình QA đã xóa. Sau QA, ba hồ sơ thật, toàn bộ tiến độ cũ, bản đồ published/draft, NPC, CMS và nội dung biên tập khớp checksum trước deploy. Metadata local ignored: `temp/deploy/regional-checkpoint-deploy-state.json`; bằng chứng WebSocket `temp/deploy/qa/regional-checkpoint-live/private-sync.json`.
+
+QA asset/code HTTPS đã deploy đạt desktop 1600×900 và mobile giả lập 844×390 với API fixture riêng: ba cơ chế × ba tuổi, checkpoint qua cloud/reload, nghe lựa chọn không trả lời hộ và kéo trang trí; page errors rỗng. API thật trả 401 cho quản trị không phiên và 403 cho API nội bộ. Báo cáo `temp/deploy/qa/regional-checkpoint-live/six-upgrades-report.json`. Vẫn cần điện thoại/4G/giọng hệ điều hành thật như giới hạn bên dưới.
 
 - Sân chơi vùng lưu bước đang làm, số món trong giỏ và chuỗi đường mòn theo hồ sơ/vùng/nhóm tuổi. Mở lại tiếp tục; Chơi lại lưu ván mới. Đổi nhóm tuổi bắt đầu ván phù hợp tuổi mới. Đây là thay đổi thay thế giới hạn chưa lưu checkpoint ở bản phát hành 19/10 bên dưới.
 - Dữ liệu phục hồi được kiểm tra giới hạn; đồng bộ activity snapshot chọn checkpoint mới hơn theo từng vùng, không cấp XP/sao.

@@ -1,5 +1,13 @@
 # aaPanel staging: ltt.vui-hoc.xyz
 
+## Checkpoint sân chơi — VPS 20/10/2026
+
+Release hiện tại `regional-checkpoint-4b4ce2e5-20261020`, source commit `aaecb6c`, contentVersion `4b4ce2e5`. Lưu ván sân chơi theo hồ sơ/vùng/tuổi và tải đồng thời hai ảnh khởi động. Chi tiết tại [LEVEL_100_AND_STUDENTS](../../docs/design/LEVEL_100_AND_STUDENTS.md).
+
+Overlay 13 file SHA-256 `76d7f55d513358b4781715c68be3dfd35a98d0b165d1eb39f9fe96e52b5de72d`; checksum, build Linux API/rooms và nginx -t đạt. Backup `/opt/lang-tri-thuc/backups/database-20261020T034325Z.sql` phục hồi thử khớp. Hai API MySQL healthy, bốn dịch vụ active; signed WebSocket xác nhận lưu checkpoint/cách ly hồ sơ, gia đình QA đã xóa. Ba hồ sơ thật, tiến độ và nội dung quản trị/CMS/bản đồ giữ nguyên checksum. Giữ `game-six-4b4ce2e5-20261019` để rollback cùng contentVersion. Các release bên dưới là lịch sử.
+
+QA HTTPS desktop/mobile giả lập đạt sáu nâng cấp và checkpoint qua cloud/reload; dùng API fixture riêng. WebSocket/MySQL thật được kiểm tra bằng hồ sơ QA riêng. Quyền quản trị/nội bộ không phiên đạt. Bằng chứng `temp/deploy/qa/regional-checkpoint-live/`.
+
 ## Sáu nâng cấp game — VPS 19/10/2026
 
 Bản hiện tại `game-six-4b4ce2e5-20261019`, contentVersion `4b4ce2e5`: giảm tải lạnh, trợ giúp/dẫn đường nhiệm vụ, tự đọc và nghe lựa chọn, sân chơi theo vùng, bộ sưu tập/kéo trang trí, phân lượt mục tiêu nhóm. Chi tiết tại [LEVEL_100_AND_STUDENTS](../../docs/design/LEVEL_100_AND_STUDENTS.md).

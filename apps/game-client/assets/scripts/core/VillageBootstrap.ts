@@ -314,7 +314,7 @@ export class VillageBootstrap extends Component {
                 const node=this.art.sprite(this.actors,`PondLotus-${i}`,lotus,100,100),p=toWorld(tile);
                 node.getComponent(UITransform)!.setAnchorPoint(0.5,0.5);node.setPosition(p.x,p.y);
             }
-            for(const object of villageDetails){const frame=this.art.detailFrame(object.id,object.frame);if(!frame)continue;const node=this.art.sprite(this.actors,'Detail-'+object.id,frame,object.width,object.height),p=toWorld(object);node.setPosition(p.x,p.y);if(object.id.startsWith('bridge')){node.getComponent(UITransform)!.setAnchorPoint(.5,.5);node.setParent(this.world);node.setSiblingIndex(this.actors.getSiblingIndex());}this.sceneryNodes.push(node);}
+
             for(const object of villageObjects){if(object.id==='banyan'||object.id==='tree-east')continue;let node:Node;const objectFrame=this.art.objectFrame(object.id,object.frame);if(objectFrame)node=this.art.sprite(this.actors,object.id,objectFrame,object.width,object.height);else{node=ui(this.actors,object.id,object.width,object.height);node.getComponent(UITransform)!.setAnchorPoint(.5,0);const g=node.addComponent(Graphics);g.fillColor=new Color(139,161,102,150);g.ellipse(0,10,object.width*.3,15);g.fill();this.regionalScenery.push({node,id:object.id,frame:object.frame,pending:false});}const p=toWorld(object);node.setPosition(p.x,p.y);this.sceneryNodes.push(node);}
             if(this.demo)await this.art.ensureEnvironment(4);
             for(let i=0;this.demo&&i<riceBundles.length;i++){
@@ -325,7 +325,7 @@ export class VillageBootstrap extends Component {
             }
             this.reportLoading(92,'Đang đón các bạn trong làng…');
             this.nameplates=new VillageNameplates(this.world,this.actors);
-            if(this.hub){this.hud=new VillageHUD(this.root,mode=>this.hub?.open(mode),()=>this.interactNearest(),id=>{this.resetInput();this.player.cancel();this.hub?.onGesture?.(id);},()=>{this.desktopJoystick=!this.desktopJoystick;this.releaseStick();},()=>this.navigateQuest());this.hud.onClick=()=>{if(this.hub?.campaign.data.sound)this.uiClick.play();};if(this.questButton)this.hud.bindQuestTarget(this.questButton,()=>this.navigateQuest());this.header.active=false;this.networkBadge!.node.active=false;this.status.node.active=false;}
+            if(this.hub){this.hub.onFirstObjective=()=>this.chapter?.navigateObjective()??false;this.hud=new VillageHUD(this.root,mode=>this.hub?.open(mode),()=>this.interactNearest(),id=>{this.resetInput();this.player.cancel();this.hub?.onGesture?.(id);},()=>{this.desktopJoystick=!this.desktopJoystick;this.releaseStick();},()=>this.navigateQuest());this.hud.onClick=()=>{if(this.hub?.campaign.data.sound)this.uiClick.play();};if(this.questButton)this.hud.bindQuestTarget(this.questButton,()=>this.navigateQuest());this.header.active=false;this.networkBadge!.node.active=false;this.status.node.active=false;}
             void decorateHouseExteriors(this.actors,this.art).then(count=>{if(this.isValid)this.houseArtCount=count;});this.assetsReady=true;this.reportLoading(100,'Ngôi làng đã sẵn sàng!');if(this.loadingPanel)this.loadingPanel.active=false;
             // Let the first playable frame render before optional art competes for bandwidth.
             this.scheduleOnce(()=>{void this.loadBackgroundArt();},.5);
@@ -363,6 +363,21 @@ export class VillageBootstrap extends Component {
     }
     private async loadBackgroundArt():Promise<void>{
         const optional=async(load:()=>Promise<unknown>)=>{if(!this.isValid)return;try{await load();}catch(error){console.warn('Optional village art:',error);}};
+        await optional(()=>this.art.ensureTerrainTextures());
+        if(!this.isValid)return;
+        for(let cy=0;cy<SIZE;cy+=8)for(let cx=0;cx<SIZE;cx+=8){
+            const node=this.art.terrainChunk(this.world,cx,cy),old=this.terrainChunks.find(chunk=>chunk.node.name===`PaintedTerrain-${cx}-${cy}`||chunk.node.name===`Terrain-${cx}-${cy}`);
+            if(node){if(old){old.node.active=false;old.node.destroy();old.node=node;}node.setSiblingIndex(0);}
+        }
+        this.world.getChildByName('MeadowOutskirts')?.destroy();this.art.meadowBackdrop(this.world);this.scheduleOnce(()=>this.art.releaseRetiredTerrain(),.1);
+        await optional(()=>this.art.ensureVillageDetails());
+        if(!this.isValid)return;
+        const lotus=this.art.decorations.lotus;
+        if(lotus)for(const [i,tile]of [{x:14,y:29},{x:15,y:30},{x:12,y:29},{x:11,y:30},{x:14,y:24},{x:12,y:26},{x:7,y:25}].entries()){
+            if(this.actors.getChildByName(`PondLotus-${i}`))continue;
+            const node=this.art.sprite(this.actors,`PondLotus-${i}`,lotus,100,100),p=toWorld(tile);node.getComponent(UITransform)!.setAnchorPoint(.5,.5);node.setPosition(p.x,p.y);
+        }
+            for(const object of villageDetails){const frame=this.art.detailFrame(object.id,object.frame);if(!frame)continue;const node=this.art.sprite(this.actors,'Detail-'+object.id,frame,object.width,object.height),p=toWorld(object);node.setPosition(p.x,p.y);if(object.id.startsWith('bridge')){node.getComponent(UITransform)!.setAnchorPoint(.5,.5);node.setParent(this.world);node.setSiblingIndex(this.actors.getSiblingIndex());}this.sceneryNodes.push(node);}
         await optional(()=>this.art.ensureMotion());
         await optional(()=>this.art.ensureExpansionCharacters());
         if(!this.isValid)return;
@@ -419,6 +434,9 @@ export class VillageBootstrap extends Component {
         if (farmer) { g.fillColor = new Color(239, 210, 130); g.moveTo(-25, 61); g.lineTo(0, 83); g.lineTo(25, 61); g.close(); g.fill(); }
         return n;
     }
+    private showSaveState(state:'local'|'saving'|'saved'|'conflict'):void{
+        if(sys.isBrowser)window.dispatchEvent(new CustomEvent('ltt-save-state',{detail:{state,exportSave:()=>{if(!this.hub||!this.chapterSave)return;const blob=new Blob([JSON.stringify({profileId:this.student?.profile.id,campaign:this.hub.campaign.data,chapterOne:this.chapterSave.progress.data})],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='lang-tri-thuc-backup.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}}}));
+    }
     private syncStudent(dt:number):void{
         if(!this.student||!this.hub||!this.chapterSave)return;
         this.hub.campaign.data.age=this.student.profile.age;
@@ -433,8 +451,8 @@ export class VillageBootstrap extends Component {
         if(this.cloudBusy||this.cloudConflict||this.cloudElapsed<3)return;
         this.cloudElapsed=0;this.hub.campaign.syncChapterOne(this.chapterSave.progress.data);
         const campaign=JSON.stringify(this.hub.campaign.data),chapterOne=JSON.stringify(this.chapterSave.progress.data),signature=campaign+chapterOne;
-        if(signature===this.cloudSignature)return;this.cloudBusy=true;const session=this.student;
-        void studentRequest(session.api,session.token,'/profiles/'+session.profile.id+'/progress','PUT',{revision:session.revision,campaign,chapterOne}).then(value=>{session.revision=value.revision;this.cloudSignature=signature;try{sys.localStorage.setItem('lang-tri-thuc.cloud-revision.'+session.profile.id,String(value.revision));}catch{}}).catch(error=>{if(error.status===401||error.status===404){location.reload();return;}if(error.status===409){this.cloudConflict=true;this.networkBadge!.node.active=true;this.networkBadge!.string='Tiến độ đã đổi trên thiết bị khác. Hãy tải lại; bản trên máy được giữ.';}else if(this.networkBadge){this.networkBadge.node.active=true;this.networkBadge.string='Chưa đồng bộ được. Tiến độ đang lưu trên máy.';}}).finally(()=>{this.cloudBusy=false;});
+        if(signature===this.cloudSignature)return;this.showSaveState(typeof navigator==='undefined'||navigator.onLine?'saving':'local');this.cloudBusy=true;const session=this.student;
+        void studentRequest(session.api,session.token,'/profiles/'+session.profile.id+'/progress','PUT',{revision:session.revision,campaign,chapterOne}).then(value=>{session.revision=value.revision;this.cloudSignature=signature;this.showSaveState('saved');try{sys.localStorage.setItem('lang-tri-thuc.cloud-revision.'+session.profile.id,String(value.revision));}catch{}}).catch(error=>{if(error.status===401||error.status===404){location.reload();return;}if(error.status===409){this.cloudConflict=true;this.showSaveState('conflict');try{sys.localStorage.setItem('lang-tri-thuc.campaign.v1.'+session.profile.id+'.before-conflict',campaign);sys.localStorage.setItem('lang-tri-thuc.chapter-one.v2.'+session.profile.id+'.before-conflict',chapterOne);}catch{}this.networkBadge!.node.active=true;this.networkBadge!.string='Tiến độ đã đổi trên thiết bị khác. Hãy tải lại; bản trên máy được giữ.';}else if(this.networkBadge){this.showSaveState('local');this.networkBadge.node.active=true;this.networkBadge.string='Chưa đồng bộ được. Tiến độ đang lưu trên máy.';}}).finally(()=>{this.cloudBusy=false;});
     }
     update(dt: number): void {
         if(!this.player)return;
@@ -602,6 +620,7 @@ export class VillageBootstrap extends Component {
         }
         if(this.pendingBundle!==null&&!this.player.hasPath){const p=toWorld(riceBundles[this.pendingBundle]);if(Math.hypot(p.x-this.player.position.x,p.y-this.player.position.y)<8){this.learning.collect(this.pendingBundle);this.pendingBundle=null;this.saveLearning();}}
         // Modal visibility is immediate; only HUD data/layout waits for the 10 Hz refresh.
+        if(sys.isBrowser)document.documentElement.classList.toggle('ltt-modal-open',this.modalActive);
         if(this.hud)this.hud.node.active=!this.modalActive&&!this.loadingPanel?.active;
         if(this.modalActive){if(this.joystick)this.joystick.active=false;if(this.status?.node)this.status.node.active=false;this.zoomButtons.forEach(button=>button.active=false);if(this.questButton)this.questButton.active=false;}
     }
@@ -677,7 +696,7 @@ export class VillageBootstrap extends Component {
     private tapThreshold():number { return 15*view.getDevicePixelRatio()/view.getScaleX(); }
     private zoomControl(p:Point):Node|undefined{return this.zoomButtons.find(n=>{if(!n.activeInHierarchy)return false;const point=this.local(p,n),t=n.getComponent(UITransform)!;return Math.abs(point.x)<=t.width/2&&Math.abs(point.y)<=t.height/2;});}
     private isHudControl(p:Point):boolean{return !!this.hud?.hit(p)||!!this.zoomControl(p)||[this.questButton,this.journalButton,this.parentButton].some(n=>{if(!n?.active)return false;const point=this.local(p,n),size=n.getComponent(UITransform)!;return Math.abs(point.x)<=size.width/2&&Math.abs(point.y)<=size.height/2;});}
-    private navigateQuest():void{if(this.chapter?.navigateObjective()){this.keys.clear();this.releaseStick();this.pendingNpc=false;this.pendingBundle=null;}}
+    private navigateQuest():void{if(this.hub?.navigateObjective()||this.chapter?.navigateObjective()){this.keys.clear();this.releaseStick();this.pendingNpc=false;this.pendingBundle=null;}}
     private interactNearest():void{const details=environmentGuides.map(g=>this.actors.getChildByName('Detail-'+g.id)).filter((n):n is Node=>!!n),targets=[...(this.cms?.nodes??[]),this.farmer.node,...(this.chapter?[this.chapter.elder]:[]),...(this.hub?.npcNodes??[]),...details].sort((a,b)=>Math.hypot(a.position.x-this.player.position.x,a.position.y-this.player.position.y)-Math.hypot(b.position.x-this.player.position.x,b.position.y-this.player.position.y));const n=targets[0];if(n&&Math.hypot(n.position.x-this.player.position.x,n.position.y-this.player.position.y)<100)this.selectWorld({x:n.position.x,y:n.position.y+(n.name.startsWith('Detail-')?20:60)});else this.chapter?.navigateObjective();}
     private changeZoom(value:number):void{this.zoom.set(value);this.zoomSaveDelay=0.3;}
     private handleWheel=(event:WheelEvent):void=>{if(!this.player)return;if(event.ctrlKey||this.modalActive||this.loadingPanel?.active||this.pinchIds||event.target!==game.canvas)return;event.preventDefault();this.changeZoom(this.zoom.wheel(event.deltaY));};

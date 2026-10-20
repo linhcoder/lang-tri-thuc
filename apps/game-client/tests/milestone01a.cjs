@@ -598,3 +598,25 @@ test('free pottery shaping stays bounded, clips paint to the vase and preserves 
  const {restoreActivities,mergeActivities}=load(path.join(scripts,'world/ActivitySnapshot.ts'));const merged=mergeActivities(restoreActivities({upgrades:{potteryDraft:newest}}),restoreActivities({upgrades:{potteryDraft:older}}));assert.equal(merged.upgrades.potteryDraft.updated,20);
 });
 console.log(`${checks} test groups passed`);
+
+ test('regional checkpoints resume partial baskets and trails, validate input and merge latest saves',()=>{
+ const {RegionalPlay,restoreRegional}=load(path.join(scripts,'world/RegionalPlay.ts'));
+ const {restoreUpgrades}=load(path.join(scripts,'world/LearningUpgrades.ts'));
+ const {restoreActivities,mergeActivities}=load(path.join(scripts,'world/ActivitySnapshot.ts'));
+ for(const age of ['3-5','6-8','9-11']){
+  const basket=new RegionalPlay('market',age);basket.act(0);basket.act(0);
+  const saved=JSON.parse(JSON.stringify(restoreUpgrades({regional:{market:basket.save()}})));
+  const resumed=new RegionalPlay('market',age,saved.regional.market);assert.equal(resumed.count,2);
+  const trail=new RegionalPlay('forest',age);trail.act(trail.path[0]);
+  const next=new RegionalPlay('forest',age,trail.save());assert.equal(next.memory.length,1);
+  const grow=new RegionalPlay('farm',age);grow.act(0);grow.act(1);grow.act(2);
+  assert.equal(new RegionalPlay('farm',age,grow.save()).done,true);
+ }
+ const game=new RegionalPlay('market','6-8');game.act(0);const old={...game.save(),updated:1};game.act(0);const newer={...game.save(),updated:2};
+ assert.equal(new RegionalPlay('market','3-5',newer).count,0);
+ assert.deepEqual(restoreRegional({market:{...old,count:99},constructor:old}),{});
+ assert.deepEqual(restoreRegional({market:{...old,memory:[null]}}),{});
+ const a=restoreActivities({upgrades:{regional:{market:old}}}),b=restoreActivities({upgrades:{regional:{market:newer}}});
+ assert.equal(mergeActivities(a,b).upgrades.regional.market.count,2);
+ assert.equal(mergeActivities(b,a).upgrades.regional.market.count,2);
+ });

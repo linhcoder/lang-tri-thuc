@@ -55,6 +55,8 @@ export class PrivateFriendRoom extends VillageRoom {
             const v=value as {id?:unknown;attempt?:unknown;step?:unknown;index?:unknown},group=this.expansionGroups.get(v?.id as ExpansionId),member=this.members.get(client.sessionId);
             if(!member||!group||!group.participants.has(client.sessionId)||group.game.ended||v.attempt!==group.attempt||v.step!==group.game.step||!Number.isInteger(v.index))return;
             if(Array.from(group.participants).some(session=>{const peer=this.members.get(session);return peer&&(peer.blocked.includes(member.profileId)||member.blocked.includes(peer.profileId));})){this.leaveExpansion(client.sessionId);return;}
+            const turn=this.expansionTurn(group);
+            if(turn!==client.sessionId){client.send('expansion-feedback',{id:group.game.id,message:'Bạn đang thực hiện bước này. Bé quan sát và chuẩn bị lượt tiếp nhé!'});return;}
             if(!group.game.choose(v.index as number)){client.send('expansion-feedback',{id:group.game.id,message:group.game.feedback});return;}
             for(const session of group.participants){const m=this.members.get(session);if(!m)continue;
                 const patch={profileId:m.profileId,id:group.game.id,step:group.game.ended?0:group.game.step,age:group.game.age,completed:group.game.ended};
@@ -95,6 +97,7 @@ export class PrivateFriendRoom extends VillageRoom {
     }
     async onLeave(client:Client,code?:number):Promise<void>{
         if(client.sessionId===this.gameOwner&&this.game&&!this.game.ended){this.game.pause();this.publishGame();}
+        for(const [id,group]of this.expansionGroups)if(group.participants.has(client.sessionId))this.publishExpansion(id);
         if(code!==CloseCode.CONSENTED&&code!==4403&&code!==4008){try{await this.allowReconnection(client,15);this.sendProgress(client);this.sendExpansionCancellation(client);for(const [id,group] of this.expansionGroups)if(group.participants.has(client.sessionId))this.publishExpansion(id);return;}catch{}}
         this.leaveExpansion(client.sessionId);this.participants.delete(client.sessionId);this.members.delete(client.sessionId);super.onLeave(client);
     }
@@ -114,10 +117,14 @@ export class PrivateFriendRoom extends VillageRoom {
     private leaveExpansion(session:string):void{
         for(const [id,group] of this.expansionGroups)if(group.participants.delete(session)){if(!group.participants.size)this.expansionGroups.delete(id);else this.publishExpansion(id);}
     }
+    private expansionTurn(group:{game:ExpansionGame;participants:Set<string>}):string|undefined{
+        const connected=Array.from(group.participants).filter(id=>this.clients.some(c=>c.sessionId===id));
+        return connected[group.game.step%connected.length];
+    }
     private publishExpansion(id:ExpansionId):void{
         const group=this.expansionGroups.get(id);if(!group)return;
         const state={id,age:group.game.age,step:group.game.step,attempt:group.attempt,players:group.participants.size};
-        for(const client of this.clients)if(group.participants.has(client.sessionId))client.send('expansion-state',state);
+        for(const client of this.clients)if(group.participants.has(client.sessionId))client.send('expansion-state',{...state,yourTurn:this.expansionTurn(group)===client.sessionId,turnNumber:Array.from(group.participants).indexOf(this.expansionTurn(group)??'')+1});
     }
     private persist(client:Client,m:Member):void{this.sendProgress(client);const payload={profileId:m.profileId,first:JSON.stringify(m.first.data),campaign:JSON.stringify(m.campaign.data)};m.saveQueue=m.saveQueue.then(()=>this.service('/internal/progress',payload)).catch(()=>{client.send('storage-warning','Kết nối lưu tiến độ chưa sẵn sàng. Mời người lớn giúp.');});}
     private warn(client:Client,text:string):void{if(this.clients.includes(client))client.send('storage-warning',text);}

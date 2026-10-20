@@ -1,3 +1,4 @@
+import {supplementaryQuestions} from './JourneyPractice';
 import type {AgeBand} from './CampaignContent';
 import type {Question} from './EducationEngine';
 
@@ -34,10 +35,11 @@ export function journeyAvailable(id:string,progress:JourneyProgress,level:number
 /** Three short questions per task; arithmetic varies by task, age and round. */
 export function journeyQuestions(id:string,age:AgeBand,base:(skill:string,age:AgeBand)=>Question[]):Question[]{
     const task=journeyTasks.find(t=>t.id===id);if(!task)return [];
-    const source=base(task.skill,age);
+    const source=[...base(task.skill,age),...supplementaryQuestions(task.skill)];
+    const regionIndex=journeyRegions.findIndex(r=>r.id===task.region);
     return Array.from({length:3},(_,round)=>{
         const key=`${id}.${age}.${round}`;
-        if(task.skill!=='math')return {...source[(task.index+round)%source.length],id:key};
+        if(task.skill!=='math'){const q=source[(regionIndex*7+task.index*3+round)%source.length];const shift=(regionIndex+task.index+round)%q.choices.length;return {...q,id:key,choices:q.choices.slice(shift).concat(q.choices.slice(0,shift)),answer:(q.answer-shift+q.choices.length)%q.choices.length};}
         const small=age==='3-5',older=age==='9-11',a=small?1+(task.index+round)%5:older?12+task.index*3+round:5+task.index+round;
         const b=small?1+(task.index+round)%3:2+(task.index+round)%6;
         const subtract=!small&&(task.index+round)%2===1,multiply=older&&task.index%3===2;

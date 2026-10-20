@@ -1,5 +1,27 @@
 # aaPanel staging: ltt.vui-hoc.xyz
 
+## Sáu nâng cấp game — VPS 19/10/2026
+
+Bản hiện tại `game-six-4b4ce2e5-20261019`, contentVersion `4b4ce2e5`: giảm tải lạnh, trợ giúp/dẫn đường nhiệm vụ, tự đọc và nghe lựa chọn, sân chơi theo vùng, bộ sưu tập/kéo trang trí, phân lượt mục tiêu nhóm. Chi tiết tại [LEVEL_100_AND_STUDENTS](../../docs/design/LEVEL_100_AND_STUDENTS.md).
+
+Overlay 26 file SHA-256 `ea35e0e3c4c53a90b7dda291abb687f55aa71885296cd2ed75806845bb436aa8`; checksum, build Linux/nginx và hai API MySQL đạt. Backup `/opt/lang-tri-thuc/backups/database-20261019T051055Z.sql` đã phục hồi thử khớp. HTTPS desktop/mobile, signed WebSocket/phân lượt và lưu MySQL đạt; 3 hồ sơ/tiến độ thật, nội dung quản trị, bản đồ, draft và NPC giữ nguyên. Hồ sơ QA đã xóa. Giữ bản quản trị trước và các manifest CMS cũ để phục hồi theo quy trình bên tài liệu thiết kế. Các release dưới là lịch sử.
+
+## Quản trị thông minh — VPS 19/10/2026
+
+Release đang chạy `admin-smart-verified-2e57529e-20261019`, contentVersion `2e57529e`. Đủ bảy nâng cấp: cần xử lý, theo dõi học sinh, tìm toàn hệ thống/bộ lọc, kiểm duyệt theo lô, lớp kiểm tra bản đồ, phân tích học tập và lịch sử khôi phục. Hướng dẫn, giới hạn dữ liệu và bằng chứng tại [ADMIN_SMART_WORKSPACE](../../docs/design/ADMIN_SMART_WORKSPACE.md).
+
+Bản đầu 25 file; bản chốt 9 file, SHA-256 `bb7887dfb99ac072b8c9d02dfbefef03eb6de6375d017b728f995f5d7f9382b7`. Checksum, build Linux API/rooms, nginx -t và hai API MySQL đạt. Backup `/opt/lang-tri-thuc/backups/database-20261019T032451Z.sql` phục hồi thử khớp. HTTPS desktop/mobile, role protection, preview không ghi nội dung thật, tìm NPC CMS, signed room/MySQL/cách ly hồ sơ đạt. Toàn bộ QA đã xóa; checksum nội dung/draft/map/NPC, 3 hồ sơ và tiến độ cũ giữ nguyên. Giữ `five-upgrades-2e57529e-20261019` để rollback ứng dụng; cùng rules nên không cần đổi con trỏ CMS. Các mục dưới là lịch sử.
+
+
+## Năm nâng cấp trải nghiệm học — VPS 19/10/2026
+
+Release đang chạy `five-upgrades-2e57529e-20261019`, contentVersion `2e57529e`: tải nền/cache engine, ôn câu sai, tổng hợp lịch sử vượt 200 sự kiện, mười đồ thưởng mốc cấp và trạng thái đồng bộ kèm bản sao khi xung đột. Chi tiết và giới hạn tại [LEVEL_100_AND_STUDENTS](../../docs/design/LEVEL_100_AND_STUDENTS.md).
+
+Overlay 34 file, SHA-256 `c2a0e8e12b0f2a8dde71e3e8e224660dcdafb2a7c031a66a04dbb73647a0a5af`; checksum trước kích hoạt, build Linux API/rooms, nginx -t và hai API MySQL đạt. Backup `/opt/lang-tri-thuc/backups/database-20261019T021347Z.sql` phục hồi thử khớp. Bản đồ/draft/NPC và ba hồ sơ thật giữ nguyên; CMS chỉ nâng manifest sang cặp tương thích đã kiểm thử.
+
+QA HTTPS desktop/mobile, báo cáo 800 lượt qua MySQL/reload, đồ thưởng, bảng tháng quản trị, signed WebSocket/câu hỏi hành trình/hoạt động/cách ly hồ sơ và quyền truy cập đạt. Gia đình QA đã xóa; báo cáo/ảnh ở `temp/deploy/qa/five-upgrades-live/`. Giữ release `free-painting-35eb627f-20261018`; rollback về rules cũ cần chọn lại manifest CMS có `baseVersion=35eb627f` bằng API rollback của bản cũ, giữ nguyên draft/lịch sử. Các release bên dưới là lịch sử.
+
+
 ## Nội thất toàn màn hình và tải dần — VPS 18/10/2026
 
 Release đang chạy `fullscreen-loading-35eb627f-20261018`, source commit `ba14f3b`, contentVersion `35eb627f`. Phòng phủ kín Canvas, camera theo nhân vật, HUD/joystick theo bố cục chung; ảnh khu xa, chuyển động NPC và nội thất tải dần. Overlay 14 file SHA-256 `5fe3520f14f7c74feaa6bbd7c8976ac769d5ac1df6afa38efc6f79cd0a4b7372`; checksum từng file khớp sau khi phục hồi lockfile nguồn bị npm prune viết lại. Build Linux API/rooms và nginx -t đạt.

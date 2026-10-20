@@ -13,3 +13,7 @@
 .rotate-card{max-width:340px}.rotate-card img{width:88px;height:88px;border-radius:24px}.rotate-phone{width:100px;height:100px;margin:28px auto 18px;display:block;color:#f7cd61}.rotate-card h2{font-size:26px;margin:16px 0}.rotate-card p{color:#dce8ca;line-height:1.5}.rotate-card button,#fullscreen-game{min-height:44px;border:1px solid #f7cd6177;border-radius:12px;padding:10px 18px;background:#fff1c9;color:#184c38;font:600 14px system-ui;cursor:pointer}
 #fullscreen-game{position:fixed;top:max(12px,env(safe-area-inset-top));left:50%;transform:translateX(-50%);z-index:1500;padding:8px 14px;box-shadow:0 3px 12px #0003}
 html:fullscreen,html:-webkit-full-screen{background:#184c38}
+
+#save-status{position:fixed;left:50%;bottom:env(safe-area-inset-bottom,0px);transform:translateX(-50%);z-index:35;max-width:88vw;padding:3px 10px;border-radius:8px 8px 0 0;background:#183e30e8;color:#fff5d7;font:12px/1.4 system-ui;text-align:center;pointer-events:none}#save-status[hidden]{display:none}#save-status[data-state=conflict]{pointer-events:auto;background:#6d3c23}#save-status button{margin:4px;padding:8px;border-radius:6px;border:1px solid #f5d99a;background:#fff0c7;color:#412a16;min-height:40px}
+
+.ltt-modal-open #fullscreen-game{display:none}

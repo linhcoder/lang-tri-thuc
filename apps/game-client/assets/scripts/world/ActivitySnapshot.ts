@@ -1,3 +1,4 @@
+import {newerHistory} from './LearningHistory';
 import {restoreUpgrades} from './LearningUpgrades';
 import {mergeHouseSteps} from './HouseInterior';
 import {mergeHouseRuns} from './HouseTasks';
@@ -23,7 +24,10 @@ export function mergeActivities(remote:ActivitySnapshot,local:ActivitySnapshot):
     result.care={...remote.care,...result.care};
     const combined:Record<string,number>={...remote.holidayProgress};for(const [id,step] of Object.entries(result.holidayProgress??{}))combined[id]=Math.max(combined[id]??0,step);result.holidayProgress=combined;
     result.festivalProgress={...remote.festivalProgress};for(const [id,games] of Object.entries(local.festivalProgress??{}))result.festivalProgress[id]=Array.from(new Set([...(result.festivalProgress[id]??[]),...games]));
-    const remoteUpgrade=restoreUpgrades(remote.upgrades),localUpgrade=restoreUpgrades(local.upgrades);result.upgrades=restoreUpgrades({...localUpgrade,tutorial:[...remoteUpgrade.tutorial,...localUpgrade.tutorial],events:[...remoteUpgrade.events,...localUpgrade.events]});
+    const remoteUpgrade=restoreUpgrades(remote.upgrades),localUpgrade=restoreUpgrades(local.upgrades);result.upgrades=restoreUpgrades({...localUpgrade,tutorial:[...remoteUpgrade.tutorial,...localUpgrade.tutorial],history:newerHistory(remoteUpgrade.history,localUpgrade.history),events:[...remoteUpgrade.events,...localUpgrade.events]});
+    for(const [id,checkpoint] of Object.entries(remoteUpgrade.regional??{})){
+        const regional=result.upgrades!.regional??={};if(!regional[id]||checkpoint.updated>regional[id].updated)regional[id]=checkpoint;
+    }
     if(result.upgrades)result.upgrades.homeStep=Math.max(remoteUpgrade.homeStep??0,localUpgrade.homeStep??0);
     if(result.upgrades)result.upgrades.houseSteps=mergeHouseSteps(remoteUpgrade.houseSteps,localUpgrade.houseSteps);
     if(result.upgrades)result.upgrades.houseRuns=mergeHouseRuns(remoteUpgrade.houseRuns,localUpgrade.houseRuns);

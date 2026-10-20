@@ -12,11 +12,11 @@ function fixture(){
  const art=new module.exports.VillageArt();art.loadNpcPoses=async()=>{};art.ensureDecoration=async()=>{};
  return {art,requests};
 }
-test('startup launches ground and details before core downloads finish; optional failures preserve playable art',async()=>{
+test('core startup completes without downloading large ground textures or bamboo; failed background loads preserve playable art',async()=>{
  const {art,requests}=fixture(),pending=art.load();
- assert.equal(requests.size,8);
+ assert.equal(requests.size,4);assert.equal(requests.has('ground.meadow-texture/texture'),false);
  for(const [key,callback] of requests)callback(key.startsWith('ground.meadow')||key.startsWith('ground.dirt')||key.startsWith('bamboo')?Error('offline'):null,{key});
- await pending;assert.equal(art.child.length,1);assert.equal(art.environmentLoaded.has(6),true);assert.equal(art.groundTexture,undefined);
+ await pending;assert.equal(art.child.length,1);assert.equal(art.environmentLoaded.has(6),true);const background=art.ensureTerrainTextures();assert.equal(requests.has('ground.meadow-texture/texture'),true);requests.get('ground.meadow-texture/texture')(Error('offline'));requests.get('ground.dirt-texture/texture')(Error('offline'));await background;assert.equal(art.groundTexture,undefined);
 });
 test('disposing during parallel downloads prevents late frames from being installed',async()=>{
  const {art,requests}=fixture(),pending=art.load();art.dispose();
@@ -42,4 +42,12 @@ test('warm artwork bypasses the network while code and release configuration sta
  assert.equal(await request('assets/resources/config.json'),network);assert.equal(hits.length,1);
  assert.equal(await request('assets/main/index.js'),network);assert.equal(hits.length,2);
  cache.match=async()=>undefined;assert.equal(await request('assets/resources/native/new.png'),network);assert.equal(hits.length,3);
+});
+
+// Content fingerprints allow engine cache reuse without hiding a changed application bundle.
+test('fingerprinted engine scripts reuse the current build cache',async()=>{
+ const handlers={},saved={},network={},cache={match:async()=>saved,put:async()=>{}};let hits=0;
+ const source=fs.readFileSync(path.resolve(__dirname,'../web/sw.js'),'utf8');
+ vm.runInNewContext(source,{self:{location:new URL('https://example.test/game/sw.js'),addEventListener:(name,fn)=>handlers[name]=fn},URL,caches:{open:async()=>cache},fetch:async()=>{hits++;return network;}});
+ let result;handlers.fetch({request:{method:'GET',url:'https://example.test/game/cocos-js/_virtual_cc-Bp5iGE8z.js',mode:'cors',headers:{has:()=>false}},respondWith:value=>result=value});assert.equal(await result,saved);assert.equal(hits,0);
 });

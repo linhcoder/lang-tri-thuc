@@ -5,4 +5,5 @@ import './style.css';
 import './workspace.css';
 import './reference.css';
 import './accounts.css';
+import './workbench.css';
 createRoot(document.getElementById('root')!).render(<App/>);

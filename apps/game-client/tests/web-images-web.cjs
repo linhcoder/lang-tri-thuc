@@ -30,7 +30,9 @@ const server=http.createServer((request,response)=>{const url=new URL(request.ur
   await page.screenshot({path:path.join(output,scenario+'.png')});
   if(mobile){
    await page.waitForFunction(()=>!!navigator.serviceWorker.controller,undefined,{timeout:30000});
-   // Preload the same three large core textures into the active worker cache.
+   // Measure playable time first, then let deferred ground art fill the cache.
+   flushLink();await page.waitForFunction(()=>!!cc.director.getScene().getChildByName('Canvas').getComponent('VillageBootstrap').art.groundTexture,undefined,{timeout:90000});
+   // Preload the same three textures into the active worker cache.
    const ids=['reference-props-v1','reference-banyan-v1','grass-meadow-v1'].map(name=>JSON.parse(fs.readFileSync(path.join(root,'apps/game-client/assets/resources/village',name+'.png.meta'),'utf8')).uuid);
    const coreUrls=[...nativeRequests.keys()].filter(url=>ids.some(id=>url.includes(id))&&url.endsWith('.webp'));assert.equal(coreUrls.length,3);
    flushLink();await page.evaluate(async urls=>{await Promise.all(urls.map(async url=>{const response=await fetch(url);await response.arrayBuffer();}));},coreUrls);

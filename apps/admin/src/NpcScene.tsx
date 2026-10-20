@@ -7,11 +7,11 @@ import {ArtAsset,cropArt,loadArt} from './AssetPreview';
 type Npc={id:string;name:string;x:number;y:number;assetId?:string};
 type Scene={size:number;assets:ArtAsset[];tiles:{x:number;y:number;terrain:string;walkable:boolean}[];reserved:{x:number;y:number}[];objects:any[];details:any[];scenery:any[];fixedNpcs:any[]};
 const project=(x:number,y:number)=>({x:(x-y)*32,y:(x+y)*16});
-export default function NpcScene({scene,npcs,api,token,save,onDirty}:{scene:Scene;npcs:Npc[];api:string;token:string;save:(rows:Npc[],note:string)=>Promise<void>;onDirty:(dirty:boolean)=>void}){
+export default function NpcScene({scene,npcs,api,token,save,onDirty,selectedId}:{selectedId?:string;scene:Scene;npcs:Npc[];api:string;token:string;save:(rows:Npc[],note:string)=>Promise<void>;onDirty:(dirty:boolean)=>void}){
 const terrainCache=useRef<{grass?:HTMLImageElement;chunks:HTMLCanvasElement[];background:HTMLCanvasElement}|null>(null);
 const [mode,setMode]=useState<'select'|'pan'>('select');
 const canvas=useRef<HTMLCanvasElement>(null),images=useRef(new Map<string,HTMLImageElement>()),hits=useRef<{id:string;x:number;y:number;width:number;height:number;footY:number}[]>([]),drag=useRef<{id?:string;x:number;y:number;pan:{x:number;y:number};offset?:{x:number;y:number}}|null>(null);
-const [selected,setSelected]=useState(npcs[0]?.id??''),[drafts,setDrafts]=useState<Record<string,Npc>>({}),[note,setNote]=useState(''),[zoom,setZoom]=useState(1),[pan,setPan]=useState({x:0,y:0}),[grid,setGrid]=useState(true),[paint,setPaint]=useState(0),[busy,setBusy]=useState(false),[message,setMessage]=useState(''),[failed,setFailed]=useState(false);
+const [selected,setSelected]=useState(selectedId||npcs[0]?.id||''),[drafts,setDrafts]=useState<Record<string,Npc>>({}),[note,setNote]=useState(''),[zoom,setZoom]=useState(1),[pan,setPan]=useState({x:0,y:0}),[grid,setGrid]=useState(true),[paint,setPaint]=useState(0),[busy,setBusy]=useState(false),[message,setMessage]=useState(''),[failed,setFailed]=useState(false);
 const original=npcs.find(n=>n.id===selected),draft=drafts[selected]??original;
 const effective=npcs.map(n=>drafts[n.id]??n),changes=effective.filter(n=>{const before=npcs.find(row=>row.id===n.id)!;return n.x!==before.x||n.y!==before.y||n.name!==before.name;}),dirty=changes.length>0;
 function setDraft(value:Npc|((current:Npc)=>Npc)){setDrafts(old=>({...old,[selected]:typeof value==='function'?value(old[selected]??original!):value}));}
@@ -19,6 +19,7 @@ useEffect(()=>{onDirty(dirty);},[dirty]);
 const art=(id:string)=>scene.assets.find(asset=>asset.id===id),scale=.32*zoom,offset={x:550+pan.x,y:100+pan.y};
 const npcAsset=(id:string)=>art(npcs.find(n=>n.id===id)?.assetId??'character.'+id);
 useEffect(()=>{let active=true;const needed=new Set([...scene.objects.map(o=>o.id),...scene.details.map(o=>o.id),...scene.scenery.map(o=>o.cell<8?'scenery.'+['flowers','shrub','stones','market','fence','shade-tree','grass-tuft','lantern'][o.cell]:o.cell===8?'scenery.golden-rice':'scenery.wood-sign'),...npcs.map(n=>n.assetId??'character.'+n.id),...scene.fixedNpcs.map(n=>n.id),'expansion.garden','expansion.riverside','expansion.school','ground.meadow-texture']);for(const asset of scene.assets.filter(a=>needed.has(a.id)))void loadArt(api,token,asset).then(({image})=>{if(active){images.current.set(asset.id,image);setPaint(v=>v+1);}}).catch(()=>{if(active)setMessage('Một số ảnh chưa tải được. Vẫn có thể xem tọa độ và thử tải lại trang.');});return()=>{active=false;};},[scene,api,token]);
+useEffect(()=>{if(selectedId)pick(selectedId);},[selectedId]);
 function pick(id:string){if(!npcs.some(n=>n.id===id))return false;setMode('select');setSelected(id);setMessage('');return true;}
 const reason=(draft:Npc|undefined)=>{if(!draft||![draft.x,draft.y].every(v=>Number.isInteger(v)&&v>0&&v<scene.size-1))return `Chọn ô nguyên trong phạm vi 1–${scene.size-2}.`;if(!scene.tiles[draft.y*scene.size+draft.x]?.walkable||scene.reserved.some(p=>p.x===draft.x&&p.y===draft.y))return 'Ô này có nước, vật cản hoặc điểm nhiệm vụ.';if(effective.some(n=>n.id!==draft.id&&n.x===draft.x&&n.y===draft.y))return 'Ô này đã có NPC khác.';return '';};
 const invalid=reason(draft),batchInvalid=changes.map(n=>{const error=reason(n);return error?n.name+': '+error:'';}).find(Boolean)??'';

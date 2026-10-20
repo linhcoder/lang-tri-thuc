@@ -5,7 +5,10 @@ import { dirname } from 'node:path';
 import { mkdirSync } from 'node:fs';
 export interface ParentRecord {id:string;alias:string;passwordHash:string;role:'parent'|'admin'}
 export interface ProfileRecord {id:string;parentId:string;label:string;age:'3-5'|'6-8'|'9-11';gender?:'male'|'female';avatar?:number;blocked:string[]}
+export interface AdminChange {id:string;kind:'content'|'lessons'|'npcs'|'assets'|'review';key:string;before:unknown;after:unknown;actor:string;created:number}
 export interface BackendData {
+    adminChanges?:AdminChange[];
+    adminIssues?:Array<{id:string;profileId:string;status:'open'|'resolved';code:number;created:number}>;
     houseRewards?:Record<string,string[]>;
     scenePublished?:{npcs?:import('../../game-client/assets/scripts/world/NpcCatalog').NpcText[];revision:number;pack:import('../../game-client/assets/scripts/world/LayoutOverrides').LayoutPack;note:string;created:number};
     sceneReleases?:Array<NonNullable<BackendData['scenePublished']>>;
@@ -13,7 +16,7 @@ export interface BackendData {
     cms?:import('../../game-client/assets/scripts/world/CmsContent').CmsState;
     parents:Record<string,ParentRecord>;profiles:Record<string,ProfileRecord>;
     sessions:Record<string,{parentId:string;expires:number}>;
-    progress:Record<string,{revision:number;data:unknown;receipts:string[];source?:'solo'|'online';chapterOne?:unknown;activities?:unknown;trusted?:{chapterOne:unknown;campaign:unknown}}>;
+    progress:Record<string,{revision:number;updatedAt?:number;data:unknown;receipts:string[];source?:'solo'|'online';chapterOne?:unknown;activities?:unknown;trusted?:{chapterOne:unknown;campaign:unknown}}>;
     rooms:Record<string,{ownerId:string;allowedParents:string[];expires:number;locked:boolean}>;
     invitations:Record<string,{roomCode:string;expires:number;remaining:number}>;
     reports:Array<{id:string;reporter:string;target:string;reason:string;created:number;status:'open'|'resolved'}>;

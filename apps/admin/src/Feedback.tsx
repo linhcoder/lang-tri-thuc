@@ -1,12 +1,12 @@
 import React,{useEffect,useRef,useState} from 'react';
 type Row={id:string;category:string;gameId:string;message:string;created:number;status:string;note:string};
-type Props={admin:boolean;call:(path:string,method?:string,body?:unknown)=>Promise<any>;run:(task:()=>Promise<void>,success?:string)=>Promise<void>;onDirty:(dirty:boolean)=>void};
+type Props={initialQuery?:string;admin:boolean;call:(path:string,method?:string,body?:unknown)=>Promise<any>;run:(task:()=>Promise<void>,success?:string)=>Promise<void>;onDirty:(dirty:boolean)=>void};
 const categories:Record<string,string>={bug:'Lỗi khi chơi',difficulty:'Độ khó / thao tác',idea:'Ý tưởng cải thiện'};
 const statuses:Record<string,string>={open:'Chờ xem',planned:'Đang xử lý',resolved:'Đã xử lý'};
 const normalize=(s:string)=>s.toLowerCase().normalize('NFD').replace(/\p{Diacritic}/gu,'').replace(/đ/g,'d');
-export default function Feedback({admin,call,run,onDirty}:Props){
+export default function Feedback({admin,call,run,onDirty,initialQuery=''}:Props){
  const [rows,setRows]=useState<Row[]>([]),[games,setGames]=useState<Array<{id:string;title:string}>>([]),[loading,setLoading]=useState(true),[error,setError]=useState('');
- const [category,setCategory]=useState('difficulty'),[gameId,setGameId]=useState(''),[message,setMessage]=useState(''),[query,setQuery]=useState(''),[filter,setFilter]=useState('all');
+ const [category,setCategory]=useState('difficulty'),[gameId,setGameId]=useState(''),[message,setMessage]=useState(''),[query,setQuery]=useState(initialQuery),[filter,setFilter]=useState('all');
  const [edit,setEdit]=useState<Row|null>(null),editor=useRef<HTMLFormElement>(null);
  async function load(){setError('');setLoading(true);try{const [list,options]=await Promise.all([call(admin?'/admin/feedback':'/feedback'),call('/feedback/options')]);setRows(list);setGames(options.games);}catch(e){setError((e as Error).message);}finally{setLoading(false);}}
  useEffect(()=>{void load();},[admin]);
@@ -14,7 +14,7 @@ export default function Feedback({admin,call,run,onDirty}:Props){
  useEffect(()=>()=>onDirty(false),[onDirty]);
  useEffect(()=>{if(edit){editor.current?.scrollIntoView({block:'start'});editor.current?.querySelector('textarea')?.focus({preventScroll:true});}},[edit?.id]);
  const title=(id:string)=>games.find(g=>g.id===id)?.title||'Toàn bộ game';
- const visible=rows.filter(r=>(filter==='all'||r.status===filter)&&normalize(r.message+' '+title(r.gameId)+' '+categories[r.category]).includes(normalize(query.trim())));
+ const visible=rows.filter(r=>(filter==='all'||r.status===filter)&&normalize(r.id+' '+r.message+' '+title(r.gameId)+' '+categories[r.category]).includes(normalize(query.trim())));
  return <section><div className="section-heading"><h3>{admin?'Phản hồi từ đợt chơi thử':'Góp ý để game dễ chơi hơn'}</h3><button className="secondary" onClick={()=>run(load)} disabled={loading}>Tải lại phản hồi</button></div>
  {loading&&<p role="status">Đang tải phản hồi…</p>}{error&&<p role="alert" className="notice error">{error}</p>}
  {!admin&&<form onSubmit={e=>{e.preventDefault();void run(async()=>{await call('/feedback','POST',{category,gameId,message:message.trim()});setMessage('');await load();},'Đã gửi góp ý. Bạn có thể theo dõi phản hồi bên dưới.');}}><div className="toolbar"><label>Loại góp ý<select aria-label="Loại góp ý" value={category} onChange={e=>setCategory(e.target.value)}>{Object.entries(categories).map(([id,label])=><option key={id} value={id}>{label}</option>)}</select></label><label>Trò chơi liên quan<select aria-label="Trò chơi liên quan" value={gameId} onChange={e=>setGameId(e.target.value)}><option value="">Toàn bộ game</option>{games.map(g=><option key={g.id} value={g.id}>{g.title}</option>)}</select></label></div><label>Nội dung góp ý<textarea required minLength={12} maxLength={1000} value={message} onChange={e=>setMessage(e.target.value)} placeholder="Bạn đã làm gì, mong đợi điều gì và điều gì khiến bé gặp khó?"/></label><p className="muted">{message.length}/1000 ký tự · Không cần ghi tên thật hoặc thông tin riêng của trẻ.</p><button type="submit" disabled={loading}>Gửi góp ý</button></form>}

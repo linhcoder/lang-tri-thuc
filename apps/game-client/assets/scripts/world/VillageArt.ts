@@ -1,4 +1,4 @@
-import { Node, UITransform, Sprite, SpriteFrame, Texture2D, Rect, resources, ImageAsset } from 'cc';
+﻿import { Node, UITransform, Sprite, SpriteFrame, Texture2D, Rect, resources, ImageAsset } from 'cc';
 import {paintCharacter} from './CharacterArt';
 import {characterAsset} from './RedStarBoy';
 import { terrain,toWorld,villageDetails,SIZE } from './VillageModel';
@@ -85,7 +85,6 @@ export class VillageArt {
     details:SpriteFrame[]=[];
     hairVariants:Partial<Record<number,SpriteFrame[]>>={};private decorationLoads=new Map<string,Promise<void>>();private avatarLoads=new Map<number,Promise<void>>();private hairLoads=new Map<number,Promise<void>>();private disposed=false;
     decorations:Partial<Record<'elder'|'co-tam'|'lotus'|'teacher'|'market-lady'|'potter'|'ti-na'|'hang-cuoi'|'seedling',SpriteFrame>>={};
-    private tiles?:Texture2D;
     private groundTexture?:Texture2D;private dirtTexture?:Texture2D;
     private generatedTextures:Texture2D[]=[];
     readonly environmentLoaded=new Set<number>();private environmentLoads=new Map<number,Promise<void>>();
@@ -120,21 +119,38 @@ export class VillageArt {
         const load=(id:string)=>new Promise<Texture2D>((resolve,reject)=>resources.load(`${assetResourceKey(id)}/texture`,Texture2D,(error,asset)=>{onProgress(Math.min(.7,++completed/10));error?reject(error):resolve(asset);}));
         // Start independent downloads together instead of adding network round trips.
         const optional=(id:string,message:string)=>load(id).catch(()=>{console.warn(message);return undefined;});
-        const [child,temple,banyan,farmer,tiles,ground,bamboo,dirt]=await Promise.all([
-            load('avatar.child'),load('dinh'),load('banyan'),load('character.farmer'),load('ground.legacy'),
-            optional('ground.meadow-texture','Ground texture unavailable; procedural terrain remains playable'),
-            optional('bamboo','Village details unavailable; keeping base map'),
-            optional('ground.dirt-texture','Dirt texture unavailable; keeping painted path colors'),
+        const [child,temple,banyan,farmer]=await Promise.all([
+            load('avatar.child'),load('dinh'),load('banyan'),load('character.farmer'),
+            ...(['elder','seedling'] as const).map(name=>this.ensureDecoration(name)),
         ]);
         if(this.disposed)return;
-        this.child=animationFrames(child,'avatar.child');this.tiles=tiles;
-        this.groundTexture=ground;this.dirtTexture=dirt;
-        if(bamboo)this.details=this.slice(bamboo,4,2);
+        this.child=animationFrames(child,'avatar.child');
         if(this.disposed)return;
         const frame=(texture:Texture2D,id:string)=>assetFrame(texture,id);
         this.environment=[frame(temple,'dinh'),frame(temple,'dinh'),frame(banyan,'banyan'),frame(temple,'dinh'),frame(temple,'dinh'),frame(temple,'dinh'),frame(farmer,'character.farmer')];[0,2,6].forEach(index=>this.environmentLoaded.add(index));
-        await Promise.all([...(['elder','lotus','seedling'] as const).map(name=>this.ensureDecoration(name)),...villageDetails.filter(o=>assetResourceKey(o.id)!==assetResourceKey('bamboo')).map(o=>this.ensureObject(o.id,-1))]);
         if(!this.disposed){this.installFarmerFrames(farmer);onProgress(1);}
+    }
+    private retiredTerrain:SpriteFrame[]=[];
+    releaseRetiredTerrain():void{
+        const textures=new Set(this.retiredTerrain.map(f=>f.texture as Texture2D));
+        for(const f of this.retiredTerrain){this.environment=this.environment.filter(item=>item!==f);f.destroy();}
+        for(const texture of textures){this.generatedTextures=this.generatedTextures.filter(t=>t!==texture);const image=texture.image;texture.destroy();image?.destroy();}
+        this.retiredTerrain=[];
+    }
+    private terrainLoad?:Promise<void>;
+    ensureTerrainTextures():Promise<void>{
+        if(this.terrainLoad)return this.terrainLoad;
+        const load=(id:string)=>new Promise<Texture2D|undefined>(resolve=>resources.load(assetResourceKey(id)+'/texture',Texture2D,(error,texture)=>resolve(error||this.disposed?undefined:texture)));
+        this.terrainLoad=Promise.all([load('ground.meadow-texture'),load('ground.dirt-texture')]).then(([ground,dirt])=>{
+            if(this.disposed)return;this.groundTexture=ground;this.dirtTexture=dirt;
+            // The first scene uses painted paths; the caller retires its atlas after replacing nodes.
+            this.retiredTerrain.push(...this.terrainFrames.values());this.terrainFrames.clear();
+        });return this.terrainLoad;
+    }
+    async ensureVillageDetails():Promise<void>{
+        const bamboo=await new Promise<Texture2D|undefined>(resolve=>resources.load(assetResourceKey('bamboo')+'/texture',Texture2D,(error,texture)=>resolve(error||this.disposed?undefined:texture)));
+        if(bamboo)this.details=this.slice(bamboo,4,2);
+        await Promise.all([...(['elder','lotus','seedling'] as const).map(name=>this.ensureDecoration(name)),...villageDetails.filter(o=>assetResourceKey(o.id)!==assetResourceKey('bamboo')).map(o=>this.ensureObject(o.id,-1))]);
     }
     private motionLoad?:Promise<void>;
     ensureMotion():Promise<void>{
@@ -212,7 +228,7 @@ export class VillageArt {
     }
     private terrainFrames=new Map<string,SpriteFrame>();
     private bakeTerrain():void {
-        if(typeof document==='undefined'||!this.tiles?.image)return;
+        if(typeof document==='undefined')return;
 
         const chunks:Array<{x:number;y:number}>=[];for(let y=0;y<SIZE;y+=8)for(let x=0;x<SIZE;x+=8)chunks.push({x,y});
         // Both atlas pages stay below 2048px. Each cell includes a one-pixel painted sampling border.

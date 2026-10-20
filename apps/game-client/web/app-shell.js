@@ -36,7 +36,16 @@
  window.addEventListener('appinstalled',()=>{install.hidden=true;prompt=null;});
  // Wait until the game is ready before offering installation.
  window.addEventListener('ltt-loading',event=>{if(event.detail?.percent===100&&prompt)install.hidden=false;});
+ window.addEventListener('ltt-loading',event=>{if(event.detail?.percent!==100||!('serviceWorker' in navigator))return;void navigator.serviceWorker.ready.then(registration=>{const urls=performance.getEntriesByType('resource').map(entry=>entry.name).filter(url=>url.includes('/cocos-js/'));registration.active?.postMessage({type:'warm-engine',urls});}).catch(()=>{});});
  install.addEventListener('click',async()=>{if(!prompt)return;const choice=prompt;prompt=null;install.hidden=true;await choice.prompt();await choice.userChoice;});
  const preview=new URLSearchParams(location.search).has('cmsPreview');
  if('serviceWorker' in navigator&&!preview&&window.top===window){window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js',{scope:'./',updateViaCache:'none'}).catch(()=>{}));}
+})();
+
+(()=>{
+ const status=document.createElement('aside');status.id='save-status';status.hidden=true;status.setAttribute('aria-live','polite');const text=document.createElement('span');status.append(text);document.body.append(status);
+ let last='',exportSave;
+ const backup=document.createElement('button');backup.textContent='Tải bản sao';backup.onclick=()=>exportSave?.();status.append(backup);
+ const reload=document.createElement('button');reload.textContent='Tải lại tiến độ';reload.onclick=()=>{exportSave?.();location.reload();};status.append(reload);
+ window.addEventListener('ltt-save-state',event=>{const {state}=event.detail||{};if(!['local','saving','saved','conflict'].includes(state))return;exportSave=event.detail.exportSave;if(state===last)return;last=state;status.hidden=false;status.dataset.state=state;text.textContent={local:'Đã giữ trên máy · Chờ kết nối',saving:'Đang đồng bộ…',saved:'Đã đồng bộ',conflict:'Tiến độ đổi trên thiết bị khác. Tải bản sao trước khi tải lại.'}[state];backup.hidden=reload.hidden=state!=='conflict';});
 })();

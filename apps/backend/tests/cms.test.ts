@@ -6,7 +6,7 @@ import {cmsErrors,cmsAssets,CmsNpc,validCmsManifest} from '../../game-client/ass
 import {loadCms} from '../../game-client/assets/scripts/world/CmsLoader';
 import {contentVersion} from '../../game-client/assets/scripts/world/ContentVersion';
 
-for(const previousVersion of ['785f4e7e','0d971c1a'])test('known navigation upgrade from '+previousVersion+' preserves published NPCs, immutable history and unpublished drafts',async()=>{
+for(const previousVersion of ['785f4e7e','0d971c1a','35eb627f','2e57529e'])test('known navigation upgrade from '+previousVersion+' preserves published NPCs, immutable history and unpublished drafts',async()=>{
  const store=new SqliteRepository(),app=await createApi({store,roomSecret:'navigation-upgrade-secret-32-characters'});
  const npc:CmsNpc={id:'cms-storyteller',name:'Storyteller',assetId:cmsAssets()[0].id,x:23,y:27,enabled:true,entry:'hello',questId:'q.ch01.greet',dialogue:[{id:'hello',text:'Hello village',choices:[]}]};assert.deepEqual(cmsErrors([npc]),[]);
  const old={schema:1 as const,baseVersion:previousVersion,version:'a'.repeat(64),npcs:[npc]};

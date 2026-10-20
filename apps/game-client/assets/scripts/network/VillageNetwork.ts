@@ -17,7 +17,7 @@ export class VillageNetwork {
     correction:Point|null=null;
     onProgress?:(value:any)=>void;onGame?:(game:MiniGameRules)=>void;
     onGameFeedback?:(id:string,message:string)=>void;
-    onExpansion?:(value:{id:ExpansionId;age:AgeBand;step:number;attempt:string;players:number})=>void;
+    onExpansion?:(value:{id:ExpansionId;age:AgeBand;step:number;attempt:string;players:number;yourTurn?:boolean;turnNumber?:number})=>void;
     onExpansionFeedback?:(id:ExpansionId,message:string,cancelled:boolean)=>void;
     onActivities?:(value:any)=>void;
     onEmote?:(sessionId:string,id:string)=>void;

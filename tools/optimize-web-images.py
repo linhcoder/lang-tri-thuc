@@ -33,14 +33,16 @@ def optimize_image(entry):
         scenery = source_name.startswith(SCENERY_DIRS) or source_name in SCENERY_FILES
         mode, psnr, preview_psnr = 'lossless', 99.0, 99.0
         if scenery:
-            rgba.save(output, 'WEBP', quality=90, alpha_quality=100, exact=True, method=4, icc_profile=profile)
-            with Image.open(output) as decoded:
-                decoded_rgba = decoded.convert('RGBA')
-                psnr = visible_psnr(rgba, decoded_rgba)
-                preview_psnr = visible_psnr(rgba, decoded_rgba, preview=True)
-                accepted = decoded.size == rgba.size and rgba.getchannel('A').tobytes() == decoded_rgba.getchannel('A').tobytes() and psnr >= 34 and preview_psnr >= 34
-            if accepted:
-                mode = 'scenery-quality-90'
+            for quality in (90, 94, 97):
+                rgba.save(output, 'WEBP', quality=quality, alpha_quality=100, exact=True, method=4, icc_profile=profile)
+                with Image.open(output) as decoded:
+                    decoded_rgba = decoded.convert('RGBA')
+                    psnr = visible_psnr(rgba, decoded_rgba)
+                    preview_psnr = visible_psnr(rgba, decoded_rgba, preview=True)
+                    accepted = decoded.size == rgba.size and rgba.getchannel('A').tobytes() == decoded_rgba.getchannel('A').tobytes() and psnr >= 34 and preview_psnr >= 34
+                if accepted:
+                    mode = 'scenery-quality-' + str(quality)
+                    break
         if mode == 'lossless':
             rgba.save(output, 'WEBP', lossless=True, exact=True, method=4, icc_profile=profile)
         with Image.open(output) as decoded:
@@ -96,7 +98,7 @@ def optimize_build(build):
                 payload['fmt'] = '0'
             metadata.write_text(json.dumps(data, separators=(',', ':')), encoding='utf-8')
     report = {'format': 'WebP with PNG fallback', 'alphaExact': True, 'resized': False,
-              'policy': 'UI/characters/atlases lossless; allowlisted scenery quality 90, native and 768px preview visible PSNR >= 34 dB',
+              'policy': 'UI/characters/atlases lossless; allowlisted scenery adaptive quality 90/94/97, native and 768px preview visible PSNR >= 34 dB',
               'images': len(files), 'pngBytes': sum(x['pngBytes'] for x in files.values()),
               'webpBytes': sum(x['webpBytes'] for x in files.values()), 'files': files}
     (build / 'image-optimization.json').write_text(json.dumps(report, indent=2) + '\n', encoding='utf-8')

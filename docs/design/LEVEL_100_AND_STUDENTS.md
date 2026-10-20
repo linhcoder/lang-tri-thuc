@@ -1,5 +1,71 @@
 # Hành trình 100 cấp và hồ sơ học sinh
 
+## Bổ sung ngày 20/10/2026 — source local, chưa phát hành
+
+- Sân chơi vùng lưu bước đang làm, số món trong giỏ và chuỗi đường mòn theo hồ sơ/vùng/nhóm tuổi. Mở lại tiếp tục; Chơi lại lưu ván mới. Đổi nhóm tuổi bắt đầu ván phù hợp tuổi mới. Đây là thay đổi thay thế giới hạn chưa lưu checkpoint ở bản phát hành 19/10 bên dưới.
+- Dữ liệu phục hồi được kiểm tra giới hạn; đồng bộ activity snapshot chọn checkpoint mới hơn theo từng vùng, không cấp XP/sao.
+- Hai ảnh elder/seedling tải đồng thời với ảnh chính để giảm thời gian đợi nối tiếp. `test:web-images-ui` đạt WebP/PNG fallback/cache; mạng giả lập 1,6 Mbps/trễ 80 ms: tải lạnh 72.178 ms, mở lại 8.655 ms. Gần tương đương mốc cũ 72.627/8.786 ms, chưa đủ bằng chứng cải thiện đáng kể; tải lạnh vẫn cần tối ưu thêm. Báo cáo `apps/game-client/temp/web-images-qa/report.json`.
+- TypeScript và test client đạt, gồm phục hồi giỏ/đường mòn ở ba tuổi, dữ liệu lỗi và hợp nhất checkpoint. API: 40 đạt, một fixture MySQL bỏ qua; server 11/11 đạt. Build Web đạt. `test:six-upgrades` đạt desktop 1600×900 và mobile giả lập 844×390, gồm checkpoint qua cloud/reload; báo cáo `apps/game-client/temp/six-upgrades-report.json`.
+- Còn cần điện thoại thật để xác nhận 4G, loa và giọng tiếng Việt hệ điều hành.
+
+
+## Sáu nâng cấp phía game — 19/10/2026
+
+Đã phát hành và QA HTTPS `game-six-4b4ce2e5-20261019`, rules 14/contentVersion `4b4ce2e5`.
+
+- Vào làng với nền được vẽ sẵn bằng code; hai texture cỏ/đất, tre và sen tải sau khung hình chơi đầu tiên. Bỏ tải atlas nền cũ không được dùng. Khi ảnh nền sẵn sàng, thay chunk hiện tại và giải phóng atlas tạm; va chạm/đường đi không đổi. Ảnh có lỗi vẫn giữ nền vẽ. WebP còn PNG dự phòng.
+- Bấm mục tiêu trên HUD dẫn tới người giao việc của chương hiện tại, cả sau chương một. Sổ tay có **Việc tiếp theo / trợ giúp**: mục tiêu, ba bước xử lý khi mắc kẹt, Dẫn đường và sổ nhiệm vụ. Nếu không có đường tới NPC thì mở bài của chương để tiếp tục. Khi xong cốt truyện, dẫn vào vùng có thử thách tiếp theo.
+- **Tự đọc đề** được lưu theo hồ sơ trong Cài đặt, mặc định bật cho lối đọc tự động nhóm 3–5 tuổi khi âm thanh bật. **Nghe lựa chọn** lần lượt đọc các đáp án mà không gửi câu trả lời. Có Nghe/Dừng và thông báo khi thiếu giọng tiếng Việt. Đọc dựa trên giọng hệ điều hành, không đảm bảo mọi thiết bị có giọng Việt; QA dùng adapter xác định để kiểm tra luồng.
+- Trong Hành trình → **Sân chơi vùng**, có ba cơ chế thực hành: gieo/tưới/thu hoạch (xưởng gốm có lấy đất/tạo dáng/trang trí), thêm/bớt số lượng vào giỏ, và đi theo chuỗi đường mòn. Nông trại, chợ và rừng dùng ba cơ chế khác nhau; mười vùng dùng các chủ đề tương ứng. Số lượng/độ dài đường thay đổi theo ba nhóm tuổi. Sai được thử lại; mỗi lượt đúng ghi báo cáo luyện tập, hoàn thành không cấp thêm XP/sao cốt truyện. Sân chơi mở theo cấp của vùng; tiến trình một ván sân chơi chưa lưu checkpoint khi đóng.
+- Bộ sưu tập trang trí có 20 đồ, bốn món/trang, hiển thị điều kiện sao/cấp/hoàn thành bài nhà; chỉ đặt đồ đã mở. Mười quà mốc cấp có hình vẽ riêng thay cho bảng số chung, dùng trong phòng và nhà bé. Kéo hình giữa ba vị trí để đổi chỗ; vẫn chọn được vị trí bằng nút, đặt/bỏ đồ và đồng bộ bố cục cũ theo slot ID.
+- Chơi nhóm hiển thị mục tiêu ba bước, tiến độ và lượt của bé/bạn. Server phân lượt theo bước và thứ tự tham gia, từ chối đáp án ngoài lượt; bạn khác quan sát và chuẩn bị. Tạm mất kết nối được bỏ qua khi phân lượt cho người đang kết nối, sau đó tiếp tục đồng bộ khi quay lại. Giữ giới hạn bốn người, kiểm tra chặn bạn và không thêm chat tự do; các huy hiệu dùng cơ chế xác thực/lưu hiện có.
+
+Tương thích CMS chỉ nâng cặp đã biết `2e57529e` → `4b4ce2e5`, giữ nguyên NPC công bố, bản nháp và lịch sử. Giữ release quản trị trước để phục hồi; nếu rollback sang rules 13 cần dùng API CMS của bản cũ chọn manifest `baseVersion=2e57529e` tương ứng, không ghi đè dữ liệu học sinh.
+
+Kiểm tra: `npm run check:client`, `test:client`, `test:api`, `test:server`; `test:six-upgrades` thực hiện chuột/cảm ứng, ba cơ chế × ba tuổi, nghe không trả lời hộ, kéo trang trí và đọc lại bố cục/tùy chọn từ cloud sau reload. `test:expansion-coop` dùng hai browser; `test:web-images-ui` đo mạng 1,6 Mbps/trễ 80 ms gồm service worker. Bằng chứng tại `apps/game-client/temp/six-*`, `expansion-coop-qa/`, `web-images-qa/`. Đo mạng giả lập cùng fixture: tải lạnh 72.627 ms so với 95.848 ms trước đợt này (giảm khoảng 24%); mở lại 8.786 ms. Đây là HTTP giả lập, API không giới hạn, chưa phải điện thoại/4G thật. Desktop/mobile đã qua kiểm tra sáu nâng cấp; HTTPS desktop 1600×900/mobile 844×390 sau deploy đạt; kiểm tra WebSocket ký vé, phân lượt server và lưu MySQL trên hồ sơ thử đạt.
+
+
+
+### Xác minh VPS — sáu nâng cấp
+
+- Release hiện tại: `game-six-4b4ce2e5-20261019`; hai API MySQL healthy `4b4ce2e5`. Overlay 26 file, SHA-256 `ea35e0e3c4c53a90b7dda291abb687f55aa71885296cd2ed75806845bb436aa8`; kiểm tra từng file, build API/rooms Linux và nginx -t đạt. npm prune thay metadata lockfile; đã khôi phục đúng lockfile đóng gói và kiểm tra lại toàn bộ checksum trước kích hoạt.
+- Backup `/opt/lang-tri-thuc/backups/database-20261019T051055Z.sql` đã phục hồi thử vào DB dùng một lần, checksum khớp và DB thử đã xóa. Không khôi phục đè DB đang chạy.
+- HTTPS desktop/mobile thực hiện ba cơ chế × ba tuổi, nghe từng lựa chọn không gửi đáp án, tùy chọn tự đọc, kéo đổi vị trí trang trí và đọc lại qua tải trang. QA dùng asset/code HTTPS thật và API fixture riêng. Adapter lời đọc kiểm tra luồng, không xác nhận loa/giọng hệ điều hành thật.
+- Hai signed WebSocket trên VPS xác nhận từ chối trả lời ngoài lượt, hai mục tiêu chung hoàn thành và lưu huy hiệu, tùy chọn đọc/bố cục/checkpoint nhà/tác phẩm được ghi MySQL; hồ sơ khác được cách ly. API quản trị, chặn truy cập nội bộ/phòng không vé/phòng development đạt. Gia đình QA đã xóa.
+- So với trước deploy: checksum ba hồ sơ thật, toàn bộ tiến độ cũ, nội dung biên tập, map công bố/draft và nội dung NPC CMS giữ nguyên. CMS chỉ thêm manifest tương thích với nội dung NPC cũ. Bằng chứng `temp/deploy/qa/game-six-live/`, metadata `temp/deploy/game-six-deploy-state.json`.
+- Giữ `admin-smart-verified-2e57529e-20261019` và backup. Rollback về rules 13 cần chọn lại manifest CMS `baseVersion=2e57529e` qua API quản trị của bản cũ; không xóa lịch sử hoặc thay draft/progress.
+
+
+## Quản trị thông minh — 19/10/2026
+
+Bảy nâng cấp quản trị được mô tả tại [ADMIN_SMART_WORKSPACE](ADMIN_SMART_WORKSPACE.md): cần xử lý, hồ sơ tổng hợp, tìm toàn hệ thống/bộ lọc, duyệt hàng loạt, lớp kiểm tra bản đồ, phân tích học tập và lịch sử khôi phục. Đã triển khai và QA HTTPS desktop/mobile: `admin-smart-verified-2e57529e-20261019`; giữ phiên bản nội dung game `2e57529e`.
+
+## Nâng cấp trải nghiệm học và lưu trữ — 19/10/2026
+
+Đặc tả của năm nâng cấp bên dưới thay thế các giới hạn tương ứng trong lịch sử phát hành phía sau. Đã phát hành đồng bộ Web/API/rooms lên VPS: `five-upgrades-2e57529e-20261019`, contentVersion `2e57529e`.
+
+- Tải game: chuyển chi tiết trang trí sang tải nền sau khi vào làng; giữ ảnh nhân vật/nhiệm vụ cần thiết ở luồng chính. Service worker tái sử dụng mã engine có tên chứa fingerprint, còn mã ứng dụng/config vẫn kiểm tra máy chủ. WebP cảnh nền thử chất lượng 90/94/97, chỉ nhận khi PSNR ảnh gốc và bản xem 768px đều đạt 34 dB; alpha, kích thước và atlas/nhân vật lossless được giữ nguyên.
+- Câu hỏi và ôn tập: bổ sung 24 câu ngoài toán cho tám kỹ năng; trộn vị trí đáp án và phân bố theo vùng/thử thách bằng cùng thuật toán ở client/API/rooms. Lưu tối đa 12 câu cần ôn theo học sinh; trả lời đúng để tiếp tục hành trình vẫn giữ câu từng sai trong danh sách. “Luyện theo gợi ý” ưu tiên đúng câu đó ở nhóm tuổi hiện tại; chỉ bỏ khi trả lời đúng trong lượt ôn. Mỗi lượt tối đa sáu câu, không cấp lại XP/sao cốt truyện.
+- Báo cáo dài hạn: giữ chi tiết 200 sự kiện, tổng hợp phần bị loại theo ngày (62 ngày có dữ liệu) và tháng (120 tháng có dữ liệu gần nhất). Báo cáo game có 7 ngày, 30 ngày và sáu tháng gần nhất; giao diện quản trị xem được toàn bộ các tháng được lưu. Mốc lưu trữ cùng ID sự kiện ở thời điểm mốc giúp bản lưu cũ không cộng lại sự kiện đã tổng hợp. Lịch sử theo bản lưu mới hơn khi hợp nhất; xung đột ghi solo vẫn bị chặn bằng revision. Không phục hồi được sự kiện đã mất trước nâng cấp; số liệu luyện tập do thiết bị ghi nhận, không phải chứng nhận kết quả học tập.
+- Quà mốc cấp: thêm mười đồ trang trí từ cấp 10 đến 100, mỗi mốc mười cấp; mở theo cấp tính từ thành tích hiện có, không cần nhận thưởng lặp. Đồ dùng được trong phòng riêng và nhà bé, không đổi sao truyện hay ID đồ cũ.
+- Trạng thái lưu: hiển thị đang đồng bộ, đã đồng bộ và đang giữ trên máy/chờ kết nối. Lỗi mạng tự thử lại theo chu kỳ hiện có. Xung đột dừng ghi cloud, giữ thêm bản sao cục bộ có hậu tố `.before-conflict`, cho tải JSON và tải lại tiến độ. Nút tải lại cũng xuất bản sao trước khi tải trang; không tự ghi đè tiến độ thiết bị khác.
+
+Tương thích nội dung: `2e57529e` (rules 13), cập nhật đồng bộ Web/API/rooms. CMS chỉ nâng cặp phiên bản đã biết, giữ nội dung NPC đã xuất bản, bản nháp và lịch sử bất biến. Các đoạn giới hạn 200 sự kiện, chưa có đồ mốc cấp và trạng thái release bên dưới là lịch sử trước đợt này.
+
+Kiểm tra local: TypeScript đạt; 70 nhóm logic client và 12 bài mạng/khởi động/cache/retry đạt; API 33 đạt, một fixture MySQL riêng bỏ qua; server 11/11 đạt và ca hoạt động qua WebSocket chạy lại sau sửa hợp nhất lịch sử đạt. `npm run test:five-upgrades` kiểm tra Cocos thật trên desktop 1600×900/mobile 844×390: giữ câu sai sau khi làm đúng hành trình, ôn lại đúng câu và xóa khỏi danh sách, mốc cấp 10, lưu đồ qua reload, chuyển kỳ báo cáo bằng chuột/cảm ứng, lỗi mạng tự đồng bộ lại, xung đột giữ bản sao và tải JSON. Ảnh/báo cáo local tại `apps/game-client/temp/five-upgrades-*`.
+
+Đo mạng giả lập 1,6 Mbps/trễ 80 ms, bao gồm service worker: tải lạnh 95.848 ms; mở lại sau khi điền cache 9.140 ms (trước nâng cấp 24.542 ms). Đây là cải thiện lượt mở lại khoảng 63%; tải lạnh vẫn chậm, chưa phải kiểm thử điện thoại thật/4G. WebP giữ PNG fallback; PNG fallback và cache texture đã kiểm tra. Báo cáo tại `apps/game-client/temp/web-images-qa/report.json`.
+
+
+
+### Xác minh phát hành 19/10/2026
+
+- Overlay 34 file, SHA-256 `c2a0e8e12b0f2a8dde71e3e8e224660dcdafb2a7c031a66a04dbb73647a0a5af`; từng file khớp trước kích hoạt. Build Linux API/rooms và nginx -t đạt. Backup `/opt/lang-tri-thuc/backups/database-20261019T021347Z.sql` đã phục hồi thử khớp.
+- Hai API MySQL healthy với `2e57529e`; bản đồ công bố, bản nháp, nội dung NPC CMS và 3 hồ sơ thật giữ nguyên checksum. CMS nâng tương thích theo cặp `35eb627f` → `2e57529e`, giữ bản phát hành cũ và nội dung bản nháp.
+- QA HTTPS desktop 1600×900/mobile 844×390 đạt: đọc lại 800 lượt/400 đúng sau ghi MySQL và mở trên trình duyệt mới, đồ mốc cấp 10/cấp hiện tại 11 giữ qua tải lại, báo cáo game và bảng tháng quản trị hiển thị đúng. Hồ sơ thứ hai vẫn có 0 lượt; không có page error. Đã xem ảnh báo cáo/đồ thưởng mobile và bảng tháng quản trị ở `temp/deploy/qa/five-upgrades-live/`.
+- Signed WebSocket hai hồ sơ đạt câu trả lời hành trình toán và tiếng Việt do server kiểm tra, lưu checkpoint nhà/tác phẩm vào MySQL và cách ly học sinh. API/quyền quản trị, chặn phòng development/phòng không vé và API nội bộ đạt. Toàn bộ gia đình QA đã xóa; kiểm tra cuối còn đúng 3 hồ sơ thật với checksum ban đầu.
+- Giữ release `free-painting-35eb627f-20261018` và backup để phục hồi. Nếu rollback ứng dụng về phiên bản nội dung cũ, cần dùng CMS rollback qua API quản trị của bản cũ để chọn lại manifest `baseVersion=35eb627f` có cùng NPC; không xóa lịch sử hoặc ghi đè bản nháp. Metadata deploy ở `temp/deploy/five-upgrades-deploy-state.json`.
+
 ### Bác Kể Chuyện không bị chợ che — 18/10/2026
 
 - NPC CMS `cms-95001b11` trước ở (23,27), phía sau tranh chợ lớn nên chỉ thấy biển tên. Đã chuyển riêng bác tới (24,32), phía trước chợ và có đường đi từ điểm xuất phát. Giữ nguyên ảnh, lời thoại, nhiệm vụ liên kết và các NPC khác.

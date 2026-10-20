@@ -4,6 +4,20 @@ import {toWorld} from '../world/VillageModel';
 export function paintHouseItem(g:Graphics,symbol:string,size=36):void{
  const k=size/40,rect=(x:number,y:number,w:number,h:number,c:string)=>{g.fillColor=new Color(c);g.roundRect(x*k,y*k,w*k,h*k,3*k);g.fill();},circle=(x:number,y:number,r:number,c:string)=>{g.fillColor=new Color(c);g.circle(x*k,y*k,r*k);g.fill();};
  const line=(x:number,y:number,a:number,b:number,c:string,width=3)=>{g.strokeColor=new Color(c);g.lineWidth=width*k;g.moveTo(x*k,y*k);g.lineTo(a*k,b*k);g.stroke();};
+ if(symbol.startsWith('level-')){
+  const level=Number(symbol.slice(6)),index=level/10-1;
+  // Each milestone has its own silhouette; the level number remains a caption.
+  if(index===0){line(-12,-20,-12,24,'#835f3b',3);g.fillColor=new Color('#da7253');g.moveTo(-12*k,24*k);g.lineTo(22*k,16*k);g.lineTo(-12*k,7*k);g.close();g.fill();}
+  else if(index===1){rect(-22,-17,44,34,'#548e89');for(const y of [-8,0,8])line(-14,y,14,y,'#fff1cf',2);}
+  else if(index===2){rect(-22,-18,44,25,'#bf955c');for(const x of [-12,0,12])circle(x,10,8,'#d19366');}
+  else if(index===3){rect(-24,-15,48,30,'#e1c392');for(let i=0;i<5;i++)rect(-24+i*10,14,9,9,i%2?'#db6556':'#f4dcaa');}
+  else if(index===4){circle(0,3,21,'#e8b635');circle(0,3,13,'#bd7d48');line(-10,-15,-15,-28,'#db6556',7);line(10,-15,15,-28,'#568dcc',7);}
+  else if(index===5){line(0,-24,0,22,'#835f3b');for(const [x,y]of [[-10,0],[10,8],[-8,16]])circle(x,y,11,'#68a34c');}
+  else if(index===6){rect(-22,-17,44,10,'#987047');line(0,-7,0,26,'#835f3b');g.fillColor=new Color('#f4dcaa');g.moveTo(2*k,23*k);g.lineTo(21*k,-5*k);g.lineTo(2*k,-5*k);g.close();g.fill();}
+  else if(index===7){circle(0,0,10,'#e8b635');for(let i=0;i<5;i++){const a=i*Math.PI*2/5;line(Math.cos(a)*12,Math.sin(a)*12,Math.cos(a)*25,Math.sin(a)*25,'#e8b635',5);}}
+  else if(index===8){rect(-22,-18,44,36,'#db6556');for(const y of [-14,14])line(-24,y,24,y,'#e8b635',5);line(-12,-12,12,12,'#f4dcaa',2);line(-12,12,12,-12,'#f4dcaa',2);}
+  else{g.fillColor=new Color('#e8b635');g.moveTo(-22*k,-15*k);g.lineTo(-25*k,20*k);g.lineTo(-10*k,7*k);g.lineTo(0,26*k);g.lineTo(10*k,7*k);g.lineTo(25*k,20*k);g.lineTo(22*k,-15*k);g.close();g.fill();circle(0,-2,5,'#db6556');}return;
+ }
  if(symbol==='pencil'){line(-8,-18,8,18,'#d2a344',8);line(8,18,11,25,'#806246',4);line(-10,-22,-7,-16,'#bd7b78',8);return;}
  if(symbol==='single-seed'){g.fillColor=new Color('#9e6738');g.ellipse(0,0,9*k,15*k);g.fill();line(-3,-6,3,6,'#c69560',2);return;}
  if(symbol.includes('book')||symbol==='paper'||symbol==='card'){rect(-17,-20,34,40,symbol==='math-book'?'#dfae58':symbol==='picture-book'?'#cf8174':'#548e89');rect(-12,-15,25,30,'#fff1cf');line(-8,9,8,9,'#8d754f',2);line(-8,2,8,2,'#8d754f',2);if(symbol==='tree-book'){line(0,-10,0,2,'#835f3b');circle(0,5,9,'#619451');}else if(symbol==='fish-book'){circle(0,-5,7,'#6ba8c3');}else{line(-5,-8,0,6,'#597f84');line(0,6,5,-8,'#597f84');line(-3,-3,3,-3,'#597f84');}return;}

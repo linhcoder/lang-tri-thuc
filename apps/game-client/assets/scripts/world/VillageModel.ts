@@ -1,4 +1,5 @@
 import {journeyPlacements} from './JourneyPlacements';
+import {cityDistricts} from './CityMissions';
 import {layoutOverrides} from './LayoutOverrides';
 export interface Point { x: number; y: number }
 export type Terrain = 'grass' | 'road' | 'rice' | 'pond' | 'courtyard';
@@ -48,6 +49,7 @@ export const villageDetails=[
 export const villageSolids=[{id:'market',x:23,y:29,radius:1},{id:'courtyard-lantern-left',x:20,y:16,radius:0},{id:'courtyard-lantern-right',x:22,y:17,radius:0},{id:'east-fence',x:34,y:21,radius:0},{id:'foreground-tree',x:35,y:34,radius:0}];
 /** Ground diamonds cover walls/stalls, not the tall roof/canopy above a walkable path. */
 export const landmarkFootprints=[
+    ...cityDistricts.map(d=>({id:d.id,x:d.x-2,y:d.y-2,halfWidth:80,halfDepth:26,lift:20})),
     {id:'journey.science',x:53,y:30,halfWidth:110,halfDepth:36,lift:25},
     {id:'journey.culture',x:31,y:53,halfWidth:125,halfDepth:22,lift:15},
     {id:'journey.island',x:53,y:53,halfWidth:80,halfDepth:36,lift:25},
@@ -91,6 +93,8 @@ export function toWorld(p: Point): Point { return { x: (p.x - p.y) * 32, y: -(p.
 export function toGrid(p: Point): Point { return { x: p.x / 64 - p.y / 32, y: -p.x / 64 - p.y / 32 }; }
 export function tileAt(p: Point): Point { const g = toGrid(p); return { x: Math.round(g.x), y: Math.round(g.y) }; }
 export function terrain(x: number, y: number): Terrain {
+    if(x>=62&&x<=69&&y>=17&&y<=47){if(x===65||y===20||y===28||y===36||y===44)return 'road';return 'courtyard';}
+    if(y===20&&x>=55&&x<=65)return 'road';
     if((x>=51&&x<=61&&y>=30&&y<=36)||(x>=30&&x<=39&&y>=52&&y<=59)||(x>=52&&x<=61&&y>=52&&y<=60))return 'courtyard';
     if((y===22&&x>=40&&x<=55)||(x===55&&y>=18&&y<=56)||(y===56&&x>=20&&x<=56)||(x===34&&y>=36&&y<=56))return 'road';
     if (x >= 12 && x <= 19 && y >= 39 && y <= 44) return 'pond';

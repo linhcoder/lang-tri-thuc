@@ -1,3 +1,4 @@
+import {cityDistricts} from '../world/CityMissions';
 import {journeyPlacements} from '../world/JourneyPlacements';
 import {layoutPlacement} from '../world/LayoutOverrides';
 import {Node,Graphics,Color,Label,UITransform} from 'cc';
@@ -9,6 +10,16 @@ import {VillageArt} from '../world/VillageArt';
 export const journeyScenery=journeyPlacements;
 
 export function createJourneyScenery(world:Node,actors:Node):void{
+    for(const d of cityDistricts){
+        const n=new Node('CityLandmark-'+d.id);n.layer=actors.layer;actors.addChild(n);
+        const p=toWorld({x:d.x-2,y:d.y-2});n.setPosition(p.x,p.y);
+        n.addComponent(UITransform).setContentSize(180,150);
+        const g=n.addComponent(Graphics);g.fillColor=new Color(d.color);g.roundRect(-80,20,160,100,8);g.fill();
+        g.fillColor=new Color('#e3f1fc');for(const x of [-55,-10,35]){g.rect(x,75,22,26);g.fill();}
+        g.fillColor=new Color('#414f62');g.rect(-15,20,30,42);g.fill();
+        const caption=new Node('CityCaption');caption.layer=actors.layer;n.addChild(caption);caption.setPosition(0,140);
+        caption.addComponent(UITransform).setContentSize(260,40);const label=caption.addComponent(Label);label.string=d.name;label.fontSize=18;label.lineHeight=24;label.color=new Color('#fff3d6');
+    }
     for(const item of journeyScenery){
         const n=new Node('JourneyLandmark-'+item.id);n.layer=actors.layer;actors.addChild(n);
         n.addComponent(UITransform).setContentSize(item.width,220);

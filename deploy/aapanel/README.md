@@ -1,8 +1,18 @@
 # aaPanel staging: ltt.vui-hoc.xyz
 
+## Thành phố 10+ — VPS 21/10/2026 (hiện tại)
+
+Đã kích hoạt `city-843b7864-20261021`, contentVersion `843b7864`, source `f512735` kèm toàn bộ working tree đã kiểm thử. Game: https://ltt.vui-hoc.xyz/game/; admin: https://ltt.vui-hoc.xyz/. Bốn dự án thành phố/16 bước, tiến độ theo hồ sơ và nâng tương thích CMS đã lên VPS.
+
+Overlay 28 file, SHA-256 `fe5372da37d214b2120880e3c5deceea31b2d6cd8b61e3fbf40a2ebce64a65e4`; đối chiếu checksum, build API/rooms Linux, build admin với URL production và nginx -t đạt. Khôi phục đúng lockfile nguồn sau npm prune. Backup `/opt/lang-tri-thuc/backups/database-20261021T153152Z.sql` đã phục hồi thử khớp và xóa DB thử.
+
+Hai API MySQL trả version mới, bốn services active. HTTPS/UI desktop 1600×900 và mobile 844×390 đạt bốn dự án/16 bước, đáp án sai không chuyển bước, nút không chồng nhau và không page error. Signed WebSocket hai client đạt đồng bộ, xác thực lượt chơi, lưu nhiệm vụ thành phố/checkpoint/trang trí/gốm vào MySQL, cách ly hồ sơ. Tài khoản QA đã xóa; ba hồ sơ thật, tiến độ, bản đồ published/draft và nội dung quản trị giữ nguyên checksum. Nội dung NPC và từng release CMS cũ được đối chiếu với backup, không thay đổi; active CMS đã nâng base từ `2e57529e` lên `843b7864`.
+
+Gzip chỉ bật trong location `/game/`, xác nhận main JS trả `Content-Encoding: gzip`; backup cấu hình tại `/opt/lang-tri-thuc/backups/nginx-before-city-20261021.conf`. Giữ release trước `all-four-4b4ce2e5-20261020`; khi rollback khác contentVersion cần đưa active CMS về release tương thích trong lịch sử, giữ tiến độ mới, không phục hồi toàn DB đè tiến độ. Bằng chứng ignored: `temp/deploy/city-deploy-state.json`, `temp/deploy/qa/city-live/` và `apps/game-client/temp/phone-qa/summary.json`.
+
 ## Checkpoint sân chơi — VPS 20/10/2026
 
-Release hiện tại `regional-checkpoint-4b4ce2e5-20261020`, source commit `aaecb6c`, contentVersion `4b4ce2e5`. Lưu ván sân chơi theo hồ sơ/vùng/tuổi và tải đồng thời hai ảnh khởi động. Chi tiết tại [LEVEL_100_AND_STUDENTS](../../docs/design/LEVEL_100_AND_STUDENTS.md).
+Release lịch sử `regional-checkpoint-4b4ce2e5-20261020`, source commit `aaecb6c`, contentVersion `4b4ce2e5`. Lưu ván sân chơi theo hồ sơ/vùng/tuổi và tải đồng thời hai ảnh khởi động. Chi tiết tại [LEVEL_100_AND_STUDENTS](../../docs/design/LEVEL_100_AND_STUDENTS.md).
 
 Overlay 13 file SHA-256 `76d7f55d513358b4781715c68be3dfd35a98d0b165d1eb39f9fe96e52b5de72d`; checksum, build Linux API/rooms và nginx -t đạt. Backup `/opt/lang-tri-thuc/backups/database-20261020T034325Z.sql` phục hồi thử khớp. Hai API MySQL healthy, bốn dịch vụ active; signed WebSocket xác nhận lưu checkpoint/cách ly hồ sơ, gia đình QA đã xóa. Ba hồ sơ thật, tiến độ và nội dung quản trị/CMS/bản đồ giữ nguyên checksum. Giữ `game-six-4b4ce2e5-20261019` để rollback cùng contentVersion. Các release bên dưới là lịch sử.
 

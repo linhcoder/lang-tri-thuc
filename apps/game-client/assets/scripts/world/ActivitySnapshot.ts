@@ -1,3 +1,4 @@
+import {mergeCity} from './CityMissions';
 import {newerHistory} from './LearningHistory';
 import {restoreUpgrades} from './LearningUpgrades';
 import {mergeHouseSteps} from './HouseInterior';
@@ -28,6 +29,7 @@ export function mergeActivities(remote:ActivitySnapshot,local:ActivitySnapshot):
     for(const [id,checkpoint] of Object.entries(remoteUpgrade.regional??{})){
         const regional=result.upgrades!.regional??={};if(!regional[id]||checkpoint.updated>regional[id].updated)regional[id]=checkpoint;
     }
+    if(result.upgrades)result.upgrades.city=mergeCity(remoteUpgrade.city,localUpgrade.city);
     if(result.upgrades)result.upgrades.homeStep=Math.max(remoteUpgrade.homeStep??0,localUpgrade.homeStep??0);
     if(result.upgrades)result.upgrades.houseSteps=mergeHouseSteps(remoteUpgrade.houseSteps,localUpgrade.houseSteps);
     if(result.upgrades)result.upgrades.houseRuns=mergeHouseRuns(remoteUpgrade.houseRuns,localUpgrade.houseRuns);

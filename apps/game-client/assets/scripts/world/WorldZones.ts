@@ -1,7 +1,9 @@
+import {cityDistricts} from './CityMissions';
 import {regionForZone} from './LevelJourney';
 import { Point, VillageMap, toWorld,zoneSpawns } from './VillageModel';
 export interface WorldZone {id:string;name:string;spawn:Point;chapter:number|null}
 export const worldZones:WorldZone[]=[
+    ...cityDistricts.map(d=>({id:d.id,name:d.name,spawn:{x:d.x,y:d.y},chapter:null})),
     {id:'forest',name:'Rừng khám phá',spawn:zoneSpawns.forest,chapter:null},
     {id:'science',name:'Đồi khoa học',spawn:zoneSpawns.science,chapter:null},
     {id:'culture',name:'Phố văn hóa',spawn:zoneSpawns.culture,chapter:null},

@@ -1,10 +1,11 @@
+import {restoreCity} from './CityMissions';
 import {RegionalCheckpoint,restoreRegional} from './RegionalPlay';
 import {LearningHistory,restoreHistory,archiveLearning,learningDay,Counts,archivedEvent} from './LearningHistory';
 import {restoreHouseSteps} from './HouseInterior';
 import {HouseRun,HouseId,restoreHouseRuns} from './HouseTasks';
 import {PotteryDraft,restorePotteryDraft} from './PotteryDraft';
 export interface LearningEvent {id:string;at:number;skill:string;correct:boolean;kind:'answer'|'complete';target:string}
-export interface LearningUpgrades {regional?:Record<string,RegionalCheckpoint>;autoRead?:boolean;history?:LearningHistory;review?:Array<{skill:string;target:string}>;tutorial:string[];events:LearningEvent[];room:Record<string,string>;largeControls:boolean;homeStep?:number;houseSteps?:Record<string,number>;houseRuns?:Partial<Record<HouseId,HouseRun>>;potteryDraft?:PotteryDraft}
+export interface LearningUpgrades {city?:Record<string,number>;regional?:Record<string,RegionalCheckpoint>;autoRead?:boolean;history?:LearningHistory;review?:Array<{skill:string;target:string}>;tutorial:string[];events:LearningEvent[];room:Record<string,string>;largeControls:boolean;homeStep?:number;houseSteps?:Record<string,number>;houseRuns?:Partial<Record<HouseId,HouseRun>>;potteryDraft?:PotteryDraft}
 export interface Furniture {id:string;name:string;stars:number;color:string;level?:number;reward?:string}
 export const furniture:Furniture[]=[{id:'plant',name:'Chậu cây',stars:0,color:'#68a34c'},{id:'pottery',name:'Bình gốm',stars:1,color:'#bb784f'},{id:'books',name:'Kệ sách',stars:2,color:'#568dcc'},{id:'lantern',name:'Đèn lồng',stars:4,color:'#db6556'},{id:'trophy',name:'Cúp tri thức',stars:8,color:'#e8b635'},
  {id:'tidy-mat',name:'Thảm gọn gàng',stars:0,color:'#ad765d',reward:'tidy-mat'},
@@ -25,7 +26,7 @@ export function restoreUpgrades(raw:unknown):LearningUpgrades{
  const history=restoreHistory(v?.history);for(const e of events.sort((a,b)=>a.at-b.at).slice(0,-200))archiveLearning(history,e);
  const review=Array.isArray(v?.review)?v!.review.filter(r=>r&&typeof r.skill==='string'&&r.skill.length<=40&&typeof r.target==='string'&&r.target.length<=100).slice(-12):[];
  const room:Record<string,string>={};for(const [slot,id]of Object.entries(v?.room??{}))if(['left','middle','right'].includes(slot)&&furniture.some(f=>f.id===id))room[slot]=id;
- return {regional:restoreRegional(v?.regional),autoRead:v?.autoRead!==false,history,review,tutorial:Array.isArray(v?.tutorial)?Array.from(new Set(v!.tutorial.filter(id=>['move','talk','reward','done'].includes(id)))):[],events:events.sort((a,b)=>a.at-b.at).slice(-200),room,largeControls:v?.largeControls===true,houseSteps:restoreHouseSteps(v?.houseSteps),houseRuns:restoreHouseRuns(v?.houseRuns),potteryDraft:restorePotteryDraft(v?.potteryDraft),homeStep:Number.isInteger(v?.homeStep)&&v!.homeStep!>=0&&v!.homeStep!<=5?v!.homeStep:0};
+ return {city:restoreCity(v?.city),regional:restoreRegional(v?.regional),autoRead:v?.autoRead!==false,history,review,tutorial:Array.isArray(v?.tutorial)?Array.from(new Set(v!.tutorial.filter(id=>['move','talk','reward','done'].includes(id)))):[],events:events.sort((a,b)=>a.at-b.at).slice(-200),room,largeControls:v?.largeControls===true,houseSteps:restoreHouseSteps(v?.houseSteps),houseRuns:restoreHouseRuns(v?.houseRuns),potteryDraft:restorePotteryDraft(v?.potteryDraft),homeStep:Number.isInteger(v?.homeStep)&&v!.homeStep!>=0&&v!.homeStep!<=5?v!.homeStep:0};
 }
 export function recordLearning(data:{upgrades?:LearningUpgrades},skill:string,correct:boolean,target:string,kind:LearningEvent['kind']='answer',reviewed=false):void{
  const v=data.upgrades??=restoreUpgrades(null);if(kind==='complete'&&v.events.some(e=>e.kind===kind&&e.target===target))return;

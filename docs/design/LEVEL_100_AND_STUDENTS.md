@@ -1,5 +1,43 @@
 # Hành trình 100 cấp và hồ sơ học sinh
 
+## Deploy VPS sau kiểm thử — 21/10/2026
+
+- Đã triển khai working tree mới nhất thành release `city-843b7864-20261021`, contentVersion `843b7864`, tại https://ltt.vui-hoc.xyz/game/. API/rooms build trên Linux, admin build với URL production; hai API MySQL healthy và bốn dịch vụ active.
+- Backup DB đã thử khôi phục thành công. Sau kiểm thử HTTPS/UI desktop/mobile và signed WebSocket hai client, ba hồ sơ thật cùng tiến độ, bản đồ, draft, nội dung quản trị giữ nguyên checksum; tài khoản QA đã xóa. Toàn bộ release CMS cũ và NPC giữ nguyên, active manifest nâng tương thích sang version mới.
+- Đạt bốn dự án/16 bước qua HTTPS ở 1600×900 và 844×390; tiến độ thành phố lưu vào MySQL và cách ly hồ sơ. Gzip game đã bật và kiểm tra response thực tế. Chi tiết backup, SHA-256, rollback và bằng chứng tại [runbook VPS](../../deploy/aapanel/README.md).
+
+## Hoàn tất ma trận kiểm thử TECNO KM7 — 21/10/2026
+
+- Thiết bị thật TECNO KM7, Android 15, Chrome 155, GPU Mali-G57 MC2/WebGL 2; viewport ngang 833×331 CSS px, DPR 2,625. Chạy bản Web Cocos, không thay gameplay bằng harness logic.
+- Đạt 12 trò luyện tập × 3 nhóm tuổi = **36/36 lượt**, 7 hoạt động mở rộng × 3 tuổi = **21/21 lượt**, 5 nhà × 3 tuổi = **15/15 lượt**. Dự án thành phố: bốn dự án/16 bước, sai không chuyển bước, tải lại giữ tiến độ; cảm ứng, xoay màn hình, toàn màn hình, joystick, pinch, kéo/hủy kéo đạt ở lượt USB trước.
+- Hồ sơ/hành trình đạt tạo tài khoản, tạo/sửa học sinh và ba nhóm tuổi, tăng cấp, trang phục và tiến độ cloud qua reload, cách ly hai hồ sơ, tải tranh riêng của 10 vùng, đăng xuất. Các nhóm nâng cấp đạt checkpoint vùng, nghe lựa chọn không tự trả lời, kéo đồ trang trí, danh mục đồ, ôn câu sai, báo cáo tuần/tháng/lịch sử, lưu lại sau lỗi mạng và nút tải bản sao khi xung đột (sự kiện download và tên tệp).
+- Nhà được kiểm tra thêm với ba hồ sơ/API fixture riêng: đủ năm quà xác thực từ server, kéo vật/chuyển đồ, chọn quà qua danh mục để đặt vào phòng, checkpoint chơi lại giữ bước 1 qua reload, bản nặn/vẽ gốm giữ qua reload và ra sân giữa nhiệm vụ. Fixture nhà đã được nối đúng các cổng API qua ADB reverse.
+- Soak render **1.814 giây (30 phút 14 giây)** ở Low, gồm mở/đóng bản đồ/hoạt động và di chuyển định kỳ; 60 mẫu, không page error, không mất WebGL, trang luôn visible. Node 689–697; JS heap sau ép GC 31,27–35,93 MiB, nằm trong ngưỡng so với warmup. Median RAF khoảng 16,7 ms, p95 cao nhất khoảng 16,8 ms; nhiệt độ **pin** 38,3–39,3°C khi cắm USB. Đây là kịch bản render/thao tác định kỳ, không phải đo FPS GPU mọi cảnh hoặc chứng minh không rò bộ nhớ ở mọi phiên dài hơn.
+- **Âm thanh đạt**: bật qua giao diện phụ huynh, nút Nghe gọi giọng local `vi_VN`, có sự kiện phát `start`/`end`, không có lỗi TTS; người dùng xác nhận nghe tiếng Việt rõ từ game. Kiểm tra tắt lại âm thanh đạt. Lượt đầu không phát vì fixture mặc định `sound=false`; danh sách giọng ban đầu rỗng được tải bất đồng bộ, không phải thiếu gói giọng trên máy.
+- **4G thật/LTE đạt tải tài nguyên VPS** khi tắt Wi-Fi: mốc `assetsReady` và ẩn splash 14.081 ms ở lượt cold của bài QA, mở lại 12.801 ms; không page error. Dùng phiên trình duyệt riêng, xóa HTTP cache và tài khoản/API SQLite fixture qua USB; không sửa hồ sơ production. Số đo chưa đợi mọi ảnh tải nền và không bao gồm độ trễ ghi cloud production; không so trực tiếp với mô phỏng 1,6 Mbps trước đó. Đã xem ảnh cold/warm; Wi-Fi đã bật lại.
+- Phát hiện và sửa đường nâng tương thích CMS cho contentVersion thành phố `843b7864`, giữ NPC đã xuất bản, lịch sử bất biến và draft; bản không biết hoặc NPC bị cản vẫn không tự nâng. Bổ sung ca từ `4b4ce2e5`, cập nhật catalog 21 khu. TypeScript/client đạt; rooms **11/11**, API **42/42**, MySQL **6/6**, không skip; build API đạt. MySQL QA riêng cổng 33316 đã tắt. **Đã triển khai CMS/thành phố lên VPS sau ma trận này, xem mục deploy phía trên.**
+- Bằng chứng local ignored: `apps/game-client/temp/phone-qa/summary.json`, `full-report.json`, `expansion-retest-report.json`, `flower-retest-report.json`, `speech-game-report.json`, `4g-report.json`, `auth-journey/report.json`, `houses/report.json` và ảnh/log đi kèm. Các lần harness sai khởi tạo, chọn avatar không cùng giới tính, bấm trước khi hoạt ảnh chăm cây xong, dùng danh mục đồ cũ hoặc thiếu ánh xạ cổng được giữ trong log; các ca tương ứng đã chạy lại đạt. Đã khôi phục tự xoay/Wi-Fi và gỡ các chuyển tiếp cổng ADB phục vụ QA.
+
+## Lượt kiểm thử TECNO KM7 qua USB ban đầu — 21/10/2026
+
+- ADB nhận TECNO KM7, Android 15; chạy Web local trên Chrome 155 của điện thoại thật qua ADB reverse, API SQLite fixture riêng trong bộ nhớ, không dùng hồ sơ production.
+- Chế độ ngang: viewport thực 833×331 CSS px, DPR 2,625. Chạm qua giao thức cảm ứng Chrome đạt mở Bản đồ → Thành phố, bốn dự án/16 bước; đáp án sai giữ bước, đáp án đúng chuyển bước, không chồng nút và không có page error. Tải lại giữ tiến độ 4/4 của cả bốn dự án. Đã xem ảnh từ Chrome; bằng chứng local ignored: `apps/game-client/temp/phone-qa/`.
+- Kiểm tra bổ sung: chế độ dọc hiển thị đúng lớp “Xoay ngang điện thoại nhé!”, chặn tương tác thế giới; xoay ngang bỏ lớp chặn và giữ bảng đang mở. Lần thử dọc trước bị chặn đúng thiết kế, không phải lỗi mở dự án. Đã xem ảnh dọc/toàn màn hình từ điện thoại.
+- Đạt cảm ứng: nút zoom, pinch hai ngón giới hạn 60–180% không làm nhân vật tự di chuyển; joystick di chuyển và dừng khi thả; bật toàn màn hình; kéo/hủy kéo mảnh lồng đèn và hoàn thành trò bằng nút thay thế. Ngắt mạng bằng CDP riêng trang thử, trả lời dự án thành phố, nối lại rồi tải lại vẫn giữ bước 1/4. Đây là offline giả lập trên điện thoại thật, chưa phải thử mất sóng vật lý.
+- Quan sát render 60 giây, 12 chu kỳ mở/đóng bản đồ và hoạt động: không có page error, số node dao động 672–687. Median khoảng 16,7 ms; p95 các mẫu từ giây 10 đến 60 khoảng 16,8 ms, riêng mẫu đầu p95 250,1 ms. JS heap chưa ép GC dao động khoảng 38–76 MiB, có giảm sau GC tự nhiên; không dùng số này để kết luận không rò bộ nhớ. Bằng chứng: `apps/game-client/temp/phone-qa/extra-report.json`. Chưa đạt gate thử 30 phút/nhiệt dài hạn.
+- Đính chính lượt thử âm thanh đầu: hồ sơ fixture để `sound=false` nên bấm Nghe không phát tiếng là đúng thiết lập; lượt đó chưa đủ cơ sở kết luận thiếu giọng. Danh sách giọng Chrome ban đầu rỗng nhưng sau khởi tạo đã trả 89 giọng, có `vi_VN` local. Lượt bật âm thanh và Nghe của game đã đạt ở ma trận bổ sung phía trên.
+- Kiểm tra hệ điều hành: Google Speech Recognition and Synthesis đã cài, bật và xuất hiện là Preferred Engine; gói giọng Việt khoảng 8,8 MB đã có sẵn. Người dùng xác nhận nghe được mẫu tiếng Việt trực tiếp từ Google TTS. Âm lượng media 15/15. Không thay engine/ngôn ngữ hoặc cài thêm gói giọng. Máy đang dùng Wi-Fi, nên chưa có phép đo tải 4G ở lượt đầu.
+- Lượt này chỉ kiểm tra qua USB; đo LTE, soak 30 phút, lời đọc và các luồng bổ sung đã được ghi riêng ở ma trận phía trên. Đây không phải nghiệm thu toàn bộ nền tảng/thiết bị hoặc nội dung sư phạm.
+
+## Thành phố và dự án 10+ — 21/10/2026 (local)
+
+- Mở thêm phía đông bản đồ: thư viện thành phố, ga giao thông, trung tâm khoa học và công viên sinh thái. Có đường nối từ vùng cũ, đường đi bộ, cổng chuyển khu và va chạm công trình.
+- Vào **Bản đồ → Thành phố · Dự án 10+** để chọn một trong bốn dự án. Mỗi dự án có bốn bước liên kết: phân số và bổ sung sách; lịch trình, tiền vé và thay đổi kế hoạch; thí nghiệm có kiểm soát và giới hạn kết luận; phân loại rác và phân bổ ngân sách cây xanh.
+- Có gợi ý, nghe đề/lựa chọn và nút tới địa điểm. Trả lời sai giữ bước hiện tại; trả lời đúng mới lưu bước tiếp theo. Tiến độ dùng hồ sơ đang đăng nhập, lưu qua tải lại và hợp nhất cloud theo bước cao nhất từng dự án.
+- Đây là nội dung nâng cao mang nhãn 10+, cho phép tự chọn với mọi hồ sơ hiện có. Chưa bổ sung nhóm tuổi 12+ hoặc điều chỉnh toàn bộ giáo trình theo tuổi lớn hơn. Không cần khai ngày sinh.
+- Công trình hiện dùng hình vẽ bằng code. Nội dung là bản nháp; chưa triển khai VPS. Không cộng XP/sao hay thay đổi hành trình 100 cấp.
+- Xác minh local: TypeScript, toàn bộ `test:client` (gồm kiểm tra thành phố), build Web/API/rooms đạt. `test:city-ui` đạt bản dựng Cocos thật ở 1600×900 và 844×390: mở từ bản đồ, bốn dự án/16 bước, sai không chuyển bước và không chồng nút. Đã xem ảnh desktop/mobile; bằng chứng local ignored: `apps/game-client/temp/city-qa/`. Lưu qua tải lại và hợp nhất cloud được kiểm tra ở tầng dữ liệu, chưa kiểm tra đồng bộ thành phố trên VPS.
+
 ## Rà soát và tối ưu local — 21/10/2026
 
 - Trưởng làng và cây mầm chuyển sang tải nền sau khi vào chơi. Giữ hình vẽ dự phòng và cập nhật lại nhân vật/ruộng/bài đếm khi ảnh sẵn sàng; không đổi va chạm hoặc dữ liệu học sinh.

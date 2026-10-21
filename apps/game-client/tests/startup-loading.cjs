@@ -9,12 +9,12 @@ function fixture(){
  };
  const code=ts.transpileModule(source,{compilerOptions:{target:ts.ScriptTarget.ES2020,module:ts.ModuleKind.CommonJS}}).outputText;
  vm.runInNewContext(code,{module,exports:module.exports,require:name=>dependencies[name]??{},console:{warn:()=>{}}});
- const art=new module.exports.VillageArt();art.loadNpcPoses=async()=>{};art.ensureDecoration=async()=>{};
+ const art=new module.exports.VillageArt();art.loadNpcPoses=async()=>{};
  return {art,requests};
 }
-test('core startup completes without downloading large ground textures or bamboo; failed background loads preserve playable art',async()=>{
+test('core startup completes without downloading decorative atlases or ground; failed background loads preserve playable art',async()=>{
  const {art,requests}=fixture(),pending=art.load();
- assert.equal(requests.size,4);assert.equal(requests.has('ground.meadow-texture/texture'),false);
+ assert.equal(requests.size,2);for(const id of ['dinh','banyan','ground.meadow-texture','character.elder','vegetation.seedling'])assert.equal(requests.has(id+'/texture'),false);
  for(const [key,callback] of requests)callback(key.startsWith('ground.meadow')||key.startsWith('ground.dirt')||key.startsWith('bamboo')?Error('offline'):null,{key});
  await pending;assert.equal(art.child.length,1);assert.equal(art.environmentLoaded.has(6),true);const background=art.ensureTerrainTextures();assert.equal(requests.has('ground.meadow-texture/texture'),true);requests.get('ground.meadow-texture/texture')(Error('offline'));requests.get('ground.dirt-texture/texture')(Error('offline'));await background;assert.equal(art.groundTexture,undefined);
 });

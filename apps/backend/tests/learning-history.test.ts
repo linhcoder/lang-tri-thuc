@@ -29,8 +29,8 @@ test('review queue survives saves and removes exactly the corrected question',()
  const data={upgrades:restoreUpgrades(null)};recordLearning(data,'math',false,'a');recordLearning(data,'math',false,'b');data.upgrades=restoreUpgrades(data.upgrades);recordLearning(data,'math',true,'a','answer',true);
  assert.deepEqual(data.upgrades.review,[{skill:'math',target:'b'}]);
 });
-test('ten level collectibles unlock only at their exact milestone independently of story stars',()=>{
- const rewards=furniture.filter(f=>f.level);assert.equal(rewards.length,10);
+test('one hundred level collectibles unlock at their level independently of story stars',()=>{
+ const rewards=furniture.filter(f=>f.level);assert.equal(rewards.length,100);
  for(const item of rewards){assert.equal(furnitureUnlocked(item,8,[],item.level!-1),false);assert.equal(furnitureUnlocked(item,0,[],item.level!),true);}
 });
 test('journey questions remain deterministic and valid at all ages with additional non-math prompts',()=>{

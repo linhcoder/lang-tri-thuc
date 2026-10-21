@@ -1,4 +1,4 @@
-const http=require('node:http'),fs=require('node:fs'),path=require('node:path');
+const http=require('node:http'),fs=require('node:fs'),path=require('node:path'),{gzipSync}=require('node:zlib');
 const buildName=process.env.GAME_BUILD_NAME||'web-desktop';
 if(!/^[a-zA-Z0-9][a-zA-Z0-9_-]*$/.test(buildName))throw Error('Invalid GAME_BUILD_NAME');
 const root=path.resolve(__dirname,'../apps/game-client/build',buildName);
@@ -9,6 +9,13 @@ const server=http.createServer((req,res)=>{
     const file=path.resolve(root,'.'+(pathname==='/'?'/index.html':pathname));
     if(file!==root&&!file.startsWith(root+path.sep)){res.writeHead(403);res.end();return;}
     fs.stat(file,(error,stat)=>{if(error||!stat.isFile()){res.writeHead(404);res.end();return;}
+        if(/\.(?:html|js|json|css|svg|wasm|webmanifest)$/.test(file)&&stat.size>=1024){
+            res.setHeader('Vary','Accept-Encoding');
+            if(/\bgzip\b(?!\s*;\s*q=0(?:\.0*)?\s*(?:,|$))/.test(req.headers['accept-encoding']||'')){
+                const body=gzipSync(fs.readFileSync(file),{level:5});
+                res.writeHead(200,{'Content-Type':mime[path.extname(file)]||'application/octet-stream','Content-Length':body.length,'Content-Encoding':'gzip','Cache-Control':'no-cache','X-Content-Type-Options':'nosniff'});res.end(body);return;
+            }
+        }
         res.writeHead(200,{'Content-Type':mime[path.extname(file)]||'application/octet-stream','Content-Length':stat.size,'Cache-Control':'no-cache','X-Content-Type-Options':'nosniff'});
         fs.createReadStream(file).pipe(res);
     });

@@ -6,6 +6,22 @@ export function paintHouseItem(g:Graphics,symbol:string,size=36):void{
  const line=(x:number,y:number,a:number,b:number,c:string,width=3)=>{g.strokeColor=new Color(c);g.lineWidth=width*k;g.moveTo(x*k,y*k);g.lineTo(a*k,b*k);g.stroke();};
  if(symbol.startsWith('level-')){
   const level=Number(symbol.slice(6)),index=level/10-1;
+  if(level%10!==0){
+   const theme=Math.floor((level-1)/10),kind=(level-1)%10;
+   const color=['#68a34c','#568dcc','#bb784f','#db6556','#e8b635','#548e89','#6ba8c3','#9574ad','#bf8052','#d19366'][theme]??'#68a34c';
+   if(kind===0){g.fillColor=new Color(color);g.ellipse(0,0,12*k,20*k);g.fill();line(-4,-9,4,9,'#fff1cf',2);}
+   else if(kind===1){line(0,-22,0,17,'#835f3b');circle(-9,3,11,color);circle(9,14,11,color);}
+   else if(kind===2){for(let i=0;i<5;i++){const a=i*Math.PI*2/5;circle(Math.cos(a)*13,Math.sin(a)*13,9,color);}circle(0,0,7,'#f4dcaa');}
+   else if(kind===3){rect(-21,-22,42,44,color);rect(-16,-17,31,34,'#fff1cf');for(const y of [-9,0,9])line(-10,y,10,y,color,2);}
+   else if(kind===4){for(let i=0;i<3;i++)line(-13+i*13,-18,-8+i*10,22,[color,'#e8b635','#db6556'][i],6);}
+   else if(kind===5){paintHouseItem(g,'reading-lamp',size);circle(0,15,5,color);}
+   else if(kind===6){paintHouseItem(g,'basket',size);circle(-8,16,8,color);circle(9,16,8,'#e8b635');}
+   else if(kind===7){line(-21,22,21,22,'#835f3b');for(let i=0;i<3;i++){line(-15+i*15,20,-15+i*15,-7-i*3,color,2);rect(-19+i*15,-19-i*3,8,13,color);}}
+   else{for(let i=0;i<5;i++){const a=i*Math.PI*2/5;line(0,0,Math.cos(a)*24,Math.sin(a)*24,color,7);}circle(0,0,9,'#e8b635');}
+   // Ten distinct palettes and a small inlaid seal identify the regional set.
+   for(let i=0;i<=theme%5;i++)circle(-12+i*6,-26,1.5,color);
+   return;
+  }
   // Each milestone has its own silhouette; the level number remains a caption.
   if(index===0){line(-12,-20,-12,24,'#835f3b',3);g.fillColor=new Color('#da7253');g.moveTo(-12*k,24*k);g.lineTo(22*k,16*k);g.lineTo(-12*k,7*k);g.close();g.fill();}
   else if(index===1){rect(-22,-17,44,34,'#548e89');for(const y of [-8,0,8])line(-14,y,14,y,'#fff1cf',2);}

@@ -620,3 +620,10 @@ console.log(`${checks} test groups passed`);
  assert.equal(mergeActivities(a,b).upgrades.regional.market.count,2);
  assert.equal(mergeActivities(b,a).upgrades.regional.market.count,2);
  });
+
+test('every level has a unique collectible and locked or unknown saved furniture stays bounded',()=>{
+ const {furniture,furnitureUnlocked,restoreUpgrades}=load(path.join(scripts,'world/LearningUpgrades.ts'));
+ const gifts=furniture.filter(f=>f.level);assert.equal(gifts.length,100);assert.equal(new Set(gifts.map(f=>f.id)).size,100);
+ for(let level=1;level<=100;level++){const gift=gifts.find(f=>f.level===level);assert.equal(gift.id,'level-'+level);assert.equal(furnitureUnlocked(gift,999,[],level),true);assert.equal(furnitureUnlocked(gift,999,[],level-1),false);assert.equal(restoreUpgrades({room:{left:gift.id}}).room.left,gift.id);}
+ assert.equal(restoreUpgrades({room:{left:'level-101'}}).room.left,undefined);
+});

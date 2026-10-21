@@ -1,5 +1,38 @@
 # Hành trình 100 cấp và hồ sơ học sinh
 
+## Rà soát và tối ưu local — 21/10/2026
+
+- Trưởng làng và cây mầm chuyển sang tải nền sau khi vào chơi. Giữ hình vẽ dự phòng và cập nhật lại nhân vật/ruộng/bài đếm khi ảnh sẵn sàng; không đổi va chạm hoặc dữ liệu học sinh.
+- Bổ sung nén gzip cho máy chủ Web local và cấu hình `/game/` Nginx; Caddy dùng zstd/gzip. Nội dung giải nén khớp bản gốc, client từ chối gzip vẫn nhận bản thường. Đây là thay đổi cấu hình trong repository, **chưa áp dụng lên VPS**.
+- Đo cùng fixture 1,6 Mbps/trễ 80 ms, gồm service worker, API không giới hạn: không nén tải lạnh 49.746 ms/mở lại 8.791 ms; bật gzip tải lạnh 33.856 ms/mở lại 5.558 ms. So với số cũ 52.312/9.202 ms, cấu hình mới giảm khoảng 35,3%/39,6%; mức cải thiện gồm cả tải nền và nén HTTP. Đây vẫn là mô phỏng local, không phải kết quả 4G thật. Báo cáo: `apps/game-client/temp/web-images-qa/report.json` và `report-gzip.json`.
+- TypeScript/test client đạt; toàn bộ API 41/41 đạt, **không bỏ qua** fixture MySQL. `test:mysql` 6/6 đạt với MySQL 8.4.3 riêng tại localhost:33316/database `lang_tri_thuc_test`; dịch vụ QA đã tắt sau kiểm tra. Lệnh này nay ưu tiên `MYSQL_TEST_URL` từ môi trường, giữ yêu cầu tên database kết thúc `_test`.
+- Rooms 11/11 đạt; build Web/API đạt. Progressive loading đạt desktop 1600×900 và mobile giả lập 844×390: di chuyển khi ảnh hoạt họa bị giữ chậm, nội thất tải khi mở, đảo tải khi đến gần. Sáu luồng nâng cấp đạt hai kích thước, gồm checkpoint/cloud/reload/đọc lựa chọn/kéo trang trí; không có page error.
+- `test:level-journey` đạt đăng nhập, ba nhóm tuổi, thưởng cấp, cloud/trang phục qua reload, cách ly học sinh, 10 texture vùng và desktop/mobile ngang. Bài QA đã cập nhật để thăm vùng trước khi kiểm tra ảnh tải theo khoảng cách, đồng thời nhận diện ngoại thất nhà riêng thay thế cảnh vùng; không ép tải lại toàn bộ cảnh ngay lúc khởi động. Bằng chứng: `apps/game-client/temp/level-journey-qa/report.json`.
+- QA điện thoại thật **chưa hoàn tất**: ADB ban đầu thấy TECNO KM7 nhưng các lần kiểm tra tiếp theo không còn thiết bị. Chưa đo 4G thực tế hoặc xác minh loa và giọng tiếng Việt hệ điều hành; không tính kết quả giả lập là hoàn thành phần này.
+
+## Trạng thái hiện tại — đợt hoàn thiện 20/10/2026
+
+- Hành trình 100 cấp và hồ sơ học sinh: đã hoàn tất.
+- Quà từng cấp: đủ 100 quà cấp 1–100; giữ nguyên ID và hình của 10 quà mốc cũ. Tự mở theo cấp, dùng trong phòng và nhà bé; không cấp thêm XP/sao.
+- Tải đầu: cảnh quan đình/cây chuyển sang loader cảnh quan gần nhân vật sau khi vào chơi; giữ va chạm và vị trí CMS. Mạng giả lập 1,6 Mbps/trễ 80 ms: tải lạnh 52.312 ms so với 72.178 ms trước đó (giảm 27,5%); mở lại 9.202 ms, chưa cải thiện. WebP/PNG fallback/cache đạt. Đây không phải phép đo điện thoại/4G thật.
+- Checkpoint sân chơi vùng đã lưu theo hồ sơ/vùng/tuổi và đồng bộ cloud.
+- Báo cáo có 200 sự kiện chi tiết cộng tổng hợp 62 ngày và 120 tháng có dữ liệu; không còn giới hạn chỉ giữ 200 sự kiện.
+- QA điện thoại thật/4G/loa/giọng tiếng Việt hệ điều hành: **chưa xác minh**. Môi trường không có điện thoại thật kết nối; mobile giả lập và adapter lời đọc không thay thế được phần này.
+
+Các mục bên dưới là lịch sử từng bản phát hành. Những câu “chưa làm”, “chưa triển khai” và “release hiện tại” trong lịch sử chỉ áp dụng tại thời điểm của mục đó; trạng thái hiện hành nằm ở mục này.
+
+Kiểm tra đợt này: TypeScript và test client đạt; API 40 đạt, một fixture MySQL riêng bỏ qua; rooms 11/11 đạt. Cocos desktop 1600×900 và mobile giả lập 844×390 vẽ đủ 100 quà, không có page error; sáu luồng nâng cấp, checkpoint cloud/reload và kéo trang trí đạt. Progressive loading đạt di chuyển khi atlas bị giữ chậm, nội thất tải khi mở, đảo tải khi đến gần. Báo cáo local ignored: `apps/game-client/temp/all-level-rewards-report.json`, `six-upgrades-report.json`, `progressive-loading-report.json`, `web-images-qa/report.json`.
+
+### Triển khai đợt hoàn thiện 20/10/2026
+
+Release `all-four-4b4ce2e5-20261020` đã active tại https://ltt.vui-hoc.xyz/game/, giữ contentVersion `4b4ce2e5`. Overlay 10 file, SHA-256 `2329ee2f547e49118570ca7596f7b324e5c3f8f4e8dde19fd388b4c1b64fb2aa`; kiểm checksum từng file, build API/rooms Linux và nginx -t đạt. Backup `/opt/lang-tri-thuc/backups/database-20261020T094822Z.sql` đã khôi phục thử khớp; giữ `regional-checkpoint-4b4ce2e5-20261020` để rollback.
+
+HTTPS desktop/mobile giả lập đạt sáu luồng nâng cấp và vẽ đủ 100 quà, page errors rỗng. QA giao diện dùng asset/code HTTPS thật và API fixture riêng. Signed WebSocket/API thật xác nhận quà cấp 1/55/99, checkpoint giỏ/đường mòn, tác phẩm và tuỳ chọn lưu MySQL; hồ sơ khác được cách ly; gia đình QA đã xóa. Hai API MySQL healthy; quản trị không phiên trả 401, API nội bộ trả 403. So sánh sau QA: ba hồ sơ thật, tiến độ cũ, map published/draft, NPC/CMS và nội dung biên tập khớp trước deploy. Bằng chứng local ignored: `temp/deploy/all-four-deploy-state.json`, `temp/deploy/qa/all-four-live/private-sync.json`, `temp/deploy/qa/all-four-live/`.
+
+**Chưa thể chốt toàn bộ bốn mục:** QA điện thoại thật, mạng 4G thực tế, loa và giọng đọc tiếng Việt hệ điều hành vẫn chưa thực hiện vì không có thiết bị kết nối. Tải lạnh đã giảm 27,5% trong mô phỏng nhưng 52,3 giây vẫn còn chậm.
+
+## Lịch sử phát hành và đặc tả
+
 ## Bổ sung ngày 20/10/2026 — đã phát hành VPS
 
 Release `regional-checkpoint-4b4ce2e5-20261020`, source commit `aaecb6c`, giữ contentVersion `4b4ce2e5`. Overlay 13 file SHA-256 `76d7f55d513358b4781715c68be3dfd35a98d0b165d1eb39f9fe96e52b5de72d`; kiểm checksum từng file, build API/rooms Linux và nginx -t đạt. Backup `/opt/lang-tri-thuc/backups/database-20261020T034325Z.sql` đã phục hồi thử khớp trong DB tạm. Giữ `game-six-4b4ce2e5-20261019` để rollback, không cần đổi manifest CMS vì cùng contentVersion.
@@ -257,7 +290,7 @@ Kiểm tra bản Web Cocos thật trên desktop 1600 × 900 và mobile ngang 844
 
 Bản sửa điều hướng và nâng tương thích CMS đã được rà soát lại; TypeScript client, 65 nhóm logic, 6 bài mạng/khởi động, 26 API, 11 bài server và build API/server đạt. Test dùng `tsx` cần chạy ngoài sandbox Windows do lỗi `uv_os_get_passwd ENOMEM`. Fixture MySQL tự bỏ qua khi chưa có `MYSQL_TEST_URL` trỏ tới cơ sở dữ liệu riêng có tên kết thúc bằng `_test`.
 
-Phạm vi hành trình 100 cấp và hồ sơ học sinh đã hoàn tất theo các release/QA ghi bên dưới. Các hạng mục mở rộng còn lại: bộ vật phẩm riêng theo từng cấp và lưu lịch sử báo cáo vượt giới hạn 200 sự kiện. Đây là phần mở rộng chưa triển khai; không tính là đã hoàn thành trong lần chốt này. Kết quả QA VPS bên dưới thuộc lần triển khai 16/10, không phải lần xác minh trực tiếp mới ngày 17/10.
+Tại thời điểm chốt 17/10, hành trình 100 cấp và hồ sơ học sinh đã hoàn tất; quà từng cấp và báo cáo dài hạn khi đó còn thiếu. Báo cáo dài hạn đã được bổ sung ngày 19/10; quà đủ cấp 1–100 được bổ sung trong đợt hoàn thiện 20/10 ở đầu tài liệu. Kết quả QA VPS bên dưới thuộc lần triển khai 16/10, không phải lần xác minh trực tiếp mới ngày 17/10.
 
 ## Sửa điều hướng — VPS 16/10/2026
 
@@ -347,7 +380,7 @@ Luồng chơi web: đăng nhập tài khoản phụ huynh → chọn học sinh 
 - Một thử thách hành trình gồm ba câu hỏi, thưởng 100 XP sau khi trả lời đúng cả ba. Đáp án sai và trả lời lại không tạo thêm XP.
 - 100 thử thách chia vào mười vùng. Độ khó câu hỏi theo nhóm tuổi 3–5, 6–8 hoặc 9–11. Bài toán thay đổi theo thử thách; các kỹ năng khác dùng ngân hàng bài học hiện có.
 - XP được suy ra từ thành tích đã lưu. Không lưu một trường XP tùy ý. Tám chương và tám sao truyện vẫn giữ nguyên.
-- Huy hiệu thử thách được ghi bằng danh sách hoàn thành. Cấp mới mở các tuyến thử thách và cổng vùng; chưa bổ sung bộ vật phẩm riêng cho từng cấp.
+- Huy hiệu thử thách được ghi bằng danh sách hoàn thành. Cấp mới mở các tuyến thử thách và cổng vùng. Bản đầu chưa có vật phẩm từng cấp; đợt hoàn thiện 20/10 đã bổ sung đủ quà cấp 1–100.
 
 ## Bản đồ
 

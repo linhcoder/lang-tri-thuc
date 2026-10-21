@@ -13,6 +13,11 @@ export const furniture:Furniture[]=[{id:'plant',name:'Chậu cây',stars:0,color
  {id:'painted-vase',name:'Bình gốm hoa văn',stars:0,color:'#bc7d57',reward:'painted-vase'},
  {id:'reading-lamp',name:'Đèn góc đọc sách',stars:0,color:'#dab975',reward:'reading-lamp'}];
 furniture.push(...Array.from({length:10},(_,i)=>({id:'level-'+(i+1)*10,name:['Cờ làng','Bảng chăm học','Giỏ nông trại','Biển chợ quê','Huy hiệu làng nghề','Lá rừng xanh','Thuyền tri thức','Ngôi sao khoa học','Trống văn hóa','Vương miện tri thức'][i],stars:0,level:(i+1)*10,color:['#68a34c','#568dcc','#bb784f','#db6556','#e8b635'][i%5]})));
+// Preserve the ten published milestone IDs; add one collectible at every other level.
+const levelThemes=['Làng khởi đầu','Trường học','Nông trại','Chợ quê','Làng nghề','Rừng xanh','Sông nước','Khoa học','Văn hóa','Đảo tri thức'];
+const levelObjects=['Hạt giống','Búp lá','Bông hoa','Quyển sách','Bút màu','Đèn nhỏ','Giỏ tre','Chuông gió','Ngôi sao'];
+furniture.push(...Array.from({length:100},(_,i)=>i+1).filter(level=>level%10!==0).map(level=>({id:'level-'+level,name:levelObjects[(level-1)%10]+' '+levelThemes[Math.floor((level-1)/10)],stars:0,level,color:['#68a34c','#568dcc','#bb784f','#db6556','#e8b635'][Math.floor((level-1)/10)%5]})));
+furniture.sort((a,b)=>(a.level??0)-(b.level??0));
 export function furnitureUnlocked(item:Furniture,stars:number,rewards:readonly string[]=[],level=1):boolean{return item.level?level>=item.level:item.reward?rewards.includes(item.reward):stars>=item.stars;}
 export function restoreUpgrades(raw:unknown):LearningUpgrades{
  const v=raw as Partial<LearningUpgrades>|null;

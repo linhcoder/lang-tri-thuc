@@ -18,6 +18,7 @@
         reverse_proxy rooms:2567
     }
     handle_path /game/* {
+        encode zstd gzip
         root * /srv/game
         file_server
     }

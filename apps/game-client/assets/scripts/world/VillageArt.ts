@@ -118,16 +118,16 @@ export class VillageArt {
         let completed=0;
         const load=(id:string)=>new Promise<Texture2D>((resolve,reject)=>resources.load(`${assetResourceKey(id)}/texture`,Texture2D,(error,asset)=>{onProgress(Math.min(.7,++completed/10));error?reject(error):resolve(asset);}));
         // Start independent downloads together instead of adding network round trips.
-        const optional=(id:string,message:string)=>load(id).catch(()=>{console.warn(message);return undefined;});
-        const [child,temple,banyan,farmer]=await Promise.all([
-            load('avatar.child'),load('dinh'),load('banyan'),load('character.farmer'),
-            ...(['elder','seedling'] as const).map(name=>this.ensureDecoration(name)),
+        const [child,farmer]=await Promise.all([
+            load('avatar.child'),load('character.farmer'),
         ]);
         if(this.disposed)return;
         this.child=animationFrames(child,'avatar.child');
         if(this.disposed)return;
         const frame=(texture:Texture2D,id:string)=>assetFrame(texture,id);
-        this.environment=[frame(temple,'dinh'),frame(temple,'dinh'),frame(banyan,'banyan'),frame(temple,'dinh'),frame(temple,'dinh'),frame(temple,'dinh'),frame(farmer,'character.farmer')];[0,2,6].forEach(index=>this.environmentLoaded.add(index));
+        // Scenery uses the existing nearby-object loader after gameplay starts.
+        // Keep separate fallback frames so replacing scenery cannot destroy the farmer.
+        this.environment=Array.from({length:7},()=>frame(farmer,'character.farmer'));this.environmentLoaded.add(6);
         if(!this.disposed){this.installFarmerFrames(farmer);onProgress(1);}
     }
     private retiredTerrain:SpriteFrame[]=[];

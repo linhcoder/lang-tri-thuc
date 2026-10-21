@@ -363,6 +363,14 @@ export class VillageBootstrap extends Component {
     }
     private async loadBackgroundArt():Promise<void>{
         const optional=async(load:()=>Promise<unknown>)=>{if(!this.isValid)return;try{await load();}catch(error){console.warn('Optional village art:',error);}};
+        await optional(()=>Promise.all([this.art.ensureDecoration('elder'),this.art.ensureDecoration('seedling')]));
+        if(!this.isValid)return;
+        this.chapter?.setRiceFrame(this.art.decorations.seedling);
+        const elderFrame=this.art.decorations.elder;
+        if(this.chapter&&elderFrame&&!this.chapter.elder.getChildByName('ElderSprite')){
+            const elder=this.chapter.elder,body=this.art.sprite(elder,'ElderSprite',elderFrame,115*elderFrame.rect.width/elderFrame.rect.height,115);body.setPosition(0,-5);body.setScale(actorScale,actorScale,1);elder.getComponent(Graphics)!.clear();const name=elder.getChildByName('Text');if(name){name.setPosition(0,82);const l=name.getComponent(Label)!;l.fontSize=18;l.lineHeight=24;}
+            this.registerNpcMotion(elder,body);
+        }
         await optional(()=>this.art.ensureTerrainTextures());
         if(!this.isValid)return;
         for(let cy=0;cy<SIZE;cy+=8)for(let cx=0;cx<SIZE;cx+=8){

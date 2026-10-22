@@ -1,5 +1,5 @@
 import {journeyPlacements} from './JourneyPlacements';
-import {cityDistricts} from './CityMissions';
+import {cityDistricts,cityBuildingPosition} from './CityMissions';
 import {layoutOverrides} from './LayoutOverrides';
 export interface Point { x: number; y: number }
 export type Terrain = 'grass' | 'road' | 'rice' | 'pond' | 'courtyard';
@@ -49,7 +49,7 @@ export const villageDetails=[
 export const villageSolids=[{id:'market',x:23,y:29,radius:1},{id:'courtyard-lantern-left',x:20,y:16,radius:0},{id:'courtyard-lantern-right',x:22,y:17,radius:0},{id:'east-fence',x:34,y:21,radius:0},{id:'foreground-tree',x:35,y:34,radius:0}];
 /** Ground diamonds cover walls/stalls, not the tall roof/canopy above a walkable path. */
 export const landmarkFootprints=[
-    ...cityDistricts.map(d=>({id:d.id,x:d.x-2,y:d.y-2,halfWidth:80,halfDepth:26,lift:20})),
+    ...cityDistricts.map(d=>({id:d.id,...cityBuildingPosition(d),halfWidth:105,halfDepth:34,lift:30})),
     {id:'journey.science',x:53,y:30,halfWidth:110,halfDepth:36,lift:25},
     {id:'journey.culture',x:31,y:53,halfWidth:125,halfDepth:22,lift:15},
     {id:'journey.island',x:53,y:53,halfWidth:80,halfDepth:36,lift:25},

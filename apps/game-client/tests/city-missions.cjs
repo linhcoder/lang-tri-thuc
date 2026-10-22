@@ -1,6 +1,6 @@
 const assert=require('node:assert/strict'),fs=require('node:fs'),ts=require('typescript');
 require.extensions['.ts']=(m,f)=>m._compile(ts.transpileModule(fs.readFileSync(f,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2020}}).outputText,f);
-const {cityDistricts,cityMissions,cityQuestion,restoreCity,mergeCity}=require('../assets/scripts/world/CityMissions.ts');
+const {cityDistricts,cityBuildingPosition,cityMissions,cityQuestion,restoreCity,mergeCity}=require('../assets/scripts/world/CityMissions.ts');
 const {VillageMap,toWorld}=require('../assets/scripts/world/VillageModel.ts');
 const {validateZones,portalDestination,worldZones}=require('../assets/scripts/world/WorldZones.ts');
 const {CampaignSave}=require('../assets/scripts/world/CampaignSave.ts');
@@ -9,7 +9,7 @@ const map=new VillageMap();assert.equal(validateZones(),true);
 for(const d of cityDistricts){
  assert.ok(map.path({x:20,y:20},d).length,d.id+' reachable');
  assert.deepEqual(portalDestination(toWorld(worldZones[0].spawn),d.id),toWorld(d));
- assert.equal(map.canStand(toWorld({x:d.x-2,y:d.y-2})),false,'building collision');
+ assert.equal(map.canStand(toWorld(cityBuildingPosition(d))),false,'building collision');
 }
 const answers=[['30 sách','8 sách','2 gói','Còn 12 sách, thêm 2 gói để đủ 20.'],['Xe A','7:53','12 nghìn','7:43'],['Ánh sáng','4 cm','Trong lần thử này, chậu sáng cao hơn.','Lặp lại với nhiều cặp chậu cùng điều kiện.'],['30 kg','30 kg','3 thùng','2 cây bóng mát và 2 cây hoa']];
 for(const [i,m] of cityMissions.entries()){

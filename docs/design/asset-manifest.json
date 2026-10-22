@@ -14,6 +14,222 @@
   ],
   "assets": [
     {
+      "id": "city.library",
+      "name": "City landmark / library",
+      "group": "Buildings",
+      "path": "assets/resources/village/city-v1/library.png",
+      "size": [
+        280,
+        190
+      ],
+      "anchor": [
+        0.5,
+        0
+      ],
+      "layer": "Actors",
+      "collision": null,
+      "status": "placeholder",
+      "trim": true,
+      "source": "OpenAI built-in image_gen, 2026-10-22; docs/design/CITY_ASSETS.md; cleaned transparent sprite",
+      "pixels": [
+        1536,
+        1024
+      ],
+      "bytes": 2506780
+    },
+    {
+      "id": "city.station",
+      "name": "City landmark / station",
+      "group": "Buildings",
+      "path": "assets/resources/village/city-v1/station.png",
+      "size": [
+        280,
+        190
+      ],
+      "anchor": [
+        0.5,
+        0
+      ],
+      "layer": "Actors",
+      "collision": null,
+      "status": "placeholder",
+      "trim": true,
+      "source": "OpenAI built-in image_gen, 2026-10-22; docs/design/CITY_ASSETS.md; cleaned transparent sprite",
+      "pixels": [
+        1536,
+        1024
+      ],
+      "bytes": 2310953
+    },
+    {
+      "id": "city.lab",
+      "name": "City landmark / lab",
+      "group": "Buildings",
+      "path": "assets/resources/village/city-v1/lab.png",
+      "size": [
+        280,
+        190
+      ],
+      "anchor": [
+        0.5,
+        0
+      ],
+      "layer": "Actors",
+      "collision": null,
+      "status": "placeholder",
+      "trim": true,
+      "source": "OpenAI built-in image_gen, 2026-10-22; docs/design/CITY_ASSETS.md; cleaned transparent sprite",
+      "pixels": [
+        1536,
+        1024
+      ],
+      "bytes": 2500421
+    },
+    {
+      "id": "city.park",
+      "name": "City landmark / park",
+      "group": "Buildings",
+      "path": "assets/resources/village/city-v1/park.png",
+      "size": [
+        280,
+        190
+      ],
+      "anchor": [
+        0.5,
+        0
+      ],
+      "layer": "Actors",
+      "collision": null,
+      "status": "placeholder",
+      "trim": true,
+      "source": "OpenAI built-in image_gen, 2026-10-22; docs/design/CITY_ASSETS.md; cleaned transparent sprite",
+      "pixels": [
+        1536,
+        1024
+      ],
+      "bytes": 2750322
+    },
+    {
+      "id": "house.exterior.home",
+      "name": "Private house / home",
+      "group": "Buildings",
+      "path": "assets/resources/village/enterable-houses-v1/home.png",
+      "size": [
+        260,
+        230
+      ],
+      "anchor": [
+        0.5,
+        0
+      ],
+      "layer": "Actors",
+      "collision": null,
+      "status": "final",
+      "trim": true,
+      "source": "OpenAI built-in image_gen, 2026-10-18; docs/design/enterable-houses-v1.prompts.json",
+      "pixels": [
+        1333,
+        1180
+      ],
+      "bytes": 1961478
+    },
+    {
+      "id": "house.exterior.tam",
+      "name": "Private house / tam",
+      "group": "Buildings",
+      "path": "assets/resources/village/enterable-houses-v1/tam-v3.png",
+      "size": [
+        260,
+        230
+      ],
+      "anchor": [
+        0.5,
+        0
+      ],
+      "layer": "Actors",
+      "collision": null,
+      "status": "final",
+      "trim": true,
+      "source": "OpenAI built-in image_gen, 2026-10-18; docs/design/enterable-houses-v1.prompts.json",
+      "pixels": [
+        1774,
+        887
+      ],
+      "bytes": 1551702
+    },
+    {
+      "id": "house.exterior.farm",
+      "name": "Private house / farm",
+      "group": "Buildings",
+      "path": "assets/resources/village/enterable-houses-v1/farm.png",
+      "size": [
+        260,
+        230
+      ],
+      "anchor": [
+        0.5,
+        0
+      ],
+      "layer": "Actors",
+      "collision": null,
+      "status": "final",
+      "trim": true,
+      "source": "OpenAI built-in image_gen, 2026-10-18; docs/design/enterable-houses-v1.prompts.json",
+      "pixels": [
+        1335,
+        1178
+      ],
+      "bytes": 2291371
+    },
+    {
+      "id": "house.exterior.pottery",
+      "name": "Private house / pottery",
+      "group": "Buildings",
+      "path": "assets/resources/village/enterable-houses-v1/pottery.png",
+      "size": [
+        260,
+        230
+      ],
+      "anchor": [
+        0.5,
+        0
+      ],
+      "layer": "Actors",
+      "collision": null,
+      "status": "final",
+      "trim": true,
+      "source": "OpenAI built-in image_gen, 2026-10-18; docs/design/enterable-houses-v1.prompts.json",
+      "pixels": [
+        1420,
+        1108
+      ],
+      "bytes": 1864586
+    },
+    {
+      "id": "house.exterior.books",
+      "name": "Private house / books",
+      "group": "Buildings",
+      "path": "assets/resources/village/enterable-houses-v1/books.png",
+      "size": [
+        260,
+        230
+      ],
+      "anchor": [
+        0.5,
+        0
+      ],
+      "layer": "Actors",
+      "collision": null,
+      "status": "final",
+      "trim": true,
+      "source": "OpenAI built-in image_gen, 2026-10-18; docs/design/enterable-houses-v1.prompts.json",
+      "pixels": [
+        1496,
+        1051
+      ],
+      "bytes": 1899663
+    },
+    {
       "id": "reward.plant",
       "name": "Reward decoration / plant",
       "group": "Props",

@@ -5,7 +5,7 @@ import {direction8} from '../world/VillageModel';
 import {loadedLayoutRevision} from '../world/LiveLayout';
 import {applyLiveNpcs,loadPublishedLayout} from '../world/LiveLayout';
 import {chooseStudent,selectAnotherStudent,StudentSession,studentRequest} from '../network/StudentSession';
-import {createJourneyScenery,decorateJourneyScenery,journeyScenery} from '../ui/JourneyScenery';
+import {createJourneyScenery,decorateJourneyScenery,journeyScenery,cityScenery,decorateCityScenery} from '../ui/JourneyScenery';
 import {beginModalPress,endModalPress} from '../ui/ModalTheme';
 import {UiClickSound} from '../ui/UiClickSound';
 import {CmsActors} from '../ui/CmsActors';
@@ -45,7 +45,7 @@ import {chapters} from '../world/CampaignContent';
 const { ccclass, disallowMultiple, requireComponent } = _decorator;
 const npcArt=[['co-tam','co-tam','CoTamSprite'],['co-giao-lan','teacher','TeacherSprite'],['ba-ban-hang','market-lady','MarketLadySprite'],['nghe-nhan-gom','potter','PotterSprite'],['ti-na','ti-na','FriendsSprite'],['chi-hang-cuoi','hang-cuoi','FestivalSprite']] as const;
 const actorScale=0.78;
-function scenerySprite(node:Node):Sprite|null{return node.getChildByName('PrivateHouseArt')?.getComponent(Sprite)??node.getComponent(Sprite)??node.getChildByName('RegionalArt')?.getComponent(Sprite)??null;}
+function scenerySprite(node:Node):Sprite|null{return node.getChildByName('PrivateHouseArt')?.getComponent(Sprite)??node.getComponent(Sprite)??node.getChildByName('RegionalArt')?.getComponent(Sprite)??node.getChildByName('PaintedLandmark')?.getComponent(Sprite)??null;}
 function ui(parent: Node, name: string, width = 1, height = 1): Node {
     const n = new Node(name); n.layer = Layers.Enum.UI_2D; parent.addChild(n);
     n.addComponent(UITransform).setContentSize(width, height); return n;
@@ -287,7 +287,7 @@ export class VillageBootstrap extends Component {
             const loadPack=(name:string)=>new Promise<JsonAsset>((resolve,reject)=>resources.load(name,JsonAsset,(error,asset)=>{packCount++;progress();error?reject(error):resolve(asset);}));
             const [,pack,lessons,npcPack]=await Promise.all([this.art.load(value=>{artProgress=value;progress();}),loadPack('chapter-pack'),loadPack('lesson-pack'),loadPack('npc-pack')]);
             if(!this.isValid)return;
-            this.sceneryNodes.push(...this.actors.children.filter(n=>n.name.startsWith('JourneyLandmark-')));
+            this.sceneryNodes.push(...this.actors.children.filter(n=>n.name.startsWith('JourneyLandmark-')||n.name.startsWith('CityLandmark-')));
             this.cms=new CmsActors(this.root,this.actors,this.art,this.player,id=>{const index=chapters.findIndex(c=>c.quests.some(q=>q.id===id));if(index===0){this.hub?.close();this.chapter?.open(['q.ch01.plant','q.ch01.count'].includes(id)?'farmer':'elder');}else if(index>0)this.hub?.open('chapter',index);});void this.cms.load();
             if(!applyChapterText(pack.json))console.warn('Invalid chapter text pack: using built-in content');
             if(!applyLessonPack(lessons.json))console.warn('Invalid lesson pack: using built-in questions');
@@ -583,6 +583,10 @@ export class VillageBootstrap extends Component {
         if(this.player.moving)this.freeCameraOffset=undefined;
         const camera = cameraOffset(this.freeCameraOffset?{x:-this.freeCameraOffset.x,y:-this.freeCameraOffset.y}:focus, cameraWidth, cameraHeight); this.world.setPosition(camera.x * this.worldScale, camera.y * this.worldScale);
         this.animateNpcs(dt,camera,cameraWidth,cameraHeight);
+        if(this.assetsReady)for(const item of cityScenery){
+            const node=this.actors.getChildByName('CityLandmark-'+item.id);if(!node||this.journeyDecorated.has(item.id)||Math.abs(node.position.x+camera.x)>cameraWidth/2+item.width||Math.abs(node.position.y+camera.y)>cameraHeight/2+item.width)continue;
+            this.journeyDecorated.add(item.id);void decorateCityScenery(this.actors,this.art,item.id).catch(error=>{if(this.isValid)this.journeyDecorated.delete(item.id);console.warn('City art unavailable:',error);});
+        }
         if(this.assetsReady)for(const item of journeyScenery){
             const node=this.actors.getChildByName('JourneyLandmark-'+item.id);if(!node||this.journeyDecorated.has(item.id)||Math.abs(node.position.x+camera.x)>cameraWidth/2+item.width||Math.abs(node.position.y+camera.y)>cameraHeight/2+item.width)continue;
             this.journeyDecorated.add(item.id);void decorateJourneyScenery(this.actors,this.art,candidate=>candidate.id===item.id).catch(error=>{if(this.isValid)this.journeyDecorated.delete(item.id);console.warn('Landmark art unavailable:',error);});

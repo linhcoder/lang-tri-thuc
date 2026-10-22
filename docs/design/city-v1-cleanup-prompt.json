@@ -1,0 +1,18 @@
+{
+  "tool": "OpenAI built-in image_gen",
+  "date": "2026-10-22",
+  "prompt": "Edit target: the supplied game landmark. Preserve exactly its architectural identity, colors, objects, camera and painted style. Production transparent sprite cleanup only: remove ALL colored atmospheric glow, blurred background, surrounding haze and ambient gradients outside the actual building, vegetation and ground footprint. Outside the physical silhouette must be truly fully transparent with clean antialiased edges, including between objects. Solid physical surfaces fully opaque. No black/white/colored backdrop, no cast shadow extending outside footprint. Keep full subject uncropped with small transparent margins. Output PNG RGBA 1536x1024.",
+  "inputs": [
+    "docs/design/city-v1/library.png",
+    "docs/design/city-v1/station.png",
+    "docs/design/city-v1/lab.png",
+    "docs/design/city-v1/park.png"
+  ],
+  "outputs": [
+    "apps/game-client/assets/resources/village/city-v1/library.png",
+    "apps/game-client/assets/resources/village/city-v1/station.png",
+    "apps/game-client/assets/resources/village/city-v1/lab.png",
+    "apps/game-client/assets/resources/village/city-v1/park.png"
+  ],
+  "transparent_background": true
+}

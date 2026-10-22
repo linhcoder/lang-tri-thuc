@@ -1,0 +1,66 @@
+[
+  {
+    "id": "city.lab",
+    "path": "docs/design/city-v1/lab.png",
+    "width": 1536,
+    "height": 1024,
+    "bytes": 2580836,
+    "sha256": "cb3c3f5ccbbe65783880b1def2dc6bb7d1b27c10bb827f917fc5c33ee3e0bcf4",
+    "mode": "RGBA",
+    "alphaRange": [
+      0,
+      254
+    ],
+    "transparentPixels": 722740,
+    "reviewState": "design-review",
+    "runtimeIntegrated": false
+  },
+  {
+    "id": "city.library",
+    "path": "docs/design/city-v1/library.png",
+    "width": 1536,
+    "height": 1024,
+    "bytes": 2590225,
+    "sha256": "be16a6e287703c4e2fdf9e2bc0d52096a068295d9451e134495e543521d2b68d",
+    "mode": "RGBA",
+    "alphaRange": [
+      0,
+      254
+    ],
+    "transparentPixels": 639989,
+    "reviewState": "design-review",
+    "runtimeIntegrated": false
+  },
+  {
+    "id": "city.park",
+    "path": "docs/design/city-v1/park.png",
+    "width": 1536,
+    "height": 1024,
+    "bytes": 2687559,
+    "sha256": "1f6278c97f91cec7b50c0c118743d45eabe4cf65d3c68b56f7769b3e9d55d0ee",
+    "mode": "RGBA",
+    "alphaRange": [
+      0,
+      254
+    ],
+    "transparentPixels": 690062,
+    "reviewState": "design-review",
+    "runtimeIntegrated": false
+  },
+  {
+    "id": "city.station",
+    "path": "docs/design/city-v1/station.png",
+    "width": 1536,
+    "height": 1024,
+    "bytes": 2324481,
+    "sha256": "32fabeb92ab458b870e3f0de8664e5e3707006e67e33b98a379beb53b311875c",
+    "mode": "RGBA",
+    "alphaRange": [
+      0,
+      254
+    ],
+    "transparentPixels": 812829,
+    "reviewState": "design-review",
+    "runtimeIntegrated": false
+  }
+]

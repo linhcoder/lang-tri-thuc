@@ -1,5 +1,21 @@
 # Hành trình 100 cấp và hồ sơ học sinh
 
+## Rà soát phần còn lại — 23/10/2026
+
+- Bộ art thành phố ngày 22/10 đã tích hợp và có biên bản deploy/QA; còn kiểm lại Android thật và soak dài hạn cho chính bộ art mới. Ma trận Android/4G/âm thanh ngày 21/10 đã đạt cho bản trước đó.
+- Backup offsite đang chờ đích kết nối theo lựa chọn đã thống nhất; lịch thử đã tắt. Kênh cảnh báo email/chat bên ngoài chưa cấu hình. Xem [BACKUP_OPERATIONS](../BACKUP_OPERATIONS.md).
+- Trước khi mở rộng beta, cần đối chiếu trạng thái duyệt nội dung giáo dục/tiếng Việt và quyền sử dụng tài nguyên trong admin; kiểm thử tự động không thay thế hồ sơ duyệt. Chưa có bằng chứng iOS thật trong các tài liệu đã rà soát. Xem [BETA_TECHNICAL_QA](../BETA_TECHNICAL_QA.md).
+- Xe buýt, cầu và thùng phân loại trong art thành phố hiện là chi tiết ảnh; animation/tương tác riêng là hướng nâng cấp, chưa triển khai.
+- Các câu “chưa làm/chưa deploy” bên dưới thuộc lịch sử từng đợt; đối chiếu mục mới hơn trước khi coi là việc còn mở. Lần rà soát này không xác minh lại trạng thái VPS trực tiếp.
+
+## Asset thành phố đã triển khai — 22/10/2026
+
+- Bốn công trình có ảnh riêng: thư viện mái sách, ga xe buýt điện, trung tâm khoa học mái kính và công viên sinh thái. Có meta/UUID, tải khi camera tới gần và hình code làm fallback.
+- Đặt công trình phía đông đại lộ, tách thư viện khỏi biển Phố văn hóa. Đã căn tỷ lệ, caption, va chạm dùng chung client/server, y-sort và mờ khi che nhân vật. WebP có PNG fallback, giữ alpha và kích thước nguồn.
+- TypeScript/client/backend/CMS/rooms và build Web/API/rooms/admin đạt. QA Cocos local và HTTPS ở 1600×900, 844×390 đạt bốn ảnh, lối đi, Low và reload; bốn dự án/16 bước vẫn đạt. Signed WebSocket hai client xác nhận MySQL và cách ly hồ sơ. Mobile được mô phỏng bằng trình duyệt; chưa kiểm lại Android thật hoặc soak dài hạn cho bộ art mới.
+- Release `city-art-01e767b0-20261022`, contentVersion `01e767b0` đang chạy tại https://ltt.vui-hoc.xyz/game/. Backup đã khôi phục thử; ba hồ sơ thật, tiến độ, bản đồ, nội dung quản trị, NPC và lịch sử CMS giữ nguyên checksum. QA đã xóa tài khoản; active CMS đã nâng tương thích.
+- Chi tiết/prompt/checksum tại [CITY_ASSETS](CITY_ASSETS.md); backup, overlay và rollback tại [runbook VPS](../../deploy/aapanel/README.md).
+
 ## Deploy VPS sau kiểm thử — 21/10/2026
 
 - Đã triển khai working tree mới nhất thành release `city-843b7864-20261021`, contentVersion `843b7864`, tại https://ltt.vui-hoc.xyz/game/. API/rooms build trên Linux, admin build với URL production; hai API MySQL healthy và bốn dịch vụ active.

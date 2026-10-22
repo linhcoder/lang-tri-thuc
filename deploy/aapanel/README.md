@@ -1,6 +1,16 @@
 # aaPanel staging: ltt.vui-hoc.xyz
 
-## Thành phố 10+ — VPS 21/10/2026 (hiện tại)
+## Asset thành phố — VPS 22/10/2026 (hiện tại)
+
+Release `city-art-01e767b0-20261022`, contentVersion `01e767b0`, đã tích hợp bốn công trình và đặt phía đông đại lộ. Game: https://ltt.vui-hoc.xyz/game/. Chi tiết tại [CITY_ASSETS](../../docs/design/CITY_ASSETS.md).
+
+Overlay 54 file, SHA-256 `8a64a219c006e0b5665c29f627eb50ecd1c36dda2b57fdcd385a0532d63ded52`, 36.664.716 byte. Checksum nguồn/game/admin khớp trước kích hoạt; build API/rooms Linux, nginx -t và hai API MySQL/bốn services đạt. Backup `/opt/lang-tri-thuc/backups/database-20261022T020913Z.sql` đã khôi phục thử khớp và xóa DB thử. Lockfile nguồn được khôi phục sau npm prune và đối chiếu lại.
+
+QA HTTPS ở 1600×900 và mobile mô phỏng 844×390 đạt bốn texture riêng, tỷ lệ/caption, va chạm/lối đi, tải khi camera tới gần, mờ khi che người chơi, Low và reload; không page error. Bốn dự án/16 bước, HTTPS/preview gate/admin/CMS/gzip đạt. Signed WebSocket hai client xác nhận tiến độ/checkpoint/trang trí/gốm lưu MySQL và cách ly học sinh. Tài khoản QA đã xóa; ba hồ sơ thật, tiến độ, published/draft, nội dung quản trị, NPC và từng CMS release cũ giữ nguyên checksum. Active CMS nâng sang `01e767b0`.
+
+Giữ release `city-843b7864-20261021`. Rollback phải chọn lại active CMS có baseVersion `843b7864` từ lịch sử và restart đồng bộ services; giữ tiến độ mới, không phục hồi toàn DB đè tiến độ. Bằng chứng local ignored: `temp/deploy/city-art-deploy-state.json`, `city-art-final-verification.json`, `qa/city-art-live/`. Tài liệu bàn giao bổ sung sau QA nằm trong working tree; archive giữ snapshot nguồn lúc chuẩn bị release.
+
+## Thành phố 10+ — VPS 21/10/2026 (lịch sử)
 
 Đã kích hoạt `city-843b7864-20261021`, contentVersion `843b7864`, source `f512735` kèm toàn bộ working tree đã kiểm thử. Game: https://ltt.vui-hoc.xyz/game/; admin: https://ltt.vui-hoc.xyz/. Bốn dự án thành phố/16 bước, tiến độ theo hồ sơ và nâng tương thích CMS đã lên VPS.
 

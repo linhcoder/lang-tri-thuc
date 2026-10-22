@@ -1,0 +1,66 @@
+[
+  {
+    "id": "city.lab",
+    "path": "apps/game-client/assets/resources/village/city-v1/lab.png",
+    "width": 1536,
+    "height": 1024,
+    "bytes": 2500421,
+    "sha256": "cdaf6e748d2b609f8d8eac22ceab4092c842198142d98e2ce3f754b214393bab",
+    "alphaRange": [
+      0,
+      254
+    ],
+    "transparentPixels": 721321,
+    "uuid": "263e8161-0d1c-4d44-9243-9b1079a7628f",
+    "tool": "OpenAI built-in image_gen",
+    "date": "2026-10-22"
+  },
+  {
+    "id": "city.library",
+    "path": "apps/game-client/assets/resources/village/city-v1/library.png",
+    "width": 1536,
+    "height": 1024,
+    "bytes": 2506780,
+    "sha256": "0d86d59bbbb2b3f767ca3034e784394525e842e0c98c4c4eb0618bd0d5da909c",
+    "alphaRange": [
+      0,
+      254
+    ],
+    "transparentPixels": 603609,
+    "uuid": "dab883bb-514b-4257-a628-bfffb5f6cd2b",
+    "tool": "OpenAI built-in image_gen",
+    "date": "2026-10-22"
+  },
+  {
+    "id": "city.park",
+    "path": "apps/game-client/assets/resources/village/city-v1/park.png",
+    "width": 1536,
+    "height": 1024,
+    "bytes": 2750322,
+    "sha256": "f68803992fa0f78a46ca1ea4268e3058c7dded0c30428e3e0ef005e703721de7",
+    "alphaRange": [
+      0,
+      254
+    ],
+    "transparentPixels": 660845,
+    "uuid": "5d313d9f-6136-4df3-b15d-0af54f18ab97",
+    "tool": "OpenAI built-in image_gen",
+    "date": "2026-10-22"
+  },
+  {
+    "id": "city.station",
+    "path": "apps/game-client/assets/resources/village/city-v1/station.png",
+    "width": 1536,
+    "height": 1024,
+    "bytes": 2310953,
+    "sha256": "3230a7804bc706c2810d35861e4a4e723d8885b2c5f777c58216c61c35c17e54",
+    "alphaRange": [
+      0,
+      254
+    ],
+    "transparentPixels": 799372,
+    "uuid": "5b97dd09-3ad7-4a87-9c86-9ae434a12b95",
+    "tool": "OpenAI built-in image_gen",
+    "date": "2026-10-22"
+  }
+]

@@ -2,7 +2,7 @@
 import argparse, concurrent.futures, hashlib, json, math, pathlib
 from PIL import Image, ImageChops, ImageStat
 
-SCENERY_DIRS = ('village/journey-regions-v1/', 'village/enterable-houses-v1/')
+SCENERY_DIRS = ('village/journey-regions-v1/', 'village/enterable-houses-v1/', 'village/city-v1/')
 SCENERY_FILES = {'village/reference-banyan-v1.png', 'village/banyan-v3-clean.png',
                  'village/temple-v3.png', 'village/grass-meadow-v1.png',
                  'village/dirt-path-v1.png', 'village/house-v5.png',

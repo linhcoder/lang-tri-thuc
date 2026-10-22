@@ -1,4 +1,4 @@
-import {cityDistricts} from '../world/CityMissions';
+import {cityDistricts,cityBuildingPosition} from '../world/CityMissions';
 import {journeyPlacements} from '../world/JourneyPlacements';
 import {layoutPlacement} from '../world/LayoutOverrides';
 import {Node,Graphics,Color,Label,UITransform} from 'cc';
@@ -8,12 +8,14 @@ import {VillageArt} from '../world/VillageArt';
 
 /** Each region owns an original illustration; no cross-region landmark aliases. */
 export const journeyScenery=journeyPlacements;
+export const cityScenery=cityDistricts.map(d=>({...d,asset:'city.'+d.id.slice(5),width:280}));
 
 export function createJourneyScenery(world:Node,actors:Node):void{
-    for(const d of cityDistricts){
+    for(const d of cityScenery){
         const n=new Node('CityLandmark-'+d.id);n.layer=actors.layer;actors.addChild(n);
-        const p=toWorld({x:d.x-2,y:d.y-2});n.setPosition(p.x,p.y);
-        n.addComponent(UITransform).setContentSize(180,150);
+        const p=toWorld(cityBuildingPosition(d));n.setPosition(p.x,p.y);
+        n.addComponent(UITransform).setContentSize(d.width,190);
+        n.getComponent(UITransform)!.setAnchorPoint(.5,0);
         const g=n.addComponent(Graphics);g.fillColor=new Color(d.color);g.roundRect(-80,20,160,100,8);g.fill();
         g.fillColor=new Color('#e3f1fc');for(const x of [-55,-10,35]){g.rect(x,75,22,26);g.fill();}
         g.fillColor=new Color('#414f62');g.rect(-15,20,30,42);g.fill();
@@ -40,6 +42,20 @@ export function createJourneyScenery(world:Node,actors:Node):void{
         const label=caption.addComponent(Label);label.string=region.name+' / Lv.'+region.level;
         label.fontSize=15;label.lineHeight=20;label.overflow=Label.Overflow.SHRINK;label.enableWrapText=false;label.color=new Color('#fff2ce');
     }
+}
+
+/** City textures load only near the camera; the base building survives a failed load. */
+export async function decorateCityScenery(actors:Node,art:VillageArt,id:string):Promise<void>{
+    const item=cityScenery.find(d=>d.id===id);if(!item)return;
+    const frame=await art.ensureObject(item.asset,-1);
+    if(!actors.isValid||!frame)return;
+    const node=actors.getChildByName('CityLandmark-'+id);
+    if(!node?.isValid||node.getChildByName('PaintedLandmark'))return;
+    const height=item.width*frame.rect.height/frame.rect.width;
+    art.sprite(node,'PaintedLandmark',frame,item.width,height);
+    node.getComponent(Graphics)?.clear();
+    node.getComponent(UITransform)!.setContentSize(item.width,height);
+    node.getChildByName('CityCaption')?.setPosition(0,height+18);
 }
 
 export async function decorateJourneyScenery(actors:Node,art:VillageArt,include:(item:typeof journeyScenery[number])=>boolean=()=>true):Promise<void>{

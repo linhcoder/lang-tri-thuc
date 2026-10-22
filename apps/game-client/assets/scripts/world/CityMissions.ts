@@ -5,6 +5,8 @@ export const cityDistricts=[
  {id:'city-lab',name:'Trung tâm khoa học',x:65,y:36,color:'#7b98bd'},
  {id:'city-park',name:'Công viên sinh thái',x:65,y:44,color:'#6ca878'},
 ] as const;
+/** Buildings sit east of the avenue; district spawns remain on the public road. */
+export const cityBuildingPosition=(district:{x:number;y:number})=>({x:district.x+2,y:district.y-2});
 const step=(prompt:string,right:string,a:string,b:string,hint:string)=>({prompt,choices:[right,a,b],answer:0,hint});
 export const cityMissions=cityDistricts.map((district,i)=>({id:district.id,title:district.name,skill:['language','math','nature','math'][i],steps:[
  [step('Thư viện có 120 sách. 1/4 là sách khoa học. Có bao nhiêu sách khoa học?','30 sách','40 sách','90 sách','Chia 120 thành 4 phần bằng nhau.'),step('Có 30 sách khoa học; 18 sách đã được mượn. Cần đủ 20 sách trên kệ. Phải bổ sung bao nhiêu?','8 sách','2 sách','12 sách','Tính số sách còn lại, rồi lấy 20 trừ số đó.'),step('Mỗi gói bổ sung có 4 sách. Để thêm 8 sách, cần mấy gói?','2 gói','4 gói','8 gói','Lấy số sách cần thêm chia cho 4.'),step('Báo cáo nào nêu đủ dữ kiện và kết luận?','Còn 12 sách, thêm 2 gói để đủ 20.','Có nhiều sách nên không cần thêm.','Thêm 8 gói vì thiếu 8 sách.','Đối chiếu số sách còn, số gói và mục tiêu 20 sách.')],
